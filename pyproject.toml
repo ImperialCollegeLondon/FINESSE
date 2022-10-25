@@ -1,8 +1,11 @@
 [tool.poetry]
-name = "MyProject"
+name = "FINESSE_GUI"
 version = "0.1.0"
 description = ""
-authors = ["Jane Doe <jane_doe@some_email.com>"]
+authors = [
+    "Alex Dewar <a.dewar@imperial.ac.uk>",
+    "Imperial College London RSE Team <ict-rse-team@imperial.ac.uk>"
+]
 
 [tool.poetry.dependencies]
 python = "^3.9"
