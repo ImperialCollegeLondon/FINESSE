@@ -43,7 +43,7 @@ class SerialPortControl(QWidget):
             _port = QComboBox()
             _port.addItems(list(avail_ports))
             _port.setCurrentText(details["port"])
-            _port.currentTextChanged.connect(
+            _port.currentTextChanged.connect(  # type: ignore
                 partial(self.on_port_changed, device_name=name)
             )
             layout.addWidget(_port, i, 1)
@@ -52,7 +52,7 @@ class SerialPortControl(QWidget):
             _brate = QComboBox()
             _brate.addItems([str(br) for br in avail_baud_rates])
             _brate.setCurrentText(details["baud_rate"])
-            _brate.currentTextChanged.connect(
+            _brate.currentTextChanged.connect(  # type: ignore
                 partial(self.on_baud_rate_changed, device_name=name)
             )
             layout.addWidget(_brate, i, 2)
@@ -60,7 +60,7 @@ class SerialPortControl(QWidget):
             # And a manual way to open/close it
             _open_close_btn = QPushButton("Open")
             _open_close_btn.setCheckable(True)
-            _open_close_btn.released.connect(
+            _open_close_btn.released.connect(  # type: ignore
                 partial(
                     self.on_open_close_clicked, device_name=name, button=_open_close_btn
                 )
