@@ -19,6 +19,21 @@ class SerialPortControl(QWidget):
 
         self._devices = deepcopy(devices)
         self._is_open = {d: False for d in devices.keys()}
+        layout = self._create_controls(avail_ports, avail_baud_rates)
+        self.setLayout(layout)
+
+    def _create_controls(
+        self, avail_ports: Sequence[str], avail_baud_rates: Sequence[int]
+    ) -> QGridLayout:
+        """Creates the controls for the devices.
+
+        Args:
+            avail_ports: List of available ports.
+            avail_baud_rates: List of available badu rates.
+
+        Returns:
+            QGridLayout: The layout with the widgets.
+        """
         layout = QGridLayout()
         for i, (name, details) in enumerate(self._devices.items()):
             # Adding the device name
@@ -53,7 +68,7 @@ class SerialPortControl(QWidget):
             _open_close_btn.setChecked(self._is_open[name])
             layout.addWidget(_open_close_btn, i, 3)
 
-        self.setLayout(layout)
+        return layout
 
     def on_port_changed(self, new_port: str, device_name: str) -> None:
         """Callback to deal with a change of port for the given device.
