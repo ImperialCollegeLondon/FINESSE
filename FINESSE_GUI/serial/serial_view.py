@@ -17,10 +17,14 @@ class SerialPortControl(QWidget):
     ) -> None:
         super().__init__()
 
+        self._devices = deepcopy(devices)
+        self._is_open = {d: False for d in devices.keys()}
         layout = QGridLayout()
-        for i, (name, details) in enumerate(devices.items()):
+        for i, (name, details) in enumerate(self._devices.items()):
+            # Adding the device name
             layout.addWidget(QLabel(name), i, 0)
 
+            # Its port
             _port = QComboBox()
             _port.addItems(list(avail_ports))
             _port.setCurrentText(details["port"])
@@ -29,6 +33,7 @@ class SerialPortControl(QWidget):
             )
             layout.addWidget(_port, i, 1)
 
+            # Its baud rate
             _brate = QComboBox()
             _brate.addItems([str(br) for br in avail_baud_rates])
             _brate.setCurrentText(details["baud_rate"])
@@ -37,11 +42,18 @@ class SerialPortControl(QWidget):
             )
             layout.addWidget(_brate, i, 2)
 
+            # And a manual way to open/close it
             _open_close_btn = QPushButton("Open")
+            _open_close_btn.setCheckable(True)
+            _open_close_btn.released.connect(
+                partial(
+                    self.on_open_close_clicked, device_name=name, button=_open_close_btn
+                )
+            )
+            _open_close_btn.setChecked(self._is_open[name])
             layout.addWidget(_open_close_btn, i, 3)
 
         self.setLayout(layout)
-        self._devices = deepcopy(devices)
 
     def on_port_changed(self, new_port: str, device_name: str) -> None:
         """Callback to deal with a change of port for the given device.
@@ -68,6 +80,32 @@ class SerialPortControl(QWidget):
             f"- new baud_rate: {new_baud_rate}"
         )
         self._devices[device_name]["port"] = new_baud_rate
+
+    def on_open_close_clicked(self, device_name: str, button: QPushButton) -> None:
+        """Open/Close the connection of the chosen device when the button is pushed.
+
+        This method tries to open/close the device and, if successful, change the label
+        on the button. Otherwise, it reverts back to the previous state.
+
+        TODO: Do we need this? Not doing anything for now, obviously.
+
+        Args:
+            device_name: Name of the device affected.
+            button: The button that sent the signal.
+        """
+        is_open = button.isChecked()
+        try:
+            # Try to open/close things
+            pass
+        except Exception:
+            # and if they dont work...
+            is_open = not is_open
+
+        self._is_open[device_name] = is_open
+        button.setChecked(is_open)
+        button.setText("Close" if is_open else "Open")
+
+        print(f"Port for device {device_name} is open: {is_open}")
 
 
 if __name__ == "__main__":
