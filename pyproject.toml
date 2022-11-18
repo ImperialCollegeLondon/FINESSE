@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "FINESSE_GUI"
+name = "FINESSE"
 version = "0.1.0"
 description = ""
 authors = [
