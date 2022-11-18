@@ -36,6 +36,9 @@ class SerialPortControl(QWidget):
             _brate = QComboBox()
             _brate.addItems([str(br) for br in avail_baud_rates])
             _brate.setCurrentText(str(baud_rate))
+            _brate.currentTextChanged.connect(
+                partial(self.on_baud_rate_changed, device_name=name)
+            )
             layout.addWidget(_brate, i, 2)
 
             _open_close_btn = QPushButton("Open")
@@ -51,6 +54,15 @@ class SerialPortControl(QWidget):
             device_name: Name of the device affected.
         """
         print(device_name, new_port)
+
+    def on_baud_rate_changed(self, new_baud_rate: str, device_name: str) -> None:
+        """Callback to deal with a change of baud rate for the given device.
+
+        Args:
+            new_baud_rate: The new port selected.
+            device_name: Name of the device affected.
+        """
+        print(device_name, new_baud_rate)
 
 
 if __name__ == "__main__":
