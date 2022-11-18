@@ -13,7 +13,7 @@ class SerialPortControl(QWidget):
         self,
         devices: Dict[str, Dict[str, str]],
         avail_ports: Sequence[str],
-        avail_baud_rates: Sequence[int],
+        avail_baud_rates: Sequence[str],
     ) -> None:
         super().__init__()
 
@@ -23,9 +23,9 @@ class SerialPortControl(QWidget):
         self.setLayout(layout)
 
     def _create_controls(
-        self, avail_ports: Sequence[str], avail_baud_rates: Sequence[int]
+        self, avail_ports: Sequence[str], avail_baud_rates: Sequence[str]
     ) -> QGridLayout:
-        """Creates the controls for the devices.
+        """Creates the controls for the ports of the devices.
 
         Args:
             avail_ports: List of available ports.
@@ -65,7 +65,7 @@ class SerialPortControl(QWidget):
                     self.on_open_close_clicked, device_name=name, button=_open_close_btn
                 )
             )
-            _open_close_btn.setChecked(self._is_open[name])
+            _open_close_btn.setChecked(False)
             layout.addWidget(_open_close_btn, i, 3)
 
         return layout
@@ -138,7 +138,7 @@ if __name__ == "__main__":
     serial_port = SerialPortControl(
         devices,
         ("COM1", "COM5", "COM7"),
-        (600, 9600, 115200),
+        ("600", "9600", "115200"),
     )
     window.setCentralWidget(serial_port)
     window.show()
