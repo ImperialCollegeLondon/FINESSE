@@ -1,9 +1,8 @@
 """Panel and widgets related to the control of the serial ports."""
+from functools import partial
 from typing import Sequence
 
 from PySide6.QtWidgets import QComboBox, QGridLayout, QLabel, QPushButton, QWidget
-
-# from functools import partial
 
 
 class SerialPortControl(QWidget):
@@ -11,7 +10,7 @@ class SerialPortControl(QWidget):
 
     def __init__(
         self,
-        names: Sequence[str],
+        device_names: Sequence[str],
         ports: Sequence[str],
         baud_rates: Sequence[int],
         avail_ports: Sequence[str],
@@ -21,12 +20,17 @@ class SerialPortControl(QWidget):
 
         layout = QGridLayout()
 
-        for i, (name, port, baud_rate) in enumerate(zip(names, ports, baud_rates)):
+        for i, (name, port, baud_rate) in enumerate(
+            zip(device_names, ports, baud_rates)
+        ):
             layout.addWidget(QLabel(name), i, 0)
 
             _port = QComboBox()
             _port.addItems(list(avail_ports))
             _port.setCurrentText(port)
+            _port.currentTextChanged.connect(
+                partial(self.on_port_changed, device_name=name)
+            )
             layout.addWidget(_port, i, 1)
 
             _brate = QComboBox()
@@ -38,6 +42,15 @@ class SerialPortControl(QWidget):
             layout.addWidget(_open_close_btn, i, 3)
 
         self.setLayout(layout)
+
+    def on_port_changed(self, new_port: str, device_name: str) -> None:
+        """Callback to deal with a change of port for the given device.
+
+        Args:
+            new_port: The new port selected.
+            device_name: Name of the device affected.
+        """
+        print(device_name, new_port)
 
 
 if __name__ == "__main__":
