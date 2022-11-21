@@ -1,7 +1,8 @@
 """Code for FINESSE's main GUI window."""
-from PySide6.QtWidgets import QMainWindow
+from PySide6.QtWidgets import QGridLayout, QMainWindow, QWidget
 
 from .serial_view import SerialPortControl
+from .stepper_motor_view import StepperMotorControl
 
 
 class MainWindow(QMainWindow):
@@ -12,6 +13,10 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("FINESSE")
 
+        # Setup for stepper motor control
+        stepper_motor = StepperMotorControl()
+
+        # Setup for serial port control
         devices = {
             "ST10": {"port": "COM5", "baud_rate": "9600"},
             "DP9800": {"port": "COM1", "baud_rate": "9600"},
@@ -21,4 +26,11 @@ class MainWindow(QMainWindow):
             ("COM1", "COM5", "COM7"),
             ("600", "9600", "115200"),
         )
-        self.setCentralWidget(serial_port)
+
+        layout = QGridLayout()
+        layout.addWidget(stepper_motor, 0, 0)
+        layout.addWidget(serial_port, 1, 0)
+
+        widget = QWidget()
+        widget.setLayout(layout)
+        self.setCentralWidget(widget)
