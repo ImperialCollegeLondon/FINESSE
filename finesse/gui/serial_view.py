@@ -3,10 +3,10 @@ from copy import deepcopy
 from functools import partial
 from typing import Dict, Sequence
 
-from PySide6.QtWidgets import QComboBox, QGridLayout, QLabel, QPushButton, QWidget
+from PySide6.QtWidgets import QComboBox, QGridLayout, QGroupBox, QLabel, QPushButton
 
 
-class SerialPortControl(QWidget):
+class SerialPortControl(QGroupBox):
     """Widgets to control the communication with a single serial port."""
 
     def __init__(
@@ -26,7 +26,7 @@ class SerialPortControl(QWidget):
             avail_ports: Sequence of possible serial ports.
             avail_baud_rates: Sequence of possible baud rates.
         """
-        super().__init__()
+        super().__init__("Serial port control")
 
         self._devices = deepcopy(devices)
         self._is_open = {d: False for d in devices.keys()}
