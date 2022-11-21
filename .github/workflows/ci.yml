@@ -35,6 +35,14 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
+    - name: Install system dependencies in Linux
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt update
+
+        # Without this, PySide6 gives an ImportError
+        sudo apt install libegl1
+
     - name: Install Poetry
       uses: abatilo/actions-poetry@v2.1.6
       with:
@@ -45,3 +53,5 @@ jobs:
 
     - name: Run tests
       run: poetry run pytest
+      env:
+        QT_QPA_PLATFORM: offscreen
