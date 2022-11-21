@@ -15,6 +15,17 @@ class SerialPortControl(QWidget):
         avail_ports: Sequence[str],
         avail_baud_rates: Sequence[str],
     ) -> None:
+        """Creates a sequence of widgets to control a serial connection to a device.
+
+        The devices
+
+        Args:
+            devices (Dict[str, Dict[str, str]]): Dictionary has a keys the names of the
+                devices to control and as values a dictionary with the port and baud
+                rate chosen for that device.
+            avail_ports: Sequence of possible serial ports.
+            avail_baud_rates: Sequence of possible baud rates.
+        """
         super().__init__()
 
         self._devices = deepcopy(devices)
@@ -28,8 +39,8 @@ class SerialPortControl(QWidget):
         """Creates the controls for the ports of the devices.
 
         Args:
-            avail_ports: List of available ports.
-            avail_baud_rates: List of available badu rates.
+            avail_ports: Sequence of possible serial ports.
+            avail_baud_rates: Sequence of possible baud rates.
 
         Returns:
             QGridLayout: The layout with the widgets.
