@@ -11,11 +11,11 @@ class StepperMotorControl(QGroupBox):
         super().__init__("Target control")
 
         layout = QGridLayout()
-        zenith = QPushButton("ZENITH")
-        nadir = QPushButton("NADIR")
-        hot_bb = QPushButton("HOT_BB")
-        cold_bb = QPushButton("COLD_BB")
-        home = QPushButton("HOME")
+        zenith = self._create_stepper_button("ZENITH")
+        nadir = self._create_stepper_button("NADIR")
+        hot_bb = self._create_stepper_button("HOT_BB")
+        cold_bb = self._create_stepper_button("COLD_BB")
+        home = self._create_stepper_button("HOME")
         park = QPushButton("PARK")
         self.angle = QSpinBox()
         self.angle.setMaximum(359)
@@ -33,6 +33,14 @@ class StepperMotorControl(QGroupBox):
 
         self.setLayout(layout)
 
+    def _create_stepper_button(self, name: str) -> QPushButton:
+        btn = QPushButton(name)
+        btn.clicked.connect(lambda: self._preset_clicked(btn))  # type: ignore
+        return btn
+
+    def _preset_clicked(self, btn: QPushButton) -> None:
+        pub.sendMessage("stepper.move", step=btn.text().lower())
+
     def _goto_clicked(self) -> None:
         """Move stepper motor to specified position."""
-        pub.sendMessage("stepper.move", step_number=self.angle.value())
+        pub.sendMessage("stepper.move", step=self.angle.value())
