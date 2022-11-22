@@ -233,7 +233,7 @@ python-versions = ">=3.7"
 name = "platformdirs"
 version = "2.5.4"
 description = "A small Python package for determining appropriate platform-specific dirs, e.g. a \"user data dir\"."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 
@@ -508,7 +508,7 @@ testing = ["coverage (>=6.2)", "coverage-enable-subprocess (>=1)", "flaky (>=3.7
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.9,<3.12"
-content-hash = "0a95e97c0f9e206bf43ad2db35770a8813ad9bb8dc2ee864c447ccce3666aadb"
+content-hash = "d9191f20beed808840bf472bb4d51433be24e630dffe6d9500338a433a8a81be"
 
 [metadata.files]
 attrs = [

@@ -1,12 +1,13 @@
 """Panel and widgets related to the control of the serial ports."""
+import logging
 from copy import deepcopy
 from functools import partial
 from typing import Dict, Sequence
 
-from PySide6.QtWidgets import QComboBox, QGridLayout, QLabel, QPushButton, QWidget
+from PySide6.QtWidgets import QComboBox, QGridLayout, QGroupBox, QLabel, QPushButton
 
 
-class SerialPortControl(QWidget):
+class SerialPortControl(QGroupBox):
     """Widgets to control the communication with a single serial port."""
 
     def __init__(
@@ -26,7 +27,7 @@ class SerialPortControl(QWidget):
             avail_ports: Sequence of possible serial ports.
             avail_baud_rates: Sequence of possible baud rates.
         """
-        super().__init__()
+        super().__init__("Serial port control")
 
         self._devices = deepcopy(devices)
         self._is_open = {d: False for d in devices.keys()}
@@ -88,7 +89,7 @@ class SerialPortControl(QWidget):
             new_port: The new port selected.
             device_name: Name of the device affected.
         """
-        print(
+        logging.info(
             f"{device_name} - old port: {self._devices[device_name]['port']} "
             f"- new port: {new_port}"
         )
@@ -101,7 +102,7 @@ class SerialPortControl(QWidget):
             new_baud_rate: The new port selected.
             device_name: Name of the device affected.
         """
-        print(
+        logging.info(
             f"{device_name} - old baud_rate: {self._devices[device_name]['baud_rate']} "
             f"- new baud_rate: {new_baud_rate}"
         )
@@ -131,7 +132,7 @@ class SerialPortControl(QWidget):
         button.setChecked(is_open)
         button.setText("Close" if is_open else "Open")
 
-        print(f"Port for device {device_name} is open: {is_open}")
+        logging.info(f"Port for device {device_name} is open: {is_open}")
 
 
 if __name__ == "__main__":
