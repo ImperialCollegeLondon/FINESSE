@@ -6,6 +6,7 @@ from datetime import datetime
 from platformdirs import user_log_path
 from PySide6.QtWidgets import QApplication
 
+from . import hardware  # noqa
 from . import config
 from .gui.main_window import MainWindow
 
