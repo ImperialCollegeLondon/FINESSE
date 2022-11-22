@@ -4,6 +4,7 @@ version = "0.1.0"
 description = ""
 authors = [
     "Alex Dewar <a.dewar@imperial.ac.uk>",
+    "Diego Alonso Álvarez <d.alonso-alvarez@imperial.ac.uk>",
     "Imperial College London RSE Team <ict-rse-team@imperial.ac.uk>"
 ]
 
