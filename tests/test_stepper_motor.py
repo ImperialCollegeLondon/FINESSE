@@ -20,25 +20,25 @@ def test_constructor() -> None:
 
 def test_move_to_number() -> None:
     """Check that the stepper motor can be moved to valid positions."""
-    stepper = DummyStepperMotor(len(PRESETS))
+    stepper = DummyStepperMotor(360)
 
     # Check that we start at step 0
     assert stepper.current_step == 0
 
     # Out-of-range arguments
     with pytest.raises(ValueError):
-        stepper.move_to(-1)
+        stepper.move_to(-1.0)
     with pytest.raises(ValueError):
-        stepper.move_to(len(PRESETS))
+        stepper.move_to(360.0)
 
     # Check that we can move to a valid position
-    stepper.move_to(1)
+    stepper.move_to(1.0)
     assert stepper.current_step == 1
 
 
 def test_move_to_preset() -> None:
     """Check that the stepper motor can be moved to valid preset values."""
-    stepper = DummyStepperMotor(len(PRESETS))
+    stepper = DummyStepperMotor(360)
 
     # Check that we get an error for invalid presets
     with pytest.raises(ValueError):
