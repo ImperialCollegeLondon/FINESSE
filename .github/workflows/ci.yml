@@ -89,4 +89,4 @@ jobs:
       run: poetry install
 
     - name: Deploy Docs
-      run: mkdocs gh-deploy --force
+      run: poetry run mkdocs gh-deploy --force
