@@ -16,7 +16,6 @@ class StepperMotorControl(QGroupBox):
         hot_bb = self._create_stepper_button("HOT_BB")
         cold_bb = self._create_stepper_button("COLD_BB")
         home = self._create_stepper_button("HOME")
-        park = QPushButton("PARK")
         self.angle = QSpinBox()
         self.angle.setMaximum(359)
         goto = QPushButton("GOTO")
@@ -27,7 +26,6 @@ class StepperMotorControl(QGroupBox):
         layout.addWidget(hot_bb, 0, 2)
         layout.addWidget(cold_bb, 0, 3)
         layout.addWidget(home, 1, 0)
-        layout.addWidget(park, 1, 1)
         layout.addWidget(self.angle, 1, 2)
         layout.addWidget(goto, 1, 3)
 
