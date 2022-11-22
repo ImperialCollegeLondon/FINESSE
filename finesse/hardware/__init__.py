@@ -2,4 +2,4 @@
 from .dummy_stepper_motor import DummyStepperMotor
 
 # TODO: Replace with a real stepper motor device
-stepper = DummyStepperMotor(360)
+stepper = DummyStepperMotor(3600)
