@@ -1,5 +1,4 @@
-# FINESSE GUI
-
+# FINESSE
 A graphical user interface for controlling and monitoring an interferometer device.
 
 ## For developers
@@ -37,7 +36,7 @@ To get started:
 1. Run the main app:
 
    ```bash
-   python -m FINESSE_GUI
+   python -m finesse
    ```
 
 1. Run the tests:
