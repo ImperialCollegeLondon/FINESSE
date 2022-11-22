@@ -36,21 +36,32 @@ class StepperMotorControl(QGroupBox):
         self.setLayout(layout)
 
     def _create_stepper_button(self, name: str) -> QPushButton:
+        """Create a button to move the motor to a preset position.
+
+        Args:
+            name: The name of the preset (will be converted to lowercase)
+        """
         btn = QPushButton(name)
         btn.clicked.connect(lambda: self._preset_clicked(btn))  # type: ignore
         return btn
 
-    def _set_last_clicked(self, btn: QPushButton) -> None:
+    def _set_selected_button(self, btn: QPushButton) -> None:
+        """Change the currently selected button, indicated by colour.
+
+        Args:
+            btn: The just-clicked button
+        """
         if self.last_clicked:
             self.last_clicked.setStyleSheet("")
         btn.setStyleSheet("background-color: blue")
         self.last_clicked = btn
 
     def _preset_clicked(self, btn: QPushButton) -> None:
-        self._set_last_clicked(btn)
+        """Move the stepper motor to preset position."""
+        self._set_selected_button(btn)
         pub.sendMessage("stepper.move", step=btn.text().lower())
 
     def _goto_clicked(self) -> None:
         """Move stepper motor to specified position."""
-        self._set_last_clicked(self.goto)
+        self._set_selected_button(self.goto)
         pub.sendMessage("stepper.move", step=self.angle.value())
