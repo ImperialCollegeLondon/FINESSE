@@ -24,7 +24,7 @@ class MainWindow(QMainWindow):
             ("COM1", "COM5", "COM7"),
             ("600", "9600", "115200"),
         )
-        opus: QGroupBox = OPUSControl()
+        opus: QGroupBox = OPUSControl("127.0.0.1")
 
         layout.addWidget(serial_port, 3, 0)
         layout.addWidget(opus, 0, 1)
