@@ -73,7 +73,7 @@ class OPUSControl(QGroupBox):
 
             button = QPushButton(name.capitalize())
             button.clicked.connect(  # type: ignore
-                partial(self.on_button_clicked, action=name.lower())
+                partial(self.on_acction_button_clicked, action=name.lower())
             )
             btn_layout.addWidget(button)
 
@@ -84,24 +84,6 @@ class OPUSControl(QGroupBox):
         btn_layout.addStretch()
 
         return btn_layout
-
-    def _create_status_page(self) -> QVBoxLayout:
-        """Creates the status_page.
-
-        Returns:
-            QHBoxLayout: The layout with the web view.
-        """
-        status_page = QGroupBox("Status")
-        self.status = QWebEngineView()
-        self.status.setMinimumSize(QSize(200, 200))
-
-        _layout = QVBoxLayout()
-        _layout.addWidget(self.status)
-        status_page.setLayout(_layout)
-
-        layout = QVBoxLayout()
-        layout.addWidget(status_page)
-        return layout
 
     def _create_log_area(self) -> QVBoxLayout:
         """Creates the log area for OPUS-related communication.
@@ -121,18 +103,36 @@ class OPUSControl(QGroupBox):
         layout.addWidget(log_box)
         return layout
 
+    def _create_status_page(self) -> QVBoxLayout:
+        """Creates the status_page.
+
+        Returns:
+            QHBoxLayout: The layout with the web view.
+        """
+        status_page = QGroupBox("Status")
+        self.status = QWebEngineView()
+        self.status.setMinimumSize(QSize(200, 200))
+
+        _layout = QVBoxLayout()
+        _layout.addWidget(self.status)
+        status_page.setLayout(_layout)
+
+        layout = QVBoxLayout()
+        layout.addWidget(status_page)
+        return layout
+
     def url(self, action: str) -> str:
         """Builds an URL out of the ip and the action.
 
         Args:
-            action (str): The action to use.
+            action: The action to use.
 
         Returns:
             str: The constructed URL
         """
         return f"http://{self.ip}/{self.commands[action]}"
 
-    def on_button_clicked(self, action: str) -> None:
+    def on_acction_button_clicked(self, action: str) -> None:
         """Execute the given action by sending a message to the appropriate topic.
 
         TODO: Here assuming we are going to use pubsub or equivalent to send messages
@@ -141,10 +141,14 @@ class OPUSControl(QGroupBox):
         Args:
             action: Action to be executed.
         """
-        logging.info(f"Action '{self.url(action)}' executed!")
+        logging.info(f"OPUS action '{self.url(action)}' executed!")
 
     def display_status(self) -> None:
-        """Retrieves and displays the new status."""
+        """Retrieves and displays the new status.
+
+        TODO: I'm not sure who should populate the error log in the GUI. Probably the
+        ones handling the individual actions above. These are all placeholders, for now.
+        """
         logging.info("Getting OPUS status!")
         self.status.load(QUrl(self.url("status")))
         self.status.show()
@@ -160,14 +164,21 @@ class OPUSControl(QGroupBox):
 
 
 class OPUSLogHandler(logging.Handler):
-    """Logger for the errors related to OPUS."""
+    """Specific logger for the errors related to OPUS.
+
+    Only log messages using the OPUS logger will be recorded here. Typically, they will
+    be error messages, but it can be any information worth to be logged.
+    """
 
     @classmethod
     def set_handler(cls, log_area: QTextBrowser):
-        """Creates the handler and adds it to the logger."""
+        """Creates the handler and adds it to the logger.
+
+        Args:
+            log_area: The area where the log will be printed.
+        """
         ch = cls(weakref.ref(log_area))
 
-        # create and add formatter to handle
         formatter = logging.Formatter(
             fmt="%(asctime)s [%(levelname)s]: %(message)s", datefmt="%Y/%m/%d %H:%M:%S"
         )
