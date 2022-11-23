@@ -69,7 +69,9 @@ class OPUSControl(QGroupBox):
         button.clicked.connect(self.display_status)  # type: ignore
         btn_layout.addWidget(button)
 
-        for name in set(self.commands.keys()) - {"status", "opus"}:
+        for name in self.commands.keys():
+            if name in ("status", "opus"):
+                continue
 
             button = QPushButton(name.capitalize())
             button.clicked.connect(  # type: ignore
