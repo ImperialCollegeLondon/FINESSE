@@ -143,7 +143,7 @@ class OPUSControl(QGroupBox):
         Args:
             action: Action to be executed.
         """
-        logging.info(f"OPUS action '{self.url(action)}' executed!")
+        logging.info(f"OPUS action '{self.get_action_url(action)}' executed!")
 
     def display_status(self) -> None:
         """Retrieve and display the new status.
@@ -152,7 +152,7 @@ class OPUSControl(QGroupBox):
         ones handling the individual actions above. These are all placeholders, for now.
         """
         logging.info("Getting OPUS status!")
-        self.status.load(QUrl(self.url("status")))
+        self.status.load(QUrl(self.get_action_url("status")))
         self.status.show()
 
         logging.getLogger("OPUS").error("Oh, no! Something bad happened!")
