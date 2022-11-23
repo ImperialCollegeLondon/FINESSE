@@ -1,5 +1,5 @@
 """Stub script for pyinstaller."""
-from finesse.__main__ import main
+from finesse import run
 
 if __name__ == "__main__":
-    main()
+    run()
