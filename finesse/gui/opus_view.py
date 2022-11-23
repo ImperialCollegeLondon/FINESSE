@@ -1,11 +1,19 @@
 """Panel and widgets related to the control of the OPUS interferometer."""
 import logging
+import weakref
 from functools import partial
 from typing import Dict, Optional
 
 from PySide6.QtCore import QSize, QUrl
+from PySide6.QtGui import QTextCursor
 from PySide6.QtWebEngineWidgets import QWebEngineView
-from PySide6.QtWidgets import QGroupBox, QHBoxLayout, QPushButton, QVBoxLayout
+from PySide6.QtWidgets import (
+    QGroupBox,
+    QHBoxLayout,
+    QPushButton,
+    QTextBrowser,
+    QVBoxLayout,
+)
 
 COMMANDS = {
     "status": "opusrs/stat.htm",
@@ -32,6 +40,7 @@ class OPUSControl(QGroupBox):
         self.ip = ip
         self.commands = commands if commands is not None else COMMANDS
         self.status: QWebEngineView
+        self.log_hanlder: OPUSLogHandler
 
         layout = self._create_controls()
         self.setLayout(layout)
@@ -44,6 +53,7 @@ class OPUSControl(QGroupBox):
         """
         main_layout = QHBoxLayout()
         main_layout.addLayout(self._create_buttons())
+        main_layout.addLayout(self._create_log_area())
         main_layout.addLayout(self._create_status_page())
         return main_layout
 
@@ -79,7 +89,7 @@ class OPUSControl(QGroupBox):
         """Creates the status_page.
 
         Returns:
-            QHBoxLayout: The layout with the buttons.
+            QHBoxLayout: The layout with the web view.
         """
         status_page = QGroupBox("Status")
         self.status = QWebEngineView()
@@ -91,6 +101,24 @@ class OPUSControl(QGroupBox):
 
         layout = QVBoxLayout()
         layout.addWidget(status_page)
+        return layout
+
+    def _create_log_area(self) -> QVBoxLayout:
+        """Creates the log area for OPUS-related communication.
+
+        Returns:
+            QVBoxLayout: The layout with the log area.
+        """
+        log_box = QGroupBox("Error log")
+        log_area = QTextBrowser()
+        self.log_hanlder = OPUSLogHandler.set_handler(log_area)
+
+        _layout = QVBoxLayout()
+        _layout.addWidget(log_area)
+        log_box.setLayout(_layout)
+
+        layout = QVBoxLayout()
+        layout.addWidget(log_box)
         return layout
 
     def url(self, action: str) -> str:
@@ -121,12 +149,54 @@ class OPUSControl(QGroupBox):
         self.status.load(QUrl(self.url("status")))
         self.status.show()
 
+        logging.getLogger("OPUS").error("Oh, no! Something bad happened!")
+
     def open_opus(self) -> None:
         """Opens OPUS front end somewhere else.
 
         TODO: No idea what this is supposed to do.
         """
         logging.info("Going to OPUS!")
+
+
+class OPUSLogHandler(logging.Handler):
+    """Logger for the errors related to OPUS."""
+
+    @classmethod
+    def set_handler(cls, log_area: QTextBrowser):
+        """Creates the handler and adds it to the logger."""
+        ch = cls(weakref.ref(log_area))
+
+        # create and add formatter to handle
+        formatter = logging.Formatter(
+            fmt="%(asctime)s [%(levelname)s]: %(message)s", datefmt="%Y/%m/%d %H:%M:%S"
+        )
+        ch.setFormatter(formatter)
+
+        logging.getLogger("OPUS").addHandler(ch)
+
+    def __init__(self, log_area: weakref.ref):
+        """Constructor of the Handler.
+
+        Args:
+            log_area: A weak reference to the log area.
+        """
+        super(OPUSLogHandler, self).__init__()
+        self.log_area = log_area
+
+    def emit(self, record):
+        """Add the record to the text area.
+
+        If the log area has been destroyed before the logger, it will raise an
+        AttributeError. This can only happen during tests and can be safely ignored.
+        """
+        try:
+            self.log_area().append(self.format(record))
+            cursor = self.log_area().textCursor()
+            cursor.movePosition(QTextCursor.End)
+            self.log_area().setTextCursor(cursor)
+        except AttributeError:
+            pass
 
 
 if __name__ == "__main__":
