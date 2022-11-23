@@ -46,7 +46,7 @@ class DummyStepperMotor:
         else:
             step = round(self.steps_per_rotation * target / 360.0)
             if step < 0 or step >= self.steps_per_rotation:
-                raise ValueError("step ")
+                raise ValueError("step number is out of range")
             self.current_step = step
 
         logging.info(f"Moving stepper motor to step {self.current_step}")
