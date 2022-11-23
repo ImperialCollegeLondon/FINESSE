@@ -4,6 +4,8 @@ from typing import Optional
 from pubsub import pub
 from PySide6.QtWidgets import QGridLayout, QGroupBox, QPushButton, QSpinBox
 
+from ..config import ANGLE_PRESETS
+
 
 class StepperMotorControl(QGroupBox):
     """A control showing buttons for moving the mirror to a target."""
@@ -13,27 +15,24 @@ class StepperMotorControl(QGroupBox):
         super().__init__("Target control")
 
         layout = QGridLayout()
-        zenith = self._create_stepper_button("ZENITH")
-        nadir = self._create_stepper_button("NADIR")
-        hot_bb = self._create_stepper_button("HOT_BB")
-        cold_bb = self._create_stepper_button("COLD_BB")
-        home = self._create_stepper_button("HOME")
+
+        BUTTONS_PER_ROW = 4
+        for i, preset in enumerate(ANGLE_PRESETS):
+            btn = self._create_stepper_button(preset.upper())
+            row, col = divmod(i, BUTTONS_PER_ROW)
+            layout.addWidget(btn, row, col)
+
         self.angle = QSpinBox()
         self.angle.setMaximum(359)
         self.goto = QPushButton("GOTO")
         self.goto.clicked.connect(self._goto_clicked)  # type: ignore
 
-        self.last_clicked: Optional[QPushButton] = None
-
-        layout.addWidget(zenith, 0, 0)
-        layout.addWidget(nadir, 0, 1)
-        layout.addWidget(hot_bb, 0, 2)
-        layout.addWidget(cold_bb, 0, 3)
-        layout.addWidget(home, 1, 0)
         layout.addWidget(self.angle, 1, 2)
         layout.addWidget(self.goto, 1, 3)
 
         self.setLayout(layout)
+
+        self.last_clicked: Optional[QPushButton] = None
 
     def _create_stepper_button(self, name: str) -> QPushButton:
         """Create a button to move the motor to a preset position.
