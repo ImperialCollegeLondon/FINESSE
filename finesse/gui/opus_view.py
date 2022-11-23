@@ -29,7 +29,7 @@ class OPUSControl(QGroupBox):
     """Class that monitors and control the OPUS interferometer."""
 
     def __init__(self, ip: str, commands: Optional[Dict[str, str]] = None) -> None:
-        """Creates the widgets to monitor and control the OPUS interferometer.
+        """Create the widgets to monitor and control the OPUS interferometer.
 
         Args:
             ip: IP for connecting to the OPUS system
@@ -75,7 +75,7 @@ class OPUSControl(QGroupBox):
 
             button = QPushButton(name.capitalize())
             button.clicked.connect(  # type: ignore
-                partial(self.on_acction_button_clicked, action=name.lower())
+                partial(self.on_action_button_clicked, action=name.lower())
             )
             btn_layout.addWidget(button)
 
@@ -134,7 +134,7 @@ class OPUSControl(QGroupBox):
         """
         return f"http://{self.ip}/{self.commands[action]}"
 
-    def on_acction_button_clicked(self, action: str) -> None:
+    def on_action_button_clicked(self, action: str) -> None:
         """Execute the given action by sending a message to the appropriate topic.
 
         TODO: Here assuming we are going to use pubsub or equivalent to send messages
@@ -146,7 +146,7 @@ class OPUSControl(QGroupBox):
         logging.info(f"OPUS action '{self.url(action)}' executed!")
 
     def display_status(self) -> None:
-        """Retrieves and displays the new status.
+        """Retrieve and display the new status.
 
         TODO: I'm not sure who should populate the error log in the GUI. Probably the
         ones handling the individual actions above. These are all placeholders, for now.
@@ -194,7 +194,7 @@ class OPUSLogHandler(logging.Handler):
         Args:
             log_area: A weak reference to the log area.
         """
-        super(OPUSLogHandler, self).__init__()
+        super().__init__()
         self.log_area = log_area
 
     def emit(self, record):
@@ -203,13 +203,15 @@ class OPUSLogHandler(logging.Handler):
         If the log area has been destroyed before the logger, it will raise an
         AttributeError. This can only happen during tests and can be safely ignored.
         """
-        try:
-            self.log_area().append(self.format(record))
-            cursor = self.log_area().textCursor()
-            cursor.movePosition(QTextCursor.End)
-            self.log_area().setTextCursor(cursor)
-        except AttributeError:
-            pass
+        log_area = self.log_area()
+        if not log_area:
+            # log_area no longer exists
+            return
+
+        log_area.append(self.format(record))
+        cursor = log_area.textCursor()
+        cursor.movePosition(QTextCursor.End)
+        log_area.setTextCursor(cursor)
 
 
 if __name__ == "__main__":
