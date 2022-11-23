@@ -8,7 +8,7 @@ from PySide6.QtWidgets import QComboBox, QGridLayout, QGroupBox, QLabel, QPushBu
 
 
 class SerialPortControl(QGroupBox):
-    """Widgets to control the communication with a single serial port."""
+    """Widgets to control the communication with serial ports."""
 
     def __init__(
         self,
@@ -17,8 +17,6 @@ class SerialPortControl(QGroupBox):
         avail_baud_rates: Sequence[str],
     ) -> None:
         """Creates a sequence of widgets to control a serial connection to a device.
-
-        The devices
 
         Args:
             devices (Dict[str, Dict[str, str]]): Dictionary has a keys the names of the
