@@ -123,7 +123,7 @@ class OPUSControl(QGroupBox):
         layout.addWidget(status_page)
         return layout
 
-    def url(self, action: str) -> str:
+    def get_action_url(self, action: str) -> str:
         """Builds an URL out of the ip and the action.
 
         Args:
