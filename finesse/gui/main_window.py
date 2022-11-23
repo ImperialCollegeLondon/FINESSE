@@ -2,6 +2,7 @@
 from PySide6.QtWidgets import QGridLayout, QGroupBox, QMainWindow, QWidget
 
 from .opus_view import OPUSControl
+from .interferometer_monitor import EM27Monitor
 from .serial_view import SerialPortControl
 
 
@@ -12,8 +13,6 @@ class MainWindow(QMainWindow):
         """Create a new MainWindow."""
         super().__init__()
         self.setWindowTitle("FINESSE")
-
-        layout = QGridLayout()
 
         devices = {
             "ST10": {"port": "COM5", "baud_rate": "9600"},
@@ -26,8 +25,24 @@ class MainWindow(QMainWindow):
         )
         opus: QGroupBox = OPUSControl("127.0.0.1")
 
-        layout.addWidget(serial_port, 3, 0)
+        # Setup for interferometer monitor
+        prop_labels = [
+            "PSF27 Temp",
+            "Cryo Temp",
+            "Blackbody Hum",
+            "Source Temp",
+            "AUX Volt",
+            "AUX Current",
+            "Laser Current",
+            "POLL Server",
+        ]
+        prop_units = ["deg C", "K", "%", "deg C", "V", "A", "A", None]
+        em27_monitor = EM27Monitor(prop_labels, prop_units)
+
+        layout = QGridLayout()
         layout.addWidget(opus, 0, 1)
+        layout.addWidget(serial_port, 1, 0)
+        layout.addWidget(em27_monitor, 1, 1)
 
         central = QWidget()
         central.setLayout(layout)
