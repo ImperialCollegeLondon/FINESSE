@@ -55,3 +55,37 @@ jobs:
       run: poetry run pytest
       env:
         QT_QPA_PLATFORM: offscreen
+
+    - name: Check for documentation errors with MkDocs
+      run: |
+        poetry run mkdocs build -s
+
+
+  docs:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: actions/setup-python@v4
+      with:
+        python-version: 3.9
+
+    - name: Install system dependencies in Linux
+      run: |
+        sudo apt update
+
+        # Without this, PySide6 gives an ImportError
+        sudo apt install libegl1
+
+    - name: Install Poetry
+      uses: abatilo/actions-poetry@v2.1.6
+      with:
+        poetry-version: 1.2.2
+
+    - name: Install dependencies
+      run: poetry install
+
+    - name: Deploy Docs
+      run: poetry run mkdocs gh-deploy --force
