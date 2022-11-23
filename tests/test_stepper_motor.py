@@ -1,9 +1,8 @@
 """Tests for DummyStepperMotor."""
 import pytest
 
+from finesse.config import ANGLE_PRESETS
 from finesse.hardware.dummy_stepper_motor import DummyStepperMotor
-
-PRESETS = ("zenith", "nadir", "hot_bb", "cold_bb", "home")
 
 
 def test_constructor() -> None:
@@ -15,7 +14,7 @@ def test_constructor() -> None:
         DummyStepperMotor(-1)
 
     # Should work
-    DummyStepperMotor(len(PRESETS))
+    DummyStepperMotor(len(ANGLE_PRESETS))
 
 
 def test_move_to_number() -> None:
@@ -45,5 +44,5 @@ def test_move_to_preset() -> None:
         stepper.move_to("MADE UP")
 
     # Check that we don't get error for valid presets
-    for name in PRESETS:
+    for name in ANGLE_PRESETS:
         stepper.move_to(name)
