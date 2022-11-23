@@ -1,7 +1,10 @@
 # FINESSE
+
 A graphical user interface for controlling and monitoring an interferometer device.
 
 ## For developers
+
+Technical documentation is available on [FINESSE's GitHub Pages site](https://imperialcollegelondon.github.io/FINESSE/).
 
 This is a Python 3.9 application that uses [poetry](https://python-poetry.org) for
 packaging and dependency management. It also provides
