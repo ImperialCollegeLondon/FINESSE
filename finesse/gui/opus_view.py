@@ -3,7 +3,7 @@ import logging
 from functools import partial
 from typing import Dict, Optional
 
-from PySide6.QtCore import QUrl
+from PySide6.QtCore import QSize, QUrl
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWidgets import QGroupBox, QHBoxLayout, QPushButton, QVBoxLayout
 
@@ -83,6 +83,7 @@ class OPUSControl(QGroupBox):
         """
         status_page = QGroupBox("Status")
         self.status = QWebEngineView()
+        self.status.setMinimumSize(QSize(200, 200))
 
         _layout = QVBoxLayout()
         _layout.addWidget(self.status)
