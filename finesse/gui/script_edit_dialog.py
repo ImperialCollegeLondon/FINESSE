@@ -1,18 +1,21 @@
 """Contains code for a dialog to create and edit measure scripts."""
 
+from pathlib import Path
 from typing import Any, Dict, List, Union
 
+import yaml
 from PySide6.QtCore import QAbstractTableModel, QModelIndex, QPersistentModelIndex, Qt
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QButtonGroup,
-    QComboBox,
     QDialog,
     QDialogButtonBox,
+    QFileDialog,
     QFormLayout,
     QGroupBox,
     QHBoxLayout,
     QLabel,
+    QLineEdit,
     QPushButton,
     QSizePolicy,
     QSpinBox,
@@ -40,6 +43,7 @@ class ScriptEditDialog(QDialog):
             QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
         )
         buttonBox.accepted.connect(self.accept)  # type: ignore
+        buttonBox.accepted.connect(self._on_accepted)  # type: ignore
         buttonBox.rejected.connect(self.reject)  # type: ignore
 
         layout = QVBoxLayout()
@@ -49,6 +53,17 @@ class ScriptEditDialog(QDialog):
         layout.addWidget(buttonBox)
 
         self.setLayout(layout)
+
+    def _on_accepted(self) -> None:
+        script = {
+            "measurements": {
+                "count": self.count.value(),
+                "sequence": self.sequence.sequence,
+            }
+        }
+
+        with open(self.choose_path.get_path(), "w") as f:
+            yaml.dump(script, f)
 
 
 class CountWidget(QWidget):
@@ -311,13 +326,24 @@ class ChoosePathWidget(QWidget):
 
         label = QLabel("Script file path:")
         label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
-        line_edit = QComboBox()
-        line_edit.setEditable(True)
+        self.line_edit = QLineEdit()
         browse = QPushButton("&Browse...")
         browse.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
+        browse.clicked.connect(self._browse_clicked)  # type: ignore
 
         layout = QHBoxLayout()
         layout.addWidget(label)
-        layout.addWidget(line_edit)
+        layout.addWidget(self.line_edit)
         layout.addWidget(browse)
         self.setLayout(layout)
+
+    def get_path(self) -> Path:
+        """Get the path of the chosen file."""
+        return Path(self.line_edit.text())
+
+    def _browse_clicked(self) -> None:
+        filename, _ = QFileDialog.getSaveFileName(
+            self, caption="Caption choose destination path", filter="*.yaml"
+        )
+
+        self.line_edit.setText(filename)
