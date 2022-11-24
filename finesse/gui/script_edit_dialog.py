@@ -199,6 +199,12 @@ class SequenceWidget(QWidget):
             self.sequence.pop(row)
             self.model.endRemoveRows()
 
+    def delete_all(self) -> None:
+        """Delete all instructions from the table."""
+        self.model.beginRemoveRows(QModelIndex(), 0, len(self.sequence) - 1)
+        self.sequence.clear()
+        self.model.endRemoveRows()
+
 
 class SequenceButtons(QWidget):
     """Buttons for changing the sequence of instructions."""
@@ -272,8 +278,12 @@ class ChangeButtons(QGroupBox):
         delete = QPushButton("Delete")
         delete.clicked.connect(sequence.delete_selected)  # type: ignore
 
+        clear = QPushButton("Clear")
+        clear.clicked.connect(sequence.delete_all)  # type: ignore
+
         layout = QVBoxLayout()
         layout.addWidget(up)
         layout.addWidget(down)
         layout.addWidget(delete)
+        layout.addWidget(clear)
         self.setLayout(layout)
