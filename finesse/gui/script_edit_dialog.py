@@ -1,9 +1,10 @@
 """Contains code for a dialog to create and edit measure scripts."""
 
-from typing import Any, Dict, List, Union, cast
+from typing import Any, Dict, List, Union
 
 from PySide6.QtCore import QAbstractTableModel, QModelIndex, QPersistentModelIndex, Qt
 from PySide6.QtWidgets import (
+    QAbstractItemView,
     QButtonGroup,
     QDialog,
     QFormLayout,
@@ -126,6 +127,7 @@ class SequenceWidget(QWidget):
         self.model = SequenceModel(self.sequence)
         self.table.setModel(self.model)
         self.table.horizontalHeader().setStretchLastSection(True)
+        self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
 
         self.buttons = SequenceButtons(self)
 
@@ -146,13 +148,38 @@ class SequenceWidget(QWidget):
         self.model.layoutChanged.emit()  # type: ignore
         self.table.scrollToBottom()
 
+    def delete_selected(self) -> None:
+        """Removes the currently selected instructions from the table."""
+        selected = [idx.row() for idx in self.table.selectionModel().selectedRows()]
+        for row in sorted(selected, reverse=True):
+            self.model.beginRemoveRows(QModelIndex(), row, row)
+            self.sequence.pop(row)
+            self.model.endRemoveRows()
 
-class SequenceButtons(QGroupBox):
+
+class SequenceButtons(QWidget):
     """Buttons for changing the sequence of instructions."""
 
-    def __init__(self, parent: SequenceWidget) -> None:
+    def __init__(self, sequence: SequenceWidget) -> None:
         """Create a new SequenceButtons."""
-        super().__init__("Add instruction", parent)
+        super().__init__()
+
+        add_buttons = AddButtons(sequence)
+        change_buttons = ChangeButtons(sequence)
+
+        layout = QVBoxLayout()
+        layout.addWidget(add_buttons)
+        layout.addWidget(change_buttons)
+        self.setLayout(layout)
+
+
+class AddButtons(QGroupBox):
+    """Buttons for adding new instructions."""
+
+    def __init__(self, sequence: SequenceWidget) -> None:
+        """Create a new AddButtons."""
+        super().__init__("Add instruction")
+        self.sequence = sequence
 
         layout = QVBoxLayout()
 
@@ -180,9 +207,22 @@ class SequenceButtons(QGroupBox):
         self.setLayout(layout)
 
     def _goto_clicked(self) -> None:
-        parent = cast(SequenceWidget, self.parentWidget())
-        parent.add_instruction(float(self.angle.value()), self.count.value())
+        self.sequence.add_instruction(float(self.angle.value()), self.count.value())
 
     def _preset_clicked(self, btn: QPushButton) -> None:
-        parent = cast(SequenceWidget, self.parentWidget())
-        parent.add_instruction(btn.text().lower(), self.count.value())
+        self.sequence.add_instruction(btn.text().lower(), self.count.value())
+
+
+class ChangeButtons(QGroupBox):
+    """Buttons for modifying existing measure instructions."""
+
+    def __init__(self, sequence: SequenceWidget) -> None:
+        """Create a new ChangeButtons."""
+        super().__init__("Modify instructions")
+
+        delete = QPushButton("Delete")
+        delete.clicked.connect(sequence.delete_selected)  # type: ignore
+
+        layout = QVBoxLayout()
+        layout.addWidget(delete)
+        self.setLayout(layout)
