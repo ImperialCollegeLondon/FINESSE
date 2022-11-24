@@ -6,12 +6,15 @@ from PySide6.QtCore import QAbstractTableModel, QModelIndex, QPersistentModelInd
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QButtonGroup,
+    QComboBox,
     QDialog,
     QDialogButtonBox,
     QFormLayout,
     QGroupBox,
     QHBoxLayout,
+    QLabel,
     QPushButton,
+    QSizePolicy,
     QSpinBox,
     QTableView,
     QVBoxLayout,
@@ -31,6 +34,7 @@ class ScriptEditDialog(QDialog):
 
         self.count = CountWidget()
         self.sequence = SequenceWidget()
+        self.choose_path = ChoosePathWidget()
 
         buttonBox = QDialogButtonBox(
             QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
@@ -41,6 +45,7 @@ class ScriptEditDialog(QDialog):
         layout = QVBoxLayout()
         layout.addWidget(self.count)
         layout.addWidget(self.sequence)
+        layout.addWidget(self.choose_path)
         layout.addWidget(buttonBox)
 
         self.setLayout(layout)
@@ -294,4 +299,25 @@ class ChangeButtons(QGroupBox):
         layout.addWidget(down)
         layout.addWidget(delete)
         layout.addWidget(clear)
+        self.setLayout(layout)
+
+
+class ChoosePathWidget(QWidget):
+    """A widget containing a text box with a file path and a browse button."""
+
+    def __init__(self) -> None:
+        """Create a new ChoosePathWidget."""
+        super().__init__()
+
+        label = QLabel("Script file path:")
+        label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
+        line_edit = QComboBox()
+        line_edit.setEditable(True)
+        browse = QPushButton("&Browse...")
+        browse.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
+
+        layout = QHBoxLayout()
+        layout.addWidget(label)
+        layout.addWidget(line_edit)
+        layout.addWidget(browse)
         self.setLayout(layout)
