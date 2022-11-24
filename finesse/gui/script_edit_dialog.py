@@ -7,6 +7,7 @@ from PySide6.QtWidgets import (
     QAbstractItemView,
     QButtonGroup,
     QDialog,
+    QDialogButtonBox,
     QFormLayout,
     QGroupBox,
     QHBoxLayout,
@@ -31,9 +32,16 @@ class ScriptEditDialog(QDialog):
         self.count = CountWidget()
         self.sequence = SequenceWidget()
 
+        buttonBox = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        )
+        buttonBox.accepted.connect(self.accept)  # type: ignore
+        buttonBox.rejected.connect(self.reject)  # type: ignore
+
         layout = QVBoxLayout()
         layout.addWidget(self.count)
         layout.addWidget(self.sequence)
+        layout.addWidget(buttonBox)
 
         self.setLayout(layout)
 
