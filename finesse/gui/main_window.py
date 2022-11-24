@@ -1,6 +1,7 @@
 """Code for FINESSE's main GUI window."""
 from PySide6.QtWidgets import QGroupBox, QHBoxLayout, QMainWindow, QVBoxLayout, QWidget
 
+from ..config import APP_NAME
 from .opus_view import OPUSControl
 from .serial_view import SerialPortControl
 from .stepper_motor_view import StepperMotorControl
@@ -12,7 +13,7 @@ class MainWindow(QMainWindow):
     def __init__(self) -> None:
         """Create a new MainWindow."""
         super().__init__()
-        self.setWindowTitle("FINESSE")
+        self.setWindowTitle(APP_NAME)
 
         layout_left = QVBoxLayout()
 
