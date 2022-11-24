@@ -148,10 +148,53 @@ class SequenceWidget(QWidget):
         self.model.layoutChanged.emit()  # type: ignore
         self.table.scrollToBottom()
 
-    def delete_selected(self) -> None:
-        """Removes the currently selected instructions from the table."""
+    def _get_selected_rows(self, reverse: bool = False) -> List[int]:
+        """Get the indices of the currently selected rows in the table.
+
+        Args:
+            reverse: Whether to return the indices in reverse order
+        """
         selected = [idx.row() for idx in self.table.selectionModel().selectedRows()]
-        for row in sorted(selected, reverse=True):
+        selected.sort(reverse=reverse)
+        return selected
+
+    def _swap_rows(self, lower: int, higher: int) -> None:
+        """Swap the rows specified by two indices."""
+        # For some reason if these arguments are the wrong way round, Qt crashes
+        assert higher > lower
+
+        self.model.beginMoveRows(QModelIndex(), higher, higher, QModelIndex(), lower)
+        self.sequence[lower], self.sequence[higher] = (
+            self.sequence[higher],
+            self.sequence[lower],
+        )
+        self.model.endMoveRows()
+
+    def move_selected_up(self) -> None:
+        """Move the currently selected instructions up one row."""
+        selected = self._get_selected_rows()
+        if selected[0] == 0:
+            # We can't move up if the topmost item is selected
+            return
+
+        # Swap each element with the one above it
+        for row in selected:
+            self._swap_rows(row - 1, row)
+
+    def move_selected_down(self) -> None:
+        """Move the currently selected instructions down one row."""
+        selected = self._get_selected_rows(reverse=True)
+        if selected[0] == len(self.sequence) - 1:
+            # We can't move down if the bottom item is selected
+            return
+
+        # Swap each element with the one below it
+        for row in selected:
+            self._swap_rows(row, row + 1)
+
+    def delete_selected(self) -> None:
+        """Remove the currently selected instructions from the table."""
+        for row in self._get_selected_rows(reverse=True):
             self.model.beginRemoveRows(QModelIndex(), row, row)
             self.sequence.pop(row)
             self.model.endRemoveRows()
@@ -220,9 +263,17 @@ class ChangeButtons(QGroupBox):
         """Create a new ChangeButtons."""
         super().__init__("Modify instructions")
 
+        up = QPushButton("Up")
+        up.clicked.connect(sequence.move_selected_up)  # type: ignore
+
+        down = QPushButton("Down")
+        down.clicked.connect(sequence.move_selected_down)  # type: ignore
+
         delete = QPushButton("Delete")
         delete.clicked.connect(sequence.delete_selected)  # type: ignore
 
         layout = QVBoxLayout()
+        layout.addWidget(up)
+        layout.addWidget(down)
         layout.addWidget(delete)
         self.setLayout(layout)
