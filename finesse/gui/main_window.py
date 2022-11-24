@@ -2,6 +2,7 @@
 from PySide6.QtWidgets import QGroupBox, QHBoxLayout, QMainWindow, QVBoxLayout, QWidget
 
 from ..config import APP_NAME
+from .measure_script.script_view import ScriptControl
 from .opus_view import OPUSControl
 from .serial_view import SerialPortControl
 from .stepper_motor_view import StepperMotorControl
@@ -23,6 +24,9 @@ class MainWindow(QMainWindow):
         # Setup for stepper motor control
         stepper_motor = StepperMotorControl()
 
+        # Setup for script control (i.e. for sequences of measurements)
+        script_control = ScriptControl()
+
         # Setup for serial port control
         devices = {
             "ST10": {"port": "COM5", "baud_rate": "9600"},
@@ -35,6 +39,7 @@ class MainWindow(QMainWindow):
         )
 
         layout_left.addWidget(stepper_motor)
+        layout_left.addWidget(script_control)
         layout_left.addWidget(serial_port)
 
         layout_right = QVBoxLayout()
