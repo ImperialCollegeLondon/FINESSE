@@ -4,7 +4,7 @@ from typing import Union
 
 from pubsub import pub
 
-_PRESETS = ("zenith", "nadir", "hot_bb", "cold_bb", "home")
+from ..config import ANGLE_PRESETS
 
 
 class DummyStepperMotor:
@@ -16,8 +16,8 @@ class DummyStepperMotor:
         Args:
             steps_per_rotation: Number of motor steps for an entire rotation (360°)
         """
-        if steps_per_rotation < len(_PRESETS):
-            raise ValueError(f"steps_per_rotation must be >={len(_PRESETS)}")
+        if steps_per_rotation < len(ANGLE_PRESETS):
+            raise ValueError(f"steps_per_rotation must be >={len(ANGLE_PRESETS)}")
 
         self.steps_per_rotation = steps_per_rotation
         self.current_step = 0
@@ -33,7 +33,7 @@ class DummyStepperMotor:
         Returns:
             The step number (as int)
         """
-        return _PRESETS.index(name)
+        return ANGLE_PRESETS.index(name)
 
     def move_to(self, target: Union[float, str]) -> None:
         """Move the motor to a specified rotation.
