@@ -1,5 +1,6 @@
 """Contains code for a dialog to create and edit measure scripts."""
 
+import logging
 from pathlib import Path
 from typing import Any, Dict, List, Union
 
@@ -10,6 +11,7 @@ from PySide6.QtWidgets import (
     QButtonGroup,
     QDialog,
     QDialogButtonBox,
+    QErrorMessage,
     QFileDialog,
     QFormLayout,
     QGroupBox,
@@ -40,9 +42,10 @@ class ScriptEditDialog(QDialog):
         self.choose_path = ChoosePathWidget()
 
         buttonBox = QDialogButtonBox(
-            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+            QDialogButtonBox.StandardButton.Save
+            | QDialogButtonBox.StandardButton.Cancel
         )
-        buttonBox.accepted.connect(self.accept)  # type: ignore
+        buttonBox.setCenterButtons(True)
         buttonBox.accepted.connect(self._on_accepted)  # type: ignore
         buttonBox.rejected.connect(self.reject)  # type: ignore
 
@@ -55,6 +58,11 @@ class ScriptEditDialog(QDialog):
         self.setLayout(layout)
 
     def _on_accepted(self) -> None:
+        """Try to save measurement script."""
+        # If there aren't any instructions, there isn't anything to save
+        if not self.sequence.sequence:
+            self.accept()
+
         script = {
             "measurements": {
                 "count": self.count.value(),
@@ -62,8 +70,23 @@ class ScriptEditDialog(QDialog):
             }
         }
 
-        with open(self.choose_path.get_path(), "w") as f:
-            yaml.dump(script, f)
+        file_path = self.choose_path.get_path()
+        try:
+            with open(file_path, "w") as f:
+                yaml.dump(script, f)
+        except Exception as e:
+            msg = f"Error occurred while saving file {file_path}:\n{str(e)}"
+
+            # Show pop-up message
+            QErrorMessage(self).showMessage(msg)
+
+            # Write to program log
+            logging.error(msg)
+
+            return
+
+        # Close this dialog
+        self.accept()
 
 
 class CountWidget(QWidget):
