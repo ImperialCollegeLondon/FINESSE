@@ -37,5 +37,5 @@ def parse_script(script: Union[str, TextIOBase]) -> Dict[str, Any]:
 
     try:
         return schema.validate(yaml.safe_load(script))["measurements"]
-    except SchemaError as e:
+    except (yaml.YAMLError, SchemaError) as e:
         raise ParseError() from e
