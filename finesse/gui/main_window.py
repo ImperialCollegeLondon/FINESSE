@@ -2,8 +2,8 @@
 from PySide6.QtWidgets import QGroupBox, QHBoxLayout, QMainWindow, QVBoxLayout, QWidget
 
 from ..config import APP_NAME
+from .measure_script.script_view import ScriptControl
 from .opus_view import OPUSControl
-from .script_view import ScriptControl
 from .serial_view import SerialPortControl
 from .stepper_motor_view import StepperMotorControl
 

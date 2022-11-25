@@ -26,7 +26,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from ..config import ANGLE_PRESETS
+from ...config import ANGLE_PRESETS
 
 
 class ScriptEditDialog(QDialog):

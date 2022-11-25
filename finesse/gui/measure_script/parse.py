@@ -1,10 +1,10 @@
-"""Measure scripts represent a sequence of mirror positions for a recording."""
+"""Code for parsing the YAML-formatted measure scripts."""
 from typing import Any, Dict
 
 import yaml
 from schema import And, Or, Schema, SchemaError
 
-from ..config import ANGLE_PRESETS
+from ...config import ANGLE_PRESETS
 
 
 class ParseError(Exception):

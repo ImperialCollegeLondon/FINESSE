@@ -1,7 +1,7 @@
 """Tests for the measure script code."""
 import pytest
 
-from finesse.gui.measure_script import ParseError, parse_script
+from finesse.gui.measure_script.parse import ParseError, parse_script
 
 
 def test_valid_script() -> None:
