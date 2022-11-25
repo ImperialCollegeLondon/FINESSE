@@ -20,7 +20,7 @@ def parse_script(script: Union[str, TextIOBase]) -> Dict[str, Any]:
     """Parse a measure script.
 
     Args:
-        script: The contents of the script as YAML
+        script: The contents of the script as YAML or a stream containing YAML
     Raises:
         ParseError: The script's contents were invalid
     """

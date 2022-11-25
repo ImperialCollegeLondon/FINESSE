@@ -39,7 +39,6 @@ class ScriptControl(QGroupBox):
         file_path, _ = QFileDialog.getOpenFileName(
             self, caption="Choose script file", dir=str(Path.home()), filter="*.yaml"
         )
-
         if not file_path:
             # User closed dialog
             return
