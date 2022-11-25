@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional, Union
 
 import yaml
 from PySide6.QtCore import QAbstractTableModel, QModelIndex, QPersistentModelIndex, Qt
+from PySide6.QtGui import QCloseEvent
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QButtonGroup,
@@ -14,6 +15,7 @@ from PySide6.QtWidgets import (
     QFormLayout,
     QGroupBox,
     QHBoxLayout,
+    QMessageBox,
     QPushButton,
     QSpinBox,
     QTableView,
@@ -61,7 +63,7 @@ class ScriptEditDialog(QDialog):
             | QDialogButtonBox.StandardButton.Cancel
         )
         buttonBox.setCenterButtons(True)
-        buttonBox.accepted.connect(self._on_accepted)  # type: ignore
+        buttonBox.accepted.connect(self._try_accept)  # type: ignore
         buttonBox.rejected.connect(self.reject)  # type: ignore
 
         layout = QVBoxLayout()
@@ -72,17 +74,24 @@ class ScriptEditDialog(QDialog):
 
         self.setLayout(layout)
 
-    def _on_accepted(self) -> None:
-        """Try to save measurement script."""
+    def _try_accept(self) -> None:
+        if self._try_save():
+            self.accept()
+
+    def _try_save(self) -> bool:
+        """Try to save measurement script.
+
+        Returns:
+            True if file saved successfully (or no data to save), false otherwise
+        """
         # If there aren't any instructions, there isn't anything to save
         if not self.sequence.sequence:
-            self.accept()
-            return
+            return True
 
         file_path = self.script_path.get_path()
         if not file_path:
             # User didn't choose a file path
-            return
+            return False
 
         logging.info(f"Saving file to {file_path}")
 
@@ -100,10 +109,35 @@ class ScriptEditDialog(QDialog):
             show_error_message(
                 self, f"Error occurred while saving file {file_path}:\n{str(e)}"
             )
+            return False
+
+        return True
+
+    def closeEvent(self, event: QCloseEvent) -> None:
+        """Check for unsaved data and if necessary save it."""
+        # Just close if the dialog is already closed or there aren't any instructions
+        # See bug: https://bugreports.qt.io/browse/QTBUG-43344
+        if not self.isVisible() or not self.sequence.sequence:
+            self.setResult(QDialog.DialogCode.Accepted)
             return
 
-        # Close this dialog
-        self.accept()
+        msg_box = QMessageBox(
+            QMessageBox.Icon.Question,
+            "Changes not saved",
+            "Do you want to save your changes?",
+            QMessageBox.StandardButton.Save
+            | QMessageBox.StandardButton.Discard
+            | QMessageBox.StandardButton.Cancel,
+        )
+
+        ret = msg_box.exec()
+        if ret == QMessageBox.StandardButton.Discard:
+            self.setResult(QDialog.DialogCode.Rejected)
+        elif ret == QMessageBox.StandardButton.Save and self._try_save():
+            self.setResult(QDialog.DialogCode.Accepted)
+        else:
+            # User cancelled; leave this dialog open
+            event.ignore()
 
 
 class CountWidget(QWidget):
