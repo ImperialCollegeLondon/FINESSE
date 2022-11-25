@@ -34,10 +34,12 @@ class ScriptPathWidget(QWidget):
         self.setLayout(layout)
 
     def _browse_clicked(self) -> None:
-        self.line_edit.setText(self.get_file_name())
+        filename = self.get_file_name()
+        if filename:
+            self.set_path(filename)
 
     @abstractmethod
-    def get_file_name(self) -> str:
+    def get_file_name(self) -> Optional[Path]:
         """Get the file name by raising a dialog."""
         raise NotImplementedError()
 
@@ -57,8 +59,12 @@ class ScriptPathWidget(QWidget):
         # ...otherwise the user hasn't chosen a path. Let them do it now.
         filename = self.get_file_name()
         if filename:
-            self.line_edit.setText(filename)
+            self.set_path(filename)
             return Path(filename)
 
         # No path selected
         return None
+
+    def set_path(self, path: Path) -> None:
+        """Set the path of this widget."""
+        self.line_edit.setText(str(path))

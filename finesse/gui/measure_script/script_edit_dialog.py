@@ -1,6 +1,7 @@
 """Contains code for a dialog to create and edit measure scripts."""
 
 import logging
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 import yaml
@@ -397,7 +398,7 @@ class ChangeButtons(QGroupBox):
 class SaveScriptPathWidget(ScriptPathWidget):
     """A widget that lets the user choose the path to save a script."""
 
-    def get_file_name(self) -> str:
+    def get_file_name(self) -> Optional[Path]:
         """Get the path to save the file to by opening a dialog."""
         dialog = QFileDialog(
             self,
@@ -408,5 +409,5 @@ class SaveScriptPathWidget(ScriptPathWidget):
         dialog.setDefaultSuffix("yaml")
 
         if dialog.exec():
-            return dialog.selectedFiles()[0]
-        return ""
+            return Path(dialog.selectedFiles()[0])
+        return None
