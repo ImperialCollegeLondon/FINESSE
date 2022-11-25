@@ -2,7 +2,7 @@
 
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Optional, Union
 
 import yaml
 from PySide6.QtCore import QAbstractTableModel, QModelIndex, QPersistentModelIndex, Qt
@@ -63,6 +63,13 @@ class ScriptEditDialog(QDialog):
         if not self.sequence.sequence:
             self.accept()
 
+        file_path = self.choose_path.get_path()
+        if not file_path:
+            # User didn't choose a file path
+            return
+
+        logging.info(f"Saving file to {file_path}")
+
         script = {
             "measurements": {
                 "count": self.count.value(),
@@ -70,7 +77,6 @@ class ScriptEditDialog(QDialog):
             }
         }
 
-        file_path = self.choose_path.get_path()
         try:
             with open(file_path, "w") as f:
                 yaml.dump(script, f)
@@ -360,13 +366,23 @@ class ChoosePathWidget(QWidget):
         layout.addWidget(browse)
         self.setLayout(layout)
 
-    def get_path(self) -> Path:
-        """Get the path of the chosen file."""
-        return Path(self.line_edit.text())
-
     def _browse_clicked(self) -> None:
+        self.line_edit.setText(self._get_save_file_name())
+
+    def _get_save_file_name(self) -> str:
         filename, _ = QFileDialog.getSaveFileName(
             self, caption="Choose destination path", filter="*.yaml"
         )
+        return filename
 
-        self.line_edit.setText(filename)
+    def get_path(self) -> Optional[Path]:
+        """Get the path of the chosen file."""
+        txt = self.line_edit.text()
+        if txt:
+            return Path(txt)
+
+        # ...otherwise the user hasn't chosen a path. Let them do it now.
+        filename = self._get_save_file_name()
+
+        # Return None if no path selected
+        return Path(filename) if filename else None
