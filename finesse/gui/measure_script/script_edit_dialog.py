@@ -1,7 +1,8 @@
 """Contains code for a dialog to create and edit measure scripts."""
 
 import logging
-from typing import Any, Dict, List, Union
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
 
 import yaml
 from PySide6.QtCore import QAbstractTableModel, QModelIndex, QPersistentModelIndex, Qt
@@ -22,20 +23,37 @@ from PySide6.QtWidgets import (
 )
 
 from ...config import ANGLE_PRESETS
+from .parse import parse_script
 from .script_path_widget import ScriptPathWidget
 
 
 class ScriptEditDialog(QDialog):
     """A dialog to create and edit measure scripts."""
 
-    def __init__(self, parent: QWidget) -> None:
-        """Create a new ScriptEditDialog."""
+    def __init__(self, parent: QWidget, file_path: Optional[Path] = None) -> None:
+        """Create a new ScriptEditDialog.
+
+        Args:
+            parent: Parent widget
+            file_path: Path to measure script to be edited or None to create new
+        Raises:
+            ParseError: file_path does not contain a valid script
+        """
         super().__init__(parent)
         self.setWindowTitle("Edit measurement script")
 
-        self.count = CountWidget()
-        self.sequence = SequenceWidget()
-        self.script_path = ScriptPathWidget()
+        script_count = 1
+        if file_path:
+            with open(file_path, "r") as f:
+                script = parse_script(f)
+
+            script_count = script["count"]
+            self.sequence = SequenceWidget(script["sequence"])
+        else:
+            self.sequence = SequenceWidget()
+        self.script_path = ScriptPathWidget(file_path)
+
+        self.count = CountWidget(script_count)
 
         buttonBox = QDialogButtonBox(
             QDialogButtonBox.StandardButton.Save
@@ -94,17 +112,21 @@ class ScriptEditDialog(QDialog):
 class CountWidget(QWidget):
     """A widget with QSpinBox labelled "Count"."""
 
-    def __init__(self) -> None:
-        """Create a new CountWidget."""
-        super().__init__()
+    def __init__(self, initial_count: int = 1) -> None:
+        """Create a new CountWidget.
 
-        layout = QFormLayout()
+        Args:
+            initial_count: The initial value of the QSpinBox
+        """
+        super().__init__()
 
         self.count = QSpinBox()
         self.count.setMinimum(1)
         self.count.setMaximum(9999)
-        layout.addRow("Count:", self.count)
+        self.count.setValue(initial_count)
 
+        layout = QFormLayout()
+        layout.addRow("Count:", self.count)
         self.setLayout(layout)
 
     def value(self) -> int:
@@ -168,13 +190,13 @@ class SequenceModel(QAbstractTableModel):
 class SequenceWidget(QWidget):
     """A widget with a table of measure instructions and controls to modify them."""
 
-    def __init__(self) -> None:
+    def __init__(self, sequence: Optional[List[Dict[str, Any]]] = None) -> None:
         """Create a new SequenceWidget."""
         super().__init__()
 
         self.table = QTableView()
 
-        self.sequence: List[Dict[str, Any]] = []
+        self.sequence = sequence if sequence else []
         """The sequence of measure instructions as a list of angles and counts."""
 
         self.model = SequenceModel(self.sequence)

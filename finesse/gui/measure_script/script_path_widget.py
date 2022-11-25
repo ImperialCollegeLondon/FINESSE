@@ -16,13 +16,21 @@ from PySide6.QtWidgets import (
 class ScriptPathWidget(QWidget):
     """A widget containing a text box with a file path and a browse button."""
 
-    def __init__(self) -> None:
-        """Create a new ChoosePathWidget."""
+    def __init__(self, file_path: Optional[Path] = None) -> None:
+        """Create a new ChoosePathWidget.
+
+        Args:
+            file_path: Path to measure script to be edited or None to create new
+        """
         super().__init__()
 
         label = QLabel("Script file path:")
         label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
+
         self.line_edit = QLineEdit()
+        if file_path:
+            self.line_edit.setText(str(file_path))
+
         browse = QPushButton("&Browse...")
         browse.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
         browse.clicked.connect(self._browse_clicked)  # type: ignore
