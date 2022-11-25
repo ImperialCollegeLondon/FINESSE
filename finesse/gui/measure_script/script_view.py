@@ -17,7 +17,7 @@ class ScriptControl(QGroupBox):
         super().__init__("Script control")
 
         create_btn = QPushButton("Create new script")
-        create_btn.clicked.connect(self._show_edit_dialog)  # type: ignore
+        create_btn.clicked.connect(self._create_btn_clicked)  # type: ignore
 
         edit_btn = QPushButton("Edit script")
         edit_btn.clicked.connect(self._edit_btn_clicked)  # type: ignore
@@ -29,15 +29,23 @@ class ScriptControl(QGroupBox):
 
         self.dialog: Optional[ScriptEditDialog] = None
 
-    def _show_edit_dialog(self, file_path: Optional[Path] = None) -> None:
-        """Create and show edit dialog if it doesn't exist."""
+    def _create_btn_clicked(self) -> None:
+        # If there is no open dialog, then create a new one
         if not self.dialog or self.dialog.isHidden():
-            self.dialog = ScriptEditDialog(self.window(), file_path)
+            self.dialog = ScriptEditDialog(self.window())
             self.dialog.show()
 
     def _edit_btn_clicked(self) -> None:
+        # If there's already a dialog open, try to close it first to save data etc.
+        if self.dialog and not self.dialog.close():
+            return
+
+        # Ask user to choose script file to edit
         file_path, _ = QFileDialog.getOpenFileName(
-            self, caption="Choose script file", dir=str(Path.home()), filter="*.yaml"
+            self,
+            caption="Choose script file to edit",
+            dir=str(Path.home()),
+            filter="*.yaml",
         )
 
         if not file_path:
@@ -45,7 +53,9 @@ class ScriptControl(QGroupBox):
             return
 
         try:
-            self._show_edit_dialog(Path(file_path))
+            # Create new dialog showing contents of script in file_path
+            self.dialog = ScriptEditDialog(self.window(), Path(file_path))
+            self.dialog.show()
         except OSError as e:
             show_error_message(self, f"Error: Could not read {file_path}: {str(e)}")
         except ParseError:
