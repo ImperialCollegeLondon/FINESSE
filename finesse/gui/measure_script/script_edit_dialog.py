@@ -77,6 +77,7 @@ class ScriptEditDialog(QDialog):
         # If there aren't any instructions, there isn't anything to save
         if not self.sequence.sequence:
             self.accept()
+            return
 
         file_path = self.script_path.get_path()
         if not file_path:
