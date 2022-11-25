@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
     QButtonGroup,
     QDialog,
     QDialogButtonBox,
+    QFileDialog,
     QFormLayout,
     QGroupBox,
     QHBoxLayout,
@@ -22,7 +23,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from ...config import ANGLE_PRESETS
+from ...config import ANGLE_PRESETS, DEFAULT_SCRIPT_PATH
 from ..error_message import show_error_message
 from .parse import Script
 from .script_path_widget import ScriptPathWidget
@@ -44,11 +45,17 @@ class ScriptEditDialog(QDialog):
         if script:
             self.count = CountWidget(script.measurements["count"])
             self.sequence = SequenceWidget(script.measurements["sequence"])
-            self.script_path = ScriptPathWidget(script.path)
+            self.script_path = SaveScriptPathWidget(script.path)
         else:
             self.count = CountWidget()
             self.sequence = SequenceWidget()
-            self.script_path = ScriptPathWidget()
+            self.script_path = SaveScriptPathWidget()
+
+        # Put a label next to the script path
+        script_widget = QWidget()
+        script_layout = QFormLayout()
+        script_layout.addRow("Script file path:", self.script_path)
+        script_widget.setLayout(script_layout)
 
         buttonBox = QDialogButtonBox(
             QDialogButtonBox.StandardButton.Save
@@ -61,7 +68,7 @@ class ScriptEditDialog(QDialog):
         layout = QVBoxLayout()
         layout.addWidget(self.count)
         layout.addWidget(self.sequence)
-        layout.addWidget(self.script_path)
+        layout.addWidget(script_widget)
         layout.addWidget(buttonBox)
 
         self.setLayout(layout)
@@ -80,7 +87,7 @@ class ScriptEditDialog(QDialog):
         if not self.sequence.sequence:
             return True
 
-        file_path = self.script_path.get_path()
+        file_path = self.script_path.try_get_path()
         if not file_path:
             # User didn't choose a file path
             return False
@@ -385,3 +392,18 @@ class ChangeButtons(QGroupBox):
         layout.addWidget(delete)
         layout.addWidget(clear)
         self.setLayout(layout)
+
+
+class SaveScriptPathWidget(ScriptPathWidget):
+    """A widget that lets the user choose the path to save a script."""
+
+    def get_file_name(self) -> str:
+        """Get the path to save the file to by opening a dialog."""
+        # TODO: Automatically add .yaml extension
+        filename, _ = QFileDialog.getSaveFileName(
+            self,
+            caption="Choose destination path",
+            dir=str(DEFAULT_SCRIPT_PATH),
+            filter="*.yaml",
+        )
+        return filename

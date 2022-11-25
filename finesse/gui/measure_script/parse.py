@@ -1,15 +1,26 @@
 """Code for parsing the YAML-formatted measure scripts."""
+import logging
 from dataclasses import dataclass
 from io import TextIOBase
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
 
 import yaml
+from pubsub import pub
 from PySide6.QtWidgets import QWidget
 from schema import And, Or, Schema, SchemaError
 
 from ...config import ANGLE_PRESETS
 from ..error_message import show_error_message
+
+
+def _take_measurements(count: int, angle: Union[str, float]) -> None:
+    """A placeholder function for recording multiple measurements."""
+    # Move the mirror to the correct location
+    pub.sendMessage("stepper.move", target=angle)
+
+    # Take the recordings
+    logging.info(f"Recording {count} measurements")
 
 
 @dataclass
@@ -18,6 +29,14 @@ class Script:
 
     path: Path
     measurements: Dict[str, Any]
+
+    def run(self) -> None:
+        """Run this measure script."""
+        logging.info(f"Running {self.path}")
+        for i in range(self.measurements["count"]):
+            logging.info(f"Iteration {i+1}/{self.measurements['count']}")
+            for instruction in self.measurements["sequence"]:
+                _take_measurements(instruction["count"], instruction["angle"])
 
 
 class ParseError(Exception):
