@@ -1,4 +1,5 @@
 """Common constants used throughout the app."""
+from pathlib import Path
 
 APP_NAME = "FINESSE"
 """A human-readable name for the app."""
@@ -8,3 +9,6 @@ APP_AUTHOR = "Imperial College London"
 
 ANGLE_PRESETS = ("zenith", "nadir", "hot_bb", "cold_bb", "home")
 """Names of preset angles that the mirror can rotate to."""
+
+DEFAULT_SCRIPT_PATH = Path.home()
+"""The default path to search for script files in."""

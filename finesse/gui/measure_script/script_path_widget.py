@@ -12,6 +12,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from ...config import DEFAULT_SCRIPT_PATH
+
 
 class ScriptPathWidget(QWidget):
     """A widget containing a text box with a file path and a browse button."""
@@ -49,7 +51,7 @@ class ScriptPathWidget(QWidget):
         filename, _ = QFileDialog.getSaveFileName(
             self,
             caption="Choose destination path",
-            dir=str(Path.home()),
+            dir=str(DEFAULT_SCRIPT_PATH),
             filter="*.yaml",
         )
         return filename

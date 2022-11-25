@@ -4,6 +4,7 @@ from typing import Optional
 
 from PySide6.QtWidgets import QFileDialog, QGroupBox, QHBoxLayout, QPushButton
 
+from ...config import DEFAULT_SCRIPT_PATH
 from .parse import try_load_script
 from .script_edit_dialog import ScriptEditDialog
 
@@ -43,7 +44,7 @@ class ScriptControl(QGroupBox):
         file_path, _ = QFileDialog.getOpenFileName(
             self,
             caption="Choose script file to edit",
-            dir=str(Path.home()),
+            dir=str(DEFAULT_SCRIPT_PATH),
             filter="*.yaml",
         )
         if not file_path:
