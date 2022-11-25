@@ -11,7 +11,6 @@ from PySide6.QtWidgets import (
     QButtonGroup,
     QDialog,
     QDialogButtonBox,
-    QErrorMessage,
     QFormLayout,
     QGroupBox,
     QHBoxLayout,
@@ -23,6 +22,7 @@ from PySide6.QtWidgets import (
 )
 
 from ...config import ANGLE_PRESETS
+from ..error_message import show_error_message
 from .parse import parse_script
 from .script_path_widget import ScriptPathWidget
 
@@ -95,14 +95,9 @@ class ScriptEditDialog(QDialog):
             with open(file_path, "w") as f:
                 yaml.dump(script, f)
         except Exception as e:
-            msg = f"Error occurred while saving file {file_path}:\n{str(e)}"
-
-            # Show pop-up message
-            QErrorMessage(self).showMessage(msg)
-
-            # Write to program log
-            logging.error(msg)
-
+            show_error_message(
+                self, f"Error occurred while saving file {file_path}:\n{str(e)}"
+            )
             return
 
         # Close this dialog
