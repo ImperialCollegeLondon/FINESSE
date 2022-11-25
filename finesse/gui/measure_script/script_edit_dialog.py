@@ -399,11 +399,14 @@ class SaveScriptPathWidget(ScriptPathWidget):
 
     def get_file_name(self) -> str:
         """Get the path to save the file to by opening a dialog."""
-        # TODO: Automatically add .yaml extension
-        filename, _ = QFileDialog.getSaveFileName(
+        dialog = QFileDialog(
             self,
             caption="Choose destination path",
-            dir=str(DEFAULT_SCRIPT_PATH),
+            directory=str(DEFAULT_SCRIPT_PATH),
             filter="*.yaml",
         )
-        return filename
+        dialog.setDefaultSuffix("yaml")
+
+        if dialog.exec():
+            return dialog.selectedFiles()[0]
+        return ""
