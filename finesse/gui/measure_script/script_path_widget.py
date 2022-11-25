@@ -1,18 +1,9 @@
 """Provides a widget for choosing the path to a measure script."""
+from abc import abstractmethod
 from pathlib import Path
 from typing import Optional
 
-from PySide6.QtWidgets import (
-    QFileDialog,
-    QHBoxLayout,
-    QLabel,
-    QLineEdit,
-    QPushButton,
-    QSizePolicy,
-    QWidget,
-)
-
-from ...config import DEFAULT_SCRIPT_PATH
+from PySide6.QtWidgets import QHBoxLayout, QLineEdit, QPushButton, QSizePolicy, QWidget
 
 
 class ScriptPathWidget(QWidget):
@@ -26,10 +17,10 @@ class ScriptPathWidget(QWidget):
         """
         super().__init__()
 
-        label = QLabel("Script file path:")
-        label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
-
         self.line_edit = QLineEdit()
+        """Indicates the current selected path."""
+
+        self.line_edit.setReadOnly(True)
         if file_path:
             self.line_edit.setText(str(file_path))
 
@@ -38,36 +29,36 @@ class ScriptPathWidget(QWidget):
         browse.clicked.connect(self._browse_clicked)  # type: ignore
 
         layout = QHBoxLayout()
-        layout.addWidget(label)
         layout.addWidget(self.line_edit)
         layout.addWidget(browse)
         self.setLayout(layout)
 
     def _browse_clicked(self) -> None:
-        self.line_edit.setText(self._get_save_file_name())
+        self.line_edit.setText(self.get_file_name())
 
-    def _get_save_file_name(self) -> str:
-        # TODO: Automatically add .yaml extension
-        filename, _ = QFileDialog.getSaveFileName(
-            self,
-            caption="Choose destination path",
-            dir=str(DEFAULT_SCRIPT_PATH),
-            filter="*.yaml",
-        )
-        return filename
+    @abstractmethod
+    def get_file_name(self) -> str:
+        """Get the file name by raising a dialog."""
+        raise NotImplementedError()
 
-    def get_path(self) -> Optional[Path]:
+    def try_get_path(self) -> Optional[Path]:
         """Get the path of the chosen file.
 
         If the path hasn't yet been set, a QFileDialog is opened to let the user choose
         one.
+
+        Returns:
+            The selected file path or None if the user has cancelled
         """
         txt = self.line_edit.text()
         if txt:
             return Path(txt)
 
         # ...otherwise the user hasn't chosen a path. Let them do it now.
-        filename = self._get_save_file_name()
+        filename = self.get_file_name()
+        if filename:
+            self.line_edit.setText(filename)
+            return Path(filename)
 
-        # Return None if no path selected
-        return Path(filename) if filename else None
+        # No path selected
+        return None

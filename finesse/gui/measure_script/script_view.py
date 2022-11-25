@@ -2,11 +2,12 @@
 from pathlib import Path
 from typing import Optional
 
-from PySide6.QtWidgets import QFileDialog, QGroupBox, QHBoxLayout, QPushButton
+from PySide6.QtWidgets import QFileDialog, QGridLayout, QGroupBox, QPushButton
 
 from ...config import DEFAULT_SCRIPT_PATH
 from .parse import try_load_script
 from .script_edit_dialog import ScriptEditDialog
+from .script_path_widget import ScriptPathWidget
 
 
 class ScriptControl(QGroupBox):
@@ -22,9 +23,16 @@ class ScriptControl(QGroupBox):
         edit_btn = QPushButton("Edit script")
         edit_btn.clicked.connect(self._edit_btn_clicked)  # type: ignore
 
-        layout = QHBoxLayout()
-        layout.addWidget(create_btn)
-        layout.addWidget(edit_btn)
+        self.script_path = OpenScriptPathWidget()
+
+        run_btn = QPushButton("Run script")
+        run_btn.clicked.connect(self._run_btn_clicked)  # type: ignore
+
+        layout = QGridLayout()
+        layout.addWidget(create_btn, 0, 0)
+        layout.addWidget(edit_btn, 0, 1)
+        layout.addWidget(self.script_path, 1, 0)
+        layout.addWidget(run_btn, 1, 1)
         self.setLayout(layout)
 
         self.dialog: Optional[ScriptEditDialog] = None
@@ -60,3 +68,29 @@ class ScriptControl(QGroupBox):
         # Create new dialog showing contents of script
         self.dialog = ScriptEditDialog(self.window(), script)
         self.dialog.show()
+
+    def _run_btn_clicked(self) -> None:
+        file_path = self.script_path.try_get_path()
+        if not file_path:
+            # User cancelled
+            return
+
+        script = try_load_script(self, file_path)
+        if not script:
+            # Failed to load script
+            return
+
+        # Run the script!
+        script.run()
+
+
+class OpenScriptPathWidget(ScriptPathWidget):
+    """A widget that lets the user choose the path to an existing script."""
+
+    def get_file_name(self) -> str:
+        """Get the path of the file to open by raising a dialog."""
+        filename, _ = QFileDialog.getOpenFileName(
+            self, "Choose script to load", str(DEFAULT_SCRIPT_PATH), "*.yaml"
+        )
+
+        return filename
