@@ -4,6 +4,8 @@ from typing import Optional
 
 from PySide6.QtWidgets import QFileDialog, QGroupBox, QHBoxLayout, QPushButton
 
+from ..error_message import show_error_message
+from .parse import ParseError
 from .script_edit_dialog import ScriptEditDialog
 
 
@@ -38,7 +40,13 @@ class ScriptControl(QGroupBox):
             self, caption="Choose script file", dir=str(Path.home()), filter="*.yaml"
         )
 
-        # TODO: What happens if user clicks edit when dialog is open?
-        # TODO: Handle IO/parsing errors
-        if file_path:
+        if not file_path:
+            # User closed dialog
+            return
+
+        try:
             self._show_edit_dialog(Path(file_path))
+        except OSError as e:
+            show_error_message(self, f"Error: Could not read {file_path}: {str(e)}")
+        except ParseError:
+            show_error_message(self, f"Error: {file_path} is in an invalid format")
