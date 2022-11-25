@@ -4,8 +4,7 @@ from typing import Optional
 
 from PySide6.QtWidgets import QFileDialog, QGroupBox, QHBoxLayout, QPushButton
 
-from ..error_message import show_error_message
-from .parse import ParseError
+from .parse import try_load_script
 from .script_edit_dialog import ScriptEditDialog
 
 
@@ -52,11 +51,11 @@ class ScriptControl(QGroupBox):
             # User closed dialog
             return
 
-        try:
-            # Create new dialog showing contents of script in file_path
-            self.dialog = ScriptEditDialog(self.window(), Path(file_path))
-            self.dialog.show()
-        except OSError as e:
-            show_error_message(self, f"Error: Could not read {file_path}: {str(e)}")
-        except ParseError:
-            show_error_message(self, f"Error: {file_path} is in an invalid format")
+        script = try_load_script(self, Path(file_path))
+        if not script:
+            # An error occurred while loading script
+            return
+
+        # Create new dialog showing contents of script
+        self.dialog = ScriptEditDialog(self.window(), script)
+        self.dialog.show()

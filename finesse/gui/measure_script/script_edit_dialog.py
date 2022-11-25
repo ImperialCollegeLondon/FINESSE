@@ -1,7 +1,6 @@
 """Contains code for a dialog to create and edit measure scripts."""
 
 import logging
-from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 import yaml
@@ -25,38 +24,31 @@ from PySide6.QtWidgets import (
 
 from ...config import ANGLE_PRESETS
 from ..error_message import show_error_message
-from .parse import parse_script
+from .parse import Script
 from .script_path_widget import ScriptPathWidget
 
 
 class ScriptEditDialog(QDialog):
     """A dialog to create and edit measure scripts."""
 
-    def __init__(self, parent: QWidget, file_path: Optional[Path] = None) -> None:
+    def __init__(self, parent: QWidget, script: Optional[Script] = None) -> None:
         """Create a new ScriptEditDialog.
 
         Args:
             parent: Parent widget
-            file_path: Path to measure script to be edited or None to create new
-        Raises:
-            OSError: Could not open file for reading
-            ParseError: file_path does not contain a valid script
+            script: A loaded measure script or None
         """
         super().__init__(parent)
         self.setWindowTitle("Edit measurement script")
 
-        script_count = 1
-        if file_path:
-            with open(file_path, "r") as f:
-                script = parse_script(f)
-
-            script_count = script["count"]
-            self.sequence = SequenceWidget(script["sequence"])
+        if script:
+            self.count = CountWidget(script.measurements["count"])
+            self.sequence = SequenceWidget(script.measurements["sequence"])
+            self.script_path = ScriptPathWidget(script.path)
         else:
+            self.count = CountWidget()
             self.sequence = SequenceWidget()
-        self.script_path = ScriptPathWidget(file_path)
-
-        self.count = CountWidget(script_count)
+            self.script_path = ScriptPathWidget()
 
         buttonBox = QDialogButtonBox(
             QDialogButtonBox.StandardButton.Save
