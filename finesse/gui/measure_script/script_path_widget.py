@@ -34,17 +34,17 @@ class ScriptPathWidget(QWidget):
         self.setLayout(layout)
 
     def _browse_clicked(self) -> None:
-        filename = self.get_file_name()
+        filename = self.try_get_path_from_dialog()
         if filename:
             self.set_path(filename)
 
     @abstractmethod
-    def get_file_name(self) -> Optional[Path]:
-        """Get the file name by raising a dialog."""
+    def try_get_path_from_dialog(self) -> Optional[Path]:
+        """Try to get the file name by raising a dialog."""
         raise NotImplementedError()
 
     def try_get_path(self) -> Optional[Path]:
-        """Get the path of the chosen file.
+        """Try to get the path of the chosen file for this widget.
 
         If the path hasn't yet been set, a QFileDialog is opened to let the user choose
         one.
@@ -57,7 +57,7 @@ class ScriptPathWidget(QWidget):
             return Path(txt)
 
         # ...otherwise the user hasn't chosen a path. Let them do it now.
-        filename = self.get_file_name()
+        filename = self.try_get_path_from_dialog()
         if filename:
             self.set_path(filename)
             return Path(filename)
