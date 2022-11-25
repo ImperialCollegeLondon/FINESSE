@@ -366,7 +366,7 @@ class ChoosePathWidget(QWidget):
 
     def _browse_clicked(self) -> None:
         filename, _ = QFileDialog.getSaveFileName(
-            self, caption="Caption choose destination path", filter="*.yaml"
+            self, caption="Choose destination path", filter="*.yaml"
         )
 
         self.line_edit.setText(filename)
