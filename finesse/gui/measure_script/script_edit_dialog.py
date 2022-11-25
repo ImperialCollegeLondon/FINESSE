@@ -37,6 +37,7 @@ class ScriptEditDialog(QDialog):
             parent: Parent widget
             file_path: Path to measure script to be edited or None to create new
         Raises:
+            OSError: Could not open file for reading
             ParseError: file_path does not contain a valid script
         """
         super().__init__(parent)
