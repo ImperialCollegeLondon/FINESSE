@@ -230,7 +230,7 @@ class SequenceWidget(QWidget):
     def move_selected_up(self) -> None:
         """Move the currently selected instructions up one row."""
         selected = self._get_selected_rows()
-        if selected[0] == 0:
+        if not selected or selected[0] == 0:
             # We can't move up if the topmost item is selected
             return
 
@@ -241,7 +241,7 @@ class SequenceWidget(QWidget):
     def move_selected_down(self) -> None:
         """Move the currently selected instructions down one row."""
         selected = self._get_selected_rows(reverse=True)
-        if selected[0] == len(self.sequence) - 1:
+        if not selected or selected[0] == len(self.sequence) - 1:
             # We can't move down if the bottom item is selected
             return
 
