@@ -44,11 +44,11 @@ class ScriptEditDialog(QDialog):
 
         if script:
             self.count = CountWidget(script.measurements["count"])
-            self.sequence = SequenceWidget(script.measurements["sequence"])
+            self.sequence_widget = SequenceWidget(script.measurements["sequence"])
             self.script_path = SaveScriptPathWidget(script.path)
         else:
             self.count = CountWidget()
-            self.sequence = SequenceWidget()
+            self.sequence_widget = SequenceWidget()
             self.script_path = SaveScriptPathWidget()
 
         # Put a label next to the script path
@@ -67,7 +67,7 @@ class ScriptEditDialog(QDialog):
 
         layout = QVBoxLayout()
         layout.addWidget(self.count)
-        layout.addWidget(self.sequence)
+        layout.addWidget(self.sequence_widget)
         layout.addWidget(script_widget)
         layout.addWidget(buttonBox)
 
@@ -84,7 +84,7 @@ class ScriptEditDialog(QDialog):
             True if file saved successfully (or no data to save), false otherwise
         """
         # If there aren't any instructions, there isn't anything to save
-        if not self.sequence.sequence:
+        if not self.sequence_widget.sequence:
             return True
 
         file_path = self.script_path.try_get_path()
@@ -97,7 +97,7 @@ class ScriptEditDialog(QDialog):
         script = {
             "measurements": {
                 "count": self.count.value(),
-                "sequence": self.sequence.sequence,
+                "sequence": self.sequence_widget.sequence,
             }
         }
 
@@ -116,7 +116,7 @@ class ScriptEditDialog(QDialog):
         """Check for unsaved data and if necessary save it."""
         # Just close if the dialog is already closed or there aren't any instructions
         # See bug: https://bugreports.qt.io/browse/QTBUG-43344
-        if not self.isVisible() or not self.sequence.sequence:
+        if not self.isVisible() or not self.sequence_widget.sequence:
             self.setResult(QDialog.DialogCode.Accepted)
             return
 
