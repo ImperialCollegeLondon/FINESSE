@@ -86,8 +86,8 @@ class ScriptControl(QGroupBox):
 class OpenScriptPathWidget(ScriptPathWidget):
     """A widget that lets the user choose the path to an existing script."""
 
-    def get_file_name(self) -> Optional[Path]:
-        """Get the path of the file to open by raising a dialog."""
+    def try_get_path_from_dialog(self) -> Optional[Path]:
+        """Try to get the path of the file to open by raising a dialog."""
         filename, _ = QFileDialog.getOpenFileName(
             self, "Choose script to load", str(DEFAULT_SCRIPT_PATH), "*.yaml"
         )

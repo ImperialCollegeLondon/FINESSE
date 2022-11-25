@@ -398,8 +398,8 @@ class ChangeButtons(QGroupBox):
 class SaveScriptPathWidget(ScriptPathWidget):
     """A widget that lets the user choose the path to save a script."""
 
-    def get_file_name(self) -> Optional[Path]:
-        """Get the path to save the file to by opening a dialog."""
+    def try_get_path_from_dialog(self) -> Optional[Path]:
+        """Try to get the path to save the file to by opening a dialog."""
         dialog = QFileDialog(
             self,
             caption="Choose destination path",
