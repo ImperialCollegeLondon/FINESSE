@@ -1,8 +1,7 @@
 """Contains code for a dialog to create and edit measure scripts."""
 
 import logging
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Union
 
 import yaml
 from PySide6.QtCore import QAbstractTableModel, QModelIndex, QPersistentModelIndex, Qt
@@ -12,14 +11,10 @@ from PySide6.QtWidgets import (
     QDialog,
     QDialogButtonBox,
     QErrorMessage,
-    QFileDialog,
     QFormLayout,
     QGroupBox,
     QHBoxLayout,
-    QLabel,
-    QLineEdit,
     QPushButton,
-    QSizePolicy,
     QSpinBox,
     QTableView,
     QVBoxLayout,
@@ -27,6 +22,7 @@ from PySide6.QtWidgets import (
 )
 
 from ...config import ANGLE_PRESETS
+from .script_path_widget import ScriptPathWidget
 
 
 class ScriptEditDialog(QDialog):
@@ -39,7 +35,7 @@ class ScriptEditDialog(QDialog):
 
         self.count = CountWidget()
         self.sequence = SequenceWidget()
-        self.choose_path = ChoosePathWidget()
+        self.script_path = ScriptPathWidget()
 
         buttonBox = QDialogButtonBox(
             QDialogButtonBox.StandardButton.Save
@@ -52,7 +48,7 @@ class ScriptEditDialog(QDialog):
         layout = QVBoxLayout()
         layout.addWidget(self.count)
         layout.addWidget(self.sequence)
-        layout.addWidget(self.choose_path)
+        layout.addWidget(self.script_path)
         layout.addWidget(buttonBox)
 
         self.setLayout(layout)
@@ -63,7 +59,7 @@ class ScriptEditDialog(QDialog):
         if not self.sequence.sequence:
             self.accept()
 
-        file_path = self.choose_path.get_path()
+        file_path = self.script_path.get_path()
         if not file_path:
             # User didn't choose a file path
             return
@@ -344,45 +340,3 @@ class ChangeButtons(QGroupBox):
         layout.addWidget(delete)
         layout.addWidget(clear)
         self.setLayout(layout)
-
-
-class ChoosePathWidget(QWidget):
-    """A widget containing a text box with a file path and a browse button."""
-
-    def __init__(self) -> None:
-        """Create a new ChoosePathWidget."""
-        super().__init__()
-
-        label = QLabel("Script file path:")
-        label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
-        self.line_edit = QLineEdit()
-        browse = QPushButton("&Browse...")
-        browse.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
-        browse.clicked.connect(self._browse_clicked)  # type: ignore
-
-        layout = QHBoxLayout()
-        layout.addWidget(label)
-        layout.addWidget(self.line_edit)
-        layout.addWidget(browse)
-        self.setLayout(layout)
-
-    def _browse_clicked(self) -> None:
-        self.line_edit.setText(self._get_save_file_name())
-
-    def _get_save_file_name(self) -> str:
-        filename, _ = QFileDialog.getSaveFileName(
-            self, caption="Choose destination path", filter="*.yaml"
-        )
-        return filename
-
-    def get_path(self) -> Optional[Path]:
-        """Get the path of the chosen file."""
-        txt = self.line_edit.text()
-        if txt:
-            return Path(txt)
-
-        # ...otherwise the user hasn't chosen a path. Let them do it now.
-        filename = self._get_save_file_name()
-
-        # Return None if no path selected
-        return Path(filename) if filename else None
