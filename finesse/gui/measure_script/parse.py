@@ -1,5 +1,6 @@
 """Code for parsing the YAML-formatted measure scripts."""
-from typing import Any, Dict
+from io import TextIOBase
+from typing import Any, Dict, Union
 
 import yaml
 from schema import And, Or, Schema, SchemaError
@@ -15,7 +16,7 @@ class ParseError(Exception):
         super().__init__("Error parsing measure script")
 
 
-def parse_script(script: str) -> Dict[str, Any]:
+def parse_script(script: Union[str, TextIOBase]) -> Dict[str, Any]:
     """Parse a measure script.
 
     Args:
