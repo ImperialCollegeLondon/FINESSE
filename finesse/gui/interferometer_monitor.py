@@ -2,11 +2,16 @@
 from copy import deepcopy
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QGridLayout, QGroupBox, QLabel, QLineEdit, QRadioButton
+from PySide6.QtGui import QPixmap
+from PySide6.QtWidgets import QGridLayout, QGroupBox, QLabel, QLineEdit
 
 
 def get_vals_from_server():
-    """Placeholder function for retrieving interferometer properties."""
+    """Placeholder function for retrieving interferometer properties.
+
+    Returns:
+        A list of values of the physical properties being monitored
+    """
     psf27_temp = 28.151062
     cryo_temp = 0.0
     bb_hum = 2.463968
@@ -34,36 +39,43 @@ class EM27Monitor(QGroupBox):
 
         self._prop_labels = deepcopy(prop_labels)
         self._prop_units = deepcopy(prop_units)
-        self._psf27_temp_box = QLineEdit(
-            self._prop_units[0], readOnly=True, alignment=Qt.AlignCenter
-        )
-        self._cryo_temp_box = QLineEdit(
-            self._prop_units[1], readOnly=True, alignment=Qt.AlignCenter
-        )
-        self._bb_hum_box = QLineEdit(
-            self._prop_units[2], readOnly=True, alignment=Qt.AlignCenter
-        )
-        self._src_temp_box = QLineEdit(
-            self._prop_units[3], readOnly=True, alignment=Qt.AlignCenter
-        )
-        self._aux_volt_box = QLineEdit(
-            self._prop_units[4], readOnly=True, alignment=Qt.AlignCenter
-        )
-        self._aux_current_box = QLineEdit(
-            self._prop_units[5], readOnly=True, alignment=Qt.AlignCenter
-        )
-        self._laser_current_box = QLineEdit(
-            self._prop_units[6], readOnly=True, alignment=Qt.AlignCenter
-        )
-        self._poll_server_indicator = QRadioButton()
+
+        self._psf27_temp_box = QLineEdit(self._prop_units[0])
+        self._psf27_temp_box.setReadOnly(True)
+
+        self._psf27_temp_box.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self._cryo_temp_box = QLineEdit(self._prop_units[1])
+        self._cryo_temp_box.setReadOnly(True)
+        self._cryo_temp_box.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self._bb_hum_box = QLineEdit(self._prop_units[2])
+        self._bb_hum_box.setReadOnly(True)
+        self._bb_hum_box.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self._src_temp_box = QLineEdit(self._prop_units[3])
+        self._src_temp_box.setReadOnly(True)
+        self._src_temp_box.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self._aux_volt_box = QLineEdit(self._prop_units[4])
+        self._aux_volt_box.setReadOnly(True)
+        self._aux_volt_box.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self._aux_current_box = QLineEdit(self._prop_units[5])
+        self._aux_current_box.setReadOnly(True)
+        self._aux_current_box.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self._laser_current_box = QLineEdit(self._prop_units[6])
+        self._laser_current_box.setReadOnly(True)
+        self._laser_current_box.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self._poll_light = QLabel()
 
         layout = self._create_controls()
         self.setLayout(layout)
 
     def _create_controls(self) -> QGridLayout:
         """Creates the widgets for the EM27 properties.
-
-        Args:
 
         Returns:
             QGridLayout: The layout with the widgets.
@@ -82,9 +94,7 @@ class EM27Monitor(QGroupBox):
         layout.addWidget(self._aux_volt_box, 4, 1)
         layout.addWidget(self._aux_current_box, 5, 1)
         layout.addWidget(self._laser_current_box, 6, 1)
-        layout.addWidget(self._poll_server_indicator, 7, 1)
-
-        self._poll_server_indicator.clicked.connect(self.poll_server)
+        layout.addWidget(self._poll_light, 7, 1)
 
         return layout
 
@@ -92,72 +102,62 @@ class EM27Monitor(QGroupBox):
         """Sets the PSF27 temperature text box.
 
         Args:
-        val: value polled from server
+            val: value polled from server
         """
-        self._psf27_temp_box.setText("%.6f deg C" % val)
-        return
+        self._psf27_temp_box.setText("%.6f %s" % (val, self._prop_units[0]))
 
     def set_cryo_temp(self, val):
         """Sets the cryo temperature text box.
 
         Args:
-        val: value polled from server
+            val: value polled from server
         """
-        self._cryo_temp_box.setText("%.6f K" % val)
-        return
+        self._cryo_temp_box.setText("%.6f %s" % (val, self._prop_units[1]))
 
     def set_bb_hum(self, val):
         """Sets the blackbody humidity text box.
 
         Args:
-        val: value polled from server
+            val: value polled from server
         """
-        self._bb_hum_box.setText("%.6f %%" % val)
-        return
+        self._bb_hum_box.setText("%.6f %s" % (val, self._prop_units[2]))
 
     def set_src_temp(self, val):
         """Sets the source temperature text box.
 
         Args:
-        val: value polled from server
+            val: value polled from server
         """
-        self._src_temp_box.setText("%.6f deg C" % val)
-        return
+        self._src_temp_box.setText("%.6f %s" % (val, self._prop_units[3]))
 
     def set_aux_volt(self, val):
         """Sets the AUX voltage text box.
 
         Args:
-        val: value polled from server
+            val: value polled from server
         """
-        self._aux_volt_box.setText("%.6f V" % val)
-        return
+        self._aux_volt_box.setText("%.6f %s" % (val, self._prop_units[4]))
 
     def set_aux_current(self, val):
         """Sets the AUX current text box.
 
         Args:
-        val: value polled from server
+            val: value polled from server
         """
-        self._aux_current_box.setText("%.6f A" % val)
-        return
+        self._aux_current_box.setText("%.6f %s" % (val, self._prop_units[0]))
 
     def set_laser_current(self, val):
         """Sets the laser current text box.
 
         Args:
-        val: value polled from server
+            val: value polled from server
         """
-        self._laser_current_box.setText("%.6f A" % val)
-        return
+        self._laser_current_box.setText("%.6f %s" % (val, self._prop_units[0]))
 
-    def poll_server(self):
-        """Polls the server, turns on indicator, sets values, turns off indicator.
-
-        Args:
-        Returns:
-        """
+    def poll_server(self) -> None:
+        """Polls the server, turns on indicator, sets values, turns off indicator."""
         # Turn light on
+        self._poll_light.setPixmap(QPixmap("./finesse/gui/images/poll_on.png"))
 
         # Get values
         [
@@ -171,6 +171,7 @@ class EM27Monitor(QGroupBox):
         ] = get_vals_from_server()
 
         # Turn light off
+        self._poll_light.setPixmap(QPixmap("./finesse/gui/images/poll_off.png"))
 
         # Set values
         self.set_psf27_temp(psf27_temp)
@@ -180,8 +181,6 @@ class EM27Monitor(QGroupBox):
         self.set_aux_volt(aux_volt)
         self.set_aux_current(aux_current)
         self.set_laser_current(laser_current)
-
-        return
 
 
 if __name__ == "__main__":
