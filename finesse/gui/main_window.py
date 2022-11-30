@@ -16,8 +16,6 @@ class MainWindow(QMainWindow):
 
         layout = QGridLayout()
 
-        # Setup for serial port control
-
         devices = {
             "ST10": {"port": "COM5", "baud_rate": "9600"},
             "DP9800": {"port": "COM1", "baud_rate": "9600"},
