@@ -1,7 +1,7 @@
 """Panel and widgets related to temperature monitoring."""
 
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import (
@@ -28,7 +28,7 @@ class BBMonitor(QGroupBox):
     """Widgets to view the temperature properties."""
 
     def __init__(self) -> None:
-        """Creates a figure to monitor the hot and cold blackbody temperatures over time.
+        """Creates a panel with a graph to monitor the hot and cold blackbody temperatures.
 
         Args:
             None
@@ -54,7 +54,7 @@ class BBMonitor(QGroupBox):
 
         return layout
 
-    def _create_figure(self):
+    def _create_figure(self) -> None:
         """Creates the matplotlib figure to be contained within the panel.
 
         Args:
@@ -63,35 +63,64 @@ class BBMonitor(QGroupBox):
         Returns:
             None
         """
-        self._figure, ax1 = plt.subplots()
-        self._canvas = FigureCanvas(self._figure)
+        self._figure, self._ax1 = plt.subplots()
+        self._canvas = FigureCanvasQTAgg(self._figure)
 
-        t = [1045.5, 1101]
-        hot_bb_temp = [55, 70]
-        cold_bb_temp = [1, 1.5]
+        t = [1040, 1050, 1060, 1070, 1080, 1090, 1100]
+        hot_bb_temp = [55, 57.5, 60, 62.5, 65, 67.5, 70]
+        cold_bb_temp = [1, 1.1, 1.15, 1.2, 1.3, 1.4, 1.5]
 
-        ax1.plot(t, hot_bb_temp, color=[0, 1, 0])
-        ax1.set_xlabel("")
-        ax1.set_ylabel("HOT BB", color=[0, 1, 0])
-        ax1.set_xlim([1045, 1101.4])
-        ax1.set_ylim([20, 80])
+        self._bb_hot_line = self._ax1.plot(t, hot_bb_temp, color=[0, 1, 0])
+        self._ax1.set_xlabel("")
+        self._ax1.set_ylabel("HOT BB", color=[0, 1, 0])
+        self._ax1.set_xlim([1045, 1101.4])
+        self._ax1.set_ylim([20, 80])
 
-        ax2 = ax1.twinx()
-        ax2.plot(t, cold_bb_temp, color=[1, 1, 0])
-        ax2.set_ylabel("COLD BB", color=[1, 1, 0])
-        ax2.set_ylim([0, 10])
+        self._ax2 = self._ax1.twinx()
+        self._bb_cold_line = self._ax2.plot(t, cold_bb_temp, color=[1, 1, 0])
+        self._ax2.set_ylabel("COLD BB", color=[1, 1, 0])
+        self._ax2.set_ylim([0, 10])
 
         self._canvas.draw()
 
-    def _update_figure(self, x, y):
+    def _update_figure(self) -> None:  # , x, y) -> None:
         """Updates the matplotlib figure to be contained within the panel.
 
         Args:
-            x: time
-            y: temperature
+            #x: time
+            #y: temperature
+            # probably won't be inputs since obtainable from elsewhere
         Returns:
             None
         """
+        xdata = list(self._bb_hot_line[0].get_xdata())
+        y1data = list(self._bb_hot_line[0].get_ydata())
+        y2data = list(self._bb_cold_line[0].get_ydata())
+
+        xdata.pop(0)
+        y1data.pop(0)
+        y2data.pop(0)
+
+        x = xdata[-1] + 10
+
+        # Basic RNG for testing
+        y1 = (60 * y1data[-1] + 50) % 70
+        y2 = (5 * y2data[-1] + 1) % 8
+
+        xdata.append(x)
+        y1data.append(y1)
+        y2data.append(y2)
+
+        self._bb_hot_line[0].set_xdata(xdata)
+        self._bb_hot_line[0].set_ydata(y1data)
+        self._bb_cold_line[0].set_xdata(xdata)
+        self._bb_cold_line[0].set_ydata(y2data)
+
+        self._ax1.relim()
+        self._ax2.xaxis.axes.relim()
+        self._ax1.autoscale()
+        self._ax2.xaxis.axes.autoscale()
+        self._ax2.set_ylim([self._ax2.get_ylim()[0], 2 * self._ax2.get_ylim()[1]])
         self._canvas.draw()
 
 
@@ -119,18 +148,47 @@ class DP9800(QGroupBox):
         layout.addWidget(QLabel("Pt 100"), 1, 0)
         for i in range(1, 9):
             wid = QLabel("CH_%d" % i)
-            wid.setAlignment(Qt.AlignCenter)
+            wid.setAlignment(Qt.AlignmentFlag.AlignCenter)
             layout.addWidget(wid, 0, i)
-            layout.addWidget(
-                QLineEdit(), 1, i
-            )  # presumably need to store these for access later
+
+        self._ch1 = QLineEdit()
+        self._ch1.setReadOnly(True)
+        layout.addWidget(self._ch1, 1, 1)
+
+        self._ch2 = QLineEdit()
+        self._ch2.setReadOnly(True)
+        layout.addWidget(self._ch2, 1, 2)
+
+        self._ch3 = QLineEdit()
+        self._ch3.setReadOnly(True)
+        layout.addWidget(self._ch3, 1, 3)
+
+        self._ch4 = QLineEdit()
+        self._ch4.setReadOnly(True)
+        layout.addWidget(self._ch4, 1, 4)
+
+        self._ch5 = QLineEdit()
+        self._ch5.setReadOnly(True)
+        layout.addWidget(self._ch5, 1, 5)
+
+        self._ch6 = QLineEdit()
+        self._ch6.setReadOnly(True)
+        layout.addWidget(self._ch6, 1, 6)
+
+        self._ch7 = QLineEdit()
+        self._ch7.setReadOnly(True)
+        layout.addWidget(self._ch7, 1, 7)
+
+        self._ch8 = QLineEdit()
+        self._ch8.setReadOnly(True)
+        layout.addWidget(self._ch8, 1, 8)
 
         wid = QLabel("POLL")
-        wid.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        wid.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         layout.addWidget(wid, 0, 9, 2, 1)
 
         self._poll_light = QLabel()
-        self._poll_light.setPixmap(QPixmap("/home/dc2917/Pictures/poll_off.png"))
+        self._poll_light.setPixmap(QPixmap("./finesse/gui/images/poll_off.png"))
         layout.addWidget(self._poll_light, 0, 10, 2, 1)
 
         return layout
@@ -155,50 +213,51 @@ class TC4820_HOT(QGroupBox):
 
     def _create_controls(self) -> QGridLayout:
 
-        layout = QGridLayout()  # want 6x3
+        layout = QGridLayout()
 
         wid = QLabel("CONTROL")
-        wid.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        wid.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         layout.addWidget(wid, 0, 0)
 
         wid = QLabel("POWER")
-        wid.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        wid.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         layout.addWidget(wid, 1, 0)
 
         wid = QLabel("SET")
-        wid.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        wid.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         layout.addWidget(wid, 2, 0)
 
         wid = QLabel("Pt 100")
-        wid.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        wid.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         layout.addWidget(wid, 0, 2)
 
         wid = QLabel("POLL")
-        wid.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        wid.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         layout.addWidget(wid, 0, 4)
 
         wid = QLabel("ALARM")
-        wid.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        wid.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         layout.addWidget(wid, 2, 4)
 
         self._control_val = QLineEdit("70.5")
         self._control_val.setReadOnly(True)
-        self._control_val.setAlignment(Qt.AlignCenter)
+        self._control_val.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self._control_val, 0, 1)
 
         self._pt100_val = QLineEdit("70.34")  # CH_7?
         self._pt100_val.setReadOnly(True)
-        self._pt100_val.setAlignment(Qt.AlignCenter)
+        self._pt100_val.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self._pt100_val, 0, 3)
 
-        self._power_slider = QSlider(Qt.Horizontal)
+        self._power_slider = QSlider()
+        self._power_slider.setOrientation(Qt.Orientation.Horizontal)
         layout.addWidget(self._power_slider, 1, 1, 1, 3)
         layout.addWidget(QLineEdit("40"), 1, 4)
 
         self._poll_light = QLabel()
-        self._poll_light.setPixmap(QPixmap("/home/dc2917/Pictures/poll_off.png"))
+        self._poll_light.setPixmap(QPixmap("./finesse/gui/images/poll_off.png"))
         self._alarm_light = QLabel()
-        self._alarm_light.setPixmap(QPixmap("/home/dc2917/Pictures/alarm_on.png"))
+        self._alarm_light.setPixmap(QPixmap("./finesse/gui/images/alarm_on.png"))
         layout.addWidget(self._poll_light, 0, 5)
         layout.addWidget(self._alarm_light, 2, 5)
 
@@ -212,7 +271,10 @@ class TC4820_HOT(QGroupBox):
 
 
 class TC4820_COLD(QGroupBox):
-    """Widgets to view the TC4820 COLD properties."""
+    """Widgets to view the TC4820 COLD properties.
+
+    Potentially redundant if similar to TC4820 HOT.
+    """
 
     def __init__(self) -> None:
         """Creates the widgets to control and monitor TC4820 COLD.
@@ -230,50 +292,51 @@ class TC4820_COLD(QGroupBox):
 
     def _create_controls(self) -> QGridLayout:
 
-        layout = QGridLayout()  #
+        layout = QGridLayout()
 
         wid = QLabel("CONTROL")
-        wid.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        wid.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         layout.addWidget(wid, 0, 0)
 
         wid = QLabel("POWER")
-        wid.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        wid.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         layout.addWidget(wid, 1, 0)
 
         wid = QLabel("SET")
-        wid.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        wid.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         layout.addWidget(wid, 2, 0)
 
         wid = QLabel("Pt 100")
-        wid.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        wid.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         layout.addWidget(wid, 0, 2)
 
         wid = QLabel("POLL")
-        wid.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        wid.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         layout.addWidget(wid, 0, 4)
 
         wid = QLabel("ALARM")
-        wid.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        wid.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         layout.addWidget(wid, 2, 4)
 
         self._control_val = QLineEdit("31.9")
         self._control_val.setReadOnly(True)
-        self._control_val.setAlignment(Qt.AlignCenter)
+        self._control_val.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self._control_val, 0, 1)
 
         self._pt100_val = QLineEdit("29.06")  # CH_8?
         self._pt100_val.setReadOnly(True)
-        self._pt100_val.setAlignment(Qt.AlignCenter)
+        self._pt100_val.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self._pt100_val, 0, 3)
 
-        self._power_slider = QSlider(Qt.Horizontal)
+        self._power_slider = QSlider()
+        self._power_slider.setOrientation(Qt.Orientation.Horizontal)
         layout.addWidget(self._power_slider, 1, 1, 1, 3)
         layout.addWidget(QLineEdit("0"), 1, 4)
 
         self._poll_light = QLabel()
-        self._poll_light.setPixmap(QPixmap("/home/dc2917/Pictures/poll_on.png"))
+        self._poll_light.setPixmap(QPixmap("./finesse/gui/images/poll_on.png"))
         self._alarm_light = QLabel()
-        self._alarm_light.setPixmap(QPixmap("/home/dc2917/Pictures/alarm_off.png"))
+        self._alarm_light.setPixmap(QPixmap("./finesse/gui/images/alarm_off.png"))
         layout.addWidget(self._poll_light, 0, 5)
         layout.addWidget(self._alarm_light, 2, 5)
 
