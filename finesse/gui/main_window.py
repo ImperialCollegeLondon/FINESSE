@@ -1,6 +1,7 @@
 """Code for FINESSE's main GUI window."""
 from PySide6.QtWidgets import QGridLayout, QGroupBox, QMainWindow, QWidget
 
+from .interferometer_monitor import EM27Monitor
 from .opus_view import OPUSControl
 from .serial_view import SerialPortControl
 
@@ -15,6 +16,8 @@ class MainWindow(QMainWindow):
 
         layout = QGridLayout()
 
+        # Setup for serial port control
+
         devices = {
             "ST10": {"port": "COM5", "baud_rate": "9600"},
             "DP9800": {"port": "COM1", "baud_rate": "9600"},
@@ -26,8 +29,22 @@ class MainWindow(QMainWindow):
         )
         opus: QGroupBox = OPUSControl("127.0.0.1")
 
+        prop_labels = [
+            "PSF27 Temp",
+            "Cryo Temp",
+            "Blackbody Hum",
+            "Source Temp",
+            "AUX Volt",
+            "AUX Current",
+            "Laser Current",
+            "POLL Server",
+        ]
+        prop_units = ["deg C", "K", "%", "deg C", "V", "A", "A", None]
+        em27_monitor = EM27Monitor(prop_labels, prop_units)
+
         layout.addWidget(serial_port, 3, 0)
         layout.addWidget(opus, 0, 1)
+        layout.addWidget(em27_monitor, 1, 1)
 
         central = QWidget()
         central.setLayout(layout)

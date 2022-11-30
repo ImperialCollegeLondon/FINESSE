@@ -642,6 +642,14 @@ python-versions = ">=3.6.8"
 diagrams = ["jinja2", "railroad-diagrams"]
 
 [[package]]
+name = "pypubsub"
+version = "4.0.3"
+description = "Python Publish-Subscribe Package"
+category = "main"
+optional = false
+python-versions = ">=3.3, <4"
+
+[[package]]
 name = "pyside6"
 version = "6.4.1"
 description = "Python bindings for the Qt cross-platform application and UI framework"
@@ -1289,6 +1297,9 @@ pymdown-extensions = [
 pyparsing = [
     {file = "pyparsing-3.0.9-py3-none-any.whl", hash = "sha256:5026bae9a10eeaefb61dab2f09052b9f4307d44aee4eda64b309723d8d206bbc"},
     {file = "pyparsing-3.0.9.tar.gz", hash = "sha256:2b020ecf7d21b687f219b71ecad3631f644a47f01403fa1d1036b0c6416d70fb"},
+]
+pypubsub = [
+    {file = "Pypubsub-4.0.3-py3-none-any.whl", hash = "sha256:7f716bae9388afe01ff82b264ba8a96a8ae78b42bb1f114f2716ca8f9e404e2a"},
 ]
 pyside6 = [
     {file = "PySide6-6.4.1-cp37-abi3-macosx_10_9_universal2.whl", hash = "sha256:a5e56ce84db3453a1522d7bebaeb161f3c95fd5eeeb159f76e79615294772e8a"},
