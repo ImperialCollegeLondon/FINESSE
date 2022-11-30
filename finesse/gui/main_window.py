@@ -1,8 +1,8 @@
 """Code for FINESSE's main GUI window."""
 from PySide6.QtWidgets import QGridLayout, QGroupBox, QMainWindow, QWidget
 
-from .opus_view import OPUSControl
 from .interferometer_monitor import EM27Monitor
+from .opus_view import OPUSControl
 from .serial_view import SerialPortControl
 
 
@@ -14,6 +14,9 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("FINESSE")
 
+        layout = QGridLayout()
+
+        # Setup for serial port control
         devices = {
             "ST10": {"port": "COM5", "baud_rate": "9600"},
             "DP9800": {"port": "COM1", "baud_rate": "9600"},

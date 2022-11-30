@@ -70,6 +70,7 @@ class EM27Monitor(QGroupBox):
         self._laser_current_box.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self._poll_light = QLabel()
+        self._poll_light.setPixmap(QPixmap("./finesse/gui/images/poll_on.png"))
 
         layout = self._create_controls()
         self.setLayout(layout)
@@ -86,7 +87,7 @@ class EM27Monitor(QGroupBox):
         for i, label in enumerate(self._prop_labels):
             layout.addWidget(QLabel(label), i, 0)
 
-        # Add boxes for values of properties to monitor
+        # Add boxes to show monitored properties' values
         layout.addWidget(self._psf27_temp_box, 0, 1)
         layout.addWidget(self._cryo_temp_box, 1, 1)
         layout.addWidget(self._bb_hum_box, 2, 1)
@@ -98,7 +99,7 @@ class EM27Monitor(QGroupBox):
 
         return layout
 
-    def set_psf27_temp(self, val):
+    def set_psf27_temp(self, val: float) -> None:
         """Sets the PSF27 temperature text box.
 
         Args:
@@ -106,7 +107,7 @@ class EM27Monitor(QGroupBox):
         """
         self._psf27_temp_box.setText("%.6f %s" % (val, self._prop_units[0]))
 
-    def set_cryo_temp(self, val):
+    def set_cryo_temp(self, val: float) -> None:
         """Sets the cryo temperature text box.
 
         Args:
@@ -114,7 +115,7 @@ class EM27Monitor(QGroupBox):
         """
         self._cryo_temp_box.setText("%.6f %s" % (val, self._prop_units[1]))
 
-    def set_bb_hum(self, val):
+    def set_bb_hum(self, val: float) -> None:
         """Sets the blackbody humidity text box.
 
         Args:
@@ -122,7 +123,7 @@ class EM27Monitor(QGroupBox):
         """
         self._bb_hum_box.setText("%.6f %s" % (val, self._prop_units[2]))
 
-    def set_src_temp(self, val):
+    def set_src_temp(self, val: float) -> None:
         """Sets the source temperature text box.
 
         Args:
@@ -130,7 +131,7 @@ class EM27Monitor(QGroupBox):
         """
         self._src_temp_box.setText("%.6f %s" % (val, self._prop_units[3]))
 
-    def set_aux_volt(self, val):
+    def set_aux_volt(self, val: float) -> None:
         """Sets the AUX voltage text box.
 
         Args:
@@ -138,7 +139,7 @@ class EM27Monitor(QGroupBox):
         """
         self._aux_volt_box.setText("%.6f %s" % (val, self._prop_units[4]))
 
-    def set_aux_current(self, val):
+    def set_aux_current(self, val: float) -> None:
         """Sets the AUX current text box.
 
         Args:
@@ -146,7 +147,7 @@ class EM27Monitor(QGroupBox):
         """
         self._aux_current_box.setText("%.6f %s" % (val, self._prop_units[0]))
 
-    def set_laser_current(self, val):
+    def set_laser_current(self, val: float) -> None:
         """Sets the laser current text box.
 
         Args:
