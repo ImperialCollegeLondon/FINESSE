@@ -60,6 +60,15 @@ jobs:
       run: |
         poetry run mkdocs build -s
 
+    - name: Build package
+      if: matrix.os == 'windows-latest'
+      run: poetry run pyinstaller FINESSE.spec
+
+    - uses: actions/upload-artifact@v2
+      if: success() && matrix.os == 'windows-latest'
+      with:
+        name: FINESSE
+        path: dist/FINESSE.exe
 
   docs:
     if: github.ref == 'refs/heads/main'
