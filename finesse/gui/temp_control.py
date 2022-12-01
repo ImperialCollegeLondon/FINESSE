@@ -28,11 +28,7 @@ class BBMonitor(QGroupBox):
     """Widgets to view the temperature properties."""
 
     def __init__(self) -> None:
-        """Creates a panel with a graph to monitor the hot and cold blackbody temperatures.
-
-        Args:
-            None
-        """
+        """Creates a panel with a graph to monitor the hot and cold bb temperatures."""
         super().__init__("BB Monitor")
 
         layout = self._create_controls()
@@ -40,9 +36,6 @@ class BBMonitor(QGroupBox):
 
     def _create_controls(self) -> QGridLayout:
         """Creates the overall layout for the panel.
-
-        Args:
-            None
 
         Returns:
             QGridLayout: The layout containing the figure.
@@ -56,9 +49,6 @@ class BBMonitor(QGroupBox):
 
     def _create_figure(self) -> None:
         """Creates the matplotlib figure to be contained within the panel.
-
-        Args:
-            None
 
         Returns:
             None
@@ -130,9 +120,6 @@ class DP9800(QGroupBox):
     def __init__(self) -> None:
         """Creates the widgets to monitor DP9800.
 
-        Args:
-            None
-
         Returns:
             None
         """
@@ -199,9 +186,6 @@ class TC4820_HOT(QGroupBox):
 
     def __init__(self) -> None:
         """Creates the widgets to control and monitor TC4820 HOT.
-
-        Args:
-            None
 
         Returns:
             None
@@ -278,9 +262,6 @@ class TC4820_COLD(QGroupBox):
 
     def __init__(self) -> None:
         """Creates the widgets to control and monitor TC4820 COLD.
-
-        Args:
-            None
 
         Returns:
             None
