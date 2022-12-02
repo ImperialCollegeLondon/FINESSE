@@ -5,6 +5,7 @@ from ..config import APP_NAME
 from .opus_view import OPUSControl
 from .serial_view import SerialPortControl
 from .stepper_motor_view import StepperMotorControl
+from .uncaught_exceptions import set_uncaught_exception_handler
 
 
 class MainWindow(QMainWindow):
@@ -14,6 +15,8 @@ class MainWindow(QMainWindow):
         """Create a new MainWindow."""
         super().__init__()
         self.setWindowTitle(APP_NAME)
+
+        set_uncaught_exception_handler(self)
 
         layout_left = QVBoxLayout()
 

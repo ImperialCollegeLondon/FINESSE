@@ -44,7 +44,7 @@ jobs:
         sudo apt install libegl1
 
     - name: Install Poetry
-      uses: abatilo/actions-poetry@v2.1.6
+      uses: abatilo/actions-poetry@v2.2.0
       with:
         poetry-version: 1.2.2
 
@@ -60,6 +60,15 @@ jobs:
       run: |
         poetry run mkdocs build -s
 
+    - name: Build package
+      if: matrix.os == 'windows-latest'
+      run: poetry run pyinstaller FINESSE.spec
+
+    - uses: actions/upload-artifact@v2
+      if: success() && matrix.os == 'windows-latest'
+      with:
+        name: FINESSE
+        path: dist/FINESSE.exe
 
   docs:
     if: github.ref == 'refs/heads/main'
@@ -80,7 +89,7 @@ jobs:
         sudo apt install libegl1
 
     - name: Install Poetry
-      uses: abatilo/actions-poetry@v2.1.6
+      uses: abatilo/actions-poetry@v2.2.0
       with:
         poetry-version: 1.2.2
 
