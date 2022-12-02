@@ -47,7 +47,6 @@ class StepperMotorControl(QGroupBox):
         """Add a selectable button to button_group."""
         btn = QPushButton(name)
         btn.setCheckable(True)
-        btn.setStyleSheet("QPushButton::checked{background: blue; color: white;}")
 
         self.button_group.addButton(btn)
 
