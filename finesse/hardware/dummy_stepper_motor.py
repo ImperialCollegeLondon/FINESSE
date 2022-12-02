@@ -43,10 +43,14 @@ class DummyStepperMotor:
         """
         if isinstance(target, str):
             self.current_step = DummyStepperMotor.get_preset_step(target)
+            target_angle = self.current_step * 360 / self.steps_per_rotation
         else:
             step = round(self.steps_per_rotation * target / 360.0)
             if step < 0 or step >= self.steps_per_rotation:
                 raise ValueError("step number is out of range")
             self.current_step = step
+            target_angle = target
 
-        logging.info(f"Moving stepper motor to step {self.current_step}")
+        logging.info(
+            f"Moving stepper motor to step {self.current_step} (={target_angle}°)"
+        )
