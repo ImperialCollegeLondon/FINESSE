@@ -3,6 +3,7 @@ from PySide6.QtWidgets import QGridLayout, QGroupBox, QMainWindow, QWidget
 
 from .opus_view import OPUSControl
 from .serial_view import SerialPortControl
+from .uncaught_exceptions import set_uncaught_exception_handler
 
 
 class MainWindow(QMainWindow):
@@ -12,6 +13,8 @@ class MainWindow(QMainWindow):
         """Create a new MainWindow."""
         super().__init__()
         self.setWindowTitle("FINESSE")
+
+        set_uncaught_exception_handler(self)
 
         layout = QGridLayout()
 
