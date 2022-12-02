@@ -28,7 +28,7 @@ class BBMonitor(QGroupBox):
     """Widgets to view the temperature properties."""
 
     def __init__(self) -> None:
-        """Creates a panel with a graph to monitor the hot and cold bb temperatures."""
+        """Creates a panel with a graph to monitor the blackbody temperatures."""
         super().__init__("BB Monitor")
 
         layout = self._create_controls()
@@ -181,16 +181,16 @@ class DP9800(QGroupBox):
         return layout
 
 
-class TC4820_HOT(QGroupBox):
-    """Widgets to view the TC4820 HOT properties."""
+class TC4820(QGroupBox):
+    """Widgets to view the TC4820 properties."""
 
-    def __init__(self) -> None:
+    def __init__(self, name) -> None:
         """Creates the widgets to control and monitor TC4820 HOT.
 
         Returns:
             None
         """
-        super().__init__("TC4820 HOT")
+        super().__init__("TC4820 %s" % name)
 
         layout = self._create_controls()
         self.setLayout(layout)
@@ -254,82 +254,6 @@ class TC4820_HOT(QGroupBox):
         return layout
 
 
-class TC4820_COLD(QGroupBox):
-    """Widgets to view the TC4820 COLD properties.
-
-    Potentially redundant if similar to TC4820 HOT.
-    """
-
-    def __init__(self) -> None:
-        """Creates the widgets to control and monitor TC4820 COLD.
-
-        Returns:
-            None
-        """
-        super().__init__("TC4820 COLD")
-
-        layout = self._create_controls()
-        self.setLayout(layout)
-
-    def _create_controls(self) -> QGridLayout:
-
-        layout = QGridLayout()
-
-        wid = QLabel("CONTROL")
-        wid.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-        layout.addWidget(wid, 0, 0)
-
-        wid = QLabel("POWER")
-        wid.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-        layout.addWidget(wid, 1, 0)
-
-        wid = QLabel("SET")
-        wid.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-        layout.addWidget(wid, 2, 0)
-
-        wid = QLabel("Pt 100")
-        wid.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-        layout.addWidget(wid, 0, 2)
-
-        wid = QLabel("POLL")
-        wid.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-        layout.addWidget(wid, 0, 4)
-
-        wid = QLabel("ALARM")
-        wid.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-        layout.addWidget(wid, 2, 4)
-
-        self._control_val = QLineEdit("31.9")
-        self._control_val.setReadOnly(True)
-        self._control_val.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(self._control_val, 0, 1)
-
-        self._pt100_val = QLineEdit("29.06")  # CH_8?
-        self._pt100_val.setReadOnly(True)
-        self._pt100_val.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(self._pt100_val, 0, 3)
-
-        self._power_slider = QSlider()
-        self._power_slider.setOrientation(Qt.Orientation.Horizontal)
-        layout.addWidget(self._power_slider, 1, 1, 1, 3)
-        layout.addWidget(QLineEdit("0"), 1, 4)
-
-        self._poll_light = QLabel()
-        self._poll_light.setPixmap(QPixmap("./finesse/gui/images/poll_on.png"))
-        self._alarm_light = QLabel()
-        self._alarm_light.setPixmap(QPixmap("./finesse/gui/images/alarm_off.png"))
-        layout.addWidget(self._poll_light, 0, 5)
-        layout.addWidget(self._alarm_light, 2, 5)
-
-        self._set_sbox = QSpinBox()
-        layout.addWidget(self._set_sbox, 2, 1)
-
-        self._update_pbtn = QPushButton("UPDATE")
-        layout.addWidget(self._update_pbtn, 2, 3)
-
-        return layout
-
-
 if __name__ == "__main__":
     import sys
 
@@ -343,8 +267,8 @@ if __name__ == "__main__":
 
     bb_monitor = BBMonitor()
     dp9800 = DP9800()
-    tc4820_hot = TC4820_HOT()
-    tc4820_cold = TC4820_COLD()
+    tc4820_hot = TC4820("HOT")
+    tc4820_cold = TC4820("COLD")
 
     layout.addWidget(bb_monitor, 0, 0, 1, 0)
     layout.addWidget(dp9800, 1, 0, 1, 0)
