@@ -3,7 +3,7 @@ from PySide6.QtWidgets import QGridLayout, QGroupBox, QMainWindow, QWidget
 
 from .opus_view import OPUSControl
 from .serial_view import SerialPortControl
-from .temp_control import DP9800, TC4820_COLD, TC4820_HOT, BBMonitor
+from .temp_control import DP9800, TC4820, BBMonitor
 
 
 class MainWindow(QMainWindow):
@@ -29,8 +29,8 @@ class MainWindow(QMainWindow):
 
         bb_monitor: QGroupBox = BBMonitor()
         dp9800: QGroupBox = DP9800()
-        tc4820_hot: QGroupBox = TC4820_HOT()
-        tc4820_cold: QGroupBox = TC4820_COLD()
+        tc4820_hot: QGroupBox = TC4820("HOT")
+        tc4820_cold: QGroupBox = TC4820("COLD")
 
         layout.addWidget(serial_port, 3, 0)
         layout.addWidget(opus, 0, 1)
