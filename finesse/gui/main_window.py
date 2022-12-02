@@ -1,8 +1,10 @@
 """Code for FINESSE's main GUI window."""
-from PySide6.QtWidgets import QGridLayout, QGroupBox, QMainWindow, QWidget
+from PySide6.QtWidgets import QGroupBox, QHBoxLayout, QMainWindow, QVBoxLayout, QWidget
 
+from ..config import APP_NAME
 from .opus_view import OPUSControl
 from .serial_view import SerialPortControl
+from .stepper_motor_view import StepperMotorControl
 from .uncaught_exceptions import set_uncaught_exception_handler
 
 
@@ -12,12 +14,16 @@ class MainWindow(QMainWindow):
     def __init__(self) -> None:
         """Create a new MainWindow."""
         super().__init__()
-        self.setWindowTitle("FINESSE")
+        self.setWindowTitle(APP_NAME)
 
         set_uncaught_exception_handler(self)
 
-        layout = QGridLayout()
+        layout_left = QVBoxLayout()
 
+        # Setup for stepper motor control
+        stepper_motor = StepperMotorControl()
+
+        # Setup for serial port control
         devices = {
             "ST10": {"port": "COM5", "baud_rate": "9600"},
             "DP9800": {"port": "COM1", "baud_rate": "9600"},
@@ -27,11 +33,23 @@ class MainWindow(QMainWindow):
             ("COM1", "COM5", "COM7"),
             ("600", "9600", "115200"),
         )
+
+        layout_left.addWidget(stepper_motor)
+        layout_left.addWidget(serial_port)
+
+        layout_right = QVBoxLayout()
         opus: QGroupBox = OPUSControl("127.0.0.1")
+        layout_right.addWidget(opus)
 
-        layout.addWidget(serial_port, 3, 0)
-        layout.addWidget(opus, 0, 1)
-
+        # Display widgets in two columns
+        left = QWidget()
+        left.setLayout(layout_left)
+        right = QWidget()
+        right.setLayout(layout_right)
+        layout = QHBoxLayout()
+        layout.addWidget(left)
+        layout.addWidget(right)
         central = QWidget()
         central.setLayout(layout)
+
         self.setCentralWidget(central)
