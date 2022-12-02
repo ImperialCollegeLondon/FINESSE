@@ -5,6 +5,7 @@ import sys
 
 from PySide6.QtWidgets import QApplication
 
+from . import hardware  # noqa
 from .gui.main_window import MainWindow
 from .logger import initialise_logging
 
