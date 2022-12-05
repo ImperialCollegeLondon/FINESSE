@@ -64,7 +64,7 @@ jobs:
       if: matrix.os == 'windows-latest'
       run: poetry run pyinstaller FINESSE.spec
 
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       if: success() && matrix.os == 'windows-latest'
       with:
         name: FINESSE
