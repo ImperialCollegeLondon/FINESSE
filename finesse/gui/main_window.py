@@ -2,6 +2,7 @@
 from PySide6.QtWidgets import QGroupBox, QHBoxLayout, QMainWindow, QVBoxLayout, QWidget
 
 from ..config import APP_NAME
+from .interferometer_monitor import EM27Monitor
 from .measure_script.script_view import ScriptControl
 from .opus_view import OPUSControl
 from .serial_view import SerialPortControl
@@ -44,7 +45,23 @@ class MainWindow(QMainWindow):
 
         layout_right = QVBoxLayout()
         opus: QGroupBox = OPUSControl("127.0.0.1")
+
+        # Setup for interferometer monitor
+        prop_labels = [
+            "PSF27 Temp",
+            "Cryo Temp",
+            "Blackbody Hum",
+            "Source Temp",
+            "AUX Volt",
+            "AUX Current",
+            "Laser Current",
+            "POLL Server",
+        ]
+        prop_units = ["deg C", "K", "%", "deg C", "V", "A", "A", None]
+        em27_monitor = EM27Monitor(prop_labels, prop_units)
+
         layout_right.addWidget(opus)
+        layout_right.addWidget(em27_monitor)
 
         # Display widgets in two columns
         left = QWidget()
@@ -54,6 +71,7 @@ class MainWindow(QMainWindow):
         layout = QHBoxLayout()
         layout.addWidget(left)
         layout.addWidget(right)
+
         central = QWidget()
         central.setLayout(layout)
 
