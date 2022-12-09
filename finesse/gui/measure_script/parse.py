@@ -78,14 +78,12 @@ def parse_script(script: Union[str, TextIOBase]) -> Dict[str, Any]:
     count_type = And(int, lambda x: x > 0)
     schema = Schema(
         {
-            "measurements": {
-                "count": count_type,
-                "sequence": [{"angle": Or(float, valid_preset), "count": count_type}],
-            }
+            "count": count_type,
+            "sequence": [{"angle": Or(float, valid_preset), "count": count_type}],
         }
     )
 
     try:
-        return schema.validate(yaml.safe_load(script))["measurements"]
+        return schema.validate(yaml.safe_load(script))
     except (yaml.YAMLError, SchemaError) as e:
         raise ParseError() from e

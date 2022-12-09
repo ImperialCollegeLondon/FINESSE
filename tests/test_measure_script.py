@@ -7,13 +7,12 @@ from finesse.gui.measure_script.parse import ParseError, parse_script
 def test_valid_script() -> None:
     """Check that a valid measure script parses correctly."""
     txt = """
-    measurements:
-      count: 100
-      sequence:
-        - angle: nadir
-          count: 1
-        - angle: 4.0
-          count: 1
+    count: 100
+    sequence:
+      - angle: nadir
+        count: 1
+      - angle: 4.0
+        count: 1
     """
 
     script = parse_script(txt)
@@ -30,13 +29,12 @@ def test_invalid_scripts() -> None:
     with pytest.raises(ParseError):
         parse_script(
             """
-            measurements:
-              count: 0
-              sequence:
-                - angle: nadir
-                  count: 1
-                - angle: 4.0
-                  count: 1
+            count: 0
+            sequence:
+              - angle: nadir
+                count: 1
+              - angle: 4.0
+                count: 1
             """
         )
 
@@ -44,13 +42,12 @@ def test_invalid_scripts() -> None:
     with pytest.raises(ParseError):
         parse_script(
             """
-            measurements:
-              count: -1
-              sequence:
-                - angle: nadir
-                  count: 1
-                - angle: 4.0
-                  count: 1
+            count: -1
+            sequence:
+              - angle: nadir
+                count: 1
+              - angle: 4.0
+                count: 1
             """
         )
 
@@ -58,13 +55,12 @@ def test_invalid_scripts() -> None:
     with pytest.raises(ParseError):
         parse_script(
             """
-            measurements:
-              count: 100
-              sequence:
-                - angle: nadir
-                  count: 1
-                - angle: 4.0
-                  count: 1
+            count: 100
+            sequence:
+              - angle: nadir
+                count: 1
+              - angle: 4.0
+                count: 1
             extra_attribute: hello
             """
         )
@@ -73,12 +69,11 @@ def test_invalid_scripts() -> None:
     with pytest.raises(ParseError):
         parse_script(
             """
-            measurements:
-              count: 100
-              sequence:
-                - angle: made_up_preset
-                  count: 1
-                - angle: 4.0
-                  count: 1
+            count: 100
+            sequence:
+              - angle: made_up_preset
+                count: 1
+              - angle: 4.0
+                count: 1
             """
         )
