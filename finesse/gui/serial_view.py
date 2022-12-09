@@ -6,6 +6,8 @@ from typing import Dict, Sequence
 
 from PySide6.QtWidgets import QComboBox, QGridLayout, QGroupBox, QLabel, QPushButton
 
+from ..config import BAUDRATES
+
 
 class SerialPortControl(QGroupBox):
     """Widgets to control the communication with serial ports."""
@@ -14,7 +16,6 @@ class SerialPortControl(QGroupBox):
         self,
         devices: Dict[str, Dict[str, str]],
         avail_ports: Sequence[str],
-        avail_baud_rates: Sequence[str],
     ) -> None:
         """Creates a sequence of widgets to control a serial connection to a device.
 
@@ -23,17 +24,16 @@ class SerialPortControl(QGroupBox):
                 devices to control and as values a dictionary with the port and baud
                 rate chosen for that device.
             avail_ports: Sequence of possible serial ports.
-            avail_baud_rates: Sequence of possible baud rates.
         """
         super().__init__("Serial port control")
 
         self._devices = deepcopy(devices)
         self._is_open = {d: False for d in devices.keys()}
-        layout = self._create_controls(avail_ports, avail_baud_rates)
+        layout = self._create_controls(avail_ports, BAUDRATES)
         self.setLayout(layout)
 
     def _create_controls(
-        self, avail_ports: Sequence[str], avail_baud_rates: Sequence[str]
+        self, avail_ports: Sequence[str], avail_baud_rates: Sequence[int]
     ) -> QGridLayout:
         """Creates the controls for the ports of the devices.
 
@@ -148,7 +148,6 @@ if __name__ == "__main__":
     serial_port = SerialPortControl(
         devices,
         ("COM1", "COM5", "COM7"),
-        ("600", "9600", "115200"),
     )
     window.setCentralWidget(serial_port)
     window.show()
