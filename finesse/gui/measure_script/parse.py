@@ -3,7 +3,7 @@ import logging
 from dataclasses import dataclass
 from io import TextIOBase
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional, Sequence, Union
 
 import yaml
 from pubsub import pub
@@ -14,29 +14,49 @@ from ...config import ANGLE_PRESETS
 from ..error_message import show_error_message
 
 
-def _take_measurements(count: int, angle: Union[str, float]) -> None:
-    """A placeholder function for recording multiple measurements."""
-    # Move the mirror to the correct location
-    pub.sendMessage("stepper.move", target=angle)
-
-    # Take the recordings
-    logging.info(f"Recording {count} measurements")
-
-
 @dataclass
+class Measurement:
+    """Represents a single measurement (i.e. angle + count)."""
+
+    angle: Union[str, float]
+    """Either an angle in degrees or the name of a preset angle."""
+
+    count: int
+    """The number of times to repeat the measurement at this position."""
+
+    def run(self) -> None:
+        """A placeholder function for recording multiple measurements."""
+        # Move the mirror to the correct location
+        pub.sendMessage("stepper.move", target=self.angle)
+
+        # Take the recordings
+        logging.info(f"Recording {self.count} measurements")
+
+
 class Script:
     """Represents a measure script, including its file path and data."""
 
-    path: Path
-    measurements: Dict[str, Any]
+    def __init__(
+        self, path: Path, count: int, sequence: Sequence[Dict[str, Any]]
+    ) -> None:
+        """Create a new Script.
+
+        Args:
+            path: The file path to this measure script
+            count: The number of times to repeat the sequence of measurements
+            sequence: Different measurements (i.e. angle + count) to record
+        """
+        self.path = path
+        self.count = count
+        self.sequence = [Measurement(**val) for val in sequence]
 
     def run(self) -> None:
         """Run this measure script."""
         logging.info(f"Running {self.path}")
-        for i in range(self.measurements["count"]):
-            logging.info(f"Iteration {i+1}/{self.measurements['count']}")
-            for instruction in self.measurements["sequence"]:
-                _take_measurements(instruction["count"], instruction["angle"])
+        for i in range(self.count):
+            logging.info(f"Iteration {i+1}/{self.count}")
+            for instruction in self.sequence:
+                instruction.run()
 
 
 class ParseError(Exception):
@@ -58,7 +78,7 @@ def try_load_script(parent: QWidget, file_path: Path) -> Optional[Script]:
     """
     try:
         with open(file_path, "r") as f:
-            return Script(file_path, parse_script(f))
+            return Script(file_path, **parse_script(f))
     except OSError as e:
         show_error_message(parent, f"Error: Could not read {file_path}: {str(e)}")
     except ParseError:
