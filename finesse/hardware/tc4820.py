@@ -16,17 +16,30 @@ class TC4820:
     """The maximum value for the power property."""
 
     def __init__(
-        self, port: str, baudrate: int = 115200, *serial_args: Any, **serial_kwargs: Any
+        self,
+        port: str,
+        baudrate: int = 115200,
+        timeout: float = 1.0,
+        *serial_args: Any,
+        **serial_kwargs: Any,
     ) -> None:
         """Create a new TC4820.
 
         Args:
             port: Serial port name
             baudrate: Serial port baudrate
+            timeout: How long to wait for read/write operation
             serial_args: Extra arguments to Serial constructor
             serial_kwargs: Extra keyword arguments to Serial constructor
         """
-        self.serial = Serial(port, baudrate, *serial_args, **serial_kwargs)
+        # If the user hasn't specified an explicit timeout for write operations, then
+        # use the same as for read operations
+        if "write_timeout" not in serial_kwargs:
+            serial_kwargs["write_timeout"] = timeout
+
+        self.serial = Serial(
+            port, baudrate, *serial_args, timeout=timeout, **serial_kwargs
+        )
 
     def read_int(self) -> int:
         """Read a message from the TC4820 and decode the number as a signed integer."""
