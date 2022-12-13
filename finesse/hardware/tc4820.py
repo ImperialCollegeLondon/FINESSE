@@ -74,7 +74,7 @@ class TC4820:
         if message == "*XXXX60^":
             raise MalformedMessageError("Bad checksum sent")
 
-        if message[6:7] != TC4820.checksum(message[1:5]):
+        if message[5:7] != TC4820.checksum(message[1:5]):
             raise MalformedMessageError("Bad checksum received")
 
         try:
