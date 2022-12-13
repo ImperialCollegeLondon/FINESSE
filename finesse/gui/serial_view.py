@@ -16,6 +16,7 @@ class SerialPortControl(QGroupBox):
         self,
         devices: Dict[str, Dict[str, str]],
         avail_ports: Sequence[str],
+        avail_baud_rates: Sequence[int] = BAUDRATES,
     ) -> None:
         """Creates a sequence of widgets to control a serial connection to a device.
 
@@ -24,12 +25,13 @@ class SerialPortControl(QGroupBox):
                 devices to control and as values a dictionary with the port and baud
                 rate chosen for that device.
             avail_ports: Sequence of possible serial ports.
+            avail_baud_rates: Sequence of possible baud rates.
         """
         super().__init__("Serial port control")
 
         self._devices = deepcopy(devices)
         self._is_open = {d: False for d in devices.keys()}
-        layout = self._create_controls(avail_ports, BAUDRATES)
+        layout = self._create_controls(avail_ports, avail_baud_rates)
         self.setLayout(layout)
 
     def _create_controls(
