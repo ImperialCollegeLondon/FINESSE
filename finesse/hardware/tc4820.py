@@ -1,9 +1,10 @@
 """This module provides an interface to TC4820 temperature controllers.
 
-TODO: I've used float throughout this module, but a decimal type may be more appropriate
-and prevent rounding errors.
+Decimal numbers are used for values sent to and read from the device as the values are
+base-10 and using floats could cause rounding errors.
 """
 import logging
+from decimal import Decimal
 from typing import Any
 
 from serial import Serial
@@ -59,12 +60,10 @@ class TC4820:
         raw_bytes = bytes.fromhex(message[1:5])
         return int.from_bytes(raw_bytes, byteorder="big", signed=True)
 
-    def read_float(self) -> float:
-        """Read a message from the TC4820 and decode the number as a float.
-
-        Float values are encoded as 10x their value then converted to an int.
-        """
-        return self.read_int() / 10.0
+    def read_decimal(self) -> Decimal:
+        """Read a message from the TC4820 and decode the number as a Decimal."""
+        # Decimal values are encoded as 10x their value then converted to an int.
+        return Decimal(self.read_int()) / Decimal(10)
 
     def write(self, command: str) -> None:
         """Write a message to the TC4820.
@@ -77,10 +76,10 @@ class TC4820:
         self.serial.write(message.encode("ascii"))
 
     @property
-    def temperature(self) -> float:
+    def temperature(self) -> Decimal:
         """The current temperature reported by the device."""
         self.write("010000")
-        return self.read_float()
+        return self.read_decimal()
 
     @property
     def power(self) -> int:
@@ -100,18 +99,18 @@ class TC4820:
         return self.read_int()
 
     @property
-    def set_point(self) -> float:
+    def set_point(self) -> Decimal:
         """The set point temperature (in degrees).
 
         In other words, this indicates the temperature the device is aiming towards.
         """
         self.write("500000")
-        return self.read_float()
+        return self.read_decimal()
 
     @set_point.setter
-    def set_point(self, temperature: float) -> None:
+    def set_point(self, temperature: Decimal) -> None:
         # Convert to an int for transmission
-        val = round(temperature * 10.0)
+        val = round(temperature * Decimal(10))
 
         # Values outside this range can't be properly encoded
         if val < 0 or val > 0xFFFF:
@@ -141,7 +140,7 @@ if __name__ == "__main__":
 
     # Allow user to test setting the set point
     if len(sys.argv) > 2:
-        temperature = float(sys.argv[2])
+        temperature = Decimal(sys.argv[2])
         dev.set_point = temperature
         print(f"New set point: {temperature}")
 
