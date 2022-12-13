@@ -7,7 +7,7 @@ import logging
 from decimal import Decimal
 from typing import Any
 
-from serial import Serial
+from serial import Serial, SerialException
 
 
 class MalformedMessageError(Exception):
@@ -56,9 +56,14 @@ class TC4820:
         Raises:
             MalformedMessageError: The read message was malformed or the device is
                                    complaining that our message was malformed
+            SerialException: An error occurred while reading the device
         """
-        # TODO: Handle errors?
-        message = self.serial.read_until(b"^").decode("ascii")
+        message_bytes = self.serial.read_until(b"^", size=8)
+
+        try:
+            message = message_bytes.decode("ascii")
+        except UnicodeDecodeError as e:
+            raise MalformedMessageError("Received data not encoded as ASCII") from e
 
         if len(message) != 8 or message[0] != "*" or message[-1] != "^":
             raise MalformedMessageError("Malformed message received: {message}")
@@ -69,15 +74,22 @@ class TC4820:
         if message[6:7] != TC4820.checksum(message[1:5]):
             raise MalformedMessageError("Bad checksum received")
 
-        # Turn the hex string into raw bytes, then convert the raw bytes to a signed int
-        raw_bytes = bytes.fromhex(message[1:5])
-        return int.from_bytes(raw_bytes, byteorder="big", signed=True)
+        try:
+            # Turn the hex string into raw bytes...
+            int_bytes = bytes.fromhex(message[1:5])
+        except ValueError as e:
+            raise MalformedMessageError("Number was not provided as hex") from e
+
+        # ...then convert the raw bytes to a signed int
+        return int.from_bytes(int_bytes, byteorder="big", signed=True)
 
     def write(self, command: str) -> None:
         """Write a message to the TC4820.
 
         Args:
             command: The string command to send
+        Raises:
+            SerialException: An error occurred while writing to the device
         """
         checksum = TC4820.checksum(command)
         message = f"*{command}{checksum}\r"
@@ -90,9 +102,8 @@ class TC4820:
         attempted a maximum of self.max_retries times.
 
         Raises:
-            MalformedMessageError: The request has failed more than max_retries times
-
-        TODO: List IO-related exceptions that can occur
+            SerialException: An error occurred while communicating with the device or
+                             max retries was exceeded
         """
         for _ in range(self.max_retries):
             self.write(command)
@@ -102,7 +113,7 @@ class TC4820:
             except MalformedMessageError as e:
                 logging.warn(f"Malformed message: {str(e)}; retrying")
 
-        raise MalformedMessageError(
+        raise SerialException(
             f"Maximum number of retries (={self.max_retries}) exceeded"
         )
 
@@ -113,9 +124,7 @@ class TC4820:
         attempted a maximum of self.max_retries times.
 
         Raises:
-            MalformedMessageError: The request has failed more than max_retries times
-
-        TODO: List IO-related exceptions that can occur
+            SerialException: An error occurred while communicating with the device
         """
         return TC4820.to_decimal(self.request_int(command))
 
