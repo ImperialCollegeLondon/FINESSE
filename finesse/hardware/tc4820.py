@@ -126,7 +126,8 @@ class TC4820:
         attempted a maximum of self.max_retries times.
 
         Raises:
-            SerialException: An error occurred while communicating with the device
+            SerialException: An error occurred while communicating with the device or
+                             max retries was exceeded
         """
         return TC4820.to_decimal(self.request_int(command))
 
