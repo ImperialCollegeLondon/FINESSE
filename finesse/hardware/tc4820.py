@@ -63,10 +63,9 @@ class TC4820:
         """
         message_bytes = self.serial.read_until(b"^", size=8)
 
-        try:
-            message = message_bytes.decode("ascii")
-        except UnicodeDecodeError as e:
-            raise MalformedMessageError("Received data not encoded as ASCII") from e
+        # Don't handle decoding errors, because these will be caught by bytes.fromhex()
+        # below
+        message = message_bytes.decode("ascii", errors="replace")
 
         if len(message) != 8 or message[0] != "*" or message[-1] != "^":
             raise MalformedMessageError("Malformed message received: {message}")
