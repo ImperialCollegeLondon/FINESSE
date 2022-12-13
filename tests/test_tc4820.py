@@ -25,10 +25,10 @@ def checksum(message: int) -> int:
     return sum(f"{message:0{4}x}".encode("ascii")) & 0xFF
 
 
-def format_message(message: int, checksum: int) -> bytes:
+def format_message(message: int, checksum: int, eol: str = "^") -> bytes:
     """Format the message as the device would."""
     assert 0 <= checksum <= 0xFF
-    return f"*{message:0{4}x}{checksum:0{2}x}^".encode("ascii")
+    return f"*{message:0{4}x}{checksum:0{2}x}{eol}".encode("ascii")
 
 
 _MESSAGE = "012345678"
@@ -71,8 +71,17 @@ def _get_message(len: int) -> Tuple[int, bytes, Any]:
 def test_read(
     value: int, message: bytes, raises: Any, dev: TC4820, mocker: MockerFixture
 ) -> None:
-    """Test inputs to TC4820.read()."""
+    """Test TC4820.read()."""
     with raises:
         m = mocker.patch("serial.Serial.read_until", return_value=message)
         assert value == dev.read()
         m.assert_called_once_with(b"^", size=8)
+
+
+@pytest.mark.parametrize("value", range(0, 0xFFFF, 200))
+def test_write(value: int, dev: TC4820, mocker: MockerFixture) -> None:
+    """Test TC4820.write()."""
+    str_value = f"{value:0{4}x}"
+    m = mocker.patch("serial.Serial.write")
+    dev.write(str_value)
+    m.assert_called_once_with(format_message(value, checksum(value), eol="\r"))
