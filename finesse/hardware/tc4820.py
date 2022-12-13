@@ -20,15 +20,20 @@ class TC4820:
     MAX_POWER = 511
     """The maximum value for the power property."""
 
-    def __init__(
-        self,
+    def __init__(self, serial: Serial, max_retries: int = 3) -> None:
+        """Create a new TC4820 from an existing serial device."""
+        self.serial = serial
+        self.max_retries = max_retries
+
+    @staticmethod
+    def create(
         port: str,
         baudrate: int = 115200,
         timeout: float = 1.0,
         max_retries: int = 3,
         *serial_args: Any,
         **serial_kwargs: Any,
-    ) -> None:
+    ) -> "TC4820":
         """Create a new TC4820.
 
         Args:
@@ -39,16 +44,14 @@ class TC4820:
             serial_args: Extra arguments to Serial constructor
             serial_kwargs: Extra keyword arguments to Serial constructor
         """
-        self.max_retries = max_retries
-
         # If the user hasn't specified an explicit timeout for write operations, then
         # use the same as for read operations
         if "write_timeout" not in serial_kwargs:
             serial_kwargs["write_timeout"] = timeout
 
-        self.serial = Serial(
-            port, baudrate, *serial_args, timeout=timeout, **serial_kwargs
-        )
+        serial = Serial(port, baudrate, *serial_args, timeout=timeout, **serial_kwargs)
+
+        return TC4820(serial, max_retries)
 
     def read(self) -> int:
         """Read a message from the TC4820 and decode the number as a signed integer.
@@ -188,7 +191,7 @@ class TC4820:
 if __name__ == "__main__":
     import sys
 
-    dev = TC4820(sys.argv[1])
+    dev = TC4820.create(sys.argv[1])
 
     # Allow user to test setting the set point
     if len(sys.argv) > 2:
