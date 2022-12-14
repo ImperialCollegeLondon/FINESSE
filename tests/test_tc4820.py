@@ -16,7 +16,7 @@ def dev(mocker: MockerFixture) -> TC4820:
     tc_dev = TC4820(serial)
 
     # Check default argument
-    assert tc_dev.max_retries == 3
+    assert tc_dev.max_attempts == 3
     return tc_dev
 
 

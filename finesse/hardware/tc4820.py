@@ -20,17 +20,25 @@ class TC4820:
     MAX_POWER = 511
     """The maximum value for the power property."""
 
-    def __init__(self, serial: Serial, max_retries: int = 3) -> None:
-        """Create a new TC4820 from an existing serial device."""
+    def __init__(self, serial: Serial, max_attempts: int = 3) -> None:
+        """Create a new TC4820 from an existing serial device.
+
+        Args:
+            serial: Serial device
+            max_attempts: Maximum number of attempts for requests
+        """
+        if max_attempts < 1:
+            raise ValueError("max_attempts must be at least 1")
+
         self.serial = serial
-        self.max_retries = max_retries
+        self.max_attempts = max_attempts
 
     @staticmethod
     def create(
         port: str,
         baudrate: int = 115200,
         timeout: float = 1.0,
-        max_retries: int = 3,
+        max_attempts: int = 3,
         *serial_args: Any,
         **serial_kwargs: Any,
     ) -> "TC4820":
@@ -40,7 +48,7 @@ class TC4820:
             port: Serial port name
             baudrate: Serial port baudrate
             timeout: How long to wait for read/write operation
-            max_retries: Number of times to retry sending/receiving messages
+            max_attempts: Maximum number of attempts for requests
             serial_args: Extra arguments to Serial constructor
             serial_kwargs: Extra keyword arguments to Serial constructor
         """
@@ -51,7 +59,7 @@ class TC4820:
 
         serial = Serial(port, baudrate, *serial_args, timeout=timeout, **serial_kwargs)
 
-        return TC4820(serial, max_retries)
+        return TC4820(serial, max_attempts)
 
     def read(self) -> int:
         """Read a message from the TC4820 and decode the number as a signed integer.
@@ -101,13 +109,13 @@ class TC4820:
         """Write the specified command then read an int from the device.
 
         If the request fails because of a checksum failure, then retransmission will be
-        attempted a maximum of self.max_retries times.
+        attempted a maximum of self.max_attempts times.
 
         Raises:
             SerialException: An error occurred while communicating with the device or
-                             max retries was exceeded
+                             max attempts was exceeded
         """
-        for _ in range(self.max_retries):
+        for _ in range(self.max_attempts):
             self.write(command)
 
             try:
@@ -116,18 +124,18 @@ class TC4820:
                 logging.warn(f"Malformed message: {str(e)}; retrying")
 
         raise SerialException(
-            f"Maximum number of retries (={self.max_retries}) exceeded"
+            f"Maximum number of attempts (={self.max_attempts}) exceeded"
         )
 
     def request_decimal(self, command: str) -> Decimal:
         """Write the specified command then read a Decimal from the device.
 
         If the request fails because of a checksum failure, then retransmission will be
-        attempted a maximum of self.max_retries times.
+        attempted a maximum of self.max_attempts times.
 
         Raises:
             SerialException: An error occurred while communicating with the device or
-                             max retries was exceeded
+                             max attempts was exceeded
         """
         return TC4820.to_decimal(self.request_int(command))
 
