@@ -45,9 +45,13 @@ class BBMonitor(QGroupBox):
         self._ax = {"hot": ax}
         self._canvas = FigureCanvasQTAgg(self._figure)
 
-        t = [1040, 1050, 1060, 1070, 1080, 1090, 1100]
-        hot_bb_temp = [55, 57.5, 60, 62.5, 65, 67.5, 70]
-        cold_bb_temp = [1, 1.1, 1.15, 1.2, 1.3, 1.4, 1.5]
+        # Placeholder callback to test updating of figure
+        self._canvas.mpl_connect("button_press_event", self._update_figure)
+
+        self._figure_num_pts = 10
+        t = [None] * self._figure_num_pts
+        hot_bb_temp = [None] * self._figure_num_pts
+        cold_bb_temp = [None] * self._figure_num_pts
 
         colours = plt.rcParams["axes.prop_cycle"]
         hot_colour = colours.by_key()["color"][0]
@@ -65,7 +69,7 @@ class BBMonitor(QGroupBox):
 
         self._canvas.draw()
 
-    def _update_figure(self) -> None:
+    def _update_figure(self, event) -> None:
         """Updates the matplotlib figure to be contained within the panel."""
         xdata = list(self._bb_hot_line[0].get_xdata())
         y1data = list(self._bb_hot_line[0].get_ydata())
@@ -75,11 +79,20 @@ class BBMonitor(QGroupBox):
         y1data.pop(0)
         y2data.pop(0)
 
-        x = xdata[-1] + 10
+        if xdata[-1] is not None:
+            x = xdata[-1] + 10
 
-        # Basic RNG for testing
-        y1 = (60 * y1data[-1] + 50) % 70
-        y2 = (5 * y2data[-1] + 1) % 8
+            # Basic RNG for testing
+            y1 = (60 * y1data[-1] + 50) % 70
+            y2 = (5 * y2data[-1] + 1) % 8
+            marker = None
+            linestyle = "-"
+        else:  # adding first data point
+            x = 10
+            y1 = 50
+            y2 = 5
+            marker = "."
+            linestyle = "None"
 
         xdata.append(x)
         y1data.append(y1)
@@ -89,6 +102,11 @@ class BBMonitor(QGroupBox):
         self._bb_hot_line[0].set_ydata(y1data)
         self._bb_cold_line[0].set_xdata(xdata)
         self._bb_cold_line[0].set_ydata(y2data)
+
+        self._bb_cold_line[0].set_linestyle(linestyle)
+        self._bb_hot_line[0].set_linestyle(linestyle)
+        self._bb_cold_line[0].set_marker(marker)
+        self._bb_hot_line[0].set_marker(marker)
 
         self._ax["hot"].relim()
         self._ax["cold"].xaxis.axes.relim()
