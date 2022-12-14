@@ -5,6 +5,7 @@ from typing import Any, Tuple
 
 import pytest
 from pytest_mock import MockerFixture
+from serial import SerialException
 
 from finesse.hardware.tc4820 import TC4820, MalformedMessageError
 
@@ -85,3 +86,46 @@ def test_write(value: int, dev: TC4820, mocker: MockerFixture) -> None:
     m = mocker.patch("serial.Serial.write")
     dev.write(str_value)
     m.assert_called_once_with(format_message(value, checksum(value), eol="\r"))
+
+
+@pytest.mark.parametrize(
+    "max_attempts,fail_max,raises",
+    [
+        (
+            max_attempts,
+            fail_max,
+            pytest.raises(SerialException)
+            if fail_max >= max_attempts
+            else does_not_raise(),
+        )
+        for fail_max in range(5)
+        for max_attempts in range(1, 5)
+    ],
+)
+def test_request_int(
+    max_attempts: int, fail_max: int, raises: Any, mocker: MockerFixture
+) -> None:
+    """Test TC4820.request_int().
+
+    Check that the retrying of requests works.
+    """
+    serial = mocker.patch("serial.Serial")
+    dev = TC4820(serial, max_attempts)
+
+    fail_count = 0
+
+    def my_read():
+        """Raise an error the first fail_count times called."""
+        nonlocal fail_count
+        if fail_count < fail_max:
+            fail_count += 1
+            raise MalformedMessageError()
+
+        return 0
+
+    mocker.patch.object(dev, "read", my_read)
+    write = mocker.patch("finesse.hardware.tc4820.TC4820.write")
+    with raises:
+        assert dev.request_int("some string") == 0
+
+    write.assert_called_with("some string")
