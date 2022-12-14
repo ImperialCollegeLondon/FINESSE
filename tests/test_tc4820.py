@@ -129,3 +129,21 @@ def test_request_int(
         assert dev.request_int("some string") == 0
 
     write.assert_called_with("some string")
+
+
+@pytest.mark.parametrize(
+    "name,command,type",
+    [
+        ("temperature", "010000", "decimal"),
+        ("power", "020000", "int"),
+        ("alarm_status", "030000", "int"),
+        ("set_point", "500000", "decimal"),
+    ],
+)
+def test_get_properties(
+    name: str, command: str, type: str, dev: TC4820, mocker: MockerFixture
+) -> None:
+    """Check that the getters for properties work."""
+    m = mocker.patch(f"finesse.hardware.tc4820.TC4820.request_{type}")
+    getattr(dev, name)
+    m.assert_called_once_with(command)
