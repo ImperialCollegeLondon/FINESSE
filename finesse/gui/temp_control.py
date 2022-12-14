@@ -15,14 +15,6 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-# plt.style.use("./finesse_gui.style")
-plt.rcParams["figure.facecolor"] = "black"
-plt.rcParams["axes.facecolor"] = "black"
-plt.rcParams["axes.edgecolor"] = "white"
-plt.rcParams["text.color"] = "white"
-plt.rcParams["xtick.color"] = "white"
-plt.rcParams["ytick.color"] = "white"
-
 
 class BBMonitor(QGroupBox):
     """Widgets to view the temperature properties."""
@@ -48,41 +40,33 @@ class BBMonitor(QGroupBox):
         return layout
 
     def _create_figure(self) -> None:
-        """Creates the matplotlib figure to be contained within the panel.
-
-        Returns:
-            None
-        """
-        self._figure, self._ax1 = plt.subplots()
+        """Creates the matplotlib figure to be contained within the panel."""
+        self._figure, ax = plt.subplots()
+        self._ax = {"hot": ax}
         self._canvas = FigureCanvasQTAgg(self._figure)
 
         t = [1040, 1050, 1060, 1070, 1080, 1090, 1100]
         hot_bb_temp = [55, 57.5, 60, 62.5, 65, 67.5, 70]
         cold_bb_temp = [1, 1.1, 1.15, 1.2, 1.3, 1.4, 1.5]
 
-        self._bb_hot_line = self._ax1.plot(t, hot_bb_temp, color=[0, 1, 0])
-        self._ax1.set_xlabel("")
-        self._ax1.set_ylabel("HOT BB", color=[0, 1, 0])
-        self._ax1.set_xlim([1045, 1101.4])
-        self._ax1.set_ylim([20, 80])
+        colours = plt.rcParams["axes.prop_cycle"]
+        hot_colour = colours.by_key()["color"][0]
+        cold_colour = colours.by_key()["color"][1]
 
-        self._ax2 = self._ax1.twinx()
-        self._bb_cold_line = self._ax2.plot(t, cold_bb_temp, color=[1, 1, 0])
-        self._ax2.set_ylabel("COLD BB", color=[1, 1, 0])
-        self._ax2.set_ylim([0, 10])
+        self._bb_hot_line = self._ax["hot"].plot(t, hot_bb_temp, color=hot_colour)
+        self._ax["hot"].set_ylabel("HOT BB", color=hot_colour)
+        self._ax["hot"].set_xlim([1045, 1101.4])
+        self._ax["hot"].set_ylim([20, 80])
+
+        self._ax["cold"] = self._ax["hot"].twinx()
+        self._bb_cold_line = self._ax["cold"].plot(t, cold_bb_temp, color=cold_colour)
+        self._ax["cold"].set_ylabel("COLD BB", color=cold_colour)
+        self._ax["cold"].set_ylim([0, 10])
 
         self._canvas.draw()
 
-    def _update_figure(self) -> None:  # , x, y) -> None:
-        """Updates the matplotlib figure to be contained within the panel.
-
-        Args:
-            #x: time
-            #y: temperature
-            # probably won't be inputs since obtainable from elsewhere
-        Returns:
-            None
-        """
+    def _update_figure(self) -> None:
+        """Updates the matplotlib figure to be contained within the panel."""
         xdata = list(self._bb_hot_line[0].get_xdata())
         y1data = list(self._bb_hot_line[0].get_ydata())
         y2data = list(self._bb_cold_line[0].get_ydata())
@@ -106,11 +90,13 @@ class BBMonitor(QGroupBox):
         self._bb_cold_line[0].set_xdata(xdata)
         self._bb_cold_line[0].set_ydata(y2data)
 
-        self._ax1.relim()
-        self._ax2.xaxis.axes.relim()
-        self._ax1.autoscale()
-        self._ax2.xaxis.axes.autoscale()
-        self._ax2.set_ylim([self._ax2.get_ylim()[0], 2 * self._ax2.get_ylim()[1]])
+        self._ax["hot"].relim()
+        self._ax["cold"].xaxis.axes.relim()
+        self._ax["hot"].autoscale()
+        self._ax["cold"].xaxis.axes.autoscale()
+        self._ax["cold"].set_ylim(
+            [self._ax["cold"].get_ylim()[0], 2 * self._ax["cold"].get_ylim()[1]]
+        )
         self._canvas.draw()
 
 
@@ -241,7 +227,7 @@ class TC4820(QGroupBox):
         self._poll_light = QLabel()
         self._poll_light.setPixmap(QPixmap("./finesse/gui/images/poll_off.png"))
         self._alarm_light = QLabel()
-        self._alarm_light.setPixmap(QPixmap("./finesse/gui/images/alarm_on.png"))
+        self._alarm_light.setPixmap(QPixmap("./finesse/gui/images/alarm_off.png"))
         layout.addWidget(self._poll_light, 0, 5)
         layout.addWidget(self._alarm_light, 2, 5)
 
