@@ -9,8 +9,8 @@ from PySide6.QtWidgets import (
     QGroupBox,
     QLabel,
     QLineEdit,
+    QProgressBar,
     QPushButton,
-    QSlider,
     QSpinBox,
     QWidget,
 )
@@ -150,43 +150,49 @@ class DP9800(QGroupBox):
 class TC4820(QGroupBox):
     """Widgets to view the TC4820 properties."""
 
-    def __init__(self, name) -> None:
-        """Creates the widgets to control and monitor TC4820 HOT.
+    def __init__(self, name: str) -> None:
+        """Creates the widgets to control and monitor a TC4820.
 
-        Returns:
-            None
+        Args:
+            name (str): Name of the blackbody the TC4820 is controlling
         """
-        super().__init__("TC4820 %s" % name)
+        super().__init__("TC4820 %s" % name.upper())
 
         layout = self._create_controls()
         self.setLayout(layout)
 
     def _create_controls(self) -> QGridLayout:
+        """Creates the overall layout for the panel.
 
+        Returns:
+            QGridLayout: The layout containing the figure.
+        """
         layout = QGridLayout()
 
+        align = Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter
+
         wid = QLabel("CONTROL")
-        wid.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        wid.setAlignment(align)
         layout.addWidget(wid, 0, 0)
 
         wid = QLabel("POWER")
-        wid.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        wid.setAlignment(align)
         layout.addWidget(wid, 1, 0)
 
         wid = QLabel("SET")
-        wid.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        wid.setAlignment(align)
         layout.addWidget(wid, 2, 0)
 
         wid = QLabel("Pt 100")
-        wid.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        wid.setAlignment(align)
         layout.addWidget(wid, 0, 2)
 
         wid = QLabel("POLL")
-        wid.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        wid.setAlignment(align)
         layout.addWidget(wid, 0, 4)
 
         wid = QLabel("ALARM")
-        wid.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        wid.setAlignment(align)
         layout.addWidget(wid, 2, 4)
 
         self._control_val = QLineEdit("70.5")
@@ -199,9 +205,10 @@ class TC4820(QGroupBox):
         self._pt100_val.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self._pt100_val, 0, 3)
 
-        self._power_slider = QSlider()
-        self._power_slider.setOrientation(Qt.Orientation.Horizontal)
-        layout.addWidget(self._power_slider, 1, 1, 1, 3)
+        self._power_bar = QProgressBar()
+        self._power_bar.setTextVisible(False)
+        self._power_bar.setOrientation(Qt.Orientation.Horizontal)
+        layout.addWidget(self._power_bar, 1, 1, 1, 3)
         layout.addWidget(QLineEdit("40"), 1, 4)
 
         self._poll_light = QLabel()
@@ -233,8 +240,8 @@ if __name__ == "__main__":
 
     bb_monitor = BBMonitor()
     dp9800 = DP9800(8)
-    tc4820_hot = TC4820("HOT")
-    tc4820_cold = TC4820("COLD")
+    tc4820_hot = TC4820("hot")
+    tc4820_cold = TC4820("cold")
 
     layout.addWidget(bb_monitor, 0, 0, 1, 0)
     layout.addWidget(dp9800, 1, 0, 1, 0)
