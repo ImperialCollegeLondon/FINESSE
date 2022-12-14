@@ -28,7 +28,7 @@ class MainWindow(QMainWindow):
         opus: QGroupBox = OPUSControl("127.0.0.1")
 
         bb_monitor: QGroupBox = BBMonitor()
-        dp9800: QGroupBox = DP9800()
+        dp9800: QGroupBox = DP9800(8)
         tc4820_hot: QGroupBox = TC4820("hot")
         tc4820_cold: QGroupBox = TC4820("cold")
 

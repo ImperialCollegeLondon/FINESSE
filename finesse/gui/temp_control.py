@@ -103,62 +103,42 @@ class BBMonitor(QGroupBox):
 class DP9800(QGroupBox):
     """Widgets to view the DP9800 properties."""
 
-    def __init__(self) -> None:
+    def __init__(self, num_channels: int) -> None:
         """Creates the widgets to monitor DP9800.
 
-        Returns:
-            None
+        Args:
+            num_channels (int): Number of Pt 100 channels being monitored
         """
         super().__init__("DP9800")
+
+        self._num_channels = num_channels
 
         layout = self._create_controls()
         self.setLayout(layout)
 
     def _create_controls(self) -> QGridLayout:
+        """Creates the overall layout for the panel.
 
+        Returns:
+            QGridLayout: The layout containing the figure.
+        """
         layout = QGridLayout()
 
         layout.addWidget(QLabel("Pt 100"), 1, 0)
-        for i in range(1, 9):
-            wid = QLabel("CH_%d" % i)
-            wid.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            layout.addWidget(wid, 0, i)
+        self._channels = []
+        for i in range(self._num_channels):
+            label = QLabel("CH_%d" % (i + 1))
+            label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            layout.addWidget(label, 0, i + 1)
+            tbox = QLineEdit()
+            self._channels.append(tbox)
+            self._channels[i].setReadOnly(True)
+            layout.addWidget(self._channels[i], 1, i + 1)
 
-        self._ch1 = QLineEdit()
-        self._ch1.setReadOnly(True)
-        layout.addWidget(self._ch1, 1, 1)
-
-        self._ch2 = QLineEdit()
-        self._ch2.setReadOnly(True)
-        layout.addWidget(self._ch2, 1, 2)
-
-        self._ch3 = QLineEdit()
-        self._ch3.setReadOnly(True)
-        layout.addWidget(self._ch3, 1, 3)
-
-        self._ch4 = QLineEdit()
-        self._ch4.setReadOnly(True)
-        layout.addWidget(self._ch4, 1, 4)
-
-        self._ch5 = QLineEdit()
-        self._ch5.setReadOnly(True)
-        layout.addWidget(self._ch5, 1, 5)
-
-        self._ch6 = QLineEdit()
-        self._ch6.setReadOnly(True)
-        layout.addWidget(self._ch6, 1, 6)
-
-        self._ch7 = QLineEdit()
-        self._ch7.setReadOnly(True)
-        layout.addWidget(self._ch7, 1, 7)
-
-        self._ch8 = QLineEdit()
-        self._ch8.setReadOnly(True)
-        layout.addWidget(self._ch8, 1, 8)
-
-        wid = QLabel("POLL")
-        wid.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-        layout.addWidget(wid, 0, 9, 2, 1)
+        label = QLabel("POLL")
+        align = Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter
+        label.setAlignment(align)
+        layout.addWidget(label, 0, 9, 2, 1)
 
         self._poll_light = QLabel()
         self._poll_light.setPixmap(QPixmap("./finesse/gui/images/poll_off.png"))
@@ -252,7 +232,7 @@ if __name__ == "__main__":
     layout = QGridLayout()
 
     bb_monitor = BBMonitor()
-    dp9800 = DP9800()
+    dp9800 = DP9800(8)
     tc4820_hot = TC4820("HOT")
     tc4820_cold = TC4820("COLD")
 
