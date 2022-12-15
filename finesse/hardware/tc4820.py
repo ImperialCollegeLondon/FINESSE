@@ -92,7 +92,7 @@ class TC4820:
         message = message_bytes.decode("ascii", errors="replace")
 
         if len(message) != 8 or message[0] != "*" or message[-1] != "^":
-            raise MalformedMessageError("Malformed message received: {message}")
+            raise MalformedMessageError(f"Malformed message received: {message}")
 
         if message == "*XXXX60^":
             raise MalformedMessageError("Bad checksum sent")
