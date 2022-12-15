@@ -45,6 +45,13 @@ def _get_message(len: int) -> Tuple[int, bytes, Any]:
     )
 
 
+_TERM_CHARS = set("*^")
+"""Some random ASCII characters, plus the correct start and terminator chars."""
+
+for c in range(0, 128, 10):
+    _TERM_CHARS.add(chr(c))
+
+
 @pytest.mark.parametrize(
     "value,message,raises",
     chain(
@@ -53,6 +60,18 @@ def _get_message(len: int) -> Tuple[int, bytes, Any]:
         [(0, b"*XXXX60^", pytest.raises(MalformedMessageError))],
         # Non-hex value for number
         [(0, b"*$$$$90^", pytest.raises(MalformedMessageError))],
+        # Check that only valid start and end terminators work
+        [
+            (
+                0,
+                f"{start}0000c0{end}".encode("ascii"),
+                does_not_raise()
+                if start == "*" and end == "^"
+                else pytest.raises(MalformedMessageError),
+            )
+            for end in _TERM_CHARS
+            for start in _TERM_CHARS
+        ],
         # Message length
         [_get_message(len) for len in range(1, len(_MESSAGE))],
         # Test checksums
