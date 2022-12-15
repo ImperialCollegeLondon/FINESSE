@@ -65,6 +65,21 @@ class TC4820:
     def read(self) -> int:
         """Read a message from the TC4820 and decode the number as a signed integer.
 
+        Valid messages have the form "*{number}{checksum}^", where {number} is a signed
+        integer represented as a zero-padded four-char hexadecimal number and {checksum}
+        is the checksum for this message, represented as a zero-padded two-char
+        hexademical number (see checksum() function for details). Negative numbers are
+        represented as if they had been cast to an unsigned integer before being encoded
+        as hex (i.e. -1 is represented as "ffff").
+
+        There is one special message "*XXXX60^", which is what the device sends when the
+        checksum for the last message we sent didn't match.
+
+        If we receive a malformed message or "*XXXX60^", a MalformedMessageError is
+        raised. A SerialException can also be raised by the underlying PySerial library,
+        which indicates that a lower-level IO error has occurred (e.g. because the USB
+        cable has become disconnected).
+
         Raises:
             MalformedMessageError: The read message was malformed or the device is
                                    complaining that our message was malformed
@@ -97,6 +112,13 @@ class TC4820:
     def write(self, command: str) -> None:
         """Write a message to the TC4820.
 
+        The command is usually an integer represented as a zero-padded six-char
+        hexademical string.
+
+        Sent are encoded similarly (but not identically) to those received and look like
+        "*{command}{checksum}^", where the checksum is calculated as it is for received
+        messages.
+
         Args:
             command: The string command to send
         Raises:
@@ -109,8 +131,9 @@ class TC4820:
     def request_int(self, command: str) -> int:
         """Write the specified command then read an int from the device.
 
-        If the request fails because of a checksum failure, then retransmission will be
-        attempted a maximum of self.max_attempts times.
+        If the request fails because a malformed message was received or the device
+        indicates that our message was corrupted, then retransmission will be attempted
+        a maximum of self.max_attempts times.
 
         Raises:
             SerialException: An error occurred while communicating with the device or
