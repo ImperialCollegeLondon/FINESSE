@@ -2,6 +2,13 @@
 
 Decimal numbers are used for values sent to and read from the device as the values are
 base-10 and using floats could cause rounding errors.
+
+There are broadly two serial-related exceptions that are raised by this module.
+MalformedMessageErrors are raised when a message is corrupted and are recoverable (i.e.
+you can try submitting the request again). serial.SerialExceptions indicate that an
+IO error occurred while communicating with the device (e.g. because a USB cable has
+become disconnected) and are unlikely to be recoverable. A SerialException is also
+raised if multiple attempts at a request have failed.
 """
 import logging
 from decimal import Decimal
