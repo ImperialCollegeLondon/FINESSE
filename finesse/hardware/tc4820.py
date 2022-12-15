@@ -44,16 +44,17 @@ class TC4820:
     ) -> "TC4820":
         """Create a new TC4820.
 
+        If the user hasn't specified an explicit timeout for write operations with the
+        write_timeout argument, then the value of timeout will be used.
+
         Args:
             port: Serial port name
             baudrate: Serial port baudrate
-            timeout: How long to wait for read/write operation
+            timeout: How long to wait for read operations (seconds)
             max_attempts: Maximum number of attempts for requests
             serial_args: Extra arguments to Serial constructor
             serial_kwargs: Extra keyword arguments to Serial constructor
         """
-        # If the user hasn't specified an explicit timeout for write operations, then
-        # use the same as for read operations
         if "write_timeout" not in serial_kwargs:
             serial_kwargs["write_timeout"] = timeout
 
