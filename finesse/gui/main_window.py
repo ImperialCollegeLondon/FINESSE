@@ -31,7 +31,6 @@ class MainWindow(QMainWindow):
         serial_port: QGroupBox = SerialPortControl(
             devices,
             ("COM1", "COM5", "COM7"),
-            ("600", "9600", "115200"),
         )
 
         layout_left.addWidget(stepper_motor)
