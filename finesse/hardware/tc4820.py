@@ -81,7 +81,7 @@ class TC4820:
         if message == "*XXXX60^":
             raise MalformedMessageError("Bad checksum sent")
 
-        if message[5:7] != TC4820.checksum(message[1:5]):
+        if message[5:7] != self.checksum(message[1:5]):
             raise MalformedMessageError("Bad checksum received")
 
         try:
@@ -101,7 +101,7 @@ class TC4820:
         Raises:
             SerialException: An error occurred while writing to the device
         """
-        checksum = TC4820.checksum(command)
+        checksum = self.checksum(command)
         message = f"*{command}{checksum}\r"
         self.serial.write(message.encode("ascii"))
 
@@ -137,7 +137,7 @@ class TC4820:
             SerialException: An error occurred while communicating with the device or
                              max attempts was exceeded
         """
-        return TC4820.to_decimal(self.request_int(command))
+        return self.to_decimal(self.request_int(command))
 
     @property
     def temperature(self) -> Decimal:
