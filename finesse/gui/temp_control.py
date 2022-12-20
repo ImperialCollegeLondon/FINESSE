@@ -1,4 +1,5 @@
 """Panel and widgets related to temperature monitoring."""
+from functools import partial
 
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
@@ -33,9 +34,18 @@ class BBMonitor(QGroupBox):
             QGridLayout: The layout containing the figure.
         """
         layout = QGridLayout()
+        self._btns = {"hot": QPushButton("Hot BB"), "cold": QPushButton("Cold BB")}
+        self._btns["hot"].clicked.connect(  # type: ignore
+            partial(self._btn_pressed, name="hot")
+        )
+        self._btns["cold"].clicked.connect(  # type: ignore
+            partial(self._btn_pressed, name="cold")
+        )
         self._create_figure()
 
-        layout.addWidget(self._canvas, 0, 0)
+        layout.addWidget(self._btns["hot"], 0, 0)
+        layout.addWidget(self._btns["cold"], 1, 0)
+        layout.addWidget(self._canvas, 0, 1, 2, 1)
 
         return layout
 
@@ -57,23 +67,31 @@ class BBMonitor(QGroupBox):
         hot_colour = colours.by_key()["color"][0]
         cold_colour = colours.by_key()["color"][1]
 
-        self._bb_hot_line = self._ax["hot"].plot(t, hot_bb_temp, color=hot_colour)
+        self._ax["hot"].plot(t, hot_bb_temp, color=hot_colour)
         self._ax["hot"].set_ylabel("HOT BB", color=hot_colour)
         self._ax["hot"].set_xlim([1045, 1101.4])
         self._ax["hot"].set_ylim([20, 80])
 
         self._ax["cold"] = self._ax["hot"].twinx()
-        self._bb_cold_line = self._ax["cold"].plot(t, cold_bb_temp, color=cold_colour)
+        self._ax["cold"].plot(t, cold_bb_temp, color=cold_colour)
         self._ax["cold"].set_ylabel("COLD BB", color=cold_colour)
         self._ax["cold"].set_ylim([0, 10])
 
         self._canvas.draw()
 
+    def _btn_pressed(self, name) -> None:
+        """Shows or hides BB plots."""
+        state = self._ax[name].yaxis.get_visible()
+        self._btns[name].setFlat(state)
+        self._ax[name].yaxis.set_visible(not state)
+        self._ax[name].lines[0].set_visible(not state)
+        self._canvas.draw()
+
     def _update_figure(self, event) -> None:
         """Updates the matplotlib figure to be contained within the panel."""
-        xdata = list(self._bb_hot_line[0].get_xdata())
-        y1data = list(self._bb_hot_line[0].get_ydata())
-        y2data = list(self._bb_cold_line[0].get_ydata())
+        xdata = list(self._ax["hot"].lines[0].get_xdata())
+        y1data = list(self._ax["hot"].lines[0].get_ydata())
+        y2data = list(self._ax["cold"].lines[0].get_ydata())
 
         xdata.pop(0)
         y1data.pop(0)
@@ -98,15 +116,15 @@ class BBMonitor(QGroupBox):
         y1data.append(y1)
         y2data.append(y2)
 
-        self._bb_hot_line[0].set_xdata(xdata)
-        self._bb_hot_line[0].set_ydata(y1data)
-        self._bb_cold_line[0].set_xdata(xdata)
-        self._bb_cold_line[0].set_ydata(y2data)
+        self._ax["hot"].lines[0].set_xdata(xdata)
+        self._ax["hot"].lines[0].set_ydata(y1data)
+        self._ax["cold"].lines[0].set_xdata(xdata)
+        self._ax["cold"].lines[0].set_ydata(y2data)
 
-        self._bb_cold_line[0].set_linestyle(linestyle)
-        self._bb_hot_line[0].set_linestyle(linestyle)
-        self._bb_cold_line[0].set_marker(marker)
-        self._bb_hot_line[0].set_marker(marker)
+        self._ax["cold"].lines[0].set_linestyle(linestyle)
+        self._ax["hot"].lines[0].set_linestyle(linestyle)
+        self._ax["cold"].lines[0].set_marker(marker)
+        self._ax["hot"].lines[0].set_marker(marker)
 
         self._ax["hot"].relim()
         self._ax["cold"].xaxis.axes.relim()
