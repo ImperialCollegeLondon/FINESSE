@@ -9,6 +9,7 @@ import yaml
 from pubsub import pub
 from PySide6.QtWidgets import QWidget
 from schema import And, Or, Schema, SchemaError
+from tqdm import trange
 
 from ...config import ANGLE_PRESETS
 from ..error_message import show_error_message
@@ -53,8 +54,7 @@ class Script:
     def run(self) -> None:
         """Run this measure script."""
         logging.info(f"Running {self.path}")
-        for i in range(self.repeats):
-            logging.info(f"Iteration {i+1}/{self.repeats}")
+        for i in trange(self.repeats):
             for instruction in self.sequence:
                 instruction.run()
 
