@@ -22,13 +22,20 @@ def is_valid_angle(angle: Any) -> bool:
 
 
 def get_data(count: int, angle: Any, num_attributes: int) -> Dict[str, Any]:
-    """Get all or part of data script."""
-    data = {
-        "count": count,
-        "sequence": [
+    """Get all or part of data script.
+
+    Passing angle==() allows for testing with an empty sequence.
+    """
+    if angle == ():
+        angles = []
+    else:
+        angles = [
             {"angle": angle, "count": 1},
             {"angle": 4.0, "count": 1},
-        ],
+        ]
+    data = {
+        "count": count,
+        "sequence": angles,
         "extra_attribute": "hello",
     }
 
@@ -47,7 +54,7 @@ def get_data(count: int, angle: Any, num_attributes: int) -> Dict[str, Any]:
         for count in range(-5, 5)
         for angle in chain(
             (float(i) for i in range(-180, 541, 60)),
-            (4, "nadir", "NADIR", "badger", "kevin", ""),
+            (4, "nadir", "NADIR", "badger", "kevin", "", ()),
         )
         for num_attributes in range(3)
     ],

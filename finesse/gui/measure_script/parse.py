@@ -97,12 +97,15 @@ def parse_script(script: Union[str, TextIOBase]) -> Dict[str, Any]:
     valid_float = And(float, lambda f: 0.0 <= f < 360.0)
     valid_preset = And(str, lambda s: s in ANGLE_PRESETS)
     count_type = And(int, lambda x: x > 0)
+    nonempty_list = And(list, lambda x: x)
 
-    # TODO: Should check for empty sequences
     schema = Schema(
         {
             "count": count_type,
-            "sequence": [{"angle": Or(valid_float, valid_preset), "count": count_type}],
+            "sequence": And(
+                nonempty_list,
+                [{"angle": Or(valid_float, valid_preset), "count": count_type}],
+            ),
         }
     )
 
