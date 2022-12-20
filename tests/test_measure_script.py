@@ -1,5 +1,6 @@
 """Tests for the measure script code."""
 from contextlib import nullcontext as does_not_raise
+from itertools import chain
 from typing import Any, Dict
 
 import pytest
@@ -11,8 +12,7 @@ from finesse.gui.measure_script.parse import ParseError, parse_script
 
 def is_valid_angle(angle: Any) -> bool:
     """Check whether the angle is valid."""
-    if isinstance(angle, float):
-        # TODO: We should probably check that the angle is within valid range too
+    if isinstance(angle, float) and 0.0 <= angle < 360.0:
         return True
 
     if angle in ANGLE_PRESETS:
@@ -45,7 +45,10 @@ def get_data(count: int, angle: Any, num_attributes: int) -> Dict[str, Any]:
             else pytest.raises(ParseError),
         )
         for count in range(-5, 5)
-        for angle in (4.0, 4, "nadir", "NADIR", "badger", "kevin", "")
+        for angle in chain(
+            (float(i) for i in range(-180, 541, 60)),
+            (4, "nadir", "NADIR", "badger", "kevin", ""),
+        )
         for num_attributes in range(3)
     ],
 )
