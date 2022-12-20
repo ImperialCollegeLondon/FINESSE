@@ -8,17 +8,18 @@ These files are written in [YAML](https://yaml.org/) format, with certain proper
 Here is an example:
 
 ```yaml
-count: 10
+repeats: 10
 sequence:
 - angle: zenith
-  count: 1
+  measurements: 1
 - angle: 10.0
-  count: 3
+  measurements: 3
 ```
 
-First is the `count` property, which specifies how many times *the entire sequence* is
+First is the `repeats` property, which specifies how many times *the entire sequence* is
 run. The `sequence` property specifies which angles the mirror should move to (`angle`)
-and how many measurements should be recorded at each of these positions (`count`). This
-example sequence is composed of two movements: first to the zenith and second to an
-angle of 10°. Note that angles can be specified either as a string corresponding to one
-of the preset angles or as a floating-point value in degrees.
+and how many measurements should be recorded at each of these positions
+(`measurements`). This example sequence is composed of two movements: first to the
+zenith and second to an angle of 10°. Note that angles can be specified either as a
+string corresponding to one of the preset angles or as a floating-point value in
+degrees.

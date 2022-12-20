@@ -21,7 +21,7 @@ def is_valid_angle(angle: Any) -> bool:
     return False
 
 
-def get_data(count: int, angle: Any, num_attributes: int) -> Dict[str, Any]:
+def get_data(repeats: int, angle: Any, num_attributes: int) -> Dict[str, Any]:
     """Get all or part of data script.
 
     Passing angle==() allows for testing with an empty sequence.
@@ -30,11 +30,11 @@ def get_data(count: int, angle: Any, num_attributes: int) -> Dict[str, Any]:
         angles = []
     else:
         angles = [
-            {"angle": angle, "count": 1},
-            {"angle": 4.0, "count": 1},
+            {"angle": angle, "measurements": 1},
+            {"angle": 4.0, "measurements": 1},
         ]
     data = {
-        "count": count,
+        "repeats": repeats,
         "sequence": angles,
         "extra_attribute": "hello",
     }
@@ -46,12 +46,12 @@ def get_data(count: int, angle: Any, num_attributes: int) -> Dict[str, Any]:
     "data,raises",
     [
         (
-            get_data(count, angle, num_attributes),
+            get_data(repeats, angle, num_attributes),
             does_not_raise()
-            if count > 0 and is_valid_angle(angle) and num_attributes == 2
+            if repeats > 0 and is_valid_angle(angle) and num_attributes == 2
             else pytest.raises(ParseError),
         )
-        for count in range(-5, 5)
+        for repeats in range(-5, 5)
         for angle in chain(
             (float(i) for i in range(-180, 541, 60)),
             (4, "nadir", "NADIR", "badger", "kevin", "", ()),

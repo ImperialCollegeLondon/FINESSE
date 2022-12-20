@@ -16,12 +16,12 @@ from ..error_message import show_error_message
 
 @dataclass
 class Measurement:
-    """Represents a single measurement (i.e. angle + count)."""
+    """Represents a single measurement (i.e. angle + number of measurements)."""
 
     angle: Union[str, float]
     """Either an angle in degrees or the name of a preset angle."""
 
-    count: int
+    measurements: int
     """The number of times to repeat the measurement at this position."""
 
     def run(self) -> None:
@@ -30,31 +30,31 @@ class Measurement:
         pub.sendMessage("stepper.move", target=self.angle)
 
         # Take the recordings
-        logging.info(f"Recording {self.count} measurements")
+        logging.info(f"Recording {self.measurements} measurements")
 
 
 class Script:
     """Represents a measure script, including its file path and data."""
 
     def __init__(
-        self, path: Path, count: int, sequence: Sequence[Dict[str, Any]]
+        self, path: Path, repeats: int, sequence: Sequence[Dict[str, Any]]
     ) -> None:
         """Create a new Script.
 
         Args:
             path: The file path to this measure script
-            count: The number of times to repeat the sequence of measurements
-            sequence: Different measurements (i.e. angle + count) to record
+            repeats: The number of times to repeat the sequence of measurements
+            sequence: Different measurements (i.e. angle + num measurements) to record
         """
         self.path = path
-        self.count = count
+        self.repeats = repeats
         self.sequence = [Measurement(**val) for val in sequence]
 
     def run(self) -> None:
         """Run this measure script."""
         logging.info(f"Running {self.path}")
-        for i in range(self.count):
-            logging.info(f"Iteration {i+1}/{self.count}")
+        for i in range(self.repeats):
+            logging.info(f"Iteration {i+1}/{self.repeats}")
             for instruction in self.sequence:
                 instruction.run()
 
@@ -96,15 +96,20 @@ def parse_script(script: Union[str, TextIOBase]) -> Dict[str, Any]:
     """
     valid_float = And(float, lambda f: 0.0 <= f < 360.0)
     valid_preset = And(str, lambda s: s in ANGLE_PRESETS)
-    count_type = And(int, lambda x: x > 0)
+    measurements_type = And(int, lambda x: x > 0)
     nonempty_list = And(list, lambda x: x)
 
     schema = Schema(
         {
-            "count": count_type,
+            "repeats": measurements_type,
             "sequence": And(
                 nonempty_list,
-                [{"angle": Or(valid_float, valid_preset), "count": count_type}],
+                [
+                    {
+                        "angle": Or(valid_float, valid_preset),
+                        "measurements": measurements_type,
+                    }
+                ],
             ),
         }
     )
