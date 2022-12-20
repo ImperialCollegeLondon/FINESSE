@@ -94,6 +94,7 @@ def parse_script(script: Union[str, TextIOBase]) -> Dict[str, Any]:
     Raises:
         ParseError: The script's contents were invalid
     """
+    valid_float = And(float, lambda f: 0.0 <= f < 360.0)
     valid_preset = And(str, lambda s: s in ANGLE_PRESETS)
     count_type = And(int, lambda x: x > 0)
 
@@ -101,7 +102,7 @@ def parse_script(script: Union[str, TextIOBase]) -> Dict[str, Any]:
     schema = Schema(
         {
             "count": count_type,
-            "sequence": [{"angle": Or(float, valid_preset), "count": count_type}],
+            "sequence": [{"angle": Or(valid_float, valid_preset), "count": count_type}],
         }
     )
 
