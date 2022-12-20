@@ -96,6 +96,8 @@ def parse_script(script: Union[str, TextIOBase]) -> Dict[str, Any]:
     """
     valid_preset = And(str, lambda s: s in ANGLE_PRESETS)
     count_type = And(int, lambda x: x > 0)
+
+    # TODO: Should check for empty sequences
     schema = Schema(
         {
             "count": count_type,
