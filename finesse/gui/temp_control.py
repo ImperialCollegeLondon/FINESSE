@@ -1,4 +1,5 @@
 """Panel and widgets related to temperature monitoring."""
+from datetime import datetime
 from functools import partial
 
 import matplotlib.pyplot as plt
@@ -69,13 +70,10 @@ class BBMonitor(QGroupBox):
 
         self._ax["hot"].plot(t, hot_bb_temp, color=hot_colour)
         self._ax["hot"].set_ylabel("HOT BB", color=hot_colour)
-        self._ax["hot"].set_xlim([1045, 1101.4])
-        self._ax["hot"].set_ylim([20, 80])
 
         self._ax["cold"] = self._ax["hot"].twinx()
         self._ax["cold"].plot(t, cold_bb_temp, color=cold_colour)
         self._ax["cold"].set_ylabel("COLD BB", color=cold_colour)
-        self._ax["cold"].set_ylim([0, 10])
 
         self._canvas.draw()
 
@@ -97,16 +95,15 @@ class BBMonitor(QGroupBox):
         y1data.pop(0)
         y2data.pop(0)
 
+        t = datetime.now()
+        x = t.timestamp()
         if xdata[-1] is not None:
-            x = xdata[-1] + 10
-
             # Basic RNG for testing
             y1 = (60 * y1data[-1] + 50) % 70
             y2 = (5 * y2data[-1] + 1) % 8
-            marker = None
+            marker = ""
             linestyle = "-"
         else:  # adding first data point
-            x = 10
             y1 = 50
             y2 = 5
             marker = "."
@@ -127,12 +124,21 @@ class BBMonitor(QGroupBox):
         self._ax["hot"].lines[0].set_marker(marker)
 
         self._ax["hot"].relim()
-        self._ax["cold"].xaxis.axes.relim()
+        self._ax["cold"].relim()
         self._ax["hot"].autoscale()
-        self._ax["cold"].xaxis.axes.autoscale()
-        self._ax["cold"].set_ylim(
+        self._ax["cold"].autoscale()
+        self._ax["cold"].set_ylim(  # Confines "cold" line to lower half of plot
             [self._ax["cold"].get_ylim()[0], 2 * self._ax["cold"].get_ylim()[1]]
         )
+
+        xticks = self._ax["hot"].get_xticks()
+        xticklabels = [""] * len(xticks)
+        for i in range(len(xticks)):
+            t = datetime.fromtimestamp(xticks[i])
+            xticklabels[i] = t.strftime("%H:%M:%S")
+        #        self._ax["cold"].set_xticks(xticks)
+        self._ax["hot"].set_xticklabels(xticklabels)
+
         self._canvas.draw()
 
 
