@@ -37,10 +37,10 @@ class BBMonitor(QGroupBox):
         layout = QGridLayout()
         self._btns = {"hot": QPushButton("Hot BB"), "cold": QPushButton("Cold BB")}
         self._btns["hot"].clicked.connect(  # type: ignore
-            partial(self._btn_pressed, name="hot")
+            partial(self._toggle_axis_visibility, name="hot")
         )
         self._btns["cold"].clicked.connect(  # type: ignore
-            partial(self._btn_pressed, name="cold")
+            partial(self._toggle_axis_visibility, name="cold")
         )
         self._create_figure()
 
@@ -77,7 +77,7 @@ class BBMonitor(QGroupBox):
 
         self._canvas.draw()
 
-    def _btn_pressed(self, name) -> None:
+    def _toggle_axis_visibility(self, name: str) -> None:
         """Shows or hides BB plots."""
         state = self._ax[name].yaxis.get_visible()
         self._btns[name].setFlat(state)
@@ -198,7 +198,7 @@ class TC4820(QGroupBox):
         Args:
             name (str): Name of the blackbody the TC4820 is controlling
         """
-        super().__init__("TC4820 %s" % name.upper())
+        super().__init__(f"TC4820 {name.upper()}")
 
         layout = self._create_controls()
         self.setLayout(layout)
@@ -213,29 +213,29 @@ class TC4820(QGroupBox):
 
         align = Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter
 
-        wid = QLabel("CONTROL")
-        wid.setAlignment(align)
-        layout.addWidget(wid, 0, 0)
+        control_label = QLabel("CONTROL")
+        control_label.setAlignment(align)
+        layout.addWidget(control_label, 0, 0)
 
-        wid = QLabel("POWER")
-        wid.setAlignment(align)
-        layout.addWidget(wid, 1, 0)
+        power_label = QLabel("POWER")
+        power_label.setAlignment(align)
+        layout.addWidget(power_label, 1, 0)
 
-        wid = QLabel("SET")
-        wid.setAlignment(align)
-        layout.addWidget(wid, 2, 0)
+        set_label = QLabel("SET")
+        set_label.setAlignment(align)
+        layout.addWidget(set_label, 2, 0)
 
-        wid = QLabel("Pt 100")
-        wid.setAlignment(align)
-        layout.addWidget(wid, 0, 2)
+        pt100_label = QLabel("Pt 100")
+        pt100_label.setAlignment(align)
+        layout.addWidget(pt100_label, 0, 2)
 
-        wid = QLabel("POLL")
-        wid.setAlignment(align)
-        layout.addWidget(wid, 0, 4)
+        poll_label = QLabel("POLL")
+        poll_label.setAlignment(align)
+        layout.addWidget(poll_label, 0, 4)
 
-        wid = QLabel("ALARM")
-        wid.setAlignment(align)
-        layout.addWidget(wid, 2, 4)
+        alarm_label = QLabel("ALARM")
+        alarm_label.setAlignment(align)
+        layout.addWidget(alarm_label, 2, 4)
 
         self._control_val = QLineEdit("70.5")
         self._control_val.setReadOnly(True)
