@@ -1,12 +1,13 @@
 """Panel and widgets related to temperature monitoring."""
 from datetime import datetime
 from functools import partial
+from importlib import resources
 from typing import Tuple
 
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QPixmap
+from PySide6.QtGui import QImage, QPixmap
 from PySide6.QtWidgets import (
     QGridLayout,
     QGroupBox,
@@ -17,6 +18,15 @@ from PySide6.QtWidgets import (
     QSpinBox,
     QWidget,
 )
+
+poll_on_img_data = resources.read_binary("finesse.gui.images", "poll_on.png")
+poll_off_img_data = resources.read_binary("finesse.gui.images", "poll_off.png")
+alarm_on_img_data = resources.read_binary("finesse.gui.images", "alarm_on.png")
+alarm_off_img_data = resources.read_binary("finesse.gui.images", "alarm_off.png")
+poll_on_img = QImage.fromData(poll_on_img_data)
+poll_off_img = QImage.fromData(poll_off_img_data)
+alarm_on_img = QImage.fromData(alarm_on_img_data)
+alarm_off_img = QImage.fromData(alarm_off_img_data)
 
 
 def get_temperature_data() -> Tuple[float, float, float]:
@@ -113,7 +123,6 @@ class BBMonitor(QGroupBox):
         y2data.pop(0)
 
         if xdata[-1] is not None:
-            # Basic RNG for testing
             marker = ""
             linestyle = "-"
         else:  # adding first data point
@@ -195,7 +204,7 @@ class DP9800(QGroupBox):
         layout.addWidget(label, 0, 9, 2, 1)
 
         self._poll_light = QLabel()
-        self._poll_light.setPixmap(QPixmap("./finesse/gui/images/poll_off.png"))
+        self._poll_light.setPixmap(QPixmap(poll_off_img))
         layout.addWidget(self._poll_light, 0, 10, 2, 1)
 
         return layout
@@ -266,9 +275,9 @@ class TC4820(QGroupBox):
         layout.addWidget(QLineEdit("40"), 1, 4)
 
         self._poll_light = QLabel()
-        self._poll_light.setPixmap(QPixmap("./finesse/gui/images/poll_off.png"))
+        self._poll_light.setPixmap(QPixmap(poll_off_img))
         self._alarm_light = QLabel()
-        self._alarm_light.setPixmap(QPixmap("./finesse/gui/images/alarm_off.png"))
+        self._alarm_light.setPixmap(QPixmap(alarm_off_img))
         layout.addWidget(self._poll_light, 0, 5)
         layout.addWidget(self._alarm_light, 2, 5)
 
