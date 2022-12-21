@@ -1,6 +1,7 @@
 """Panel and widgets related to temperature monitoring."""
 from datetime import datetime
 from functools import partial
+from typing import Tuple
 
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
@@ -16,6 +17,22 @@ from PySide6.QtWidgets import (
     QSpinBox,
     QWidget,
 )
+
+
+def get_temperature_data() -> Tuple[float, float, float]:
+    """Read temperatures of hot and cold blackbodies.
+
+    Returns:
+        time: The time at which the temperatures were read
+        hot_bb_temp: The temperature of the hot blackbody
+        cold_bb_temp: The temperature of the cold blackbody
+    """
+    time_now = datetime.now().timestamp()
+
+    # Placeholder. Later read from sensors.
+    hot_bb_temp = (60 * time_now + 50) % 70
+    cold_bb_temp = (5 * time_now + 1) % 8
+    return (time_now, hot_bb_temp, cold_bb_temp)
 
 
 class BBMonitor(QGroupBox):
@@ -95,20 +112,15 @@ class BBMonitor(QGroupBox):
         y1data.pop(0)
         y2data.pop(0)
 
-        t = datetime.now()
-        x = t.timestamp()
         if xdata[-1] is not None:
             # Basic RNG for testing
-            y1 = (60 * y1data[-1] + 50) % 70
-            y2 = (5 * y2data[-1] + 1) % 8
             marker = ""
             linestyle = "-"
         else:  # adding first data point
-            y1 = 50
-            y2 = 5
             marker = "."
             linestyle = "None"
 
+        x, y1, y2 = get_temperature_data()
         xdata.append(x)
         y1data.append(y1)
         y2data.append(y2)
