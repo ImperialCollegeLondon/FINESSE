@@ -95,11 +95,15 @@ class BBMonitor(QGroupBox):
         hot_colour = colours.by_key()["color"][0]
         cold_colour = colours.by_key()["color"][1]
 
-        self._ax["hot"].plot(t, hot_bb_temp, color=hot_colour)
+        self._ax["hot"].plot(
+            t, hot_bb_temp, color=hot_colour, marker="x", linestyle="-"
+        )
         self._ax["hot"].set_ylabel("HOT BB", color=hot_colour)
 
         self._ax["cold"] = self._ax["hot"].twinx()
-        self._ax["cold"].plot(t, cold_bb_temp, color=cold_colour)
+        self._ax["cold"].plot(
+            t, cold_bb_temp, color=cold_colour, marker="x", linestyle="-"
+        )
         self._ax["cold"].set_ylabel("COLD BB", color=cold_colour)
 
         self._canvas.draw()
@@ -122,13 +126,6 @@ class BBMonitor(QGroupBox):
         y1data.pop(0)
         y2data.pop(0)
 
-        if xdata[-1] is not None:
-            marker = ""
-            linestyle = "-"
-        else:  # adding first data point
-            marker = "."
-            linestyle = "None"
-
         x, y1, y2 = get_temperature_data()
         xdata.append(x)
         y1data.append(y1)
@@ -138,11 +135,6 @@ class BBMonitor(QGroupBox):
         self._ax["hot"].lines[0].set_ydata(y1data)
         self._ax["cold"].lines[0].set_xdata(xdata)
         self._ax["cold"].lines[0].set_ydata(y2data)
-
-        self._ax["cold"].lines[0].set_linestyle(linestyle)
-        self._ax["hot"].lines[0].set_linestyle(linestyle)
-        self._ax["cold"].lines[0].set_marker(marker)
-        self._ax["hot"].lines[0].set_marker(marker)
 
         self._ax["hot"].relim()
         self._ax["cold"].relim()
