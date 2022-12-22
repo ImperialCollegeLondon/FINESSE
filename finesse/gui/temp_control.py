@@ -118,23 +118,23 @@ class BBMonitor(QGroupBox):
 
     def _update_figure(self, event) -> None:
         """Updates the matplotlib figure to be contained within the panel."""
-        xdata = list(self._ax["hot"].lines[0].get_xdata())
-        y1data = list(self._ax["hot"].lines[0].get_ydata())
-        y2data = list(self._ax["cold"].lines[0].get_ydata())
+        time = list(self._ax["hot"].lines[0].get_xdata())
+        hot_data = list(self._ax["hot"].lines[0].get_ydata())
+        cold_data = list(self._ax["cold"].lines[0].get_ydata())
 
-        xdata.pop(0)
-        y1data.pop(0)
-        y2data.pop(0)
+        time.pop(0)
+        hot_data.pop(0)
+        cold_data.pop(0)
 
-        x, y1, y2 = get_temperature_data()
-        xdata.append(x)
-        y1data.append(y1)
-        y2data.append(y2)
+        new_time, new_hot_data, new_cold_data = get_temperature_data()
+        time.append(new_time)
+        hot_data.append(new_hot_data)
+        cold_data.append(new_cold_data)
 
-        self._ax["hot"].lines[0].set_xdata(xdata)
-        self._ax["hot"].lines[0].set_ydata(y1data)
-        self._ax["cold"].lines[0].set_xdata(xdata)
-        self._ax["cold"].lines[0].set_ydata(y2data)
+        self._ax["hot"].lines[0].set_xdata(time)
+        self._ax["hot"].lines[0].set_ydata(hot_data)
+        self._ax["cold"].lines[0].set_xdata(time)
+        self._ax["cold"].lines[0].set_ydata(cold_data)
 
         self._ax["hot"].relim()
         self._ax["cold"].relim()
