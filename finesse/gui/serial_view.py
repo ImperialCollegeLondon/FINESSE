@@ -6,6 +6,8 @@ from typing import Dict, Sequence
 
 from PySide6.QtWidgets import QComboBox, QGridLayout, QGroupBox, QLabel, QPushButton
 
+from ..config import BAUDRATES
+
 
 class SerialPortControl(QGroupBox):
     """Widgets to control the communication with serial ports."""
@@ -14,7 +16,7 @@ class SerialPortControl(QGroupBox):
         self,
         devices: Dict[str, Dict[str, str]],
         avail_ports: Sequence[str],
-        avail_baud_rates: Sequence[str],
+        avail_baud_rates: Sequence[int] = BAUDRATES,
     ) -> None:
         """Creates a sequence of widgets to control a serial connection to a device.
 
@@ -33,7 +35,7 @@ class SerialPortControl(QGroupBox):
         self.setLayout(layout)
 
     def _create_controls(
-        self, avail_ports: Sequence[str], avail_baud_rates: Sequence[str]
+        self, avail_ports: Sequence[str], avail_baud_rates: Sequence[int]
     ) -> QGridLayout:
         """Creates the controls for the ports of the devices.
 
@@ -148,7 +150,6 @@ if __name__ == "__main__":
     serial_port = SerialPortControl(
         devices,
         ("COM1", "COM5", "COM7"),
-        ("600", "9600", "115200"),
     )
     window.setCentralWidget(serial_port)
     window.show()
