@@ -149,7 +149,6 @@ class BBMonitor(QGroupBox):
         for i in range(len(xticks)):
             t = datetime.fromtimestamp(xticks[i])
             xticklabels[i] = t.strftime("%H:%M:%S")
-        #        self._ax["cold"].set_xticks(xticks)
         self._ax["hot"].set_xticklabels(xticklabels)
 
         self._canvas.draw()
@@ -182,18 +181,20 @@ class DP9800(QGroupBox):
         layout.addWidget(QLabel("Pt 100"), 1, 0)
         self._channels = []
         for i in range(self._num_channels):
-            label = QLabel("CH_%d" % (i + 1))
-            label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            layout.addWidget(label, 0, i + 1)
-            tbox = QLineEdit()
-            self._channels.append(tbox)
-            self._channels[i].setReadOnly(True)
-            layout.addWidget(self._channels[i], 1, i + 1)
+            channel_label = QLabel(f"CH_{i+1}")
+            channel_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            layout.addWidget(channel_label, 0, i + 1)
 
-        label = QLabel("POLL")
-        align = Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter
-        label.setAlignment(align)
-        layout.addWidget(label, 0, 9, 2, 1)
+            channel_tbox = QLineEdit()
+            channel_tbox.setReadOnly(True)
+            self._channels.append(channel_tbox)
+            layout.addWidget(channel_tbox, 1, i + 1)
+
+        poll_label = QLabel("POLL")
+        poll_label.setAlignment(
+            Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter
+        )
+        layout.addWidget(poll_label, 0, 9, 2, 1)
 
         self._poll_light = QLabel()
         self._poll_light.setPixmap(QPixmap(poll_off_img))
