@@ -44,23 +44,19 @@ class MainWindow(QMainWindow):
         layout_left.addWidget(stepper_motor)
         layout_left.addWidget(serial_port)
 
-        layout_right = QVBoxLayout()
+        layout_right = QGridLayout()
         opus: QGroupBox = OPUSControl("127.0.0.1")
-        layout_right.addWidget(opus)
+        layout_right.addWidget(opus, 0, 0, 1, 2)
 
         bb_monitor: QGroupBox = BBMonitor()
         dp9800: QGroupBox = DP9800(8)
         tc4820_hot: QGroupBox = TC4820("hot")
         tc4820_cold: QGroupBox = TC4820("cold")
 
-        sub_layout_right = QGridLayout()
-        sub_layout_right.addWidget(bb_monitor, 0, 0, 1, 2)
-        sub_layout_right.addWidget(dp9800, 1, 0, 1, 2)
-        sub_layout_right.addWidget(tc4820_hot, 2, 0, 1, 1)
-        sub_layout_right.addWidget(tc4820_cold, 2, 1, 1, 1)
-        sub_right = QWidget()
-        sub_right.setLayout(sub_layout_right)
-        layout_right.addWidget(sub_right)
+        layout_right.addWidget(bb_monitor, 1, 0, 1, 2)
+        layout_right.addWidget(dp9800, 2, 0, 1, 2)
+        layout_right.addWidget(tc4820_hot, 3, 0, 1, 1)
+        layout_right.addWidget(tc4820_cold, 3, 1, 1, 1)
 
         # Display widgets in two columns
         left = QWidget()
@@ -70,7 +66,6 @@ class MainWindow(QMainWindow):
         layout = QHBoxLayout()
         layout.addWidget(left)
         layout.addWidget(right)
-
         central = QWidget()
         central.setLayout(layout)
 
