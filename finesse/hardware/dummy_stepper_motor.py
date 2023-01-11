@@ -16,8 +16,8 @@ class DummyStepperMotor:
         Args:
             steps_per_rotation: Number of motor steps for an entire rotation (360°)
         """
-        if steps_per_rotation < len(ANGLE_PRESETS):
-            raise ValueError(f"steps_per_rotation must be >={len(ANGLE_PRESETS)}")
+        if steps_per_rotation < 1:
+            raise ValueError("steps_per_rotation must be at least one")
 
         self.steps_per_rotation = steps_per_rotation
         self.current_step = 0
@@ -25,15 +25,18 @@ class DummyStepperMotor:
         pub.subscribe(self.move_to, "stepper.move")
 
     @staticmethod
-    def get_preset_step(name: str) -> int:
+    def get_preset_angle(name: str) -> float:
         """Get the angle for one of the preset positions.
 
         Args:
             name: Name of preset angle
         Returns:
-            The step number (as int)
+            The angle in degrees
         """
-        return ANGLE_PRESETS.index(name)
+        try:
+            return ANGLE_PRESETS[name]
+        except KeyError as e:
+            raise ValueError(f"{name} is not a valid preset") from e
 
     def move_to(self, target: Union[float, str]) -> None:
         """Move the motor to a specified rotation.
@@ -42,15 +45,11 @@ class DummyStepperMotor:
             target: The target angle (in degrees) or the name of a preset
         """
         if isinstance(target, str):
-            self.current_step = DummyStepperMotor.get_preset_step(target)
-            target_angle = self.current_step * 360 / self.steps_per_rotation
-        else:
-            step = round(self.steps_per_rotation * target / 360.0)
-            if step < 0 or step >= self.steps_per_rotation:
-                raise ValueError("step number is out of range")
-            self.current_step = step
-            target_angle = target
+            target = DummyStepperMotor.get_preset_angle(target)
 
-        logging.info(
-            f"Moving stepper motor to step {self.current_step} (={target_angle}°)"
-        )
+        step = round(self.steps_per_rotation * target / 360.0)
+        if step < 0 or step >= self.steps_per_rotation:
+            raise ValueError("step number is out of range")
+        self.current_step = step
+
+        logging.info(f"Moving stepper motor to step {self.current_step} (={target}°)")

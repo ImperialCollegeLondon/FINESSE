@@ -14,11 +14,9 @@ from finesse.hardware.dummy_stepper_motor import DummyStepperMotor
     [
         [
             steps,
-            pytest.raises(ValueError)
-            if steps < len(ANGLE_PRESETS)
-            else does_not_raise(),
+            pytest.raises(ValueError) if steps <= 0 else does_not_raise(),
         ]
-        for steps in range(-5, len(ANGLE_PRESETS) + 5)
+        for steps in range(-5, 5)
     ],
 )
 def test_constructor(steps: int, raises: Any) -> None:
@@ -59,10 +57,10 @@ BAD_PRESETS = ("", "ZENITH", "kevin", "badger")
         [
             name,
             pytest.raises(ValueError)
-            if name not in ANGLE_PRESETS
+            if name not in ANGLE_PRESETS.keys()
             else does_not_raise(),
         ]
-        for name in chain(ANGLE_PRESETS, BAD_PRESETS)
+        for name in chain(ANGLE_PRESETS.keys(), BAD_PRESETS)
     ],
 )
 def test_move_to_preset(name: str, raises: Any) -> None:
