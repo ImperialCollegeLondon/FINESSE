@@ -31,7 +31,7 @@ def test_constructor(steps: int, raises: Any) -> None:
         [
             target,
             pytest.raises(ValueError)
-            if target < 0 or target >= 36
+            if target < 0 or target > 27
             else does_not_raise(),
         ]
         for target in range(-36, 2 * 36)
