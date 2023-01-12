@@ -4,6 +4,7 @@ from itertools import chain
 from typing import Any
 
 import pytest
+from pytest_mock import MockerFixture
 
 from finesse.config import ANGLE_PRESETS
 from finesse.hardware.dummy_stepper_motor import DummyStepperMotor
@@ -45,6 +46,14 @@ def test_move_to_number(target: int, raises: Any) -> None:
     with raises:
         stepper.move_to(10.0 * float(target))
         assert stepper.current_step == target
+
+
+def test_home_is_special(mocker: MockerFixture) -> None:
+    """Test whether the home() method is invoked when moving to "home" preset."""
+    home = mocker.patch("finesse.hardware.stepper_motor_base.StepperMotorBase.home")
+    stepper = DummyStepperMotor(36)
+    stepper.move_to("home")
+    home.assert_called_once()
 
 
 # Invalid names for presets. Note that case matters.

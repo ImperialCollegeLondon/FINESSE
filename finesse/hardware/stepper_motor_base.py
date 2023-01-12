@@ -22,6 +22,14 @@ class StepperMotorBase(ABC):
         except KeyError as e:
             raise ValueError(f"{name} is not a valid preset") from e
 
+    def home(self) -> None:
+        """Return the stepper motor to its home position.
+
+        This default implementation just uses the preset angle for home, but it may be a
+        special operation for some devices.
+        """
+        self.move_to(self.preset_angle("home"))
+
     @abstractmethod
     def get_steps_per_rotation(self) -> int:
         """Get the number of steps that correspond to a full rotation."""
@@ -37,6 +45,11 @@ class StepperMotorBase(ABC):
             target: The target angle (in degrees) or the name of a preset
         """
         if isinstance(target, str):
+            # Homing may be a special operation
+            if target == "home":
+                self.home()
+                return
+
             target = self.preset_angle(target)
 
         if target < 0.0 or target > 270.0:
