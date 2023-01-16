@@ -16,13 +16,13 @@ from ..error_message import show_error_message
 
 @dataclass
 class Measurement:
-    """Represents a single measurement (i.e. angle + number of measurements)."""
+    """Represents a single step (i.e. angle + number of measurements)."""
 
     angle: Union[str, float]
     """Either an angle in degrees or the name of a preset angle."""
 
     measurements: int
-    """The number of times to repeat the measurement at this position."""
+    """The number of times to record a measurement at this position."""
 
     def run(self) -> None:
         """A placeholder function for recording multiple measurements."""
