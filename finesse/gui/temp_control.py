@@ -19,10 +19,11 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-poll_on_img_data = resources.read_binary("finesse.gui.images", "poll_on.png")
-poll_off_img_data = resources.read_binary("finesse.gui.images", "poll_off.png")
-alarm_on_img_data = resources.read_binary("finesse.gui.images", "alarm_on.png")
-alarm_off_img_data = resources.read_binary("finesse.gui.images", "alarm_off.png")
+img_files = resources.files("finesse.gui.images")
+poll_on_img_data = img_files.joinpath("poll_on.png").read_bytes()
+poll_off_img_data = img_files.joinpath("poll_off.png").read_bytes()
+alarm_on_img_data = img_files.joinpath("alarm_on.png").read_bytes()
+alarm_off_img_data = img_files.joinpath("alarm_off.png").read_bytes()
 poll_on_img = QImage.fromData(poll_on_img_data)
 poll_off_img = QImage.fromData(poll_off_img_data)
 alarm_on_img = QImage.fromData(alarm_on_img_data)
