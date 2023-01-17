@@ -1,4 +1,6 @@
 """Code for FINESSE's main GUI window."""
+from pubsub import pub
+from PySide6.QtGui import QHideEvent, QShowEvent
 from PySide6.QtWidgets import (
     QGridLayout,
     QGroupBox,
@@ -70,3 +72,11 @@ class MainWindow(QMainWindow):
         central.setLayout(layout)
 
         self.setCentralWidget(central)
+
+    def showEvent(self, event: QShowEvent) -> None:
+        """Send window.opened message."""
+        pub.sendMessage("window.opened")
+
+    def hideEvent(self, event: QHideEvent) -> None:
+        """Send window.closed message."""
+        pub.sendMessage("window.closed")
