@@ -2,9 +2,10 @@
 import logging
 import weakref
 from functools import partial
-from typing import Dict, Optional
+from typing import Optional
 
-from PySide6.QtCore import QSize, QUrl
+from pubsub import pub
+from PySide6.QtCore import QSize
 from PySide6.QtGui import QTextCursor
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWidgets import (
@@ -15,35 +16,31 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
 )
 
-COMMANDS = {
-    "status": "opusrs/stat.htm",
-    "connect": "opusrs/cmd.htm?opusrsconnect",
-    "start": "opusrs/cmd.htm?opusrsstart",
-    "stop": "opusrs/cmd.htm?opusrsstop",
-    "cancel": "opusrs/cmd.htm?opusrscancel",
-    "opus": "TBC",
-}
+COMMANDS = ["cancel", "stop", "start", "connect"]
+"""The default commands shown for interacting with OPUS."""
 
 
 class OPUSControl(QGroupBox):
     """Class that monitors and control the OPUS interferometer."""
 
-    def __init__(self, ip: str, commands: Optional[Dict[str, str]] = None) -> None:
+    def __init__(self, commands: Optional[list[str]] = None) -> None:
         """Create the widgets to monitor and control the OPUS interferometer.
 
         Args:
-            ip: IP for connecting to the OPUS system
-            commands: Commands to use to construct the action urls
+            commands: OPUS commands to use
         """
         super().__init__("OPUS client view")
 
-        self.ip = ip
         self.commands = commands if commands is not None else COMMANDS
         self.status: QWebEngineView
         self.logger = logging.getLogger("OPUS")
 
         layout = self._create_controls()
         self.setLayout(layout)
+
+        pub.subscribe(self._log_response, "opus.command.response")
+        pub.subscribe(self._log_response, "opus.status.response")
+        pub.subscribe(self._display_status, "opus.status.response")
 
     def _create_controls(self) -> QHBoxLayout:
         """Creates the controls for communicating with the interferometer.
@@ -66,16 +63,13 @@ class OPUSControl(QGroupBox):
         btn_layout = QVBoxLayout()
 
         button = QPushButton("Status")
-        button.clicked.connect(self.display_status)  # type: ignore
+        button.clicked.connect(self._request_status)  # type: ignore
         btn_layout.addWidget(button)
 
-        for name in self.commands.keys():
-            if name in ("status", "opus"):
-                continue
-
+        for name in self.commands:
             button = QPushButton(name.capitalize())
             button.clicked.connect(  # type: ignore
-                partial(self.on_action_button_clicked, action=name.lower())
+                partial(self.on_command_button_clicked, command=name.lower())
             )
             btn_layout.addWidget(button)
 
@@ -123,39 +117,43 @@ class OPUSControl(QGroupBox):
         layout.addWidget(status_page)
         return layout
 
-    def get_action_url(self, action: str) -> str:
-        """Builds an URL out of the ip and the action.
+    def _log_response(
+        self,
+        status: int,
+        text: str,
+        error: Optional[tuple[int, str]],
+        url: str,
+    ) -> None:
+        self.logger.info(f"Response ({status}): {text}")
+        if error:
+            self.logger.error(f"Error ({error[0]}): {error[1]}")
+
+    def on_command_button_clicked(self, command: str) -> None:
+        """Execute the given command by sending a message to the appropriate topic.
 
         Args:
-            action: The action to use.
-
-        Returns:
-            str: The constructed URL
+            command: OPUS command to be executed
         """
-        return f"http://{self.ip}/{self.commands[action]}"
+        self.logger.info(f'Executing command "{command}"')
+        pub.sendMessage("opus.command.request", command=command)
 
-    def on_action_button_clicked(self, action: str) -> None:
-        """Execute the given action by sending a message to the appropriate topic.
+    def _request_status(self) -> None:
+        self.logger.info("Requesting status")
+        pub.sendMessage("opus.status.request")
 
-        TODO: Here assuming we are going to use pubsub or equivalent to send messages
-        around and communicate between backend and front end.
+    def _display_status(
+        self, status: int, text: str, error: Optional[tuple[int, str]], url: str
+    ) -> None:
+        """Display the status in the GUI's browser pane.
 
-        Args:
-            action: Action to be executed.
+        This method is a handler for the opus.status.response message, which means that
+        we only reload the page displayed in self.status once the status has already
+        been requested! However, the self.status widget is not really necessary (the
+        user doesn't need to know how the returned HTML looks), so hopefully we can
+        remove it soon, along with this hack.
         """
-        logging.info(f"OPUS action '{self.get_action_url(action)}' executed!")
-
-    def display_status(self) -> None:
-        """Retrieve and display the new status.
-
-        TODO: I'm not sure who should populate the error log in the GUI. Probably the
-        ones handling the individual actions above. These are all placeholders, for now.
-        """
-        logging.info("Getting OPUS status!")
-        self.status.load(QUrl(self.get_action_url("status")))
+        self.status.load(url)
         self.status.show()
-
-        self.logger.error("Oh, no! Something bad happened!")
 
     def open_opus(self) -> None:
         """Opens OPUS front end somewhere else.
@@ -223,7 +221,7 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
 
     window = QMainWindow()
-    opus = OPUSControl("127.0.0.1", commands=COMMANDS)
+    opus = OPUSControl()
     window.setCentralWidget(opus)
     window.show()
     app.exec()
