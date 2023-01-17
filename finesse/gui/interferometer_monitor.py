@@ -112,7 +112,7 @@ class EM27Monitor(QGroupBox):
         Args:
             val: value polled from server
         """
-        self._psf27_temp_box.setText("%.6f %s" % (val, self._prop_units[0]))
+        self._psf27_temp_box.setText(f"{val:.6f} {self._prop_units[0]}")
 
     def set_cryo_temp(self, val: float) -> None:
         """Sets the cryo temperature text box.
@@ -120,7 +120,7 @@ class EM27Monitor(QGroupBox):
         Args:
             val: value polled from server
         """
-        self._cryo_temp_box.setText("%.6f %s" % (val, self._prop_units[1]))
+        self._cryo_temp_box.setText(f"{val:.6f} {self._prop_units[1]}")
 
     def set_bb_hum(self, val: float) -> None:
         """Sets the blackbody humidity text box.
@@ -128,7 +128,7 @@ class EM27Monitor(QGroupBox):
         Args:
             val: value polled from server
         """
-        self._bb_hum_box.setText("%.6f %s" % (val, self._prop_units[2]))
+        self._bb_hum_box.setText(f"{val:.6f} {self._prop_units[2]}")
 
     def set_src_temp(self, val: float) -> None:
         """Sets the source temperature text box.
@@ -136,7 +136,7 @@ class EM27Monitor(QGroupBox):
         Args:
             val: value polled from server
         """
-        self._src_temp_box.setText("%.6f %s" % (val, self._prop_units[3]))
+        self._src_temp_box.setText(f"{val:.6f} {self._prop_units[3]}")
 
     def set_aux_volt(self, val: float) -> None:
         """Sets the AUX voltage text box.
@@ -144,7 +144,7 @@ class EM27Monitor(QGroupBox):
         Args:
             val: value polled from server
         """
-        self._aux_volt_box.setText("%.6f %s" % (val, self._prop_units[4]))
+        self._aux_volt_box.setText(f"{val:.6f} {self._prop_units[4]}")
 
     def set_aux_current(self, val: float) -> None:
         """Sets the AUX current text box.
@@ -152,7 +152,7 @@ class EM27Monitor(QGroupBox):
         Args:
             val: value polled from server
         """
-        self._aux_current_box.setText("%.6f %s" % (val, self._prop_units[0]))
+        self._aux_current_box.setText(f"{val:.6f} {self._prop_units[5]}")
 
     def set_laser_current(self, val: float) -> None:
         """Sets the laser current text box.
@@ -160,7 +160,7 @@ class EM27Monitor(QGroupBox):
         Args:
             val: value polled from server
         """
-        self._laser_current_box.setText("%.6f %s" % (val, self._prop_units[0]))
+        self._laser_current_box.setText(f"{val:.6f} {self._prop_units[6]}")
 
     def poll_server(self) -> None:
         """Polls the server, turns on indicator, sets values, turns off indicator."""
