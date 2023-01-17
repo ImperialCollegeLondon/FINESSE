@@ -1,9 +1,16 @@
 """Panel and widgets related to monitoring the interferometer."""
 from copy import deepcopy
+from importlib import resources
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QPixmap
+from PySide6.QtGui import QImage, QPixmap
 from PySide6.QtWidgets import QGridLayout, QGroupBox, QLabel, QLineEdit
+
+img_files = resources.files("finesse.gui.images")
+poll_on_img_data = img_files.joinpath("poll_on.png").read_bytes()
+poll_off_img_data = img_files.joinpath("poll_off.png").read_bytes()
+poll_on_img = QImage.fromData(poll_on_img_data)
+poll_off_img = QImage.fromData(poll_off_img_data)
 
 
 def get_vals_from_server():
@@ -70,7 +77,7 @@ class EM27Monitor(QGroupBox):
         self._laser_current_box.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self._poll_light = QLabel()
-        self._poll_light.setPixmap(QPixmap("./finesse/gui/images/poll_on.png"))
+        self._poll_light.setPixmap(QPixmap(poll_off_img))
 
         layout = self._create_controls()
         self.setLayout(layout)
@@ -158,7 +165,7 @@ class EM27Monitor(QGroupBox):
     def poll_server(self) -> None:
         """Polls the server, turns on indicator, sets values, turns off indicator."""
         # Turn light on
-        self._poll_light.setPixmap(QPixmap("./finesse/gui/images/poll_on.png"))
+        self._poll_light.setPixmap(QPixmap(poll_on_img))
 
         # Get values
         [
@@ -172,7 +179,7 @@ class EM27Monitor(QGroupBox):
         ] = get_vals_from_server()
 
         # Turn light off
-        self._poll_light.setPixmap(QPixmap("./finesse/gui/images/poll_off.png"))
+        self._poll_light.setPixmap(QPixmap(poll_off_img))
 
         # Set values
         self.set_psf27_temp(psf27_temp)
