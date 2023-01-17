@@ -11,3 +11,6 @@ ANGLE_PRESETS = ("zenith", "nadir", "hot_bb", "cold_bb", "home")
 
 BAUDRATES = (4800, 9600, 19200, 38400, 57600, 115200)
 """The valid baud rates for use by the GUI."""
+
+OPUS_IP = "10.10.0.2"
+"""The IP address of the machine running the OPUS software."""

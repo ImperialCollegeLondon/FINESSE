@@ -45,7 +45,7 @@ class MainWindow(QMainWindow):
         layout_left.addWidget(serial_port)
 
         layout_right = QGridLayout()
-        opus: QGroupBox = OPUSControl("127.0.0.1")
+        opus: QGroupBox = OPUSControl()
         layout_right.addWidget(opus, 0, 0, 1, 2)
 
         bb_monitor: QGroupBox = BBMonitor()
