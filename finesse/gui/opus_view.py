@@ -40,13 +40,13 @@ class OPUSControl(QGroupBox):
         self.ip = ip
         self.commands = commands if commands is not None else COMMANDS
         self.status: QWebEngineView
-        self.log_hanlder: OPUSLogHandler
+        self.log_handler: OPUSLogHandler
 
         layout = self._create_controls()
         self.setLayout(layout)
 
     def _create_controls(self) -> QHBoxLayout:
-        """Creates the controls for comunicating with the interferometer.
+        """Creates the controls for communicating with the interferometer.
 
         Returns:
             QHBoxLayout: The layout with the buttons.
@@ -95,7 +95,7 @@ class OPUSControl(QGroupBox):
         """
         log_box = QGroupBox("Error log")
         log_area = QTextBrowser()
-        self.log_hanlder = OPUSLogHandler.set_handler(log_area)
+        self.log_handler = OPUSLogHandler.set_handler(log_area)
 
         _layout = QVBoxLayout()
         _layout.addWidget(log_area)
