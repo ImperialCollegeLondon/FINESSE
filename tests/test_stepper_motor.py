@@ -41,11 +41,11 @@ def test_constructor(steps: int, raises: Any) -> None:
 def test_move_to_number(target: int, raises: Any) -> None:
     """Check move_to, when an angle is given."""
     stepper = DummyStepperMotor(36)
-    assert stepper.current_step == 0
+    assert stepper.step == 0
 
     with raises:
         stepper.move_to(10.0 * float(target))
-        assert stepper.current_step == target
+        assert stepper.step == target
 
 
 def test_home_is_special(mocker: MockerFixture) -> None:

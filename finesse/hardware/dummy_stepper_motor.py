@@ -18,16 +18,23 @@ class DummyStepperMotor(StepperMotorBase):
         if steps_per_rotation < 1:
             raise ValueError("steps_per_rotation must be at least one")
 
-        self.steps_per_rotation = steps_per_rotation
-        self.current_step = 0
+        self._steps_per_rotation = steps_per_rotation
+        self._step = 0
 
         pub.subscribe(self.move_to, "stepper.move")
 
-    def get_steps_per_rotation(self) -> int:
-        """Get the number of steps that correspond to a full rotation."""
-        return self.steps_per_rotation
+    @property
+    def steps_per_rotation(self) -> int:
+        """The number of steps that correspond to a full rotation."""
+        return self._steps_per_rotation
 
-    def move_to_step(self, step: int) -> None:
+    @property
+    def step(self) -> int:
+        """The number of steps that correspond to a full rotation."""
+        return self._step
+
+    @step.setter
+    def step(self, step: int) -> None:
         """Move the stepper motor to the specified absolute position."""
-        self.current_step = step
+        self._step = step
         logging.info(f"Moving stepper motor to step {step}")

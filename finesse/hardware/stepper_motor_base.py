@@ -30,13 +30,25 @@ class StepperMotorBase(ABC):
         """
         self.move_to(self.preset_angle("home"))
 
+    @property
     @abstractmethod
-    def get_steps_per_rotation(self) -> int:
-        """Get the number of steps that correspond to a full rotation."""
+    def steps_per_rotation(self) -> int:
+        """The number of steps that correspond to a full rotation."""
 
+    @property
     @abstractmethod
-    def move_to_step(self, step: int) -> None:
-        """Move the stepper motor to the specified absolute position."""
+    def step(self) -> int:
+        """The current state of the device's step counter."""
+
+    @step.setter
+    @abstractmethod
+    def step(self, step: int) -> None:
+        pass
+
+    @property
+    def angle(self) -> float:
+        """The current angle of the motor in degrees."""
+        return self.step * 360.0 / self.steps_per_rotation
 
     def move_to(self, target: Union[float, str]) -> None:
         """Move the motor to a specified rotation.
@@ -55,5 +67,4 @@ class StepperMotorBase(ABC):
         if target < 0.0 or target > 270.0:
             raise ValueError("Angle must be between 0° and 270°")
 
-        step = round(self.get_steps_per_rotation() * target / 360.0)
-        self.move_to_step(step)
+        self.step = round(self.steps_per_rotation * target / 360.0)
