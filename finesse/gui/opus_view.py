@@ -40,7 +40,7 @@ class OPUSControl(QGroupBox):
         self.ip = ip
         self.commands = commands if commands is not None else COMMANDS
         self.status: QWebEngineView
-        self.log_handler: OPUSLogHandler
+        self.logger = logging.getLogger("OPUS")
 
         layout = self._create_controls()
         self.setLayout(layout)
@@ -95,7 +95,7 @@ class OPUSControl(QGroupBox):
         """
         log_box = QGroupBox("Error log")
         log_area = QTextBrowser()
-        self.log_handler = OPUSLogHandler.set_handler(log_area)
+        OPUSLogHandler.set_handler(self.logger, log_area)
 
         _layout = QVBoxLayout()
         _layout.addWidget(log_area)
@@ -155,7 +155,7 @@ class OPUSControl(QGroupBox):
         self.status.load(QUrl(self.get_action_url("status")))
         self.status.show()
 
-        logging.getLogger("OPUS").error("Oh, no! Something bad happened!")
+        self.logger.error("Oh, no! Something bad happened!")
 
     def open_opus(self) -> None:
         """Opens OPUS front end somewhere else.
@@ -169,14 +169,15 @@ class OPUSLogHandler(logging.Handler):
     """Specific logger for the errors related to OPUS.
 
     Only log messages using the OPUS logger will be recorded here. Typically, they will
-    be error messages, but it can be any information worth to be logged.
+    be error messages, but it can be any information worth logging.
     """
 
     @classmethod
-    def set_handler(cls, log_area: QTextBrowser):
+    def set_handler(cls, logger: logging.Logger, log_area: QTextBrowser):
         """Creates the handler and adds it to the logger.
 
         Args:
+            logger: The logger to set the formatter for
             log_area: The area where the log will be printed.
         """
         ch = cls(weakref.ref(log_area))
@@ -186,7 +187,7 @@ class OPUSLogHandler(logging.Handler):
         )
         ch.setFormatter(formatter)
 
-        logging.getLogger("OPUS").addHandler(ch)
+        logger.addHandler(ch)
 
     def __init__(self, log_area: weakref.ref):
         """Constructor of the Handler.
