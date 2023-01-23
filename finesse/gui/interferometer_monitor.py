@@ -49,7 +49,6 @@ class EM27Monitor(QGroupBox):
 
         self._psf27_temp_box = QLineEdit(self._prop_units[0])
         self._psf27_temp_box.setReadOnly(True)
-
         self._psf27_temp_box.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self._cryo_temp_box = QLineEdit(self._prop_units[1])
@@ -205,15 +204,15 @@ if __name__ == "__main__":
         "Blackbody Hum",
         "Source Temp",
         "AUX Volt",
-        "AUX Current",
-        "Laser Current",
+        "AUX Curr",
+        "Laser Curr",
         "POLL Server",
     ]
     prop_units = [
-        "deg C",
-        "K",
+        "deg. C",
+        "deg. K",
         "%",
-        "deg C",
+        "deg. C",
         "V",
         "A",
         "A",
