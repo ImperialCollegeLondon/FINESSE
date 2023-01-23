@@ -18,14 +18,15 @@ STATUS_FILENAME = "stat.htm"
 COMMAND_FILENAME = "cmd.htm"
 
 
-class OPUSRequester(QObject):
-    """Object which makes HTTP requests.
-
-    The reason this has to be done as a class is because we need to inherit from QObject
-    so that this task can be assigned to a background thread.
-    """
+class OPUSRequester(QThread):
+    """Interface for making HTTP requests on a background thread."""
 
     request_complete = Signal(requests.Request, str)
+
+    def __init__(self) -> None:
+        """Create a new OPUSRequester."""
+        super().__init__()
+        self.moveToThread(self)
 
     @Slot()
     def make_request(self, filename: str, topic: str):
@@ -47,15 +48,14 @@ class OPUSInterface(QObject):
     """
 
     submit_request = Signal(str, str)
+    """Signal indicating that an HTTP request should be made."""
 
     def __init__(self) -> None:
         """Create a new OPUSInterface."""
         super().__init__()
 
-        # Make a new QThread to run HTTP requests in background
-        self.request_thread = QThread(self)
         self.requester = OPUSRequester()
-        self.requester.moveToThread(self.request_thread)
+        """For running HTTP requests in the background."""
         self.requester.request_complete.connect(self._parse_response)
 
         # Set up a signal for communicating between threads
@@ -66,12 +66,12 @@ class OPUSInterface(QObject):
         pub.subscribe(self.request_command, "opus.command.request")
 
         # Start processing requests
-        self.request_thread.start()
+        self.requester.start()
 
     def __del__(self) -> None:
         """Stop the background request thread."""
-        self.request_thread.quit()
-        self.request_thread.wait()
+        self.requester.quit()
+        self.requester.wait()
 
     def _parse_response(self, response: requests.Response, topic: str) -> None:
         assert response.status_code == 200
