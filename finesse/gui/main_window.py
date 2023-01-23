@@ -50,8 +50,8 @@ class MainWindow(QMainWindow):
         em27_monitor = EM27Monitor(prop_labels, prop_units)
 
         layout_left.addWidget(stepper_motor, 0, 0, 1, 2)
-        layout_left.addWidget(serial_port, 1, 0, 1, 1)
-        layout_left.addWidget(em27_monitor, 1, 1, 1, 1)
+        layout_left.addWidget(serial_port, 2, 0, 1, 1)
+        layout_left.addWidget(em27_monitor, 2, 1, 1, 1)
 
         layout_right = QGridLayout()
         opus: QGroupBox = OPUSControl("127.0.0.1")
