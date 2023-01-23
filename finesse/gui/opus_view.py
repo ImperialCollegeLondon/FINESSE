@@ -41,6 +41,7 @@ class OPUSControl(QGroupBox):
         pub.subscribe(self._log_response, "opus.command.response")
         pub.subscribe(self._log_response, "opus.status.response")
         pub.subscribe(self._display_status, "opus.status.response")
+        pub.subscribe(self._log_error, "opus.error")
 
     def _create_controls(self) -> QHBoxLayout:
         """Creates the controls for communicating with the interferometer.
@@ -127,6 +128,9 @@ class OPUSControl(QGroupBox):
         self.logger.info(f"Response ({status}): {text}")
         if error:
             self.logger.error(f"Error ({error[0]}): {error[1]}")
+
+    def _log_error(self, message: str) -> None:
+        self.logger.error(f"Error during request: {message}")
 
     def on_command_button_clicked(self, command: str) -> None:
         """Execute the given command by sending a message to the appropriate topic.
