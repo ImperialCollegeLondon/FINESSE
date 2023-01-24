@@ -34,6 +34,11 @@ class ST10Controller(StepperMotorBase):
 
         Args:
             serial: The serial device to communicate with the ST10 controller
+
+        Raises:
+            SerialException: Error communicating with device
+            SerialTimeoutException: Timed out waiting for response from device
+            ST10ControllerError: Malformed message received from device
         """
         self.serial = serial
 
@@ -77,9 +82,16 @@ class ST10Controller(StepperMotorBase):
             logging.error(f"Failed to reset mirror to downward position: {e}")
 
     def _check_device_id(self) -> None:
-        """Check that the ID is the correct one for an ST10."""
+        """Check that the ID is the correct one for an ST10.
+
+        Raises:
+            SerialException: Error communicating with device
+            SerialTimeoutException: Timed out waiting for response from device
+            ST10ControllerError: The device ID is not for an ST10
+        """
         self._write("MV")
-        assert self._read() == "107F024"
+        if self._read() != "107F024":
+            raise ST10ControllerError("Device ID indicates this is not an ST10")
 
     def _get_input_status(self, index: int) -> bool:
         """Read the value of the device's input status.
@@ -190,7 +202,7 @@ class ST10Controller(StepperMotorBase):
             UnicodeEncodeError: Malformed message
         """
         data = f"{message}\r".encode("ascii")
-        logging.debug(f"(ST10)>>> {repr(data)}")
+        logging.debug(f"(ST10) >>> {repr(data)}")
         self.serial.write(data)
 
     def _write_check(self, message: str) -> None:
