@@ -1,6 +1,7 @@
 """Class for LED Icons."""
 from importlib import resources
 
+from PySide6.QtCore import QTimer
 from PySide6.QtGui import QImage, QPixmap
 from PySide6.QtWidgets import QLabel
 
@@ -25,6 +26,8 @@ class LEDIcon(QLabel):
         self._status = status
         self._on_img = QImage()
         self._off_img = QImage()
+        self._timer = QTimer()
+        self._timer.timeout.connect(self._turn_off)
 
     def _turn_on(self):
         """Turns the LED on."""
@@ -36,15 +39,14 @@ class LEDIcon(QLabel):
         self._status = 0
         self.setPixmap(QPixmap(self._off_img))
 
-    def _flash(self, duration: int):
+    def _flash(self, duration: int = 1000):
         """Turns the LED on for a specified duration.
 
         Args:
             duration (int): Number of milliseconds to keep LED lit for
         """
         self._turn_on()
-        # wait for <duration> ms
-        self._turn_off()
+        self._timer.singleShot(duration, self._turn_off)
 
 
 class PollIcon(LEDIcon):
