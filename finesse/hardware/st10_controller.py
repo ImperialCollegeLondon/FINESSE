@@ -48,6 +48,8 @@ class ST10Controller(StepperMotorBase):
         # Move mirror to home position
         self.home()
 
+        super().__init__()
+
     @staticmethod
     def create(
         port: str,
