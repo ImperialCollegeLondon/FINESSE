@@ -2,8 +2,6 @@
 import logging
 from typing import Optional
 
-from pubsub import pub
-
 from .stepper_motor_base import StepperMotorBase
 
 
@@ -22,7 +20,7 @@ class DummyStepperMotor(StepperMotorBase):
         self._steps_per_rotation = steps_per_rotation
         self._step = 0
 
-        pub.subscribe(self.move_to, "stepper.move")
+        super().__init__()
 
     @property
     def steps_per_rotation(self) -> int:

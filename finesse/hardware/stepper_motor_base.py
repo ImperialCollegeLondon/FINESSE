@@ -2,11 +2,20 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Union
 
+from pubsub import pub
+
 from ..config import ANGLE_PRESETS
 
 
 class StepperMotorBase(ABC):
     """A base class for stepper motor implementations."""
+
+    def __init__(self) -> None:
+        """Create a new StepperMotorBase.
+
+        Subscribe to stepper.move messages.
+        """
+        pub.subscribe(self.move_to, "stepper.move")
 
     @staticmethod
     def preset_angle(name: str) -> float:
