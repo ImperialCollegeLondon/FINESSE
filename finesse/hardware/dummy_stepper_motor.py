@@ -1,5 +1,6 @@
 """Code for a fake stepper motor device."""
 import logging
+from typing import Optional
 
 from pubsub import pub
 
@@ -38,3 +39,12 @@ class DummyStepperMotor(StepperMotorBase):
         """Move the stepper motor to the specified absolute position."""
         self._step = step
         logging.info(f"Moving stepper motor to step {step}")
+
+    def wait_until_stopped(self, timeout: Optional[float] = None) -> None:
+        """Wait until the motor has stopped moving.
+
+        For this dummy class, this is a no-op.
+
+        Args:
+            timeout: Time to wait for motor to finish moving (None == forever)
+        """
