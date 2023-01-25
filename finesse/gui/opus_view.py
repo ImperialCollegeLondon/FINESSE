@@ -21,7 +21,7 @@ COMMANDS = ["cancel", "stop", "start", "connect"]
 
 
 class OPUSControl(QGroupBox):
-    """Class that monitors and control the OPUS interferometer."""
+    """Class that monitors and controls the OPUS interferometer."""
 
     def __init__(self, commands: Optional[list[str]] = None) -> None:
         """Create the widgets to monitor and control the OPUS interferometer.
