@@ -17,31 +17,25 @@ def get_vals_from_server():
     """Placeholder function for retrieving interferometer properties.
 
     Returns:
-        A list of values of the physical properties being monitored
+        A dictionary containing the physical properties being monitored
     """
-    psf27_temp = 28.151062
-    cryo_temp = 0.0
-    bb_hum = 2.463968
-    src_temp = 70.007156
-    aux_volt = 6.285875
-    aux_current = 0.910230
-    laser_current = 0.583892
-    return [
-        psf27_temp,
-        cryo_temp,
-        bb_hum,
-        src_temp,
-        aux_volt,
-        aux_current,
-        laser_current,
-    ]
+    data_table = {
+        "PSF27 Temp": [28.151062, "deg. C"],
+        "Cryo Temp": [0.0, "deg. K"],
+        "Blackbody Hum": [2.463968, "%"],
+        "Source Temp": [70.007156, "deg. C"],
+        "Aux Volt": [6.285875, "V"],
+        "Aux Curr": [0.910230, "A"],
+        "Laser Curr": [0.583892, "A"],
+    }
+    return data_table
 
 
 class EM27Monitor(QGroupBox):
     """Widgets to view the EM27 properties."""
 
     def __init__(self, prop_labels, prop_units) -> None:
-        """Creates a sequence of widgets to monitor EM27 physical properties."""
+        """Creates a sequence of widgets to view properties monitored by the EM27."""
         super().__init__("EM27 SOH Monitor")
 
         self._prop_labels = deepcopy(prop_labels)
@@ -105,61 +99,61 @@ class EM27Monitor(QGroupBox):
 
         return layout
 
-    def set_psf27_temp(self, val: float) -> None:
+    def set_psf27_temp(self, val: tuple[str, float]) -> None:
         """Sets the PSF27 temperature text box.
 
         Args:
             val: value polled from server
         """
-        self._psf27_temp_box.setText(f"{val:.6f} {self._prop_units[0]}")
+        self._psf27_temp_box.setText(f"{val[0]:.6f} {val[1]}")
 
-    def set_cryo_temp(self, val: float) -> None:
+    def set_cryo_temp(self, val: tuple[str, float]) -> None:
         """Sets the cryo temperature text box.
 
         Args:
             val: value polled from server
         """
-        self._cryo_temp_box.setText(f"{val:.6f} {self._prop_units[1]}")
+        self._cryo_temp_box.setText(f"{val[0]:.6f} {val[1]}")
 
-    def set_bb_hum(self, val: float) -> None:
+    def set_bb_hum(self, val: tuple[str, float]) -> None:
         """Sets the blackbody humidity text box.
 
         Args:
             val: value polled from server
         """
-        self._bb_hum_box.setText(f"{val:.6f} {self._prop_units[2]}")
+        self._bb_hum_box.setText(f"{val[0]:.6f} {val[1]}")
 
-    def set_src_temp(self, val: float) -> None:
+    def set_src_temp(self, val: tuple[str, float]) -> None:
         """Sets the source temperature text box.
 
         Args:
             val: value polled from server
         """
-        self._src_temp_box.setText(f"{val:.6f} {self._prop_units[3]}")
+        self._src_temp_box.setText(f"{val[0]:.6f} {val[1]}")
 
-    def set_aux_volt(self, val: float) -> None:
+    def set_aux_volt(self, val: tuple[str, float]) -> None:
         """Sets the AUX voltage text box.
 
         Args:
             val: value polled from server
         """
-        self._aux_volt_box.setText(f"{val:.6f} {self._prop_units[4]}")
+        self._aux_volt_box.setText(f"{val[0]:.6f} {val[1]}")
 
-    def set_aux_current(self, val: float) -> None:
+    def set_aux_current(self, val: tuple[str, float]) -> None:
         """Sets the AUX current text box.
 
         Args:
             val: value polled from server
         """
-        self._aux_current_box.setText(f"{val:.6f} {self._prop_units[5]}")
+        self._aux_current_box.setText(f"{val[0]:.6f} {val[1]}")
 
-    def set_laser_current(self, val: float) -> None:
+    def set_laser_current(self, val: tuple[str, float]) -> None:
         """Sets the laser current text box.
 
         Args:
             val: value polled from server
         """
-        self._laser_current_box.setText(f"{val:.6f} {self._prop_units[6]}")
+        self._laser_current_box.setText(f"{val[0]:.6f} {val[1]}")
 
     def poll_server(self) -> None:
         """Polls the server, turns on indicator, sets values, turns off indicator."""
@@ -167,27 +161,19 @@ class EM27Monitor(QGroupBox):
         self._poll_light.setPixmap(QPixmap(poll_on_img))
 
         # Get values
-        [
-            psf27_temp,
-            cryo_temp,
-            bb_hum,
-            src_temp,
-            aux_volt,
-            aux_current,
-            laser_current,
-        ] = get_vals_from_server()
+        data_table = get_vals_from_server()
 
         # Turn light off
         self._poll_light.setPixmap(QPixmap(poll_off_img))
 
         # Set values
-        self.set_psf27_temp(psf27_temp)
-        self.set_cryo_temp(cryo_temp)
-        self.set_bb_hum(bb_hum)
-        self.set_src_temp(src_temp)
-        self.set_aux_volt(aux_volt)
-        self.set_aux_current(aux_current)
-        self.set_laser_current(laser_current)
+        self.set_psf27_temp(data_table["PSF27 Temp"])
+        self.set_cryo_temp(data_table["Cryo Temp"])
+        self.set_bb_hum(data_table["Blackbody Hum"])
+        self.set_src_temp(data_table["Source Temp"])
+        self.set_aux_volt(data_table["Aux Volt"])
+        self.set_aux_current(data_table["Aux Curr"])
+        self.set_laser_current(data_table["Laser Curr"])
 
 
 if __name__ == "__main__":
