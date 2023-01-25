@@ -27,7 +27,7 @@ class LEDIcon(QLabel):
         self._on_img = QImage()
         self._off_img = QImage()
         self._timer = QTimer()
-        self._timer.timeout.connect(self._turn_off)
+        self._timer.timeout.connect(self._turn_off)  # type: ignore
 
     def _turn_on(self):
         """Turns the LED on."""
