@@ -1,6 +1,6 @@
 """Provides the base class for stepper motor implementations."""
 from abc import ABC, abstractmethod
-from typing import Union
+from typing import Optional, Union
 
 from ..config import ANGLE_PRESETS
 
@@ -44,6 +44,14 @@ class StepperMotorBase(ABC):
     @abstractmethod
     def step(self, step: int) -> None:
         pass
+
+    @abstractmethod
+    def wait_until_stopped(self, timeout: Optional[float] = None) -> None:
+        """Wait until the motor has stopped moving.
+
+        Args:
+            timeout: Time to wait for motor to finish moving (None == forever)
+        """
 
     @property
     def angle(self) -> float:
