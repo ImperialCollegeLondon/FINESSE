@@ -122,18 +122,18 @@ class ST10Controller(StepperMotorBase):
         # motor first. I don't know what the input status actually means, but this is
         # how it was done in the old program, so I'm copying it here.
         if self._get_input_status(3):
-            self.relative_move(-5000)
+            self._relative_move(-5000)
 
         # Send home command; leaves mirror facing upwards
         self._write_check("SH6H")
 
         # Turn mirror so it's facing down
-        self.relative_move(-30130)
+        self._relative_move(-30130)
 
         # Tell the controller that this is step 0
         self._write_check("SP0")
 
-    def relative_move(self, step: int) -> None:
+    def _relative_move(self, step: int) -> None:
         """Move the stepper motor to the specified relative position.
 
         Raises:
