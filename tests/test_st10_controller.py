@@ -61,7 +61,7 @@ def test_read(dev: ST10Controller) -> None:
         (
             response,
             does_not_raise()
-            if response == "%" or response == "*"
+            if response in ("%", "*")
             else pytest.raises(ST10ControllerError),
         )
         for response in ["%", "*", "?error", "something else"]
