@@ -36,7 +36,11 @@ class DummyStepperMotor(StepperMotorBase):
 
     @step.setter
     def step(self, step: int) -> None:
-        """Move the stepper motor to the specified absolute position."""
+        """Move the stepper motor to the specified absolute position.
+
+        Args:
+            step: Which step position to move to
+        """
         self._step = step
         logging.info(f"Moving stepper motor to step {step}")
 

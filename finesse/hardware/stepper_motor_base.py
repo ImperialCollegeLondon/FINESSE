@@ -14,6 +14,7 @@ class StepperMotorBase(ABC):
 
         Args:
             name: Name of preset angle
+
         Returns:
             The angle in degrees
         """
@@ -43,7 +44,11 @@ class StepperMotorBase(ABC):
     @step.setter
     @abstractmethod
     def step(self, step: int) -> None:
-        pass
+        """Move the stepper motor to the specified absolute position.
+
+        Args:
+            step: Which step position to move to
+        """
 
     @abstractmethod
     def wait_until_stopped(self, timeout: Optional[float] = None) -> None:

@@ -99,6 +99,9 @@ class ST10Controller(StepperMotorBase):
         The input status is a boolean array represented as zeros and ones. I don't know
         what it actually corresponds to on the device, but it is used in a couple of
         places in the old program.
+
+        Args:
+            index: Which boolean value in the input status array to check
         """
         input_status = self._request_value("IS")
         return input_status[index] == "1"
@@ -133,15 +136,18 @@ class ST10Controller(StepperMotorBase):
         # Tell the controller that this is step 0
         self._write_check("SP0")
 
-    def _relative_move(self, step: int) -> None:
+    def _relative_move(self, steps: int) -> None:
         """Move the stepper motor to the specified relative position.
+
+        Args:
+            steps: Number of steps to move by
 
         Raises:
             SerialException: Error communicating with device
             SerialTimeoutException: Timed out waiting for response from device
             ST10ControllerError: Malformed message received from device
         """
-        self._write_check(f"FL{step}")
+        self._write_check(f"FL{steps}")
 
     @property
     def step(self) -> int:
@@ -162,6 +168,9 @@ class ST10Controller(StepperMotorBase):
     def step(self, step: int) -> None:
         """Move the stepper motor to the specified absolute position.
 
+        Args:
+            step: Which step position to move to
+
         Raises:
             SerialException: Error communicating with device
             SerialTimeoutException: Timed out waiting for response from device
@@ -170,7 +179,11 @@ class ST10Controller(StepperMotorBase):
         self._write_check(f"FP{step}")
 
     def _send_string(self, string: str) -> None:
-        """Request that the device sends string when operations have completed."""
+        """Request that the device sends string when operations have completed.
+
+        Args:
+            string: String to be returned by the device
+        """
         self._write_check(f"SS{string}")
 
     def _read(self) -> str:
@@ -207,6 +220,9 @@ class ST10Controller(StepperMotorBase):
 
     def _write_check(self, message: str) -> None:
         """Send the specified message and check whether the device returns an error.
+
+        Args:
+            message: ASCII-formatted message
 
         Raises:
             SerialException: Error communicating with device
@@ -246,6 +262,9 @@ class ST10Controller(StepperMotorBase):
 
         You can request the values of various variables, which all seem to have
         two-letter names.
+
+        Args:
+            name: Variable name
 
         Raises:
             SerialException: Error communicating with device
