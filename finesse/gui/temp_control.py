@@ -187,7 +187,7 @@ class DP9800(QGroupBox):
         )
         layout.addWidget(poll_label, 0, 9, 2, 1)
 
-        self._poll_light = PollIcon(status=0)
+        self._poll_light = PollIcon()
         layout.addWidget(self._poll_light, 0, 10, 2, 1)
 
         return layout
@@ -257,8 +257,8 @@ class TC4820(QGroupBox):
         layout.addWidget(self._power_bar, 1, 1, 1, 3)
         layout.addWidget(QLineEdit("40"), 1, 4)
 
-        self._poll_light = PollIcon(status=0)
-        self._alarm_light = AlarmIcon(status=0)
+        self._poll_light = PollIcon()
+        self._alarm_light = AlarmIcon()
         layout.addWidget(self._poll_light, 0, 5)
         layout.addWidget(self._alarm_light, 2, 5)
 

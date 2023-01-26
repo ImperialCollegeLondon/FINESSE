@@ -5,25 +5,29 @@ from PySide6.QtCore import QTimer
 from PySide6.QtGui import QImage, QPixmap
 from PySide6.QtWidgets import QLabel
 
-img_files = resources.files("finesse.gui.images")
-poll_on_img_data = img_files.joinpath("poll_on.png").read_bytes()
-poll_off_img_data = img_files.joinpath("poll_off.png").read_bytes()
-alarm_on_img_data = img_files.joinpath("alarm_on.png").read_bytes()
-alarm_off_img_data = img_files.joinpath("alarm_off.png").read_bytes()
+_img_files = resources.files("finesse.gui.images")
+_poll_on_img_data = _img_files.joinpath("poll_on.png").read_bytes()
+_poll_off_img_data = _img_files.joinpath("poll_off.png").read_bytes()
+_alarm_on_img_data = _img_files.joinpath("alarm_on.png").read_bytes()
+_alarm_off_img_data = _img_files.joinpath("alarm_off.png").read_bytes()
 
-poll_on_img = QImage.fromData(poll_on_img_data)
-poll_off_img = QImage.fromData(poll_off_img_data)
-alarm_on_img = QImage.fromData(alarm_on_img_data)
-alarm_off_img = QImage.fromData(alarm_off_img_data)
+_poll_on_img = QImage.fromData(_poll_on_img_data)
+_poll_off_img = QImage.fromData(_poll_off_img_data)
+_alarm_on_img = QImage.fromData(_alarm_on_img_data)
+_alarm_off_img = QImage.fromData(_alarm_off_img_data)
 
 
 class LEDIcon(QLabel):
     """QLabel object to represent an LED with on/off status."""
 
-    def __init__(self, status: int) -> None:
-        """Creates the LED icon, sets its status and stores corresponding image data."""
+    def __init__(self, is_on: bool = False) -> None:
+        """Creates the LED icon, sets its status and stores corresponding image data.
+
+        Args:
+            is_on (bool): On/off status of LED.
+        """
         super().__init__()
-        self._status = status
+        self._is_on = is_on
         self._on_img = QImage()
         self._off_img = QImage()
         self._timer = QTimer()
@@ -31,12 +35,12 @@ class LEDIcon(QLabel):
 
     def _turn_on(self):
         """Turns the LED on."""
-        self._status = 1
+        self._is_on = True
         self.setPixmap(QPixmap(self._on_img))
 
     def _turn_off(self):
         """Turns the LED off."""
-        self._status = 0
+        self._is_on = 0
         self.setPixmap(QPixmap(self._off_img))
 
     def _flash(self, duration: int = 1000):
@@ -52,16 +56,16 @@ class LEDIcon(QLabel):
 class PollIcon(LEDIcon):
     """QLabel object to represent an LED for polling server."""
 
-    def __init__(self, status: int) -> None:
+    def __init__(self, is_on: bool = False) -> None:
         """Creates the LED icon, sets its status and stores corresponding image data.
 
         Args:
-            status (int): On/off status of LED. 0 = off, !0 = on
+            is_on (bool): On/off status of LED.
         """
-        super().__init__(status=status)
-        self._on_img = poll_on_img
-        self._off_img = poll_off_img
-        if status:
+        super().__init__(is_on=is_on)
+        self._on_img = _poll_on_img
+        self._off_img = _poll_off_img
+        if is_on:
             self._turn_on()
         else:
             self._turn_off()
@@ -70,16 +74,16 @@ class PollIcon(LEDIcon):
 class AlarmIcon(LEDIcon):
     """QLabel object to represent an LED to indicate alarm status."""
 
-    def __init__(self, status: int) -> None:
+    def __init__(self, is_on: bool = False) -> None:
         """Creates the LED icon, sets its status and stores corresponding image data.
 
         Args:
-            status (int): On/off status of LED. 0 = off, !0 = on
+            is_on (bool): On/off status of LED.
         """
-        super().__init__(status=status)
-        self._on_img = alarm_on_img
-        self._off_img = alarm_off_img
-        if status:
+        super().__init__(is_on=is_on)
+        self._on_img = _alarm_on_img
+        self._off_img = _alarm_off_img
+        if is_on:
             self._turn_on()
         else:
             self._turn_off()
