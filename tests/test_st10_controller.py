@@ -49,20 +49,23 @@ def test_write(dev: ST10Controller) -> None:
     dev.serial.write.assert_called_once_with(b"hello\r")
 
 
-def test_read(dev: ST10Controller) -> None:
-    """Test the _read() method."""
-    # Check a normal read
+def test_read_normal(dev: ST10Controller) -> None:
+    """Test the _read() method with a valid message."""
     dev.serial.read_until.return_value = b"hello\r"
     ret = dev._read()
     dev.serial.read_until.assert_called_with(b"\r")
     assert ret == "hello"
 
-    # Check a timed-out read
+
+def test_read_timed_out(dev: ST10Controller) -> None:
+    """Test the _read() method with a timed-out response."""
     dev.serial.read_until.return_value = b""
     with pytest.raises(SerialTimeoutException):
         dev._read()
 
-    # Check a non-ASCII return value
+
+def test_read_non_ascii(dev: ST10Controller) -> None:
+    """Test the _read() method with a non-ASCII response."""
     dev.serial.read_until.return_value = b"\xff\r"
     with pytest.raises(ST10ControllerError):
         dev._read()
