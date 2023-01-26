@@ -20,16 +20,21 @@ _alarm_off_img = QImage.fromData(_alarm_off_img_data)
 class LEDIcon(QLabel):
     """QLabel object to represent an LED with on/off status."""
 
-    def __init__(self, is_on: bool = False) -> None:
+    def __init__(self, on_img: QImage, off_img: QImage, is_on: bool = False) -> None:
         """Creates the LED icon, sets its status and stores corresponding image data.
 
         Args:
+            on_img (QImage): QImage for LED on state.
+            off_img (QImage): QImage for LED off state.
             is_on (bool): On/off status of LED.
         """
         super().__init__()
-        self._is_on = is_on
-        self._on_img = QImage()
-        self._off_img = QImage()
+        self._on_img = QImage(on_img)
+        self._off_img = QImage(off_img)
+        if is_on:
+            self._turn_on()
+        else:
+            self._turn_off()
         self._timer = QTimer()
         self._timer.timeout.connect(self._turn_off)  # type: ignore
 
@@ -56,34 +61,30 @@ class LEDIcon(QLabel):
 class PollIcon(LEDIcon):
     """QLabel object to represent an LED for polling server."""
 
-    def __init__(self, is_on: bool = False) -> None:
+    def __init__(
+        self, on_img=_poll_on_img, off_img=_poll_off_img, is_on: bool = False
+    ) -> None:
         """Creates the LED icon, sets its status and stores corresponding image data.
 
         Args:
+            on_img (QImage): QImage for LED on state.
+            off_img (QImage): QImage for LED off state.
             is_on (bool): On/off status of LED.
         """
-        super().__init__(is_on=is_on)
-        self._on_img = _poll_on_img
-        self._off_img = _poll_off_img
-        if is_on:
-            self._turn_on()
-        else:
-            self._turn_off()
+        super().__init__(on_img=on_img, off_img=off_img, is_on=is_on)
 
 
 class AlarmIcon(LEDIcon):
     """QLabel object to represent an LED to indicate alarm status."""
 
-    def __init__(self, is_on: bool = False) -> None:
+    def __init__(
+        self, on_img=_alarm_on_img, off_img=_alarm_off_img, is_on: bool = False
+    ) -> None:
         """Creates the LED icon, sets its status and stores corresponding image data.
 
         Args:
+            on_img (QImage): QImage for LED on state.
+            off_img (QImage): QImage for LED off state.
             is_on (bool): On/off status of LED.
         """
-        super().__init__(is_on=is_on)
-        self._on_img = _alarm_on_img
-        self._off_img = _alarm_off_img
-        if is_on:
-            self._turn_on()
-        else:
-            self._turn_off()
+        super().__init__(on_img=on_img, off_img=off_img, is_on=is_on)
