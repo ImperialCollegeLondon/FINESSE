@@ -292,6 +292,10 @@ class ST10Controller(StepperMotorBase):
 
         return response[len(name) + 1 :]
 
+    def stop_moving(self) -> None:
+        """Immediately stop moving the motor."""
+        self._write_check("ST")
+
     def wait_until_stopped(self, timeout: Optional[float] = None) -> None:
         """Wait until the motor has stopped moving.
 
