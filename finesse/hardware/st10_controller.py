@@ -8,8 +8,11 @@ The specification is available online:
 """
 
 import logging
-from typing import Any, Optional
+from queue import Queue
+from typing import Any, Optional, Union
 
+from pubsub import pub
+from PySide6.QtCore import QThread, Signal, Slot
 from serial import Serial, SerialException, SerialTimeoutException
 
 from .stepper_motor_base import StepperMotorBase
@@ -17,6 +20,102 @@ from .stepper_motor_base import StepperMotorBase
 
 class ST10ControllerError(SerialException):
     """Indicates that an error has occurred with the ST10 controller."""
+
+
+_ASYNC_MAGIC = "Z"
+
+
+class _SerialReader(QThread):
+    """For background reading of serial device."""
+
+    async_read_completed = Signal(str)
+    """Indicates that an asynchronous read has finished."""
+
+    def __init__(self, serial: Serial, sync_timeout: float) -> None:
+        """Create a new _SerialReader.
+
+        Args:
+            serial: Serial device
+            sync_timeout: Read timeout for synchronous requests
+        """
+        super().__init__()
+
+        self.serial = serial
+        self.sync_timeout = sync_timeout
+        self.out_queue: Queue = Queue()
+        self.stopping = False
+        self.async_topics: list[str] = []
+
+    def __del__(self) -> None:
+        """Wait for the thread to stop on exit."""
+        self.quit()
+        self.wait()
+
+    def quit(self) -> None:
+        """Flag that the thread is stopping so we can ignore exceptions."""
+        self.stopping = True
+        super().quit()
+
+    def _read(self) -> str:
+        """Read the next message from the device.
+
+        Raises:
+            SerialException: Error communicating with device
+            SerialTimeoutException: Timed out waiting for response from device
+            ST10ControllerError: Malformed message received from device
+        """
+        raw = self.serial.read_until(b"\r")
+
+        # Check that it hasn't timed out
+        if not raw:
+            raise SerialTimeoutException()
+
+        logging.debug(f"(ST10) <<< {repr(raw)}")
+
+        try:
+            return raw[:-1].decode("ascii")
+        except UnicodeDecodeError:
+            raise ST10ControllerError(f"Invalid message received: {repr(raw)}")
+
+    def _process_read(self) -> bool:
+        """Process a single read, either synchronous or asynchronous."""
+        try:
+            message = self._read()
+        except Exception as ex:
+            if not self.stopping:
+                self.out_queue.put(ex)
+            return False
+
+        # TODO: error handling for async?
+        if message == _ASYNC_MAGIC and self.async_topics:
+            self.async_read_completed.emit(self.async_topics.pop(0))
+            return True
+
+        # Put the message (or error) into a queue to be returned by read_sync()
+        self.out_queue.put(message)
+        return True
+
+    def run(self) -> None:
+        """Process reads in the background."""
+        while self._process_read():
+            pass
+
+    def read_sync(self) -> str:
+        """Read synchronously from the serial device."""
+        try:
+            response: Union[str, BaseException] = self.out_queue.get(
+                timeout=self.sync_timeout
+            )
+        except Exception:
+            raise SerialTimeoutException()
+
+        if isinstance(response, BaseException):
+            raise response
+
+        return response
+
+    def read_async(self, topic: str) -> None:
+        self.async_topics.append(topic)
 
 
 class ST10Controller(StepperMotorBase):
@@ -44,6 +143,14 @@ class ST10Controller(StepperMotorBase):
             ST10ControllerError: Malformed message received from device
         """
         self.serial = serial
+        timeout = self.serial.timeout
+        self.serial.timeout = None
+
+        self._reader = _SerialReader(serial, timeout)
+        self._reader.async_read_completed.connect(
+            self._async_read_completed
+        )  # type: ignore
+        self._reader.start()
 
         # Check that we are connecting to an ST10
         self._check_device_id()
@@ -90,6 +197,12 @@ class ST10Controller(StepperMotorBase):
         except Exception as e:
             logging.error(f"Failed to reset mirror to downward position: {e}")
 
+        self.serial.close()
+
+    @Slot()
+    def _async_read_completed(self, topic: str) -> None:
+        pub.sendMessage(topic)
+
     def _check_device_id(self) -> None:
         """Check that the ID is the correct one for an ST10.
 
@@ -100,7 +213,7 @@ class ST10Controller(StepperMotorBase):
         """
         # Request model and revision
         self._write("MV")
-        if self._read() != self.ST10_MODEL_ID:
+        if self._read_sync() != self.ST10_MODEL_ID:
             raise ST10ControllerError("Device ID indicates this is not an ST10")
 
     def _get_input_status(self, index: int) -> bool:
@@ -198,26 +311,24 @@ class ST10Controller(StepperMotorBase):
         # "Send string"
         self._write_check(f"SS{string}")
 
-    def _read(self) -> str:
-        """Read the next message from the device.
+    def _read_sync(self) -> str:
+        """Read the next message from the device synchronously.
 
         Raises:
             SerialException: Error communicating with device
             SerialTimeoutException: Timed out waiting for response from device
             ST10ControllerError: Malformed message received from device
         """
-        raw = self.serial.read_until(b"\r")
+        return self._reader.read_sync()
 
-        # Check that it hasn't timed out
-        if not raw:
-            raise SerialTimeoutException()
+    def _read_async(self, topic: str) -> None:
+        """Read from the device asynchronously.
 
-        logging.debug(f"(ST10) <<< {repr(raw)}")
-
-        try:
-            return raw[:-1].decode("ascii")
-        except UnicodeDecodeError:
-            raise ST10ControllerError(f"Invalid message received: {repr(raw)}")
+        Args:
+            topic: The topic to broadcast a message on when complete
+        """
+        self._send_string(_ASYNC_MAGIC)
+        return self._reader.read_async(topic)
 
     def _write(self, message: str) -> None:
         """Send the specified message to the device.
@@ -267,7 +378,7 @@ class ST10Controller(StepperMotorBase):
             SerialTimeoutException: Timed out waiting for response from device
             ST10ControllerError: Error or malformed message
         """
-        response = self._read()
+        response = self._read_sync()
 
         # Either type of ACK response is acceptable
         if response in ("%", "*"):
@@ -297,7 +408,7 @@ class ST10Controller(StepperMotorBase):
             UnicodeEncodeError: Message to be sent is malformed
         """
         self._write(name)
-        response = self._read()
+        response = self._read_sync()
         if not response.startswith(f"{name}="):
             raise ST10ControllerError(f"Unexpected response when querying value {name}")
 
@@ -324,7 +435,7 @@ class ST10Controller(StepperMotorBase):
         # Set temporary timeout
         old_timeout, self.serial.timeout = self.serial.timeout, timeout
         try:
-            if self._read() != "X":
+            if self._read_sync() != "X":
                 raise ST10ControllerError(
                     "Invalid response received when waiting for X"
                 )
