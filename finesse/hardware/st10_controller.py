@@ -96,11 +96,10 @@ class ST10Controller(StepperMotorBase):
             raise ST10ControllerError("Device ID indicates this is not an ST10")
 
     def _get_input_status(self, index: int) -> bool:
-        """Read the value of the device's input status.
+        """Read the status of the device's inputs.
 
-        The input status is a boolean array represented as zeros and ones. I don't know
-        what it actually corresponds to on the device, but it is used in a couple of
-        places in the old program.
+        The inputs to the controller include digital inputs, as well as other properties
+        like alarm status. The exact meaning seems to varies between boards.
 
         Args:
             index: Which boolean value in the input status array to check
