@@ -49,7 +49,7 @@ class ST10Controller(StepperMotorBase):
         self.stop_moving()
 
         # Move mirror to home position
-        self.home()
+        self._home_and_reset()
 
         super().__init__()
 
@@ -116,10 +116,8 @@ class ST10Controller(StepperMotorBase):
         """Get the number of steps that correspond to a full rotation."""
         return self.STEPS_PER_ROTATION
 
-    def home(self) -> None:
-        """Return the stepper motor to its home position.
-
-        The device's internal counter is also reset to zero.
+    def _home_and_reset(self) -> None:
+        """Return the stepper motor to its home position and reset the counter.
 
         Raises:
             SerialException: Error communicating with device

@@ -15,11 +15,11 @@ def dev() -> ST10Controller:
     """A fixture providing an ST10Controller with a patched Serial object."""
     serial = MagicMock()
 
-    # check_device_id() and home() should both be called by ST10Controller.__init__(),
-    # but patch them for now as we'll test their inner workings elsewhere
+    # These functions should all be called, but patch them for now as we test this
+    # elsewhere
     with patch.object(ST10Controller, "_check_device_id"):
         with patch.object(ST10Controller, "stop_moving"):
-            with patch.object(ST10Controller, "home"):
+            with patch.object(ST10Controller, "_home_and_reset"):
                 return ST10Controller(serial)
 
 
@@ -29,7 +29,7 @@ def test_init() -> None:
 
     with patch.object(ST10Controller, "_check_device_id") as check_mock:
         with patch.object(ST10Controller, "stop_moving") as stop_mock:
-            with patch.object(ST10Controller, "home") as home_mock:
+            with patch.object(ST10Controller, "_home_and_reset") as home_mock:
                 # We assign to a variable so the destructor isn't invoked until after
                 # our checks
                 st10 = ST10Controller(serial)  # noqa
