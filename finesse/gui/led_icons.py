@@ -45,10 +45,10 @@ class LEDIcon(QLabel):
 
     def _turn_off(self):
         """Turns the LED off."""
-        self._is_on = 0
+        self._is_on = False
         self.setPixmap(QPixmap(self._off_img))
 
-    def _flash(self, duration: int = 1000):
+    def _flash(self, duration: int = 250):
         """Turns the LED on for a specified duration.
 
         Args:
