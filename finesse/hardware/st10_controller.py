@@ -45,6 +45,9 @@ class ST10Controller(StepperMotorBase):
         # Check that we are connecting to an ST10
         self._check_device_id()
 
+        # In case the motor is still moving, stop it now
+        self.stop_moving()
+
         # Move mirror to home position
         self.home()
 
@@ -79,6 +82,7 @@ class ST10Controller(StepperMotorBase):
         This prevents dust accumulating.
         """
         try:
+            self.stop_moving()
             self.move_to("nadir")
         except Exception as e:
             logging.error(f"Failed to reset mirror to downward position: {e}")

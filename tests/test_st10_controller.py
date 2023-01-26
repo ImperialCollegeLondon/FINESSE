@@ -18,8 +18,24 @@ def dev() -> ST10Controller:
     # check_device_id() and home() should both be called by ST10Controller.__init__(),
     # but patch them for now as we'll test their inner workings elsewhere
     with patch.object(ST10Controller, "_check_device_id"):
-        with patch.object(ST10Controller, "home"):
-            return ST10Controller(serial)
+        with patch.object(ST10Controller, "stop_moving"):
+            with patch.object(ST10Controller, "home"):
+                return ST10Controller(serial)
+
+
+def test_init() -> None:
+    """Test __init__()."""
+    serial = MagicMock()
+
+    with patch.object(ST10Controller, "_check_device_id") as check_mock:
+        with patch.object(ST10Controller, "stop_moving") as stop_mock:
+            with patch.object(ST10Controller, "home") as home_mock:
+                # We assign to a variable so the destructor isn't invoked until after
+                # our checks
+                st10 = ST10Controller(serial)  # noqa
+                check_mock.assert_called_once()
+                stop_mock.assert_called_once()
+                home_mock.assert_called_once()
 
 
 def read_mock(dev: ST10Controller, return_value: str):
@@ -31,17 +47,6 @@ def test_write(dev: ST10Controller) -> None:
     """Test the _write() method."""
     dev._write("hello")
     dev.serial.write.assert_called_once_with(b"hello\r")
-
-
-def test_init() -> None:
-    """Test __init__()."""
-    serial = MagicMock()
-
-    with patch.object(ST10Controller, "_check_device_id") as check_mock:
-        with patch.object(ST10Controller, "home") as home_mock:
-            ST10Controller(serial)
-            check_mock.assert_called_once()
-            home_mock.assert_called_once()
 
 
 def test_read(dev: ST10Controller) -> None:
