@@ -5,7 +5,7 @@ from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
-from serial import SerialTimeoutException
+from serial import SerialException, SerialTimeoutException
 
 from finesse.hardware.st10_controller import ST10Controller, ST10ControllerError
 
@@ -55,6 +55,16 @@ def test_read_normal(dev: ST10Controller) -> None:
     ret = dev._read()
     dev.serial.read_until.assert_called_with(b"\r")
     assert ret == "hello"
+
+
+def test_read_error(dev: ST10Controller) -> None:
+    """Test the _read() method with an I/O error."""
+    dev.serial.read_until.return_value = b"hello\r"
+    dev.serial.read_until.side_effect = SerialException()
+
+    with pytest.raises(SerialException):
+        dev._read()
+        dev.serial.read_until.assert_called_with(b"\r")
 
 
 def test_read_timed_out(dev: ST10Controller) -> None:
