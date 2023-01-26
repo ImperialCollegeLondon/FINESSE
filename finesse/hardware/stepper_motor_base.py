@@ -60,6 +60,10 @@ class StepperMotorBase(ABC):
         """
 
     @abstractmethod
+    def stop_moving(self) -> None:
+        """Immediately stop moving the motor."""
+
+    @abstractmethod
     def wait_until_stopped(self, timeout: Optional[float] = None) -> None:
         """Wait until the motor has stopped moving.
 
