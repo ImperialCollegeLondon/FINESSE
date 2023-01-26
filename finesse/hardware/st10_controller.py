@@ -223,6 +223,8 @@ class ST10Controller(StepperMotorBase):
     def _write_check(self, message: str) -> None:
         """Send the specified message and check whether the device returns an error.
 
+        See _check_response().
+
         Args:
             message: ASCII-formatted message
 
@@ -238,20 +240,30 @@ class ST10Controller(StepperMotorBase):
     def _check_response(self) -> None:
         """Check whether the device has returned an error.
 
+        There are two types of "success" response (ACK):
+            - Normal acknowledge ("%"), indicating that the command was received and
+              successfully executed
+            - Exception acknowledge ("*"), indicating that the command was received and
+              added to the execution buffer, i.e. it will be executed after other
+              commands. (Why the manual uses the term "exception", who knows, but it
+              also indicates success!)
+
+        If an error occurs, the device returns a negative acknowledge (NACK) response,
+        which is a "?", followed by an error code, e.g. "?4". The meanings of the error
+        codes are listed in the manual linked in the module description.
+
         Raises:
             SerialException: Error communicating with device
             SerialTimeoutException: Timed out waiting for response from device
-            ST10ControllerError: Malformed message received from device
+            ST10ControllerError: Error or malformed message
         """
         response = self._read()
 
-        # These values are referred to as "ack" and "qack" in the old program (nack is
-        # "?"). I don't know what qack is. Could it mean clockwise/anticlockwise
-        # movement?
-        if response == "%" or response == "*":
+        # If we receive either type of ACK response
+        if response in ("%", "*"):
             return
 
-        # An error occurred
+        # An error occurred (NACK)
         if response[0] == "?":
             raise ST10ControllerError(
                 f"Device returned an error (code: {response[1:]})"
