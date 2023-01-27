@@ -351,15 +351,22 @@ class AddButtons(QGroupBox):
             self.group.addButton(btn)
             layout.addWidget(btn)
 
-        # Add button and spinbox for going to a specific angle
+        # Add button and spinbox for going to a specific angle. Put them next to each
+        # other on the same row.
+        goto_layout = QHBoxLayout()
         self.angle = QSpinBox()
         self.angle.setSuffix("°")
         self.angle.setMinimum(0)
         self.angle.setMaximum(270)
         goto = QPushButton("GOTO")
         goto.clicked.connect(self._goto_clicked)  # type: ignore
-        layout.addWidget(self.angle)
-        layout.addWidget(goto)
+        goto_layout.addWidget(self.angle)
+        goto_layout.addWidget(goto)
+
+        # Add these widgets to the main layout
+        goto_widgets = QWidget()
+        goto_widgets.setLayout(goto_layout)
+        layout.addWidget(goto_widgets)
 
         self.setLayout(layout)
 
