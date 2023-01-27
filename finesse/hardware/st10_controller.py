@@ -106,8 +106,9 @@ class ST10Controller(StepperMotorBase):
     def _get_input_status(self, index: int) -> bool:
         """Read the status of the device's inputs.
 
-        The inputs to the controller include digital inputs, as well as other properties
-        like alarm status. The exact meaning seems to vary between boards.
+        The inputs to the controller are boolean values represented as a series of zeros
+        (==closed) and ones (==open). They include digital inputs, as well as other
+        properties like alarm status. The exact meaning seems to vary between boards.
 
         Args:
             index: Which boolean value in the input status array to check
@@ -134,13 +135,14 @@ class ST10Controller(StepperMotorBase):
         if self._get_input_status(3):
             self._relative_move(-5000)
 
-        # Send home command; leaves mirror facing upwards
+        # Home the motor, leaving mirror facing upwards. The command means "seek home
+        # until input 6 is high" (the input is an optoswitch).
         self._write_check("SH6H")
 
         # Turn mirror so it's facing down
         self._relative_move(-30130)
 
-        # Tell the controller that this is step 0
+        # Tell the controller that this is step 0 ("set variable SP to 0")
         self._write_check("SP0")
 
     def _relative_move(self, steps: int) -> None:
@@ -154,6 +156,7 @@ class ST10Controller(StepperMotorBase):
             SerialTimeoutException: Timed out waiting for response from device
             ST10ControllerError: Malformed message received from device
         """
+        # "Feed to length"
         self._write_check(f"FL{steps}")
 
     @property
@@ -183,6 +186,7 @@ class ST10Controller(StepperMotorBase):
             SerialTimeoutException: Timed out waiting for response from device
             ST10ControllerError: Malformed message received from device
         """
+        # "Feed to position"
         self._write_check(f"FP{step}")
 
     def _send_string(self, string: str) -> None:
@@ -191,6 +195,7 @@ class ST10Controller(StepperMotorBase):
         Args:
             string: String to be returned by the device
         """
+        # "Send string"
         self._write_check(f"SS{string}")
 
     def _read(self) -> str:
@@ -264,7 +269,7 @@ class ST10Controller(StepperMotorBase):
         """
         response = self._read()
 
-        # If we receive either type of ACK response
+        # Either type of ACK response is acceptable
         if response in ("%", "*"):
             return
 
