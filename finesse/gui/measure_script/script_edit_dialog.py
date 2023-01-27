@@ -308,6 +308,21 @@ class SequenceWidget(QWidget):
 
     def delete_all(self) -> None:
         """Delete all instructions from the table."""
+        # If there are no instructions, there's nothing to do
+        if not self.sequence:
+            return
+
+        # Confirm whether user wants this
+        dlg = QMessageBox(
+            QMessageBox.Icon.Question,
+            "Clear all instructions?",
+            "Are you sure you would like to clear all instructions?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            self,
+        )
+        if dlg.exec_() != QMessageBox.StandardButton.Yes:
+            return
+
         self.model.beginRemoveRows(QModelIndex(), 0, len(self.sequence) - 1)
         self.sequence.clear()
         self.model.endRemoveRows()
