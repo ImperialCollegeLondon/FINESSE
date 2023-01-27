@@ -29,6 +29,9 @@ class ST10Controller(StepperMotorBase):
     STEPS_PER_ROTATION = 50800
     """The total number of steps in one full rotation of the mirror."""
 
+    ST10_MODEL_ID = "107F024"
+    """The model and revision number for the ST10 controller we are using."""
+
     def __init__(self, serial: Serial) -> None:
         """Create a new ST10Controller.
 
@@ -95,8 +98,9 @@ class ST10Controller(StepperMotorBase):
             SerialTimeoutException: Timed out waiting for response from device
             ST10ControllerError: The device ID is not for an ST10
         """
+        # Request model and revision
         self._write("MV")
-        if self._read() != "107F024":
+        if self._read() != self.ST10_MODEL_ID:
             raise ST10ControllerError("Device ID indicates this is not an ST10")
 
     def _get_input_status(self, index: int) -> bool:
