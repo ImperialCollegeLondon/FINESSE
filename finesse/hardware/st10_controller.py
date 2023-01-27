@@ -103,7 +103,7 @@ class ST10Controller(StepperMotorBase):
         """Read the status of the device's inputs.
 
         The inputs to the controller include digital inputs, as well as other properties
-        like alarm status. The exact meaning seems to varies between boards.
+        like alarm status. The exact meaning seems to vary between boards.
 
         Args:
             index: Which boolean value in the input status array to check
