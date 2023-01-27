@@ -26,7 +26,7 @@ class Measurement:
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert this object to a dict."""
-        return {attr: getattr(self, attr) for attr in ("angle", "measurements")}
+        return {"angle": self.angle, "measurements": self.measurements}
 
     def run(self) -> None:
         """A placeholder function for recording multiple measurements."""
