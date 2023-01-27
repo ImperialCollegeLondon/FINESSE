@@ -353,6 +353,7 @@ class AddButtons(QGroupBox):
 
         # Add button and spinbox for going to a specific angle
         self.angle = QSpinBox()
+        self.angle.setSuffix("°")
         self.angle.setMinimum(0)
         self.angle.setMaximum(270)
         goto = QPushButton("GOTO")
