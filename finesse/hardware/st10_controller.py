@@ -150,7 +150,7 @@ class ST10Controller(StepperMotorBase):
 
         self._reader = _SerialReader(serial, timeout)
         self._reader.async_read_completed.connect(
-            self._async_read_completed
+            self._send_move_end_message
         )  # type: ignore
         self._reader.start()
 
@@ -202,8 +202,8 @@ class ST10Controller(StepperMotorBase):
         self.serial.close()
 
     @Slot()
-    def _async_read_completed(self, topic: str) -> None:
-        pub.sendMessage(topic)
+    def _send_move_end_message(self) -> None:
+        pub.sendMessage("stepper.move.end")
 
     def _check_device_id(self) -> None:
         """Check that the ID is the correct one for an ST10.
@@ -323,11 +323,6 @@ class ST10Controller(StepperMotorBase):
         """
         return self._reader.read_sync()
 
-    def _read_async(self) -> None:
-        """Read from the device asynchronously."""
-        self._send_string(_ASYNC_MAGIC)
-        return self._reader.read_async()
-
     def _write(self, message: str) -> None:
         """Send the specified message to the device.
 
@@ -416,7 +411,7 @@ class ST10Controller(StepperMotorBase):
         """Immediately stop moving the motor."""
         self._write_check("ST")
 
-    def wait_until_stopped(self, timeout: Optional[float] = None) -> None:
+    def wait_until_stopped_sync(self, timeout: Optional[float] = None) -> None:
         """Wait until the motor has stopped moving.
 
         Args:
@@ -441,6 +436,11 @@ class ST10Controller(StepperMotorBase):
             # Restore previous timeout setting
             self.serial.timeout = old_timeout
 
+    def wait_until_stopped_async(self) -> None:
+        """Wait until the motor has stopped moving and send a message when done."""
+        self._send_string(_ASYNC_MAGIC)
+        return self._reader.read_async()
+
 
 if __name__ == "__main__":
     import sys
@@ -449,7 +449,7 @@ if __name__ == "__main__":
     dev = ST10Controller.create(sys.argv[1])
     print("Done. Homing...")
 
-    dev.wait_until_stopped()
+    dev.wait_until_stopped_sync()
     print("Homing complete")
     print(f"Current angle: {dev.angle}°")
 
@@ -457,5 +457,5 @@ if __name__ == "__main__":
     for ang in angles:
         print(f"Moving to {ang}")
         dev.move_to(ang)
-        dev.wait_until_stopped()
+        dev.wait_until_stopped_sync()
         print(f"Current angle: {dev.angle}°")
