@@ -5,6 +5,7 @@ from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
+from pubsub import pub
 from serial import SerialException, SerialTimeoutException
 
 from finesse.hardware.st10_controller import (
@@ -24,6 +25,11 @@ class MockSerialReader(_SerialReader):
         """Read synchronously (mocked)."""
         self._process_read()
         return super().read_sync()
+
+    def read_async(self) -> None:
+        """Read asynchronously (mocked)."""
+        super().read_async()
+        assert self._process_read()
 
 
 @pytest.fixture
@@ -180,3 +186,21 @@ def test_get_step(step: int, response: str, raises: Any, dev: ST10Controller) ->
     with read_mock(dev, response):
         with raises:
             assert dev.step == step
+
+
+def test_wait_until_stopped_async(dev: ST10Controller) -> None:
+    """Test the wait_until_stopped_async() method."""
+    dev.serial.read_until.return_value = b"Z\r"
+
+    has_run = False
+
+    def handler():
+        nonlocal has_run
+        has_run = True
+
+    pub.subscribe(handler, "stepper.move.end")
+
+    with patch.object(dev, "_send_string") as ss_mock:
+        dev.wait_until_stopped_async()
+        ss_mock.assert_called_once_with("Z")
+        assert has_run

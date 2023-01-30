@@ -15,7 +15,7 @@ class StepperMotorBase(ABC):
 
         Subscribe to stepper.move messages.
         """
-        pub.subscribe(self.move_to, "stepper.move")
+        pub.subscribe(self.move_to, "stepper.move.begin")
 
     @staticmethod
     def preset_angle(name: str) -> float:
@@ -56,11 +56,18 @@ class StepperMotorBase(ABC):
         """Immediately stop moving the motor."""
 
     @abstractmethod
-    def wait_until_stopped(self, timeout: Optional[float] = None) -> None:
+    def wait_until_stopped_sync(self, timeout: Optional[float] = None) -> None:
         """Wait until the motor has stopped moving.
 
         Args:
             timeout: Time to wait for motor to finish moving (None == forever)
+        """
+
+    @abstractmethod
+    def wait_until_stopped_async(self) -> None:
+        """Wait until the motor has stopped moving and send a message when done.
+
+        The message is stepper.move.end.
         """
 
     @property
@@ -69,7 +76,9 @@ class StepperMotorBase(ABC):
         return self.step * 360.0 / self.steps_per_rotation
 
     def move_to(self, target: Union[float, str]) -> None:
-        """Move the motor to a specified rotation.
+        """Move the motor to a specified rotation and send message when complete.
+
+        Sends a stepper.move.end message when finished.
 
         Args:
             target: The target angle (in degrees) or the name of a preset
@@ -81,3 +90,6 @@ class StepperMotorBase(ABC):
             raise ValueError("Angle must be between 0° and 270°")
 
         self.step = round(self.steps_per_rotation * target / 360.0)
+
+        # Send a message when the motor has stopped moving
+        self.wait_until_stopped_async()

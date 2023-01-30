@@ -55,4 +55,4 @@ class StepperMotorControl(QGroupBox):
     def _preset_clicked(self, btn: QPushButton) -> None:
         """Move the stepper motor to preset position."""
         target = float(self.angle.value()) if btn is self.goto else btn.text().lower()
-        pub.sendMessage("stepper.move", target=target)
+        pub.sendMessage("stepper.move.begin", target=target)
