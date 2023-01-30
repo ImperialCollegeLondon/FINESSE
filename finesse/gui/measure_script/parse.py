@@ -24,6 +24,10 @@ class Measurement:
     measurements: int
     """The number of times to record a measurement at this position."""
 
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert this object to a dict."""
+        return {"angle": self.angle, "measurements": self.measurements}
+
     def run(self) -> None:
         """A placeholder function for recording multiple measurements."""
         # Move the mirror to the correct location
