@@ -28,7 +28,7 @@ _ASYNC_MAGIC = "Z"
 class _SerialReader(QThread):
     """For background reading of serial device."""
 
-    async_read_completed = Signal(str)
+    async_read_completed = Signal()
     """Indicates that an asynchronous read has finished."""
 
     def __init__(self, serial: Serial, sync_timeout: float) -> None:
@@ -44,7 +44,7 @@ class _SerialReader(QThread):
         self.sync_timeout = sync_timeout
         self.out_queue: Queue = Queue()
         self.stopping = False
-        self.async_topics: list[str] = []
+        self.async_waiters = 0
 
     def __del__(self) -> None:
         """Wait for the thread to stop on exit."""
@@ -87,8 +87,9 @@ class _SerialReader(QThread):
             return False
 
         # TODO: error handling for async?
-        if message == _ASYNC_MAGIC and self.async_topics:
-            self.async_read_completed.emit(self.async_topics.pop(0))
+        if message == _ASYNC_MAGIC and self.async_waiters > 0:
+            self.async_waiters -= 1
+            self.async_read_completed.emit()
             return True
 
         # Put the message (or error) into a queue to be returned by read_sync()
@@ -114,8 +115,9 @@ class _SerialReader(QThread):
 
         return response
 
-    def read_async(self, topic: str) -> None:
-        self.async_topics.append(topic)
+    def read_async(self) -> None:
+        """Read asynchronously from the serial device."""
+        self.async_waiters += 1
 
 
 class ST10Controller(StepperMotorBase):
@@ -321,14 +323,10 @@ class ST10Controller(StepperMotorBase):
         """
         return self._reader.read_sync()
 
-    def _read_async(self, topic: str) -> None:
-        """Read from the device asynchronously.
-
-        Args:
-            topic: The topic to broadcast a message on when complete
-        """
+    def _read_async(self) -> None:
+        """Read from the device asynchronously."""
         self._send_string(_ASYNC_MAGIC)
-        return self._reader.read_async(topic)
+        return self._reader.read_async()
 
     def _write(self, message: str) -> None:
         """Send the specified message to the device.
