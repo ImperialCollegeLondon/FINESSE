@@ -5,7 +5,7 @@ from typing import Optional
 from PySide6.QtWidgets import QFileDialog, QGridLayout, QGroupBox, QPushButton
 
 from ...config import DEFAULT_SCRIPT_PATH
-from .parse import try_load_script
+from .script import try_load_script
 from .script_edit_dialog import ScriptEditDialog
 from .script_path_widget import ScriptPathWidget
 

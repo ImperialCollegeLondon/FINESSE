@@ -7,7 +7,7 @@ import pytest
 import yaml
 
 from finesse.config import ANGLE_PRESETS
-from finesse.gui.measure_script.parse import ParseError, parse_script
+from finesse.gui.measure_script.script import ParseError, parse_script
 
 
 def is_valid_angle(angle: Any) -> bool:
