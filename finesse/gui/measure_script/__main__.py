@@ -2,7 +2,7 @@
 import sys
 from pathlib import Path
 
-from .parse import Script, parse_script
+from .script import Script, parse_script
 
 if __name__ == "__main__":
     path = Path(sys.argv[1])

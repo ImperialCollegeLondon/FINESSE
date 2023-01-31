@@ -26,7 +26,7 @@ from PySide6.QtWidgets import (
 
 from ...config import ANGLE_PRESETS, DEFAULT_SCRIPT_PATH
 from ..error_message import show_error_message
-from .parse import Measurement, Script
+from .script import Measurement, Script
 from .script_path_widget import ScriptPathWidget
 
 
