@@ -31,6 +31,9 @@ class _SerialReader(QThread):
     async_read_completed = Signal()
     """Indicates that an asynchronous read has finished."""
 
+    read_error = Signal(BaseException)
+    """Sent when an error occurs during reading."""
+
     def __init__(self, serial: Serial, sync_timeout: float) -> None:
         """Create a new _SerialReader.
 
@@ -44,7 +47,6 @@ class _SerialReader(QThread):
         self.sync_timeout = sync_timeout
         self.out_queue: Queue = Queue()
         self.stopping = False
-        self.async_waiters = 0
 
     def __del__(self) -> None:
         """Wait for the thread to stop on exit."""
@@ -77,23 +79,34 @@ class _SerialReader(QThread):
         except UnicodeDecodeError:
             raise ST10ControllerError(f"Invalid message received: {repr(raw)}")
 
+    def _read_error(self, error: BaseException) -> None:
+        # Return the error synchronously to the first waiter
+        self.out_queue.put(error)
+
+        # Also send error as a signal as there is not necessarily a synchronous waiter
+        self.read_error.emit(error)
+
+    def _read_success(self, message: str) -> None:
+        # The motor is signalling that it has finished moving
+        if message == _ASYNC_MAGIC:
+            self.async_read_completed.emit()
+            return
+
+        # Put message into queue to be retrieved by read_sync()
+        self.out_queue.put(message)
+
     def _process_read(self) -> bool:
         """Process a single read, either synchronous or asynchronous."""
         try:
             message = self._read()
-        except Exception as ex:
-            if not self.stopping:
-                self.out_queue.put(ex)
+        except Exception as error:
+            self._read_error(error)
+
+            # TODO: Currently we abort if an I/O error occurs, though it may be possible
+            # to recover in some situations
             return False
 
-        # TODO: error handling for async?
-        if message == _ASYNC_MAGIC and self.async_waiters > 0:
-            self.async_waiters -= 1
-            self.async_read_completed.emit()
-            return True
-
-        # Put the message (or error) into a queue to be returned by read_sync()
-        self.out_queue.put(message)
+        self._read_success(message)
         return True
 
     def run(self) -> None:
@@ -114,10 +127,6 @@ class _SerialReader(QThread):
             raise response
 
         return response
-
-    def read_async(self) -> None:
-        """Read asynchronously from the serial device."""
-        self.async_waiters += 1
 
 
 class ST10Controller(StepperMotorBase):
@@ -149,9 +158,8 @@ class ST10Controller(StepperMotorBase):
         self.serial.timeout = None
 
         self._reader = _SerialReader(serial, timeout)
-        self._reader.async_read_completed.connect(
-            self._send_move_end_message
-        )  # type: ignore
+        self._reader.async_read_completed.connect(self._send_move_end_message)
+        self._reader.read_error.connect(self._send_error_message)
         self._reader.start()
 
         # Check that we are connecting to an ST10
@@ -204,6 +212,10 @@ class ST10Controller(StepperMotorBase):
     @Slot()
     def _send_move_end_message(self) -> None:
         pub.sendMessage("stepper.move.end")
+
+    @Slot()
+    def _send_error_message(self, error: BaseException) -> None:
+        pub.sendMessage("stepper.error", error=error)
 
     def _check_device_id(self) -> None:
         """Check that the ID is the correct one for an ST10.
@@ -439,7 +451,6 @@ class ST10Controller(StepperMotorBase):
     def wait_until_stopped_async(self) -> None:
         """Wait until the motor has stopped moving and send a message when done."""
         self._send_string(_ASYNC_MAGIC)
-        return self._reader.read_async()
 
 
 if __name__ == "__main__":

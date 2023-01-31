@@ -18,6 +18,12 @@ from finesse.hardware.st10_controller import (
 class MockSerialReader(_SerialReader):
     """A mock version of _SerialReader that runs on the main thread."""
 
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Override the signals with MagicMocks."""
+        self.async_read_completed = MagicMock()
+        self.read_error = MagicMock()
+        super().__init__(*args, **kwargs)
+
     def run(self) -> None:
         """Override the run method to make the thread do nothing."""
 
@@ -25,11 +31,6 @@ class MockSerialReader(_SerialReader):
         """Read synchronously (mocked)."""
         self._process_read()
         return super().read_sync()
-
-    def read_async(self) -> None:
-        """Read asynchronously (mocked)."""
-        super().read_async()
-        assert self._process_read()
 
 
 @pytest.fixture
@@ -59,9 +60,37 @@ def test_init() -> None:
                 # We assign to a variable so the destructor isn't invoked until after
                 # our checks
                 st10 = ST10Controller(serial)  # noqa
+                r = st10._reader
+                r.async_read_completed.connect.assert_called_once_with(  # type: ignore
+                    st10._send_move_end_message
+                )
+                r.read_error.connect.assert_called_once_with(  # type: ignore
+                    st10._send_error_message
+                )
                 check_mock.assert_called_once()
                 stop_mock.assert_called_once()
                 home_mock.assert_called_once()
+
+
+def test_send_move_end_message(dev: ST10Controller) -> None:
+    """Test the _send_move_end_message() method."""
+    handler = MagicMock()
+    pub.subscribe(handler, "stepper.move.end")
+    dev._send_move_end_message()
+    handler.assert_called_once()
+
+
+def test_send_error_message(dev: ST10Controller) -> None:
+    """Test the _send_error_message() method."""
+    has_run = False
+
+    def handler(error: BaseException):
+        nonlocal has_run
+        has_run = True
+
+    pub.subscribe(handler, "stepper.error")
+    dev._send_error_message(Exception())
+    assert has_run
 
 
 def read_mock(dev: ST10Controller, return_value: str):
@@ -92,6 +121,9 @@ def test_read_error(dev: ST10Controller) -> None:
         dev._read_sync()
         dev.serial.read_until.assert_called_with(b"\r")
 
+    # Check that the error signal was triggered
+    dev._reader.read_error.emit.assert_called_once()  # type: ignore
+
 
 def test_read_timed_out(dev: ST10Controller) -> None:
     """Test the _read() method with a timed-out response."""
@@ -99,12 +131,18 @@ def test_read_timed_out(dev: ST10Controller) -> None:
     with pytest.raises(SerialTimeoutException):
         dev._read_sync()
 
+    # Check that the error signal was triggered
+    dev._reader.read_error.emit.assert_called_once()  # type: ignore
+
 
 def test_read_non_ascii(dev: ST10Controller) -> None:
     """Test the _read() method with a non-ASCII response."""
     dev.serial.read_until.return_value = b"\xff\r"
     with pytest.raises(ST10ControllerError):
         dev._read_sync()
+
+    # Check that the error signal was triggered
+    dev._reader.read_error.emit.assert_called_once()  # type: ignore
 
 
 @pytest.mark.parametrize(
@@ -192,15 +230,13 @@ def test_wait_until_stopped_async(dev: ST10Controller) -> None:
     """Test the wait_until_stopped_async() method."""
     dev.serial.read_until.return_value = b"Z\r"
 
-    has_run = False
-
-    def handler():
-        nonlocal has_run
-        has_run = True
-
-    pub.subscribe(handler, "stepper.move.end")
-
     with patch.object(dev, "_send_string") as ss_mock:
         dev.wait_until_stopped_async()
         ss_mock.assert_called_once_with("Z")
-        assert has_run
+
+    # As the _SerialReader is not actually running on a separate thread, we have to
+    # explicitly trigger a read here
+    assert dev._reader._process_read()
+
+    # Check that the signal was triggered
+    dev._reader.async_read_completed.emit.assert_called_once()  # type: ignore
