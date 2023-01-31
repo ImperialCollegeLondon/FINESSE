@@ -16,6 +16,7 @@ class StepperMotorBase(ABC):
         Subscribe to stepper.move messages.
         """
         pub.subscribe(self.move_to, "stepper.move.begin")
+        pub.subscribe(self.stop_moving, "stepper.stop")
 
     @staticmethod
     def preset_angle(name: str) -> float:
