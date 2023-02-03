@@ -48,7 +48,7 @@ class DummyStepperMotor(StepperMotorBase):
         """Immediately stop moving the motor."""
         logging.info("Stopping motor")
 
-    def wait_until_stopped_sync(self, timeout: Optional[float] = None) -> None:
+    def wait_until_stopped(self, timeout: Optional[float] = None) -> None:
         """Wait until the motor has stopped moving.
 
         For this dummy class, this is a no-op.
@@ -57,7 +57,7 @@ class DummyStepperMotor(StepperMotorBase):
             timeout: Time to wait for motor to finish moving (None == forever)
         """
 
-    def wait_until_stopped_async(self) -> None:
+    def notify_on_stopped(self) -> None:
         """Wait until the motor has stopped moving and send a message when done.
 
         The message is stepper.move.end.

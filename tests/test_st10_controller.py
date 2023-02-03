@@ -226,12 +226,12 @@ def test_get_step(step: int, response: str, raises: Any, dev: ST10Controller) ->
             assert dev.step == step
 
 
-def test_wait_until_stopped_async(dev: ST10Controller) -> None:
-    """Test the wait_until_stopped_async() method."""
+def test_notify_on_stopped(dev: ST10Controller) -> None:
+    """Test the notify_on_stopped() method."""
     dev.serial.read_until.return_value = b"Z\r"
 
     with patch.object(dev, "_send_string") as ss_mock:
-        dev.wait_until_stopped_async()
+        dev.notify_on_stopped()
         ss_mock.assert_called_once_with("Z")
 
     # As the _SerialReader is not actually running on a separate thread, we have to

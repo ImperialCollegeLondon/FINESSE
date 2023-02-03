@@ -423,7 +423,7 @@ class ST10Controller(StepperMotorBase):
         """Immediately stop moving the motor."""
         self._write_check("ST")
 
-    def wait_until_stopped_sync(self, timeout: Optional[float] = None) -> None:
+    def wait_until_stopped(self, timeout: Optional[float] = None) -> None:
         """Wait until the motor has stopped moving.
 
         Args:
@@ -448,7 +448,7 @@ class ST10Controller(StepperMotorBase):
             # Restore previous timeout setting
             self.serial.timeout = old_timeout
 
-    def wait_until_stopped_async(self) -> None:
+    def notify_on_stopped(self) -> None:
         """Wait until the motor has stopped moving and send a message when done."""
         self._send_string(_ASYNC_MAGIC)
 

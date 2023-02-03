@@ -57,7 +57,7 @@ class StepperMotorBase(ABC):
         """Immediately stop moving the motor."""
 
     @abstractmethod
-    def wait_until_stopped_sync(self, timeout: Optional[float] = None) -> None:
+    def wait_until_stopped(self, timeout: Optional[float] = None) -> None:
         """Wait until the motor has stopped moving.
 
         Args:
@@ -65,7 +65,7 @@ class StepperMotorBase(ABC):
         """
 
     @abstractmethod
-    def wait_until_stopped_async(self) -> None:
+    def notify_on_stopped(self) -> None:
         """Wait until the motor has stopped moving and send a message when done.
 
         The message is stepper.move.end.
@@ -93,4 +93,4 @@ class StepperMotorBase(ABC):
         self.step = round(self.steps_per_rotation * target / 360.0)
 
         # Send a message when the motor has stopped moving
-        self.wait_until_stopped_async()
+        self.notify_on_stopped()
