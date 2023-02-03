@@ -17,6 +17,7 @@ class StepperMotorBase(ABC):
         """
         pub.subscribe(self.move_to, "stepper.move.begin")
         pub.subscribe(self.stop_moving, "stepper.stop")
+        pub.subscribe(self.notify_on_stopped, "stepper.notify_on_stopped")
 
     @staticmethod
     def preset_angle(name: str) -> float:
@@ -91,6 +92,3 @@ class StepperMotorBase(ABC):
             raise ValueError("Angle must be between 0° and 270°")
 
         self.step = round(self.steps_per_rotation * target / 360.0)
-
-        # Send a message when the motor has stopped moving
-        self.notify_on_stopped()
