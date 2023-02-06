@@ -211,6 +211,11 @@ class ST10Controller(StepperMotorBase):
         except Exception as e:
             logging.error(f"Failed to reset mirror to downward position: {e}")
 
+        # Set flag that indicates the thread should quit
+        self._reader.quit()
+
+        # If _reader is blocking on a read (which is likely), we could end up waiting
+        # forever, so close the socket so that the read operation will terminate
         self.serial.close()
 
     @Slot()
