@@ -22,7 +22,11 @@ class ST10ControllerError(SerialException):
     """Indicates that an error has occurred with the ST10 controller."""
 
 
-_ASYNC_MAGIC = "Z"
+_SEND_STRING_MAGIC = "Z"
+"""The arbitrary magic string we are using for the send string command.
+
+See ST10Controller._send_string() for details of this command.
+"""
 
 
 class _SerialReader(QThread):
@@ -88,7 +92,7 @@ class _SerialReader(QThread):
 
     def _read_success(self, message: str) -> None:
         # The motor is signalling that it has finished moving
-        if message == _ASYNC_MAGIC:
+        if message == _SEND_STRING_MAGIC:
             self.async_read_completed.emit()
             return
 
@@ -319,6 +323,9 @@ class ST10Controller(StepperMotorBase):
     def _send_string(self, string: str) -> None:
         """Request that the device sends string when operations have completed.
 
+        The string is sent when the queue of move commands is empty and the motor has
+        stopped moving.
+
         Args:
             string: String to be returned by the device
         """
@@ -450,7 +457,7 @@ class ST10Controller(StepperMotorBase):
 
     def notify_on_stopped(self) -> None:
         """Wait until the motor has stopped moving and send a message when done."""
-        self._send_string(_ASYNC_MAGIC)
+        self._send_string(_SEND_STRING_MAGIC)
 
 
 if __name__ == "__main__":
