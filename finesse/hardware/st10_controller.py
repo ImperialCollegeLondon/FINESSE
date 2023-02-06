@@ -460,7 +460,7 @@ if __name__ == "__main__":
     dev = ST10Controller.create(sys.argv[1])
     print("Done. Homing...")
 
-    dev.wait_until_stopped_sync()
+    dev.wait_until_stopped()
     print("Homing complete")
     print(f"Current angle: {dev.angle}°")
 
@@ -468,5 +468,5 @@ if __name__ == "__main__":
     for ang in angles:
         print(f"Moving to {ang}")
         dev.move_to(ang)
-        dev.wait_until_stopped_sync()
+        dev.wait_until_stopped()
         print(f"Current angle: {dev.angle}°")
