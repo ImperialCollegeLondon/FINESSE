@@ -30,7 +30,24 @@ See ST10Controller._send_string() for details of this command.
 
 
 class _SerialReader(QThread):
-    """For background reading of serial device."""
+    """For background reading from the serial device.
+
+    There are two types of messages that we receive from the device. The first are
+    immediately sent in response to a command sent to the controller, e.g. an ack
+    message ("%"). This is what happens with all but one of the commands we are using.
+    The one exception is the send string command ("SS"), which, in addition to eliciting
+    an immediate ack (or nack) response, also leads to another response being sent when
+    the motor has finished moving. Note that while the motor is moving, other commands
+    can be sent and even processed, e.g. you can request the motor's current position
+    while it is moving.
+
+    All of the reading we do from the device goes via this class, as conceivably the
+    magic send string response could be sent at any point after the send string command
+    is sent, so reading should be continuous.
+
+    When the magic send string response is received, the async_read_completed signal is
+    emitted. Synchronous reads are handled by putting received messages into a Queue.
+    """
 
     async_read_completed = Signal()
     """Indicates that an asynchronous read has finished."""
