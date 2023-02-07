@@ -29,8 +29,8 @@ class LEDIcon(QLabel):
             is_on (bool): On/off status of LED.
         """
         super().__init__()
-        self._on_img = QImage(on_img)
-        self._off_img = QImage(off_img)
+        self._on_img = on_img
+        self._off_img = off_img
         if is_on:
             self._turn_on()
         else:
