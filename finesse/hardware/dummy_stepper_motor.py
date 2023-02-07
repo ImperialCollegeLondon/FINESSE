@@ -1,13 +1,11 @@
 """Code for a fake stepper motor device."""
 import logging
-from typing import Union
+from typing import Optional
 
-from pubsub import pub
-
-from ..config import ANGLE_PRESETS
+from .stepper_motor_base import StepperMotorBase
 
 
-class DummyStepperMotor:
+class DummyStepperMotor(StepperMotorBase):
     """A fake stepper motor device used for unit tests etc."""
 
     def __init__(self, steps_per_rotation: int) -> None:
@@ -16,41 +14,43 @@ class DummyStepperMotor:
         Args:
             steps_per_rotation: Number of motor steps for an entire rotation (360°)
         """
-        if steps_per_rotation < len(ANGLE_PRESETS):
-            raise ValueError(f"steps_per_rotation must be >={len(ANGLE_PRESETS)}")
+        if steps_per_rotation < 1:
+            raise ValueError("steps_per_rotation must be at least one")
 
-        self.steps_per_rotation = steps_per_rotation
-        self.current_step = 0
+        self._steps_per_rotation = steps_per_rotation
+        self._step = 0
 
-        pub.subscribe(self.move_to, "stepper.move")
+        super().__init__()
 
-    @staticmethod
-    def get_preset_step(name: str) -> int:
-        """Get the angle for one of the preset positions.
+    @property
+    def steps_per_rotation(self) -> int:
+        """The number of steps that correspond to a full rotation."""
+        return self._steps_per_rotation
+
+    @property
+    def step(self) -> int:
+        """The number of steps that correspond to a full rotation."""
+        return self._step
+
+    @step.setter
+    def step(self, step: int) -> None:
+        """Move the stepper motor to the specified absolute position.
 
         Args:
-            name: Name of preset angle
-        Returns:
-            The step number (as int)
+            step: Which step position to move to
         """
-        return ANGLE_PRESETS.index(name)
+        self._step = step
+        logging.info(f"Moving stepper motor to step {step}")
 
-    def move_to(self, target: Union[float, str]) -> None:
-        """Move the motor to a specified rotation.
+    def stop_moving(self) -> None:
+        """Immediately stop moving the motor."""
+        logging.info("Stopping motor")
+
+    def wait_until_stopped(self, timeout: Optional[float] = None) -> None:
+        """Wait until the motor has stopped moving.
+
+        For this dummy class, this is a no-op.
 
         Args:
-            target: The target angle (in degrees) or the name of a preset
+            timeout: Time to wait for motor to finish moving (None == forever)
         """
-        if isinstance(target, str):
-            self.current_step = DummyStepperMotor.get_preset_step(target)
-            target_angle = self.current_step * 360 / self.steps_per_rotation
-        else:
-            step = round(self.steps_per_rotation * target / 360.0)
-            if step < 0 or step >= self.steps_per_rotation:
-                raise ValueError("step number is out of range")
-            self.current_step = step
-            target_angle = target
-
-        logging.info(
-            f"Moving stepper motor to step {self.current_step} (={target_angle}°)"
-        )

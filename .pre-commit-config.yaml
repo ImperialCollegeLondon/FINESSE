@@ -22,7 +22,7 @@ repos:
     rev: "v0.991"
     hooks:
       - id: mypy
-        additional_dependencies: [types-PyYAML]
+        additional_dependencies: [types-beautifulsoup4, types-PyYAML, types-requests]
   - repo: https://github.com/igorshubovych/markdownlint-cli
     rev: v0.33.0
     hooks:
