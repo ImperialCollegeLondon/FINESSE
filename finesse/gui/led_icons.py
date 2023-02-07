@@ -38,17 +38,27 @@ class LEDIcon(QLabel):
         self._timer = QTimer()
         self._timer.timeout.connect(self._turn_off)  # type: ignore
 
-    def _turn_on(self):
+    @staticmethod
+    def create_poll_icon() -> "LEDIcon":
+        """Creates the LED icon for polling the server."""
+        return LEDIcon(on_img=_poll_on_img, off_img=_poll_off_img)
+
+    @staticmethod
+    def create_alarm_icon() -> "LEDIcon":
+        """Creates the LED icon to indicate alarm status."""
+        return LEDIcon(on_img=_alarm_on_img, off_img=_alarm_off_img)
+
+    def _turn_on(self) -> None:
         """Turns the LED on."""
         self._is_on = True
         self.setPixmap(QPixmap(self._on_img))
 
-    def _turn_off(self):
+    def _turn_off(self) -> None:
         """Turns the LED off."""
         self._is_on = False
         self.setPixmap(QPixmap(self._off_img))
 
-    def _flash(self, duration: int = 250):
+    def _flash(self, duration: int = 250) -> None:
         """Turns the LED on for a specified duration.
 
         Args:
@@ -56,35 +66,3 @@ class LEDIcon(QLabel):
         """
         self._turn_on()
         self._timer.singleShot(duration, self._turn_off)
-
-
-class PollIcon(LEDIcon):
-    """QLabel object to represent an LED for polling server."""
-
-    def __init__(
-        self, on_img=_poll_on_img, off_img=_poll_off_img, is_on: bool = False
-    ) -> None:
-        """Creates the LED icon, sets its status and stores corresponding image data.
-
-        Args:
-            on_img (QImage): QImage for LED on state.
-            off_img (QImage): QImage for LED off state.
-            is_on (bool): On/off status of LED.
-        """
-        super().__init__(on_img=on_img, off_img=off_img, is_on=is_on)
-
-
-class AlarmIcon(LEDIcon):
-    """QLabel object to represent an LED to indicate alarm status."""
-
-    def __init__(
-        self, on_img=_alarm_on_img, off_img=_alarm_off_img, is_on: bool = False
-    ) -> None:
-        """Creates the LED icon, sets its status and stores corresponding image data.
-
-        Args:
-            on_img (QImage): QImage for LED on state.
-            off_img (QImage): QImage for LED off state.
-            is_on (bool): On/off status of LED.
-        """
-        super().__init__(on_img=on_img, off_img=off_img, is_on=is_on)
