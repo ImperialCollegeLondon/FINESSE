@@ -14,11 +14,9 @@ from finesse.hardware.dummy_stepper_motor import DummyStepperMotor
     [
         [
             steps,
-            pytest.raises(ValueError)
-            if steps < len(ANGLE_PRESETS)
-            else does_not_raise(),
+            pytest.raises(ValueError) if steps <= 0 else does_not_raise(),
         ]
-        for steps in range(-5, len(ANGLE_PRESETS) + 5)
+        for steps in range(-5, 5)
     ],
 )
 def test_constructor(steps: int, raises: Any) -> None:
@@ -33,7 +31,7 @@ def test_constructor(steps: int, raises: Any) -> None:
         [
             target,
             pytest.raises(ValueError)
-            if target < 0 or target >= 36
+            if target < 0 or target > 27
             else does_not_raise(),
         ]
         for target in range(-36, 2 * 36)
@@ -42,11 +40,11 @@ def test_constructor(steps: int, raises: Any) -> None:
 def test_move_to_number(target: int, raises: Any) -> None:
     """Check move_to, when an angle is given."""
     stepper = DummyStepperMotor(36)
-    assert stepper.current_step == 0
+    assert stepper.step == 0
 
     with raises:
         stepper.move_to(10.0 * float(target))
-        assert stepper.current_step == target
+        assert stepper.step == target
 
 
 # Invalid names for presets. Note that case matters.
@@ -59,10 +57,10 @@ BAD_PRESETS = ("", "ZENITH", "kevin", "badger")
         [
             name,
             pytest.raises(ValueError)
-            if name not in ANGLE_PRESETS
+            if name not in ANGLE_PRESETS.keys()
             else does_not_raise(),
         ]
-        for name in chain(ANGLE_PRESETS, BAD_PRESETS)
+        for name in chain(ANGLE_PRESETS.keys(), BAD_PRESETS)
     ],
 )
 def test_move_to_preset(name: str, raises: Any) -> None:

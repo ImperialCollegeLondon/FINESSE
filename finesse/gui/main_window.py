@@ -1,10 +1,21 @@
 """Code for FINESSE's main GUI window."""
-from PySide6.QtWidgets import QGroupBox, QHBoxLayout, QMainWindow, QVBoxLayout, QWidget
+from pubsub import pub
+from PySide6.QtGui import QHideEvent, QShowEvent
+from PySide6.QtWidgets import (
+    QGridLayout,
+    QGroupBox,
+    QHBoxLayout,
+    QMainWindow,
+    QVBoxLayout,
+    QWidget,
+)
 
 from ..config import APP_NAME
+from .measure_script.script_view import ScriptControl
 from .opus_view import OPUSControl
 from .serial_view import SerialPortControl
 from .stepper_motor_view import StepperMotorControl
+from .temp_control import DP9800, TC4820, BBMonitor
 from .uncaught_exceptions import set_uncaught_exception_handler
 
 
@@ -23,6 +34,9 @@ class MainWindow(QMainWindow):
         # Setup for stepper motor control
         stepper_motor = StepperMotorControl()
 
+        # Setup for measure script panel
+        measure_script = ScriptControl()
+
         # Setup for serial port control
         devices = {
             "ST10": {"port": "COM5", "baud_rate": "9600"},
@@ -34,11 +48,22 @@ class MainWindow(QMainWindow):
         )
 
         layout_left.addWidget(stepper_motor)
+        layout_left.addWidget(measure_script)
         layout_left.addWidget(serial_port)
 
-        layout_right = QVBoxLayout()
-        opus: QGroupBox = OPUSControl("127.0.0.1")
-        layout_right.addWidget(opus)
+        layout_right = QGridLayout()
+        opus: QGroupBox = OPUSControl()
+        layout_right.addWidget(opus, 0, 0, 1, 2)
+
+        bb_monitor: QGroupBox = BBMonitor()
+        dp9800: QGroupBox = DP9800(8)
+        tc4820_hot: QGroupBox = TC4820("hot")
+        tc4820_cold: QGroupBox = TC4820("cold")
+
+        layout_right.addWidget(bb_monitor, 1, 0, 1, 2)
+        layout_right.addWidget(dp9800, 2, 0, 1, 2)
+        layout_right.addWidget(tc4820_hot, 3, 0, 1, 1)
+        layout_right.addWidget(tc4820_cold, 3, 1, 1, 1)
 
         # Display widgets in two columns
         left = QWidget()
@@ -52,3 +77,11 @@ class MainWindow(QMainWindow):
         central.setLayout(layout)
 
         self.setCentralWidget(central)
+
+    def showEvent(self, event: QShowEvent) -> None:
+        """Send window.opened message."""
+        pub.sendMessage("window.opened")
+
+    def hideEvent(self, event: QHideEvent) -> None:
+        """Send window.closed message."""
+        pub.sendMessage("window.closed")
