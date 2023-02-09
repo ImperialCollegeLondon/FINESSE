@@ -36,5 +36,6 @@ plugins:
 
 nav:
 - FINESSE documentation: index.md
+- Measure scripts: measure_scripts.md
 # defer to gen-files + literate-nav
 - Code Reference: reference/
