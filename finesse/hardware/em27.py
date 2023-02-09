@@ -6,6 +6,8 @@ from typing import Dict, Tuple
 from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
 
+from pubsub import pub
+
 
 class EM27:
     """An interface for EM27 monitoring."""
@@ -86,6 +88,7 @@ class EM27:
                     float(table[row].split("<TD>")[5].strip("</TD>")),
                     table[row].split("<TD>")[6].rstrip("</TD></TR"),
                 )
+            pub.sendMessage("psf27_data", data=table)
         return error
 
 
