@@ -1,4 +1,6 @@
 """Class for LED Icons."""
+from __future__ import annotations
+
 from importlib import resources
 
 from PySide6.QtCore import QTimer
@@ -38,15 +40,15 @@ class LEDIcon(QLabel):
         self._timer = QTimer()
         self._timer.timeout.connect(self._turn_off)  # type: ignore
 
-    @staticmethod
-    def create_poll_icon() -> "LEDIcon":
+    @classmethod
+    def create_poll_icon(cls) -> LEDIcon:
         """Creates the LED icon for polling the server."""
-        return LEDIcon(on_img=_poll_on_img, off_img=_poll_off_img)
+        return cls(on_img=_poll_on_img, off_img=_poll_off_img)
 
-    @staticmethod
-    def create_alarm_icon() -> "LEDIcon":
+    @classmethod
+    def create_alarm_icon(cls) -> LEDIcon:
         """Creates the LED icon to indicate alarm status."""
-        return LEDIcon(on_img=_alarm_on_img, off_img=_alarm_off_img)
+        return cls(on_img=_alarm_on_img, off_img=_alarm_off_img)
 
     def _turn_on(self) -> None:
         """Turns the LED on."""
