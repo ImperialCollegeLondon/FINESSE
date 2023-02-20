@@ -31,7 +31,7 @@ class Measurement:
     def run(self) -> None:
         """A placeholder function for recording multiple measurements."""
         # Move the mirror to the correct location
-        pub.sendMessage("stepper.move", target=self.angle)
+        pub.sendMessage("stepper.move.begin", target=self.angle)
 
         # Take the recordings
         logging.info(f"Recording {self.measurements} measurements")
