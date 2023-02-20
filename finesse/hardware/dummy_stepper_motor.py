@@ -2,6 +2,8 @@
 import logging
 from typing import Optional
 
+from pubsub import pub
+
 from .stepper_motor_base import StepperMotorBase
 
 
@@ -54,3 +56,12 @@ class DummyStepperMotor(StepperMotorBase):
         Args:
             timeout: Time to wait for motor to finish moving (None == forever)
         """
+
+    def notify_on_stopped(self) -> None:
+        """Wait until the motor has stopped moving and send a message when done.
+
+        The message is stepper.move.end.
+
+        As this is a dummy class, this completes immediately.
+        """
+        pub.sendMessage("stepper.move.end")
