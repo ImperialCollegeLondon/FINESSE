@@ -1,5 +1,6 @@
 """Panel and widgets related to monitoring the interferometer."""
 from copy import deepcopy
+from typing import Optional
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QGridLayout, QGroupBox, QLabel, QLineEdit
@@ -7,11 +8,11 @@ from PySide6.QtWidgets import QGridLayout, QGroupBox, QLabel, QLineEdit
 from .led_icons import LEDIcon
 
 
-def get_vals_from_server():
+def get_vals_from_server() -> dict:
     """Placeholder function for retrieving interferometer properties.
 
     Returns:
-        A dictionary containing the physical properties being monitored
+        data_table: A dictionary containing the physical properties being monitored
     """
     data_table = {
         "PSF27 Temp": [28.151062, "deg. C"],
@@ -28,7 +29,7 @@ def get_vals_from_server():
 class EM27Monitor(QGroupBox):
     """Widgets to view the EM27 properties."""
 
-    def __init__(self, prop_labels, prop_units) -> None:
+    def __init__(self, prop_labels: list[str], prop_units: list[Optional[str]]) -> None:
         """Creates a sequence of widgets to view properties monitored by the EM27."""
         super().__init__("EM27 SOH Monitor")
 
