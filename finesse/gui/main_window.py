@@ -1,8 +1,11 @@
 """Code for FINESSE's main GUI window."""
+from pubsub import pub
+from PySide6.QtGui import QHideEvent, QShowEvent
 from PySide6.QtWidgets import QGridLayout, QGroupBox, QHBoxLayout, QMainWindow, QWidget
 
 from ..config import APP_NAME
 from .interferometer_monitor import EM27Monitor
+from .measure_script.script_view import ScriptControl
 from .opus_view import OPUSControl
 from .serial_view import SerialPortControl
 from .stepper_motor_view import StepperMotorControl
@@ -24,6 +27,9 @@ class MainWindow(QMainWindow):
 
         # Setup for stepper motor control
         stepper_motor = StepperMotorControl()
+
+        # Setup for measure script panel
+        measure_script = ScriptControl()
 
         # Setup for serial port control
         devices = {
@@ -50,11 +56,12 @@ class MainWindow(QMainWindow):
         em27_monitor = EM27Monitor(prop_labels, prop_units)
 
         layout_left.addWidget(stepper_motor, 0, 0, 1, 2)
+        layout_left.addWidget(measure_script, 1, 0, 1, 1)
         layout_left.addWidget(serial_port, 2, 0, 1, 1)
         layout_left.addWidget(em27_monitor, 2, 1, 1, 1)
 
         layout_right = QGridLayout()
-        opus: QGroupBox = OPUSControl("127.0.0.1")
+        opus: QGroupBox = OPUSControl()
         layout_right.addWidget(opus, 0, 0, 1, 2)
 
         bb_monitor: QGroupBox = BBMonitor()
@@ -80,3 +87,11 @@ class MainWindow(QMainWindow):
         central.setLayout(layout)
 
         self.setCentralWidget(central)
+
+    def showEvent(self, event: QShowEvent) -> None:
+        """Send window.opened message."""
+        pub.sendMessage("window.opened")
+
+    def hideEvent(self, event: QHideEvent) -> None:
+        """Send window.closed message."""
+        pub.sendMessage("window.closed")

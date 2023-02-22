@@ -1,16 +1,10 @@
 """Panel and widgets related to monitoring the interferometer."""
 from copy import deepcopy
-from importlib import resources
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QImage, QPixmap
 from PySide6.QtWidgets import QGridLayout, QGroupBox, QLabel, QLineEdit
 
-img_files = resources.files("finesse.gui.images")
-poll_on_img_data = img_files.joinpath("poll_on.png").read_bytes()
-poll_off_img_data = img_files.joinpath("poll_off.png").read_bytes()
-poll_on_img = QImage.fromData(poll_on_img_data)
-poll_off_img = QImage.fromData(poll_off_img_data)
+from .led_icons import LEDIcon
 
 
 def get_vals_from_server():
@@ -69,10 +63,12 @@ class EM27Monitor(QGroupBox):
         self._laser_current_box.setReadOnly(True)
         self._laser_current_box.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        self._poll_light = QLabel()
-        self._poll_light.setPixmap(QPixmap(poll_off_img))
+        self._poll_light = LEDIcon.create_poll_icon()
 
         layout = self._create_controls()
+
+        self._poll_light.setSizePolicy(self._laser_current_box.sizePolicy())
+
         self.setLayout(layout)
 
     def _create_controls(self) -> QGridLayout:
@@ -157,16 +153,12 @@ class EM27Monitor(QGroupBox):
 
     def poll_server(self) -> None:
         """Polls the server, turns on indicator, sets values, turns off indicator."""
-        # Turn light on
-        self._poll_light.setPixmap(QPixmap(poll_on_img))
+        self._poll_light._turn_on()
 
-        # Get values
         data_table = get_vals_from_server()
 
-        # Turn light off
-        self._poll_light.setPixmap(QPixmap(poll_off_img))
+        self._poll_light._turn_off()
 
-        # Set values
         self.set_psf27_temp(data_table["PSF27 Temp"])
         self.set_cryo_temp(data_table["Cryo Temp"])
         self.set_bb_hum(data_table["Blackbody Hum"])
