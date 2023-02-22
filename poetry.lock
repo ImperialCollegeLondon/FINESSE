@@ -1625,22 +1625,6 @@ pytest = ">=4.6"
 testing = ["fields", "hunter", "process-tests", "pytest-xdist", "six", "virtualenv"]
 
 [[package]]
-name = "pytest-flake8"
-version = "1.1.1"
-description = "pytest plugin to check FLAKE8 requirements"
-category = "dev"
-optional = false
-python-versions = "*"
-files = [
-    {file = "pytest-flake8-1.1.1.tar.gz", hash = "sha256:ba4f243de3cb4c2486ed9e70752c80dd4b636f7ccb27d4eba763c35ed0cd316e"},
-    {file = "pytest_flake8-1.1.1-py2.py3-none-any.whl", hash = "sha256:e0661a786f8cbf976c185f706fdaf5d6df0b1667c3bcff8e823ba263618627e7"},
-]
-
-[package.dependencies]
-flake8 = ">=4.0"
-pytest = ">=7.0"
-
-[[package]]
 name = "pytest-mock"
 version = "3.10.0"
 description = "Thin-wrapper around the mock package for easier use with pytest"
@@ -2068,4 +2052,4 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.12"
-content-hash = "50bbd3cb80bfe6e0bca9d4fd188ba0b199bc914373bfd1247b792ea85fa97f65"
+content-hash = "02573d6467bfcafa064955c0cd6335bf3293caf96703c95d2d20415271398b54"
