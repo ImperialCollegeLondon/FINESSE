@@ -1,0 +1,10 @@
+[flake8]
+max-line-length = 88
+
+# Ignore warnings about missing docstrings in modules
+extend-ignore =
+	E203, D104
+
+required-plugins =
+	flake8-docstring,
+docstring-convention = google
