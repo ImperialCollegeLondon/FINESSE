@@ -23,7 +23,6 @@ beautifulsoup4 = "^4.11.1"
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.0"
 pytest-cov = "^4.0.0"
-pytest-flake8 = "^1.1.1"
 pytest-mypy = "^0.10.1"
 pytest-mock = "^3.7.0"
 isort = "^5.12.0"
