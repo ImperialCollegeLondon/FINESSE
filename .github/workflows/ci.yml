@@ -56,6 +56,10 @@ jobs:
       env:
         QT_QPA_PLATFORM: offscreen
 
+    - name: Upload coverage to Codecov
+        if: matrix.os == 'ubuntu-latest' && success()
+        uses: codecov/codecov-action@v3
+
     - name: Check for documentation errors with MkDocs
       run: |
         poetry run mkdocs build -s
