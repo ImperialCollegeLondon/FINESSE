@@ -50,9 +50,8 @@ class MainWindow(QMainWindow):
             "AUX Volt",
             "AUX Curr",
             "Laser Curr",
-            "POLL Server",
         ]
-        prop_units = ["deg. C", "deg. K", "%", "deg. C", "V", "A", "A", None]
+        prop_units = ["deg. C", "deg. K", "%", "deg. C", "V", "A", "A"]
         em27_monitor = EM27Monitor(prop_labels, prop_units)
 
         layout_left.addWidget(stepper_motor, 0, 0, 1, 2)
