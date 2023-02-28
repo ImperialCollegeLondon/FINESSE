@@ -36,6 +36,7 @@ pyinstaller = "^5.6.2"
 types-pyyaml = "^6.0.12.3"
 types-requests = "^2.28.11.7"
 types-beautifulsoup4 = "^4.11.6.7"
+pytest-qt = "^4.2.0"
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = "^1.4.2"
