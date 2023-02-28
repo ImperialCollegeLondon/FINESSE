@@ -42,17 +42,7 @@ class MainWindow(QMainWindow):
         )
 
         # Setup for interferometer monitor
-        prop_labels = [
-            "PSF27 Temp",
-            "Cryo Temp",
-            "Blackbody Hum",
-            "Source Temp",
-            "AUX Volt",
-            "AUX Curr",
-            "Laser Curr",
-        ]
-        prop_units = ["deg. C", "deg. K", "%", "deg. C", "V", "A", "A"]
-        em27_monitor = EM27Monitor(prop_labels, prop_units)
+        em27_monitor = EM27Monitor()
 
         layout_left.addWidget(stepper_motor, 0, 0, 1, 2)
         layout_left.addWidget(measure_script, 1, 0, 1, 1)
