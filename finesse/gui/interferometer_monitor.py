@@ -1,5 +1,6 @@
 """Panel and widgets related to monitoring the interferometer."""
 from dataclasses import dataclass
+from decimal import Decimal
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QGridLayout, QGroupBox, QLabel, QLineEdit, QSizePolicy
@@ -18,7 +19,7 @@ class EM27Property:
     """
 
     name: str
-    value: float
+    value: Decimal
     unit: str
 
 
@@ -29,13 +30,13 @@ def get_vals_from_server() -> list[EM27Property]:
         data_table: A list containing the physical properties being monitored
     """
     data_table = [
-        EM27Property("PSF27 Temp", 28.151062, "deg. C"),
-        EM27Property("Cryo Temp", 0.0, "deg. K"),
-        EM27Property("Blackbody Hum", 2.463968, "%"),
-        EM27Property("Source Temp", 70.007156, "deg. C"),
-        EM27Property("Aux Volt", 6.285875, "V"),
-        EM27Property("Aux Curr", 0.910230, "A"),
-        EM27Property("Laser Curr", 0.583892, "A"),
+        EM27Property("PSF27 Temp", Decimal(28.151062), "deg. C"),
+        EM27Property("Cryo Temp", Decimal(0.0), "deg. K"),
+        EM27Property("Blackbody Hum", Decimal(2.463968), "%"),
+        EM27Property("Source Temp", Decimal(70.007156), "deg. C"),
+        EM27Property("Aux Volt", Decimal(6.285875), "V"),
+        EM27Property("Aux Curr", Decimal(0.910230), "A"),
+        EM27Property("Laser Curr", Decimal(0.583892), "A"),
     ]
     return data_table
 
