@@ -52,7 +52,7 @@ class EM27Monitor(QGroupBox):
         self._data_table: list[EM27Property] = []
         self._num_props = 0
         self._poll_light = LEDIcon.create_poll_icon()
-        self._poll_light._timer.timeout.connect(self.poll_server)
+        self._poll_light._timer.timeout.connect(self.poll_server)  # type: ignore
         self._poll_light._timer.start(2000)
 
     def _add_widgets(self) -> None:
@@ -73,8 +73,8 @@ class EM27Monitor(QGroupBox):
 
         layout.addWidget(QLabel("POLL Server"), i + 1, 0)
         layout.addWidget(self._poll_light, i + 1, 1)
-        self._poll_light.setSizePolicy(  # type: ignore
-            QSizePolicy.Expanding, QSizePolicy.Fixed
+        self._poll_light.setSizePolicy(
+            QSizePolicy.Expanding, QSizePolicy.Fixed  # type: ignore
         )
 
         self.setLayout(layout)
