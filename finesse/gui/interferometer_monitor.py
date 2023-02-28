@@ -28,7 +28,7 @@ def get_vals_from_server() -> dict:
 class EM27Monitor(QGroupBox):
     """Panel containing widgets to view the EM27 properties."""
 
-    def __init__(self, prop_labels: list[str], prop_units: list[str]) -> None:
+    def __init__(self) -> None:
         """Creates the attributes required to view properties monitored by the EM27."""
         super().__init__("EM27 SOH Monitor")
 
@@ -37,8 +37,10 @@ class EM27Monitor(QGroupBox):
         self._data_table: Dict[str, list[Optional[str]]] = {}
         self._num_props = 0
         self._poll_light = LEDIcon.create_poll_icon()
+        self._poll_light._timer.timeout.connect(self.poll_server)
+        self._poll_light._timer.start(2000)
 
-        self.poll_server()
+    #        self.poll_server()
 
     def _add_widgets(self) -> None:
         """Creates the widgets to view the EM27 properties."""
@@ -61,7 +63,7 @@ class EM27Monitor(QGroupBox):
         layout.addWidget(QLabel("POLL Server"), i + 1, 0)
         layout.addWidget(self._poll_light, i + 1, 1)
         self._poll_light.setSizePolicy(  # type: ignore
-            QSizePolicy.Preferred, QSizePolicy.Preferred
+            QSizePolicy.Expanding, QSizePolicy.Fixed
         )
 
         self.setLayout(layout)
@@ -93,25 +95,7 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
 
     window = QMainWindow()
-    prop_labels = [
-        "PSF27 Temp",
-        "Cryo Temp",
-        "Blackbody Hum",
-        "Source Temp",
-        "AUX Volt",
-        "AUX Curr",
-        "Laser Curr",
-    ]
-    prop_units = [
-        "deg. C",
-        "deg. K",
-        "%",
-        "deg. C",
-        "V",
-        "A",
-        "A",
-    ]
-    em27_monitor = EM27Monitor(prop_labels, prop_units)
+    em27_monitor = EM27Monitor()
 
     window.setCentralWidget(em27_monitor)
     window.show()
