@@ -52,9 +52,13 @@ jobs:
       run: poetry install
 
     - name: Run tests
-      run: poetry run pytest
+      run: poetry run pytest --cov-report=xml
       env:
         QT_QPA_PLATFORM: offscreen
+
+    - name: Upload coverage to Codecov
+      if: matrix.os == 'ubuntu-latest' && success()
+      uses: codecov/codecov-action@v3
 
     - name: Check for documentation errors with MkDocs
       run: |
