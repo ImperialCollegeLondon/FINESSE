@@ -2,11 +2,27 @@
 
 This is used to scrape the PSF27 sensor data table off the server.
 """
-from typing import Dict, Tuple
+from dataclasses import dataclass
+from decimal import Decimal
 from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
 
 from pubsub import pub
+
+
+@dataclass
+class EM27Property:
+    """Class for representing EM27 monitored properties.
+
+    Args:
+        name: name of the physical quantity
+        value: value of the physical quantity
+        unit: unit in which the value is presented
+    """
+
+    name: str
+    value: Decimal
+    unit: str
 
 
 class EM27:
@@ -20,7 +36,7 @@ class EM27:
         """
         self._url = url
         self._html = b""
-        self._data_table: Dict[str, Tuple[float, str]] = {}
+        self._data_table: list[EM27Property] = []
 
     def open(self, timeout: int = 2) -> int:
         """Connect to the webpage.
@@ -44,7 +60,7 @@ class EM27:
 
         return error
 
-    def close(self):
+    def close(self) -> None:
         """Disconnect from the webpage."""
         self._page.close()
 
@@ -54,9 +70,9 @@ class EM27:
         Returns:
             error: 0 = successful read, 1 = error
         """
+        error = 0
         try:
             self._html = self._page.read()
-            error = 0
         except ValueError as exception:
             print(exception)
             print("Open page first")
@@ -84,9 +100,12 @@ class EM27:
             table_end = table_start + html_ascii[table_start:].find("</TABLE>")
             table = html_ascii[table_start:table_end].splitlines()
             for row in range(1, len(table) - 1):
-                self._data_table[table[row].split("<TD>")[2].rstrip("</TD>")] = (
-                    float(table[row].split("<TD>")[5].strip("</TD>")),
-                    table[row].split("<TD>")[6].rstrip("</TD></TR"),
+                self._data_table.append(
+                    EM27Property(
+                        table[row].split("<TD>")[2].rstrip("</TD>"),
+                        Decimal(table[row].split("<TD>")[5].strip("</TD>")),
+                        table[row].split("<TD>")[6].rstrip("</TD></TR"),
+                    )
                 )
             pub.sendMessage("psf27_data", data=table)
         return error
@@ -101,7 +120,6 @@ class DummyEM27(EM27):
 
 
 if __name__ == "__main__":
-
     dev = DummyEM27()
     error = dev.open()
     print(error)
