@@ -9,7 +9,8 @@ from urllib.request import urlopen
 
 from pubsub import pub
 
-from ..config import EM27_IP
+# from ..config import EM27_IP
+EM27_IP = "10.10.0.1"
 
 
 @dataclass
@@ -27,17 +28,16 @@ class EM27Property:
     unit: str
 
 
-class EM27:
-    """An interface for EM27 monitoring."""
+class EM27Scraper:
+    """An interface for monitoring EM27 properties."""
 
     def __init__(self, url: str = f"http://{EM27_IP}/diag_autom.htm") -> None:
-        """Create a new EM27 monitor.
+        """Create a new EM27 property monitor.
 
         Args:
             url: Web address of the automation units diagnostics page.
         """
         self._url = url
-        self._html = b""
         self._data_table: list[EM27Property] = []
 
     def open(self, timeout: int = 2) -> int:
@@ -47,24 +47,34 @@ class EM27:
             timeout: Number of seconds to wait for response.
 
         Returns:
-            error: 0 = successful request, 1 = error
+            error: 0 = successful open, 1 = error
         """
         error = 1
         try:
             self._page = urlopen(self._url, timeout=timeout)
             error = 0
         except HTTPError as exception:
-            print(exception.status, exception.reason)
+            print(exception)
         except URLError as exception:
-            print(exception.reason)
+            print(exception)
         except TimeoutError:
             print("Request timed out")
 
         return error
 
-    def close(self) -> None:
-        """Disconnect from the webpage."""
-        self._page.close()
+    def close(self) -> int:
+        """Disconnect from the webpage.
+
+        Returns:
+            error: 0 = successful close, 1 = error
+        """
+        error = 0
+        try:
+            self._page.close()
+        except AttributeError:
+            error = 1
+            print("Page not opened")
+        return error
 
     def read(self) -> int:
         """Read the webpage and store in EM27 object.
@@ -74,46 +84,54 @@ class EM27:
         """
         error = 0
         try:
-            self._html = self._page.read()
-        except ValueError as exception:
-            print(exception)
-            print("Open page first")
+            assert hasattr(self, "_page")  # likely insufficient
+        except AssertionError:
             error = 1
+            print("Page not open")
+        else:
+            self._html = self._page.read()
         return error
 
     def get_psf27sensor_data(self) -> int:
         """Search for the PSF27Sensor table and store the data.
 
         Returns:
-            error: 0 = successful request, 1 = error
+            error: 0 = successful get, 1 = error
         """
         error = 0
-        html_ascii = self._html.decode("ascii")
-        table_header = (
-            "<TR><TH>No</TH><TH>Name</TH><TH>Description</TH>"
-            + "<TH>Status</TH><TH>Value</TH><TH>Meas. Unit</TH></TR>\n"
-        )
-        table_start = html_ascii.find(table_header)
-        if table_start == -1:
+        try:
+            html_ascii = self._html.decode("ascii")
+        except AttributeError:
             error = 1
-            print("Error: table not located")
-            print(html_ascii)
+            print("Page has not been read")
+            # Actually call read() here?
         else:
-            table_end = table_start + html_ascii[table_start:].find("</TABLE>")
-            table = html_ascii[table_start:table_end].splitlines()
-            for row in range(1, len(table) - 1):
-                self._data_table.append(
-                    EM27Property(
-                        table[row].split("<TD>")[2].rstrip("</TD>"),
-                        Decimal(table[row].split("<TD>")[5].strip("</TD>")),
-                        table[row].split("<TD>")[6].rstrip("</TD></TR"),
+            table_header = (
+                "<TR><TH>No</TH><TH>Name</TH><TH>Description</TH>"
+                + "<TH>Status</TH><TH>Value</TH><TH>Meas. Unit</TH></TR>\n"
+            )
+            table_start = html_ascii.find(table_header)
+            try:
+                assert table_start != -1
+            except AssertionError:
+                error = 1
+                print("PSF27Sensor table not located")
+            else:
+                table_end = table_start + html_ascii[table_start:].find("</TABLE>")
+                table = html_ascii[table_start:table_end].splitlines()
+                for row in range(1, len(table) - 1):
+                    self._data_table.append(
+                        EM27Property(
+                            table[row].split("<TD>")[2].rstrip("</TD>"),
+                            Decimal(table[row].split("<TD>")[5].strip("</TD>")),
+                            table[row].split("<TD>")[6].rstrip("</TD></TR"),
+                        )
                     )
-                )
-            pub.sendMessage("psf27_data", data=table)
+                pub.sendMessage("psf27_data", data=table)
         return error
 
 
-class DummyEM27(EM27):
+class DummyEM27Scraper(EM27Scraper):
     """An interface for EM27 monitor testing."""
 
     def __init__(self) -> None:
@@ -122,18 +140,15 @@ class DummyEM27(EM27):
 
 
 if __name__ == "__main__":
-    dev = DummyEM27()
+    dev = DummyEM27Scraper()
     error = dev.open()
     print(error)
     error = dev.read()
     print(error)
-    error = dev.get_psf27sensor_data()
+    if not error:
+        error = dev.get_psf27sensor_data()
+        if not error:
+            for prop in dev._data_table:
+                print(prop)
+    error = dev.close()
     print(error)
-    print(dev._data_table)
-    dev.close()
-
-    # tests:
-    # 1) open correct webpage, check response
-    # 1a)
-    # 1b)
-    # 2) attempt to open incorrect webpage
