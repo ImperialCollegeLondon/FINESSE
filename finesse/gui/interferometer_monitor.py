@@ -50,10 +50,8 @@ class EM27Monitor(QGroupBox):
 
         self._layout = QGridLayout()
         self._prop_names: list[str] = []
-        self._prop_labels: list[QLabel] = []
         self._val_lineedits: list[QLineEdit] = []
         self._data_table: list[EM27Property] = []
-        self._num_props = 0
         self._poll_light = LEDIcon.create_poll_icon()
         self._poll_light._timer.timeout.connect(self.poll_server)  # type: ignore
         self._poll_light._timer.start(2000)
@@ -68,32 +66,29 @@ class EM27Monitor(QGroupBox):
         """Creates and populates the widgets to view the EM27 properties."""
         for prop in self._data_table:
             if prop.name not in self._prop_names:
+                num_props = len(self._prop_names)
+
                 # Update list of monitored properties and create corresponding label
                 self._prop_names.append(prop.name)
                 prop_label = QLabel(prop.name)
-                self._prop_labels.append(prop_label)
 
                 # Remove poll server label and icon before adding new property widgets
-                poll_server_label = self._layout.itemAtPosition(
-                    self._num_props, 0
-                ).widget()
+                poll_server_label = self._layout.itemAtPosition(num_props, 0).widget()
                 self._layout.removeWidget(poll_server_label)
                 self._layout.removeWidget(self._poll_light)
 
-                self._layout.addWidget(prop_label, self._num_props, 0)
+                self._layout.addWidget(prop_label, num_props, 0)
 
                 val_lineedit = QLineEdit()
                 val_lineedit.setText(f"{prop.value:.6f} {prop.unit}")
                 val_lineedit.setReadOnly(True)
                 val_lineedit.setAlignment(Qt.AlignmentFlag.AlignCenter)
                 self._val_lineedits.append(val_lineedit)
-                self._layout.addWidget(val_lineedit, self._num_props, 1)
+                self._layout.addWidget(val_lineedit, num_props, 1)
 
                 # Add poll server label and icon to bottom
-                self._layout.addWidget(poll_server_label, self._num_props + 1, 0)
-                self._layout.addWidget(self._poll_light, self._num_props + 1, 1)
-
-                self._num_props += 1
+                self._layout.addWidget(poll_server_label, num_props + 1, 0)
+                self._layout.addWidget(self._poll_light, num_props + 1, 1)
             else:
                 idx = self._prop_names.index(prop.name)
                 self._val_lineedits[idx].setText(f"{prop.value:.6f} {prop.unit}")
