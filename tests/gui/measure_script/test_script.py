@@ -116,3 +116,34 @@ def test_try_load_fail(
             script = Script.try_load(QWidget(), _SCRIPT_PATH)
             assert script is None, "Script should not have been loaded"
             show_error_mock.assert_called_once()
+
+
+_MEASUREMENTS = [Measurement(float(i), i) for i in range(1, 4)]
+
+
+@pytest.mark.parametrize(
+    "num_measurements,repeats",
+    (
+        (num_measurements, repeats)
+        for num_measurements in range(4)
+        for repeats in range(1, 4)
+    ),
+)
+def test_script_iterator(num_measurements: int, repeats: int) -> None:
+    """Test the ScriptIterator class."""
+    script = Script(Path(), repeats, [])
+    script.sequence = _MEASUREMENTS[:num_measurements]
+    it = iter(script)
+
+    # Check that we get the correct values "repeats" times
+    with does_not_raise():
+        for _ in range(repeats):
+            assert all(next(it) == m for m in script.sequence)
+
+    # Check that we get a StopIteration at the end
+    with pytest.raises(StopIteration):
+        next(it)
+
+    # Check that calling it again still yields an error!
+    with pytest.raises(StopIteration):
+        next(it)
