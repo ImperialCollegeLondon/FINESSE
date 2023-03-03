@@ -125,10 +125,10 @@ class OPUSInterface(OPUSInterfaceBase):
 
     def request_status(self) -> None:
         """Request an update on the device's status."""
-        self.submit_request.emit(STATUS_FILENAME, "opus.status.response")
+        self.submit_request.emit(STATUS_FILENAME, "opus.response.status")
 
     def request_command(self, command: str) -> None:
         """Request that OPUS run the specified command."""
         self.submit_request.emit(
-            f"{COMMAND_FILENAME}?opusrs{command}", "opus.command.response"
+            f"{COMMAND_FILENAME}?opusrs{command}", "opus.response.command"
         )

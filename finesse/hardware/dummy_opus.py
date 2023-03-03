@@ -141,7 +141,7 @@ class DummyOPUSInterface(OPUSInterfaceBase):
         state = self.state_machine.current_state
 
         pub.sendMessage(
-            f"opus.{type}.response",
+            f"opus.response.{type}",
             url="https://example.com",
             status=state.value,
             text=state.name,
