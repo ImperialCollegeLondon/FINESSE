@@ -12,8 +12,7 @@ class OPUSInterfaceBase(QObject):
     def __init__(self) -> None:
         """Create a new OPUSInterfaceBase."""
         super().__init__()
-        pub.subscribe(self.request_status, "opus.request.status")
-        pub.subscribe(self.request_command, "opus.request.command")
+        pub.subscribe(self.request_command, "opus.request")
 
     def error_occurred(self, exception: BaseException) -> None:
         """Signal that an error occurred."""
@@ -25,10 +24,13 @@ class OPUSInterfaceBase(QObject):
         # Notify listeners
         pub.sendMessage("opus.error", message=str(exception))
 
-    def request_status(self) -> None:
-        """Request an update on the device's status."""
-        raise NotImplementedError("request_status() must be overridden by subclass")
-
     def request_command(self, command: str) -> None:
-        """Request that OPUS run the specified command."""
+        """Request that OPUS run the specified command.
+
+        Note that we treat "status" as a command, even though it requires a different
+        URL to access.
+
+        Args:
+            command: Name of command to run
+        """
         raise NotImplementedError("request_command() must be overridden by subclass")

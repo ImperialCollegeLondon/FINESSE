@@ -54,7 +54,7 @@ def test_request_status(
     dev.last_error = error
     dev.state_machine.current_state = state
 
-    dev.request_status()
+    dev.request_command("status")
     send_message_mock.assert_called_once_with(
         "opus.response.status",
         url="https://example.com",
@@ -113,7 +113,7 @@ def test_request_command(
         # Check that the right response message was sent
         state = dev.state_machine.current_state
         send_message_mock.assert_called_once_with(
-            "opus.response.command",
+            f"opus.response.{command}",
             url="https://example.com",
             status=state.value,
             text=state.name,
@@ -129,7 +129,7 @@ def test_request_command_bad_command(
 
     state = dev.state_machine.current_state
     send_message_mock.assert_called_once_with(
-        "opus.response.command",
+        "opus.response.non_existent_command",
         url="https://example.com",
         status=state.value,
         text=state.name,
