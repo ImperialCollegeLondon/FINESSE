@@ -52,19 +52,19 @@ class ScriptEditDialog(QDialog):
         script_layout.addRow("Script file path:", self.script_path)
         script_widget.setLayout(script_layout)
 
-        buttonBox = QDialogButtonBox(
+        self.buttonBox = QDialogButtonBox(
             QDialogButtonBox.StandardButton.Save
             | QDialogButtonBox.StandardButton.Cancel
         )
-        buttonBox.setCenterButtons(True)
-        buttonBox.accepted.connect(self._try_accept)  # type: ignore
-        buttonBox.rejected.connect(self.reject)  # type: ignore
+        self.buttonBox.setCenterButtons(True)
+        self.buttonBox.accepted.connect(self._try_accept)  # type: ignore
+        self.buttonBox.rejected.connect(self.reject)  # type: ignore
 
         layout = QVBoxLayout()
         layout.addWidget(self.count)
         layout.addWidget(self.sequence_widget)
         layout.addWidget(script_widget)
-        layout.addWidget(buttonBox)
+        layout.addWidget(self.buttonBox)
 
         self.setLayout(layout)
 
