@@ -1,11 +1,12 @@
 """Code for parsing the YAML-formatted measure scripts."""
 from __future__ import annotations
 
+import itertools
 import logging
 from dataclasses import dataclass
 from io import TextIOBase
 from pathlib import Path
-from typing import Any, Dict, Optional, Sequence, Union
+from typing import Any, Dict, Iterator, Optional, Sequence, Union
 
 import yaml
 from pubsub import pub
@@ -55,6 +56,12 @@ class Script:
         self.path = path
         self.repeats = repeats
         self.sequence = [Measurement(**val) for val in sequence]
+
+    def __iter__(self) -> Iterator[Measurement]:
+        """Get an iterator for the measurements."""
+        return itertools.chain.from_iterable(
+            itertools.repeat(self.sequence, self.repeats)
+        )
 
     def run(self) -> None:
         """Run this measure script."""
