@@ -1,5 +1,6 @@
 """Tests for DummyOPUSInterface."""
 
+from itertools import product
 from typing import Optional
 from unittest.mock import MagicMock, patch
 
@@ -40,15 +41,15 @@ def test_finish_measuring(dev: DummyOPUSInterface) -> None:
     assert dev.last_error == OPUSError.NO_ERROR
 
 
-@pytest.mark.parametrize("state", OPUSStateMachine.states)
+@pytest.mark.parametrize("state,error", product(OPUSStateMachine.states, OPUSError))
 def test_request_status(
-    state: State, dev: DummyOPUSInterface, send_message_mock: MagicMock
+    state: State,
+    error: OPUSError,
+    dev: DummyOPUSInterface,
+    send_message_mock: MagicMock,
 ) -> None:
     """Test the request_status() method."""
-    error_mock = MagicMock()
-    ret_mock = MagicMock()
-    error_mock.to_tuple.return_value = ret_mock
-    dev.last_error = error_mock
+    dev.last_error = error
 
     dev.state_machine.current_state = state
 
@@ -60,7 +61,7 @@ def test_request_status(
         text=state.name,
         error=OPUSError.NOT_CONNECTED.to_tuple()
         if state == OPUSStateMachine.idle
-        else ret_mock,
+        else error.to_tuple(),
     )
 
 
