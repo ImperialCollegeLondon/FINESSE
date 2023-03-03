@@ -5,7 +5,7 @@ from enum import Enum
 from typing import Optional
 
 from pubsub import pub
-from PySide6.QtCore import QTimer, Signal, Slot
+from PySide6.QtCore import QTimer, Slot
 from statemachine import State, StateMachine
 from statemachine.exceptions import TransitionNotAllowed
 
@@ -80,9 +80,6 @@ class OPUSStateMachine(StateMachine):
 
 class DummyOPUSInterface(OPUSInterfaceBase):
     """A mock version of the OPUS API for testing purposes."""
-
-    _request_status = Signal()
-    _request_command = Signal(str)
 
     def __init__(self, measure_duration: float = 1.0) -> None:
         """Create a new DummyOPUSInterface.
