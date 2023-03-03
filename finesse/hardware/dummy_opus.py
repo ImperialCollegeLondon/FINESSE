@@ -108,7 +108,11 @@ class DummyOPUSInterface(OPUSInterfaceBase):
         self.measure_timer.stop()
 
     def _send_response(self, type: str) -> None:
-        """Send a message signalling that a response was received."""
+        """Send a message signalling that a response was received.
+
+        Args:
+            type: Either "status" or "command", indicating what message to send
+        """
         state = self.state_machine.current_state
 
         pub.sendMessage(
