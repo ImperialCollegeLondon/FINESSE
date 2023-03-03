@@ -31,7 +31,7 @@ class OPUSError(Enum):
     NOT_CONNECTED = (7, "System not connected")
 
     def to_tuple(self) -> Optional[tuple[int, str]]:
-        """Convert to a code, message tuple or None if no error."""
+        """Convert to a (code, message) tuple or None if no error."""
         if self == OPUSError.NO_ERROR:
             return None
         return self.value
