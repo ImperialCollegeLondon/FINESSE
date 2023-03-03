@@ -16,7 +16,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
 )
 
-COMMANDS = ["cancel", "stop", "start", "connect"]
+COMMANDS = ["status", "cancel", "stop", "start", "connect"]
 """The default commands shown for interacting with OPUS."""
 
 
@@ -38,8 +38,7 @@ class OPUSControl(QGroupBox):
         layout = self._create_controls()
         self.setLayout(layout)
 
-        pub.subscribe(self._log_response, "opus.response.command")
-        pub.subscribe(self._log_response, "opus.response.status")
+        pub.subscribe(self._log_response, "opus.response")
         pub.subscribe(self._display_status, "opus.response.status")
         pub.subscribe(self._log_error, "opus.error")
 
@@ -62,10 +61,6 @@ class OPUSControl(QGroupBox):
             QHBoxLayout: The layout with the buttons.
         """
         btn_layout = QVBoxLayout()
-
-        button = QPushButton("Status")
-        button.clicked.connect(self._request_status)  # type: ignore
-        btn_layout.addWidget(button)
 
         for name in self.commands:
             button = QPushButton(name.capitalize())
@@ -139,11 +134,11 @@ class OPUSControl(QGroupBox):
             command: OPUS command to be executed
         """
         self.logger.info(f'Executing command "{command}"')
-        pub.sendMessage("opus.request.command", command=command)
+        pub.sendMessage("opus.request", command=command)
 
     def _request_status(self) -> None:
         self.logger.info("Requesting status")
-        pub.sendMessage("opus.request.status")
+        pub.sendMessage("opus.request", command="status")
 
     def _display_status(
         self, status: int, text: str, error: Optional[tuple[int, str]], url: str

@@ -123,12 +123,18 @@ class OPUSInterface(OPUSInterfaceBase):
             topic, url=response.url, status=cast(int, status), text=text, error=error
         )
 
-    def request_status(self) -> None:
-        """Request an update on the device's status."""
-        self.submit_request.emit(STATUS_FILENAME, "opus.response.status")
-
     def request_command(self, command: str) -> None:
-        """Request that OPUS run the specified command."""
-        self.submit_request.emit(
-            f"{COMMAND_FILENAME}?opusrs{command}", "opus.response.command"
+        """Request that OPUS run the specified command.
+
+        Note that we treat "status" as a command, even though it requires a different
+        URL to access.
+
+        Args:
+            command: Name of command to run
+        """
+        filename = (
+            STATUS_FILENAME
+            if command == "status"
+            else f"{COMMAND_FILENAME}?opusrs{command}"
         )
+        self.submit_request.emit(filename, f"opus.response.{command}")
