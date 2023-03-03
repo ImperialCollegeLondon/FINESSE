@@ -18,7 +18,7 @@ def test_request_status(opus: OPUSInterface) -> None:
     """Test OPUSInterface's request_status() method."""
     with patch.object(opus, "submit_request") as request_mock:
         opus.request_status()
-        request_mock.emit.assert_called_once_with("stat.htm", "opus.status.response")
+        request_mock.emit.assert_called_once_with("stat.htm", "opus.response.status")
 
 
 def test_request_command(opus: OPUSInterface) -> None:
@@ -26,7 +26,7 @@ def test_request_command(opus: OPUSInterface) -> None:
     with patch.object(opus, "submit_request") as request_mock:
         opus.request_command("hello")
         request_mock.emit.assert_called_once_with(
-            "cmd.htm?opusrshello", "opus.command.response"
+            "cmd.htm?opusrshello", "opus.response.command"
         )
 
 

@@ -12,8 +12,8 @@ class OPUSInterfaceBase(QObject):
     def __init__(self) -> None:
         """Create a new OPUSInterfaceBase."""
         super().__init__()
-        pub.subscribe(self.request_status, "opus.status.request")
-        pub.subscribe(self.request_command, "opus.command.request")
+        pub.subscribe(self.request_status, "opus.request.status")
+        pub.subscribe(self.request_command, "opus.request.command")
 
     def error_occurred(self, exception: BaseException) -> None:
         """Signal that an error occurred."""

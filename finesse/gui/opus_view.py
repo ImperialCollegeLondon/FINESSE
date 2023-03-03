@@ -38,9 +38,9 @@ class OPUSControl(QGroupBox):
         layout = self._create_controls()
         self.setLayout(layout)
 
-        pub.subscribe(self._log_response, "opus.command.response")
-        pub.subscribe(self._log_response, "opus.status.response")
-        pub.subscribe(self._display_status, "opus.status.response")
+        pub.subscribe(self._log_response, "opus.response.command")
+        pub.subscribe(self._log_response, "opus.response.status")
+        pub.subscribe(self._display_status, "opus.response.status")
         pub.subscribe(self._log_error, "opus.error")
 
     def _create_controls(self) -> QHBoxLayout:
@@ -139,18 +139,18 @@ class OPUSControl(QGroupBox):
             command: OPUS command to be executed
         """
         self.logger.info(f'Executing command "{command}"')
-        pub.sendMessage("opus.command.request", command=command)
+        pub.sendMessage("opus.request.command", command=command)
 
     def _request_status(self) -> None:
         self.logger.info("Requesting status")
-        pub.sendMessage("opus.status.request")
+        pub.sendMessage("opus.request.status")
 
     def _display_status(
         self, status: int, text: str, error: Optional[tuple[int, str]], url: str
     ) -> None:
         """Display the status in the GUI's browser pane.
 
-        This method is a handler for the opus.status.response message, which means that
+        This method is a handler for the opus.response.status message, which means that
         we only reload the page displayed in self.status once the status has already
         been requested! However, the self.status widget is not really necessary (the
         user doesn't need to know how the returned HTML looks), so hopefully we can
