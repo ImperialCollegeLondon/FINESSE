@@ -1,9 +1,19 @@
 """Panel and widgets related to monitoring the interferometer."""
 from dataclasses import dataclass
 from decimal import Decimal
+from typing import Dict
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QGridLayout, QGroupBox, QLabel, QLineEdit, QSizePolicy
+from PySide6.QtWidgets import (
+    QGridLayout,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QSizePolicy,
+    QVBoxLayout,
+    QWidget,
+)
 
 from .led_icons import LEDIcon
 
@@ -48,18 +58,30 @@ class EM27Monitor(QGroupBox):
         """Creates the attributes required to view properties monitored by the EM27."""
         super().__init__("EM27 SOH Monitor")
 
-        self._layout = QGridLayout()
         self._prop_names: list[str] = []
-        self._val_lineedits: list[QLineEdit] = []
+        self._val_lineedits: Dict[str, QLineEdit] = {}
         self._data_table: list[EM27Property] = []
+
         self._poll_light = LEDIcon.create_poll_icon()
         self._poll_light._timer.timeout.connect(self.poll_server)  # type: ignore
         self._poll_light._timer.start(2000)
-        self._layout.addWidget(QLabel("POLL Server"), 0, 0)
-        self._layout.addWidget(self._poll_light, 0, 1)
+
+        self._poll_wid_layout = QHBoxLayout()
+        self._poll_wid_layout.addWidget(QLabel("POLL Server"))
+        self._poll_wid_layout.addWidget(self._poll_light)
         self._poll_light.setSizePolicy(
             QSizePolicy.Expanding, QSizePolicy.Fixed  # type: ignore
         )
+
+        self._prop_wid_layout = QGridLayout()
+        top = QWidget()
+        top.setLayout(self._prop_wid_layout)
+        bottom = QWidget()
+        bottom.setLayout(self._poll_wid_layout)
+
+        self._layout = QVBoxLayout()
+        self._layout.addWidget(top)
+        self._layout.addWidget(bottom)
         self.setLayout(self._layout)
 
     def _display_props(self) -> None:
@@ -71,27 +93,17 @@ class EM27Monitor(QGroupBox):
                 # Update list of monitored properties and create corresponding label
                 self._prop_names.append(prop.name)
                 prop_label = QLabel(prop.name)
+                self._prop_wid_layout.addWidget(prop_label, num_props, 0)
 
-                # Remove poll server label and icon before adding new property widgets
-                poll_server_label = self._layout.itemAtPosition(num_props, 0).widget()
-                self._layout.removeWidget(poll_server_label)
-                self._layout.removeWidget(self._poll_light)
-
-                self._layout.addWidget(prop_label, num_props, 0)
-
+                # Create corresponding box to display value and unit
                 val_lineedit = QLineEdit()
                 val_lineedit.setText(f"{prop.value:.6f} {prop.unit}")
                 val_lineedit.setReadOnly(True)
                 val_lineedit.setAlignment(Qt.AlignmentFlag.AlignCenter)
-                self._val_lineedits.append(val_lineedit)
-                self._layout.addWidget(val_lineedit, num_props, 1)
-
-                # Add poll server label and icon to bottom
-                self._layout.addWidget(poll_server_label, num_props + 1, 0)
-                self._layout.addWidget(self._poll_light, num_props + 1, 1)
+                self._val_lineedits[prop.name] = val_lineedit
+                self._prop_wid_layout.addWidget(val_lineedit, num_props, 1)
             else:
-                idx = self._prop_names.index(prop.name)
-                self._val_lineedits[idx].setText(f"{prop.value:.6f} {prop.unit}")
+                self._val_lineedits[prop.name].setText(f"{prop.value:.6f} {prop.unit}")
 
     def poll_server(self) -> None:
         """Polls the server to obtain the latest values."""
