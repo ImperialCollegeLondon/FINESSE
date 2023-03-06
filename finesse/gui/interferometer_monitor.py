@@ -67,7 +67,6 @@ class EM27Monitor(QGroupBox):
         """Creates the attributes required to view properties monitored by the EM27."""
         super().__init__("EM27 SOH Monitor")
 
-        self._prop_names: list[str] = []
         self._val_lineedits: Dict[str, QLineEdit] = {}
         self._data_table: list[EM27Property] = []
 
@@ -110,10 +109,9 @@ class EM27Monitor(QGroupBox):
     def _display_props(self) -> None:
         """Creates and populates the widgets to view the EM27 properties."""
         for prop in self._data_table:
-            if prop.name not in self._prop_names:
-                num_props = len(self._prop_names)
+            if prop.name not in self._val_lineedits:
+                num_props = len(self._val_lineedits)
 
-                self._prop_names.append(prop.name)
                 prop_label, val_lineedit = self._create_prop_widgets(prop)
                 self._val_lineedits[prop.name] = val_lineedit
 
