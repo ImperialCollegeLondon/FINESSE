@@ -1,7 +1,7 @@
 """Panel and widgets related to monitoring the interferometer."""
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Dict
+from typing import Dict, Tuple
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
@@ -31,6 +31,15 @@ class EM27Property:
     name: str
     value: Decimal
     unit: str
+
+    def val_str(self) -> str:
+        """For printing a property's value and unit in required format.
+
+        Returns:
+            str: The value and unit of a property in the format consistent with
+                 the previous FINESSE GUI.
+        """
+        return f"{self.value:.6f} {self.unit}"
 
 
 def get_vals_from_server() -> list[EM27Property]:
@@ -66,14 +75,21 @@ class EM27Monitor(QGroupBox):
         self._poll_light._timer.timeout.connect(self.poll_server)  # type: ignore
         self._poll_light._timer.start(2000)
 
-        self._poll_wid_layout = QHBoxLayout()
+        self._create_layouts()
+
         self._poll_wid_layout.addWidget(QLabel("POLL Server"))
         self._poll_wid_layout.addWidget(self._poll_light)
         self._poll_light.setSizePolicy(
             QSizePolicy.Expanding, QSizePolicy.Fixed  # type: ignore
         )
 
+        self.setLayout(self._layout)
+
+    def _create_layouts(self) -> None:
+        """Creates layouts to house the widgets."""
+        self._poll_wid_layout = QHBoxLayout()
         self._prop_wid_layout = QGridLayout()
+
         top = QWidget()
         top.setLayout(self._prop_wid_layout)
         bottom = QWidget()
@@ -82,7 +98,14 @@ class EM27Monitor(QGroupBox):
         self._layout = QVBoxLayout()
         self._layout.addWidget(top)
         self._layout.addWidget(bottom)
-        self.setLayout(self._layout)
+
+    def _create_prop_widgets(self, prop) -> Tuple[QLabel, QLineEdit]:
+        prop_label = QLabel(prop.name)
+        val_lineedit = QLineEdit()
+        val_lineedit.setText(prop.val_str())
+        val_lineedit.setReadOnly(True)
+        val_lineedit.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        return prop_label, val_lineedit
 
     def _display_props(self) -> None:
         """Creates and populates the widgets to view the EM27 properties."""
@@ -90,20 +113,14 @@ class EM27Monitor(QGroupBox):
             if prop.name not in self._prop_names:
                 num_props = len(self._prop_names)
 
-                # Update list of monitored properties and create corresponding label
                 self._prop_names.append(prop.name)
-                prop_label = QLabel(prop.name)
-                self._prop_wid_layout.addWidget(prop_label, num_props, 0)
-
-                # Create corresponding box to display value and unit
-                val_lineedit = QLineEdit()
-                val_lineedit.setText(f"{prop.value:.6f} {prop.unit}")
-                val_lineedit.setReadOnly(True)
-                val_lineedit.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                prop_label, val_lineedit = self._create_prop_widgets(prop)
                 self._val_lineedits[prop.name] = val_lineedit
+
+                self._prop_wid_layout.addWidget(prop_label, num_props, 0)
                 self._prop_wid_layout.addWidget(val_lineedit, num_props, 1)
             else:
-                self._val_lineedits[prop.name].setText(f"{prop.value:.6f} {prop.unit}")
+                self._val_lineedits[prop.name].setText(prop.val_str())
 
     def poll_server(self) -> None:
         """Polls the server to obtain the latest values."""
