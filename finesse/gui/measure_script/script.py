@@ -1,4 +1,7 @@
-"""Code for parsing the YAML-formatted measure scripts."""
+"""An interface for using the YAML-formatted measure scripts.
+
+This includes code for parsing and running the scripts.
+"""
 from __future__ import annotations
 
 import itertools
@@ -10,8 +13,10 @@ from typing import Any, Dict, Iterator, Optional, Sequence, Union
 
 import yaml
 from pubsub import pub
+from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import QWidget
 from schema import And, Or, Schema, SchemaError
+from statemachine import State, StateMachine
 
 from ...config import ANGLE_PRESETS, STEPPER_MOTOR_TOPIC
 from ..error_message import show_error_message
@@ -56,6 +61,7 @@ class Script:
         self.path = path
         self.repeats = repeats
         self.sequence = [Measurement(**val) for val in sequence]
+        self.runner: Optional[ScriptRunner] = None
 
     def __iter__(self) -> Iterator[Measurement]:
         """Get an iterator for the measurements."""
@@ -66,10 +72,8 @@ class Script:
     def run(self) -> None:
         """Run this measure script."""
         logging.info(f"Running {self.path}")
-        for i in range(self.repeats):
-            logging.info(f"Iteration {i+1}/{self.repeats}")
-            for instruction in self.sequence:
-                instruction.run()
+        self.runner = ScriptRunner(self)
+        self.runner.start_moving()
 
     @classmethod
     def try_load(cls, parent: QWidget, file_path: Path) -> Optional[Script]:
@@ -131,3 +135,166 @@ def parse_script(script: Union[str, TextIOBase]) -> Dict[str, Any]:
         return schema.validate(yaml.safe_load(script))
     except (yaml.YAMLError, SchemaError) as e:
         raise ParseError() from e
+
+
+def _poll_em27_status() -> None:
+    """Request the EM27's status from OPUS."""
+    pub.sendMessage("opus.request", command="status")
+
+
+class ScriptRunner(StateMachine):
+    """A class for running measure scripts.
+
+    The ScriptRunner is a finite state machine. Besides the one initial state, the
+    runner can either be in a "moving" state (i.e. the motor is moving) or a "measuring"
+    state (i.e. the motor is stationary and the EM27 is recording a measurement).
+    """
+
+    not_running = State("Not running", initial=True)
+    """State indicating that the script is not yet running or has finished."""
+    moving = State("Moving")
+    """State indicating that the motor is moving."""
+    measuring = State("Measuring")
+    """State indicating that a measurement is taking place."""
+
+    start_moving = not_running.to(
+        moving, before=lambda: pub.sendMessage("measure_script.begin")
+    )
+    """Start moving the motor to the required angle for the current measurement."""
+    start_measuring = moving.to(measuring)
+    """Start recording the current measurement."""
+    repeat_measuring = measuring.to(measuring)
+    """Record another measurement at the same angle."""
+    start_next_move = measuring.to(moving)
+    """Trigger a move to the angle for the next measurement."""
+    finish = moving.to(not_running, after=lambda: pub.sendMessage("measure_script.end"))
+    """To be called when all measurements are complete."""
+
+    def __init__(self, script: Script, poll_interval_msec: int = 1000) -> None:
+        """Create a new ScriptRunner.
+
+        Args:
+            script: The script to run
+            poll_interval_msec: How frequently to poll the EM27 (milliseconds)
+
+        Todo:
+            Error handling for the EM27 and stepper motor
+        """
+        self.script = script
+        """The running script."""
+        self.measurement_iter = iter(self.script)
+        """An iterator yielding the required sequence of measurements."""
+
+        self.current_measurement: Measurement
+        """The current measurement to acquire."""
+        self.current_measurement_count: int
+        """How many times a measurement has been recorded at the current angle."""
+
+        self._measure_poll_timer = QTimer()
+        """A timer which repeatedly polls the EM27."""
+        self._measure_poll_timer.setInterval(poll_interval_msec)
+        self._measure_poll_timer.timeout.connect(_poll_em27_status)  # type: ignore
+
+        # Listen for stepper motor messages (TODO: add error handling)
+        pub.subscribe(self.start_measuring, "serial.stepper_motor.move.end")
+
+        # Listen for EM27 messages
+        pub.subscribe(self._measuring_error, "opus.error")
+        pub.subscribe(self._measuring_started, "opus.response.start")
+        pub.subscribe(self._status_received, "opus.response.status")
+
+        # Send stop command in case motor is moving
+        pub.sendMessage("serial.stepper_motor.stop")
+
+        super().__init__()
+
+    def on_enter_state(self, target: State) -> None:
+        """Log the state every time it changes.
+
+        This is just a placeholder so we can see the measure scripts running.
+        """
+        logging.info(f"Measure script: Entering state {target.name}")
+
+    def _load_next_measurement(self) -> bool:
+        """Load the next measurement in the sequence.
+
+        Returns:
+            False if there are no more measurements
+        """
+        try:
+            self.current_measurement = next(self.measurement_iter)
+            self.current_measurement_count = 0
+            return True
+        except StopIteration:
+            return False
+
+    def on_enter_moving(self) -> None:
+        """Try to load the next measurement and start the next movement.
+
+        If there are no more measurements, the ScriptRunner will return to a not_running
+        state.
+        """
+        if not self._load_next_measurement():
+            self.finish()
+            return
+
+        # Start moving the stepper motor
+        pub.sendMessage(
+            "serial.stepper_motor.move.begin", target=self.current_measurement.angle
+        )
+
+        # Flag that we want a message when the movement has stopped
+        pub.sendMessage("serial.stepper_motor.notify_on_stopped")
+
+    def on_enter_measuring(self) -> None:
+        """Tell the EM27 to start a new measurement.
+
+        NB: This is also invoked on repeat measurements
+        """
+        pub.sendMessage("opus.request", command="start")
+
+    def _measuring_started(
+        self,
+        status: int,
+        text: str,
+        error: Optional[tuple[int, str]],
+        url: str,
+    ):
+        """Start polling the EM27 so we know when the measurement is finished.
+
+        Todo:
+            Error handling, for now assume it's fine
+        """
+        self._measure_poll_timer.start()
+
+    def _status_received(
+        self,
+        status: int,
+        text: str,
+        error: Optional[tuple[int, str]],
+        url: str,
+    ):
+        """Move onto the next measurement if the measurement has finished.
+
+        Todo:
+            Add error handing
+        """
+        if status == 2:  # "connected" state, indicating measurement is finished
+            self._measure_poll_timer.stop()
+            self._measuring_end()
+
+    def _measuring_error(self, message: str) -> None:
+        """Log errors from OPUS.
+
+        Todo:
+            Stop script when errors occur
+        """
+        logging.error(f"OPUS error: {message}")
+
+    def _measuring_end(self) -> None:
+        """Move onto the next measurement or perform another measurement here."""
+        self.current_measurement_count += 1
+        if self.current_measurement_count == self.current_measurement.measurements:
+            self.start_next_move()
+        else:
+            self.repeat_measuring()
