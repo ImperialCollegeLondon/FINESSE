@@ -13,7 +13,7 @@ from bs4 import BeautifulSoup
 from pubsub import pub
 from PySide6.QtCore import QThread, Signal, Slot
 
-from ..config import OPUS_IP
+from ...config import OPUS_IP
 from .opus_interface_base import OPUSInterfaceBase
 
 STATUS_FILENAME = "stat.htm"

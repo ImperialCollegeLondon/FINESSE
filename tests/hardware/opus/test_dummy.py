@@ -8,11 +8,11 @@ import pytest
 from pubsub import pub
 from statemachine import State
 
-from finesse.hardware.dummy_opus import DummyOPUSInterface, OPUSError, OPUSStateMachine
+from finesse.hardware.opus.dummy import DummyOPUSInterface, OPUSError, OPUSStateMachine
 
 
 @pytest.fixture
-@patch("finesse.hardware.dummy_opus.QTimer")
+@patch("finesse.hardware.opus.dummy.QTimer")
 def dev(timer_mock: Mock) -> DummyOPUSInterface:
     """A fixture for DummyOPUSInterface."""
     timer_mock.return_value = MagicMock()

@@ -4,9 +4,9 @@ import sys
 from pubsub import pub
 
 if "--dummy-em27" in sys.argv:
-    from .dummy_opus import DummyOPUSInterface as OPUSInterface
+    from .opus.dummy import DummyOPUSInterface as OPUSInterface
 else:
-    from .em27_opus import OPUSInterface  # type: ignore
+    from .opus.em27 import OPUSInterface  # type: ignore
 
 from .dummy_stepper_motor import DummyStepperMotor
 
