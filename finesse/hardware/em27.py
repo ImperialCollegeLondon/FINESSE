@@ -4,13 +4,14 @@ This is used to scrape the PSF27 sensor data table off the server.
 """
 from dataclasses import dataclass
 from decimal import Decimal
+from importlib import resources
 from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
 
 from pubsub import pub
 
 # from ..config import EM27_IP
-EM27_IP = "10.10.0.1"
+EM27_IP = "10.10.0.1"  # while calling as __main__ for testing
 
 
 @dataclass
@@ -164,7 +165,8 @@ class DummyEM27Scraper(EM27Scraper):
 
     def __init__(self) -> None:
         """Create a new monitor for a dummy EM27."""
-        super().__init__("file:///home/dc2917/Downloads/diag_autom.htm")
+        dummy_em27_fp = resources.files("finesse.hardware").joinpath("diag_autom.htm")
+        super().__init__("file://" + str(dummy_em27_fp))
 
 
 if __name__ == "__main__":
