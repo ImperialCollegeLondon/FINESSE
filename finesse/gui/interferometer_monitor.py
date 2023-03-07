@@ -99,6 +99,7 @@ class EM27Monitor(QGroupBox):
         self._layout.addWidget(bottom)
 
     def _create_prop_widgets(self, prop) -> Tuple[QLabel, QLineEdit]:
+        """Creates the widgets for displaying the monitored properties."""
         prop_label = QLabel(prop.name)
         val_lineedit = QLineEdit()
         val_lineedit.setText(prop.val_str())
