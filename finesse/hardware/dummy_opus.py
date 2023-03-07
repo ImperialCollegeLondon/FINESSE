@@ -100,10 +100,6 @@ class DummyOPUSInterface(OPUSInterfaceBase):
         self.measure_timer.setSingleShot(True)
         self.measure_timer.timeout.connect(self.finish_measuring)  # type: ignore
 
-    def __del__(self) -> None:
-        """Stop the background timer."""
-        self.measure_timer.stop()
-
     def _send_response(self, type: str) -> None:
         """Send a message signalling that a response was received.
 
