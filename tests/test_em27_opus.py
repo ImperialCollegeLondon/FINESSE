@@ -1,5 +1,6 @@
 """Tests for the interface to the EM27's OPUS control program."""
-from unittest.mock import patch
+from typing import Any, Optional
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -64,3 +65,77 @@ def test_make_request_error(requests_mock) -> None:
         )
 
         request_error_mock.emit.assert_called_once_with(error)
+
+
+def _format_td(name: str, value: Any) -> str:
+    if value is None:
+        return ""
+    return f'<td id="{name}">{str(value)}</td>'
+
+
+def _get_opus_html(
+    status: Optional[int],
+    text: Optional[str],
+    errcode: Optional[int],
+    errtext: Optional[str],
+) -> str:
+    return f"""
+    <html>
+        <body>
+            <table>
+                <tr>
+                    {_format_td("STATUS", status)}
+                    {_format_td("TEXT", text)}
+                    {_format_td("ERRCODE", errcode)}
+                    {_format_td("ERRTEXT", errtext)}
+                </tr>
+            </table>
+        </body>
+    </html>
+    """
+
+
+@pytest.mark.parametrize(
+    "http_status_code,status,text,errcode,errtext",
+    (
+        (http_status, status, text, errcode, errtext)
+        for http_status in (200, 403, 404)
+        for status in (None, 0, 1)
+        for text in (None, "", "status text")
+        for errcode in (None, 0, 1)
+        for errtext in (None, "", "error text")
+    ),
+)
+def test_parsing(
+    http_status_code: int,
+    status: Optional[int],
+    text: Optional[str],
+    errcode: Optional[int],
+    errtext: Optional[str],
+    opus: OPUSInterface,
+    sendmsg_mock: MagicMock,
+) -> None:
+    """Test the OPUS parser."""
+    html = _get_opus_html(status, text, errcode, errtext)
+
+    # Mock a requests.Response
+    response = MagicMock()
+    response.status_code = http_status_code
+    response.url = "https://example.com"
+    response.content = html.encode()
+
+    with patch.object(opus, "error_occurred") as error_mock:
+        opus._parse_response(response, "my.topic")
+        if http_status_code == 200:
+            if status is None or text is None:
+                # Required fields missing
+                error_mock.assert_called()
+            else:
+                error = None if errcode is None else (errcode, errtext)
+                sendmsg_mock.assert_called_once_with(
+                    "my.topic", url=response.url, status=status, text=text, error=error
+                )
+                error_mock.assert_not_called()
+        else:
+            sendmsg_mock.assert_not_called()
+            error_mock.assert_called_once()
