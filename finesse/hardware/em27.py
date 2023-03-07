@@ -27,6 +27,23 @@ class EM27Property:
     value: Decimal
     unit: str
 
+    def __str__(self) -> str:
+        """For printing a property's name, value and unit in a readable format.
+
+        Returns:
+            str: The name, value and unit of a property.
+        """
+        return f"{self.name} = {self.value:.6f} {self.unit}"
+
+    def val_str(self) -> str:
+        """For printing a property's value and unit in required format.
+
+        Returns:
+            str: The value and unit of a property in the format consistent with
+                 the previous FINESSE GUI.
+        """
+        return f"{self.value:.6f} {self.unit}"
+
 
 class EM27Scraper:
     """An interface for monitoring EM27 properties."""
@@ -37,6 +54,8 @@ class EM27Scraper:
         Args:
             url: Web address of the automation units diagnostics page.
         """
+        self._is_open = False
+        self._is_read = False
         self._url = url
         self._data_table: list[EM27Property] = []
 
@@ -47,11 +66,15 @@ class EM27Scraper:
             timeout: Number of seconds to wait for response.
 
         Returns:
-            error: 0 = successful open, 1 = error
+            error: 0 = successful open, 1 = unsuccessful open
         """
+        if self._is_open:
+            return 0
+
         error = 1
         try:
             self._page = urlopen(self._url, timeout=timeout)
+            self._is_open = True
             error = 0
         except HTTPError as exception:
             print(exception)
@@ -66,68 +89,73 @@ class EM27Scraper:
         """Disconnect from the webpage.
 
         Returns:
-            error: 0 = successful close, 1 = error
+            error: 0 = successful close, 1 = unsuccessful close
         """
-        error = 0
+        if not self._is_open:
+            return 0
+
+        error = 1
         try:
             self._page.close()
+            self._is_open = False
+            error = 0
         except AttributeError:
-            error = 1
-            print("Page not opened")
+            print("Page has not been opened")
         return error
 
     def read(self) -> int:
         """Read the webpage and store in EM27 object.
 
         Returns:
-            error: 0 = successful read, 1 = error
+            error: 0 = successful read, 1 = unsuccessful read
         """
-        error = 0
-        try:
-            assert hasattr(self, "_page")  # likely insufficient
-        except AssertionError:
-            error = 1
-            print("Page not open")
+        error = 1
+        if self._is_open:
+            try:
+                self._html = self._page.read()
+                self._is_read = True
+                error = 0
+            except AttributeError:
+                print("Page has not been opened")
         else:
-            self._html = self._page.read()
+            print("Page is closed")
         return error
 
     def get_psf27sensor_data(self) -> int:
         """Search for the PSF27Sensor table and store the data.
 
         Returns:
-            error: 0 = successful get, 1 = error
+            error: 0 = successful search, 1 = unsuccessful search
         """
-        error = 0
-        try:
-            html_ascii = self._html.decode("ascii")
-        except AttributeError:
-            error = 1
-            print("Page has not been read")
-            # Actually call read() here?
-        else:
-            table_header = (
-                "<TR><TH>No</TH><TH>Name</TH><TH>Description</TH>"
-                + "<TH>Status</TH><TH>Value</TH><TH>Meas. Unit</TH></TR>\n"
-            )
-            table_start = html_ascii.find(table_header)
+        error = 1
+        if self._is_read:
             try:
-                assert table_start != -1
-            except AssertionError:
-                error = 1
-                print("PSF27Sensor table not located")
+                html_ascii = self._html.decode("ascii")
+            except AttributeError:
+                print("Page has not been read")
             else:
-                table_end = table_start + html_ascii[table_start:].find("</TABLE>")
-                table = html_ascii[table_start:table_end].splitlines()
-                for row in range(1, len(table) - 1):
-                    self._data_table.append(
-                        EM27Property(
-                            table[row].split("<TD>")[2].rstrip("</TD>"),
-                            Decimal(table[row].split("<TD>")[5].strip("</TD>")),
-                            table[row].split("<TD>")[6].rstrip("</TD></TR"),
+                table_header = (
+                    "<TR><TH>No</TH><TH>Name</TH><TH>Description</TH>"
+                    + "<TH>Status</TH><TH>Value</TH><TH>Meas. Unit</TH></TR>\n"
+                )
+                table_start = html_ascii.find(table_header)
+                try:
+                    assert table_start != -1
+                    error = 0
+                except AssertionError:
+                    print("PSF27Sensor table not located")
+                else:
+                    table_end = table_start + html_ascii[table_start:].find("</TABLE>")
+                    table = html_ascii[table_start:table_end].splitlines()
+                    for row in range(1, len(table) - 1):
+                        self._data_table.append(
+                            EM27Property(
+                                table[row].split("<TD>")[2].rstrip("</TD>"),
+                                Decimal(table[row].split("<TD>")[5].strip("</TD>")),
+                                table[row].split("<TD>")[6].rstrip("</TD></TR"),
+                            )
                         )
-                    )
-                pub.sendMessage("psf27_data", data=table)
+                    pub.sendMessage("psf27_data", data=table)
         return error
 
 
@@ -145,10 +173,10 @@ if __name__ == "__main__":
     print(error)
     error = dev.read()
     print(error)
+    error = dev.get_psf27sensor_data()
+    print(error)
     if not error:
-        error = dev.get_psf27sensor_data()
-        if not error:
-            for prop in dev._data_table:
-                print(prop)
+        for prop in dev._data_table:
+            print(prop)
     error = dev.close()
     print(error)
