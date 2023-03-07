@@ -3,7 +3,7 @@ from contextlib import nullcontext as does_not_raise
 from itertools import chain
 from pathlib import Path
 from typing import Any, Dict, Union
-from unittest.mock import patch
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 import yaml
@@ -147,3 +147,14 @@ def test_script_iterator(num_measurements: int, repeats: int) -> None:
     # Check that calling it again still yields an error!
     with pytest.raises(StopIteration):
         next(it)
+
+
+@patch("finesse.gui.measure_script.script.ScriptRunner")
+def test_script_run(script_runner_mock: Mock) -> None:
+    """Test Script's run() method."""
+    mock2 = MagicMock()
+    script_runner_mock.return_value = mock2
+    script = Script(Path(), 1, ())
+    script.run()
+    script_runner_mock.assert_called_once()
+    mock2.start_moving.assert_called_once()
