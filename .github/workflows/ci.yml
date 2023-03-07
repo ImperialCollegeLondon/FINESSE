@@ -44,7 +44,7 @@ jobs:
         sudo apt install libegl1
 
     - name: Install Poetry
-      uses: abatilo/actions-poetry@v2.2.0
+      uses: abatilo/actions-poetry@v2.3.0
       with:
         poetry-version: 1.2.2
 
@@ -52,9 +52,13 @@ jobs:
       run: poetry install
 
     - name: Run tests
-      run: poetry run pytest
+      run: poetry run pytest --cov-report=xml
       env:
         QT_QPA_PLATFORM: offscreen
+
+    - name: Upload coverage to Codecov
+      if: matrix.os == 'ubuntu-latest' && success()
+      uses: codecov/codecov-action@v3
 
     - name: Check for documentation errors with MkDocs
       run: |
@@ -89,7 +93,7 @@ jobs:
         sudo apt install libegl1
 
     - name: Install Poetry
-      uses: abatilo/actions-poetry@v2.2.0
+      uses: abatilo/actions-poetry@v2.3.0
       with:
         poetry-version: 1.2.2
 
