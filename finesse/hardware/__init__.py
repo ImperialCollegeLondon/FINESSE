@@ -8,7 +8,7 @@ if "--dummy-em27" in sys.argv:
 else:
     from .opus.em27 import OPUSInterface  # type: ignore
 
-from .dummy_stepper_motor import DummyStepperMotor
+from .stepper_motor.dummy import DummyStepperMotor
 
 stepper: DummyStepperMotor
 opus: OPUSInterface

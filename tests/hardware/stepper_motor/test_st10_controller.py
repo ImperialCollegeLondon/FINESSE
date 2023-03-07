@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from serial import SerialException, SerialTimeoutException
 
-from finesse.hardware.st10_controller import (
+from finesse.hardware.stepper_motor.st10_controller import (
     ST10Controller,
     ST10ControllerError,
     _SerialReader,
@@ -33,7 +33,7 @@ class MockSerialReader(_SerialReader):
 
 
 @pytest.fixture
-@patch("finesse.hardware.st10_controller._SerialReader", MockSerialReader)
+@patch("finesse.hardware.stepper_motor.st10_controller._SerialReader", MockSerialReader)
 def dev() -> ST10Controller:
     """A fixture providing an ST10Controller with a patched Serial object."""
     serial = MagicMock()
@@ -47,7 +47,7 @@ def dev() -> ST10Controller:
                 return ST10Controller(serial)
 
 
-@patch("finesse.hardware.st10_controller._SerialReader", MockSerialReader)
+@patch("finesse.hardware.stepper_motor.st10_controller._SerialReader", MockSerialReader)
 def test_init() -> None:
     """Test __init__()."""
     serial = MagicMock()
