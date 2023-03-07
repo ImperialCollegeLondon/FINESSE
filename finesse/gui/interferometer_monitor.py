@@ -1,7 +1,7 @@
 """Panel and widgets related to monitoring the interferometer."""
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Dict, Tuple
+from typing import Dict
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
@@ -98,28 +98,34 @@ class EM27Monitor(QGroupBox):
         self._layout.addWidget(top)
         self._layout.addWidget(bottom)
 
-    def _create_prop_widgets(self, prop) -> Tuple[QLabel, QLineEdit]:
-        """Creates the widgets for displaying the monitored properties."""
-        prop_label = QLabel(prop.name)
-        val_lineedit = QLineEdit()
-        val_lineedit.setText(prop.val_str())
-        val_lineedit.setReadOnly(True)
-        val_lineedit.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        return prop_label, val_lineedit
+    def _get_prop_lineedit(self, prop: EM27Property) -> QLineEdit:
+        """Create and populate the widgets for displaying a given property.
+
+        Args:
+            prop: the EM27 property to display
+
+        Returns:
+            QLineEdit: the QLineEdit widget corresponding to the property
+        """
+        if prop.name not in self._val_lineedits:
+            prop_label = QLabel(prop.name)
+            val_lineedit = QLineEdit()
+            val_lineedit.setReadOnly(True)
+            val_lineedit.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+            self._val_lineedits[prop.name] = val_lineedit
+
+            num_props = len(self._val_lineedits)
+            self._prop_wid_layout.addWidget(prop_label, num_props, 0)
+            self._prop_wid_layout.addWidget(val_lineedit, num_props, 1)
+
+        return self._val_lineedits[prop.name]
 
     def _display_props(self) -> None:
         """Creates and populates the widgets to view the EM27 properties."""
         for prop in self._data_table:
-            if prop.name not in self._val_lineedits:
-                num_props = len(self._val_lineedits)
-
-                prop_label, val_lineedit = self._create_prop_widgets(prop)
-                self._val_lineedits[prop.name] = val_lineedit
-
-                self._prop_wid_layout.addWidget(prop_label, num_props, 0)
-                self._prop_wid_layout.addWidget(val_lineedit, num_props, 1)
-            else:
-                self._val_lineedits[prop.name].setText(prop.val_str())
+            lineedit = self._get_prop_lineedit(prop)
+            lineedit.setText(prop.val_str())
 
     def poll_server(self) -> None:
         """Polls the server to obtain the latest values."""
