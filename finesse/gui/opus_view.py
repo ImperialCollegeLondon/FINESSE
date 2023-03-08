@@ -14,22 +14,18 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
 )
 
-COMMANDS = ["status", "cancel", "stop", "start", "connect"]
-"""The default commands shown for interacting with OPUS."""
-
 
 class OPUSControl(QGroupBox):
     """Class that monitors and controls the OPUS interferometer."""
 
-    def __init__(self, commands: Optional[list[str]] = None) -> None:
-        """Create the widgets to monitor and control the OPUS interferometer.
+    COMMANDS = ["status", "cancel", "stop", "start", "connect"]
+    """The default commands shown for interacting with OPUS."""
 
-        Args:
-            commands: OPUS commands to use
-        """
+    def __init__(self, commands: list[str] = COMMANDS) -> None:
+        """Create the widgets to monitor and control the OPUS interferometer."""
         super().__init__("OPUS client view")
 
-        self.commands = commands if commands is not None else COMMANDS
+        self.commands = commands
         self.logger = logging.getLogger("OPUS")
 
         layout = self._create_controls()
