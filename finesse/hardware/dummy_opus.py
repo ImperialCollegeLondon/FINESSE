@@ -109,6 +109,14 @@ class OPUSStateMachine(StateMachine):
 class DummyOPUSInterface(OPUSInterfaceBase):
     """A mock version of the OPUS API for testing purposes."""
 
+    _COMMAND_ERRORS = {
+        "cancel": OPUSError.NOT_RUNNING,
+        "stop": OPUSError.NOT_RUNNING_OR_FINISHING,
+        "start": OPUSError.NOT_CONNECTED,
+        "connect": OPUSError.NOT_IDLE,
+    }
+    """The error thrown by each command when in an invalid state."""
+
     def __init__(self, measure_duration: float = 1.0) -> None:
         """Create a new DummyOPUSInterface.
 
@@ -147,31 +155,31 @@ class DummyOPUSInterface(OPUSInterfaceBase):
 
         self._send_response("status")
 
+    def _run_command(self, command: str) -> None:
+        """Try to run the specified command.
+
+        If the device is not in the correct state, self.last_error will be changed.
+
+        Args:
+            command: The command to run
+        """
+        fun = getattr(self.state_machine, command)
+
+        try:
+            fun()
+        except TransitionNotAllowed:
+            self.last_error = self._COMMAND_ERRORS[command]
+
     def request_command(self, command: str) -> None:
-        """Execute the specified command on the device."""
+        """Execute the specified command on the device.
+
+        Args:
+            command: The command to run
+        """
         self.last_error = OPUSError.NO_ERROR
 
-        if command == "cancel":
-            try:
-                self.state_machine.cancel()
-            except TransitionNotAllowed:
-                self.last_error = OPUSError.NOT_RUNNING
-        elif command == "stop":
-            try:
-                self.state_machine.stop()
-            except TransitionNotAllowed:
-                # TODO: This currently won't work if it actually *is* finishing
-                self.last_error = OPUSError.NOT_RUNNING_OR_FINISHING
-        elif command == "start":
-            try:
-                self.state_machine.start()
-            except TransitionNotAllowed:
-                self.last_error = OPUSError.NOT_CONNECTED
-        elif command == "connect":
-            try:
-                self.state_machine.connect()
-            except TransitionNotAllowed:
-                self.last_error = OPUSError.NOT_IDLE
+        if command in self._COMMAND_ERRORS:
+            self._run_command(command)
         else:
             self.last_error = OPUSError.UNKNOWN_COMMAND
 
