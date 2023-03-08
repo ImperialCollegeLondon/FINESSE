@@ -10,6 +10,8 @@ IO error occurred while communicating with the device (e.g. because a USB cable 
 become disconnected) and are unlikely to be recoverable. A SerialException is also
 raised if multiple attempts at a request have failed.
 """
+from __future__ import annotations
+
 import logging
 from decimal import Decimal
 from typing import Any
@@ -48,7 +50,7 @@ class TC4820:
         max_attempts: int = 3,
         *serial_args: Any,
         **serial_kwargs: Any,
-    ) -> "TC4820":
+    ) -> TC4820:
         """Create a new TC4820.
 
         If the user hasn't specified an explicit timeout for write operations with the
