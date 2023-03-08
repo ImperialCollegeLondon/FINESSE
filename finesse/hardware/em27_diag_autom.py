@@ -28,7 +28,7 @@ class EM27Property:
     unit: str
 
     def __str__(self) -> str:
-        """For printing a property's name, value and unit in a readable format.
+        """Print a property's name, value and unit in a readable format.
 
         Returns:
             str: The name, value and unit of a property.
@@ -36,13 +36,17 @@ class EM27Property:
         return f"{self.name} = {self.value:.6f} {self.unit}"
 
     def val_str(self) -> str:
-        """For printing a property's value and unit in required format.
+        """Print a property's value and unit in required format.
 
         Returns:
             str: The value and unit of a property in the format consistent with
                  the previous FINESSE GUI.
         """
         return f"{self.value:.6f} {self.unit}"
+
+
+class PSF27Error(Exception):
+    """Indicates than an error occurred while parsing the webpage."""
 
 
 class EM27Scraper:
@@ -58,105 +62,76 @@ class EM27Scraper:
         self._is_read = False
         self._url = url
         self._data_table: list[EM27Property] = []
+        pub.subscribe(self.request_data, "psf27.data.request")
 
-    def open(self, timeout: int = 2) -> int:
+    def open(self, timeout: int = 2) -> None:
         """Connect to the webpage.
 
         Args:
             timeout: Number of seconds to wait for response.
-
-        Returns:
-            error: 0 = successful open, 1 = unsuccessful open
-        """
-        if self._is_open:
-            return 0
-
-        error = 1
-        try:
-            self._page = urlopen(self._url, timeout=timeout)
-            self._is_open = True
-            error = 0
-        except HTTPError as exception:
-            print(exception)
-        except URLError as exception:
-            print(exception)
-        except TimeoutError:
-            print("Request timed out")
-
-        return error
-
-    def close(self) -> int:
-        """Disconnect from the webpage.
-
-        Returns:
-            error: 0 = successful close, 1 = unsuccessful close
         """
         if not self._is_open:
-            return 0
+            try:
+                self._page = urlopen(self._url, timeout=timeout)
+                self._is_open = True
+                pub.sendMessage("psf27.opened")
+            except HTTPError as e:
+                self._error_occurred(e)
+            except URLError as e:
+                self._error_occurred(e)
+            except TimeoutError as e:
+                self._error_occurred(e)
 
-        error = 1
-        try:
+    def close(self) -> None:
+        """Disconnect from the webpage."""
+        if self._is_open:
             self._page.close()
             self._is_open = False
-            error = 0
-        except AttributeError:
-            print("Page has not been opened")
-        return error
+            pub.sendMessage("psf27.closed")
 
-    def read(self) -> int:
-        """Read the webpage and store in EM27 object.
-
-        Returns:
-            error: 0 = successful read, 1 = unsuccessful read
-        """
-        error = 1
+    def read(self) -> None:
+        """Read the webpage and store in EM27 object."""
         if self._is_open:
-            try:
-                self._html = self._page.read()
-                self._is_read = True
-                error = 0
-            except AttributeError:
-                print("Page has not been opened")
-        else:
-            print("Page is closed")
-        return error
+            self._html = self._page.read()
+            self._is_read = True
 
-    def get_psf27sensor_data(self) -> int:
-        """Search for the PSF27Sensor table and store the data.
-
-        Returns:
-            error: 0 = successful search, 1 = unsuccessful search
-        """
-        error = 1
+    def get_psf27sensor_data(self) -> None:
+        """Search for the PSF27Sensor table and store the data."""
         if self._is_read:
+            html_text = self._html.decode("utf-8")
+            table_header = (
+                "<TR><TH>No</TH><TH>Name</TH><TH>Description</TH>"
+                + "<TH>Status</TH><TH>Value</TH><TH>Meas. Unit</TH></TR>\n"
+            )
+            table_start = html_text.find(table_header)
             try:
-                html_text = self._html.decode("utf-8")
-            except AttributeError:
-                print("Page has not been read")
+                if table_start == -1:
+                    raise PSF27Error("PSF27Sensor table not found")
+            except Exception as e:
+                self._error_occurred(e)
             else:
-                table_header = (
-                    "<TR><TH>No</TH><TH>Name</TH><TH>Description</TH>"
-                    + "<TH>Status</TH><TH>Value</TH><TH>Meas. Unit</TH></TR>\n"
-                )
-                table_start = html_text.find(table_header)
-                try:
-                    assert table_start != -1
-                    error = 0
-                except AssertionError:
-                    print("PSF27Sensor table not located")
-                else:
-                    table_end = table_start + html_text[table_start:].find("</TABLE>")
-                    table = html_text[table_start:table_end].splitlines()
-                    for row in range(1, len(table) - 1):
-                        self._data_table.append(
-                            EM27Property(
-                                table[row].split("<TD>")[2].rstrip("</TD>"),
-                                Decimal(table[row].split("<TD>")[5].strip("</TD>")),
-                                table[row].split("<TD>")[6].rstrip("</TD></TR"),
-                            )
+                table_end = table_start + html_text[table_start:].find("</TABLE>")
+                table = html_text[table_start:table_end].splitlines()
+                for row in range(1, len(table) - 1):
+                    self._data_table.append(
+                        EM27Property(
+                            table[row].split("<TD>")[2].rstrip("</TD>"),
+                            Decimal(table[row].split("<TD>")[5].strip("</TD>")),
+                            table[row].split("<TD>")[6].rstrip("</TD></TR"),
                         )
-                    pub.sendMessage("psf27_data", data=table)
-        return error
+                    )
+                pub.sendMessage("psf27.data.send", data=table)
+
+    def request_data(self) -> None:
+        """Request the EM27 property data from the web server."""
+        self.open()
+        self.read()
+        self.get_psf27sensor_data()
+        self.close()
+
+    def _error_occurred(self, exception: BaseException) -> None:
+        """Communicate that an error occurred."""
+        pub.sendMessage("psf27.error", message=str(exception))
 
 
 class DummyEM27Scraper(EM27Scraper):
@@ -170,14 +145,9 @@ class DummyEM27Scraper(EM27Scraper):
 
 if __name__ == "__main__":
     dev = DummyEM27Scraper()
-    error = dev.open()
-    print(error)
-    error = dev.read()
-    print(error)
-    error = dev.get_psf27sensor_data()
-    print(error)
-    if not error:
-        for prop in dev._data_table:
-            print(prop)
-    error = dev.close()
-    print(error)
+    dev.open()
+    dev.read()
+    dev.get_psf27sensor_data()
+    for prop in dev._data_table:
+        print(prop)
+    dev.close()
