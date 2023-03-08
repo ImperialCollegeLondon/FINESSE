@@ -130,7 +130,7 @@ class EM27Scraper:
         error = 1
         if self._is_read:
             try:
-                html_ascii = self._html.decode("ascii")
+                html_text = self._html.decode("utf-8")
             except AttributeError:
                 print("Page has not been read")
             else:
@@ -138,15 +138,15 @@ class EM27Scraper:
                     "<TR><TH>No</TH><TH>Name</TH><TH>Description</TH>"
                     + "<TH>Status</TH><TH>Value</TH><TH>Meas. Unit</TH></TR>\n"
                 )
-                table_start = html_ascii.find(table_header)
+                table_start = html_text.find(table_header)
                 try:
                     assert table_start != -1
                     error = 0
                 except AssertionError:
                     print("PSF27Sensor table not located")
                 else:
-                    table_end = table_start + html_ascii[table_start:].find("</TABLE>")
-                    table = html_ascii[table_start:table_end].splitlines()
+                    table_end = table_start + html_text[table_start:].find("</TABLE>")
+                    table = html_text[table_start:table_end].splitlines()
                     for row in range(1, len(table) - 1):
                         self._data_table.append(
                             EM27Property(
