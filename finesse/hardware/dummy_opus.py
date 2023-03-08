@@ -51,7 +51,7 @@ class OPUSStateMachine(StateMachine):
     _start_connecting = idle.to(connecting)
     _finish_connecting = connecting.to(connected)
 
-    start_measuring = connected.to(measuring)
+    start = connected.to(measuring)
     _start_finishing_measuring = measuring.to(finishing)
     _finish_measuring = finishing.to(connected)
     _cancel_measuring = measuring.to(cancelling)
@@ -164,7 +164,7 @@ class DummyOPUSInterface(OPUSInterfaceBase):
                 self.last_error = OPUSError.NOT_RUNNING_OR_FINISHING
         elif command == "start":
             try:
-                self.state_machine.start_measuring()
+                self.state_machine.start()
             except TransitionNotAllowed:
                 self.last_error = OPUSError.NOT_CONNECTED
         elif command == "connect":
