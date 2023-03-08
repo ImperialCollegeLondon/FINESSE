@@ -2,6 +2,8 @@
 
 This is used to scrape the PSF27 sensor data table off the server.
 """
+import logging
+import traceback
 from dataclasses import dataclass
 from decimal import Decimal
 from importlib import resources
@@ -75,6 +77,7 @@ class EM27Scraper:
                 self._page = urlopen(self._url, timeout=timeout)
                 self._is_open = True
                 pub.sendMessage("psf27.opened")
+                logging.info("Opened connection to automation units diagnostics page.")
             except HTTPError as e:
                 self._error_occurred(e)
             except URLError as e:
@@ -88,6 +91,7 @@ class EM27Scraper:
             self._page.close()
             self._is_open = False
             pub.sendMessage("psf27.closed")
+            logging.info("Closed connection to automation units diagnostics page.")
 
     def read(self) -> None:
         """Read the webpage and store in EM27 object."""
@@ -130,7 +134,9 @@ class EM27Scraper:
         self.close()
 
     def _error_occurred(self, exception: BaseException) -> None:
-        """Communicate that an error occurred."""
+        """Log and communicate that an error occurred."""
+        traceback_str = "".join(traceback.format_tb(exception.__traceback__))
+        logging.error(f"Error during PSF27Sensor query: {traceback_str}")
         pub.sendMessage("psf27.error", message=str(exception))
 
 
