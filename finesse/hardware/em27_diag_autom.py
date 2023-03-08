@@ -10,8 +10,7 @@ from urllib.request import urlopen
 
 from pubsub import pub
 
-# from ..config import EM27_IP
-EM27_IP = "10.10.0.1"  # while calling as __main__ for testing
+from ..config import EM27_URL
 
 
 @dataclass
@@ -49,7 +48,7 @@ class EM27Property:
 class EM27Scraper:
     """An interface for monitoring EM27 properties."""
 
-    def __init__(self, url: str = f"http://{EM27_IP}/diag_autom.htm") -> None:
+    def __init__(self, url: str = f"{EM27_URL}") -> None:
         """Create a new EM27 property monitor.
 
         Args:
