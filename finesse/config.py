@@ -23,8 +23,8 @@ BAUDRATES = (4800, 9600, 19200, 38400, 57600, 115200)
 DEFAULT_SCRIPT_PATH = Path.home()
 """The default path to search for script files in."""
 
-EM27_IP = "10.10.0.1"
-"""The IP address of the machine running the web server."""
+EM27_URL = "http://10.10.0.1/diag_autom.htm"
+"""The URL of the EM27 monitoring web server."""
 
 OPUS_IP = "10.10.0.2"
 """The IP address of the machine running the OPUS software."""
