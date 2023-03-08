@@ -2,7 +2,7 @@
 
 from itertools import product
 from typing import Optional
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 from pubsub import pub
@@ -12,8 +12,11 @@ from finesse.hardware.dummy_opus import DummyOPUSInterface, OPUSError, OPUSState
 
 
 @pytest.fixture
-def dev() -> DummyOPUSInterface:
+@patch("finesse.hardware.dummy_opus.QTimer")
+def dev(timer_mock: Mock) -> DummyOPUSInterface:
     """A fixture for DummyOPUSInterface."""
+    timer_mock.return_value = MagicMock()
+
     return DummyOPUSInterface()
 
 
@@ -25,19 +28,18 @@ def send_message_mock(monkeypatch) -> MagicMock:
     return mock
 
 
-@patch("finesse.hardware.dummy_opus.QTimer")
-def test_init(timer_mock) -> None:
+def test_init(dev: DummyOPUSInterface) -> None:
     """Test that the timer's signal is connected correctly."""
-    dev = DummyOPUSInterface()
-    timeout = dev.measure_timer.timeout  # type: ignore
-    timeout.connect.assert_called_once_with(dev.finish_measuring)
+    assert dev.last_error == OPUSError.NO_ERROR
+
+    timeout = dev.state_machine.measure_timer.timeout  # type: ignore
+    timeout.connect.assert_called_once_with(dev.state_machine.stop)
 
 
 def test_finish_measuring(dev: DummyOPUSInterface) -> None:
     """Check that the finish_measuring() slot works."""
-    dev.state_machine = MagicMock()
-    dev.finish_measuring()
-    dev.state_machine.stop.assert_called_once()
+    dev.state_machine.current_state = OPUSStateMachine.measuring
+    dev.state_machine.stop()
     assert dev.last_error == OPUSError.NO_ERROR
 
 
@@ -50,7 +52,6 @@ def test_request_status(
 ) -> None:
     """Test the request_status() method."""
     dev.last_error = error
-
     dev.state_machine.current_state = state
 
     dev.request_status()
@@ -94,7 +95,7 @@ def test_request_command(
     send_message_mock: MagicMock,
 ) -> None:
     """Test the request_command() method."""
-    with patch.object(dev, "measure_timer") as timer_mock:
+    with patch.object(dev.state_machine, "measure_timer") as timer_mock:
         dev.state_machine.current_state = initial_state
 
         dev.request_command(command)

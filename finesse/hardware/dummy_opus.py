@@ -2,10 +2,10 @@
 
 import logging
 from enum import Enum
-from typing import Optional
+from typing import Callable, Optional
 
 from pubsub import pub
-from PySide6.QtCore import QTimer, Slot
+from PySide6.QtCore import QTimer
 from statemachine import State, StateMachine
 from statemachine.exceptions import TransitionNotAllowed
 
@@ -57,6 +57,25 @@ class OPUSStateMachine(StateMachine):
     _cancel_measuring = measuring.to(cancelling)
     _reset_after_cancelling = cancelling.to(connected)
 
+    def __init__(
+        self, measure_duration: float, measure_finish_callback: Callable
+    ) -> None:
+        """Create a new OPUSStateMachine.
+
+        Args:
+            measure_duration: How long a single measurement takes (seconds)
+            measure_finish_callback: Called when measurement completes successfully
+        """
+        self.measure_finish_callback = measure_finish_callback
+
+        self.measure_timer = QTimer()
+        """Timer signalling the end of a measurement."""
+        self.measure_timer.setInterval(round(measure_duration * 1000))
+        self.measure_timer.setSingleShot(True)
+        self.measure_timer.timeout.connect(self.stop)  # type: ignore
+
+        super().__init__()
+
     def connect(self) -> None:
         """Connect to the device."""
         self._start_connecting()
@@ -72,6 +91,15 @@ class OPUSStateMachine(StateMachine):
         """Finish measurement successfully."""
         self._start_finishing_measuring()
         self._finish_measuring()
+
+    def on_enter_measuring(self) -> None:
+        """Start the measurement timer."""
+        self.measure_timer.start()
+
+    def on_exit_measuring(self) -> None:
+        """Stop the measurement timer."""
+        self.measure_timer.stop()
+        self.measure_finish_callback()
 
     def on_enter_state(self, target: State) -> None:
         """Log all state transitions."""
@@ -91,14 +119,10 @@ class DummyOPUSInterface(OPUSInterfaceBase):
 
         self.last_error = OPUSError.NO_ERROR
         """The last error which occurred."""
-        self.state_machine = OPUSStateMachine()
+        self.state_machine = OPUSStateMachine(
+            measure_duration, self._measuring_finished
+        )
         """An object representing the internal state of the device."""
-
-        self.measure_timer = QTimer(self)
-        """Timer signalling the end of a measurement."""
-        self.measure_timer.setInterval(round(measure_duration * 1000))
-        self.measure_timer.setSingleShot(True)
-        self.measure_timer.timeout.connect(self.finish_measuring)  # type: ignore
 
     def _send_response(self, type: str) -> None:
         """Send a message signalling that a response was received.
@@ -130,20 +154,17 @@ class DummyOPUSInterface(OPUSInterfaceBase):
         if command == "cancel":
             try:
                 self.state_machine.cancel()
-                self.measure_timer.stop()
             except TransitionNotAllowed:
                 self.last_error = OPUSError.NOT_RUNNING
         elif command == "stop":
             try:
                 self.state_machine.stop()
-                self.measure_timer.stop()
             except TransitionNotAllowed:
                 # TODO: This currently won't work if it actually *is* finishing
                 self.last_error = OPUSError.NOT_RUNNING_OR_FINISHING
         elif command == "start":
             try:
                 self.state_machine.start_measuring()
-                self.measure_timer.start()
             except TransitionNotAllowed:
                 self.last_error = OPUSError.NOT_CONNECTED
         elif command == "connect":
@@ -156,10 +177,7 @@ class DummyOPUSInterface(OPUSInterfaceBase):
 
         self._send_response("command")
 
-    @Slot()
-    def finish_measuring(self) -> None:
+    def _measuring_finished(self) -> None:
         """Finish measurement successfully."""
         self.last_error = OPUSError.NO_ERROR
-
-        self.state_machine.stop()
         logging.info("Measurement complete")
