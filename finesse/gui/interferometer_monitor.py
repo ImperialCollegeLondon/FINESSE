@@ -1,7 +1,7 @@
 """Panel and widgets related to monitoring the interferometer."""
-from decimal import Decimal
 from typing import Dict
 
+from pubsub import pub
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QGridLayout,
@@ -18,24 +18,6 @@ from ..hardware.em27_diag_autom import EM27Property
 from .led_icons import LEDIcon
 
 
-def get_vals_from_server() -> list[EM27Property]:
-    """Placeholder function for retrieving interferometer properties.
-
-    Returns:
-        data_table: A list containing the physical properties being monitored
-    """
-    data_table = [
-        EM27Property("PSF27 Temp", Decimal(28.151062), "deg. C"),
-        EM27Property("Cryo Temp", Decimal(0.0), "deg. K"),
-        EM27Property("Blackbody Hum", Decimal(2.463968), "%"),
-        EM27Property("Source Temp", Decimal(70.007156), "deg. C"),
-        EM27Property("Aux Volt", Decimal(6.285875), "V"),
-        EM27Property("Aux Curr", Decimal(0.910230), "A"),
-        EM27Property("Laser Curr", Decimal(0.583892), "A"),
-    ]
-    return data_table
-
-
 class EM27Monitor(QGroupBox):
     """Panel containing widgets to view the EM27 properties."""
 
@@ -48,7 +30,6 @@ class EM27Monitor(QGroupBox):
 
         self._poll_light = LEDIcon.create_poll_icon()
         self._poll_light._timer.timeout.connect(self.poll_server)  # type: ignore
-        self._poll_light._timer.start(2000)
 
         self._create_layouts()
 
@@ -59,6 +40,10 @@ class EM27Monitor(QGroupBox):
         )
 
         self.setLayout(self._layout)
+
+        pub.subscribe(self.begin_polling, "psf27.opened")
+        #        pub.subscribe(self.end_polling, "psf27.closed")
+        pub.subscribe(self.get_data_table, "psf27.data.send")
 
     def _create_layouts(self) -> None:
         """Creates layouts to house the widgets."""
@@ -103,10 +88,22 @@ class EM27Monitor(QGroupBox):
             lineedit = self._get_prop_lineedit(prop)
             lineedit.setText(prop.val_str())
 
+    def get_data_table(self, data: list[EM27Property]):
+        """Receive the table containing the property data from the server."""
+        self._data_table = data
+
+    def begin_polling(self) -> None:
+        """Initiate polling the server."""
+        self._poll_light._timer.start(2000)
+
+    def end_polling(self) -> None:
+        """Terminate polling the server."""
+        self._poll_light._timer.stop()
+
     def poll_server(self) -> None:
         """Polls the server to obtain the latest values."""
         self._poll_light._flash()
-        self._data_table = get_vals_from_server()
+        pub.sendMessage("psf27.data.request")
         self._display_props()
 
 

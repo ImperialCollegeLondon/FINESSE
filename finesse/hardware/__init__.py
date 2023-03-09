@@ -5,21 +5,25 @@ from pubsub import pub
 
 if "--dummy-em27" in sys.argv:
     from .dummy_opus import DummyOPUSInterface as OPUSInterface
+    from .em27_diag_autom import DummyEM27Scraper as EM27Scraper
 else:
     from .em27_opus import OPUSInterface  # type: ignore
+    from .em27_diag_autom import EM27Scraper  # type: ignore
 
 from .dummy_stepper_motor import DummyStepperMotor
 
 stepper: DummyStepperMotor
 opus: OPUSInterface
+scraper: EM27Scraper
 
 
 def _init_hardware():
-    global stepper, opus
+    global stepper, opus, scraper
     # TODO: Replace with a real stepper motor device
     stepper = DummyStepperMotor(3600)
 
     opus = OPUSInterface()
+    scraper = EM27Scraper()
 
 
 def _stop_hardware():
