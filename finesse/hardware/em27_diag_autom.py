@@ -63,8 +63,9 @@ class EM27Scraper:
         self._is_open = False
         self._is_read = False
         self._url = url
-        self._data_table: list[EM27Property] = []
+
         pub.subscribe(self.request_data, "psf27.data.request")
+        self.open()
 
     def open(self, timeout: int = 2) -> None:
         """Connect to the webpage.
@@ -116,15 +117,17 @@ class EM27Scraper:
             else:
                 table_end = table_start + html_text[table_start:].find("</TABLE>")
                 table = html_text[table_start:table_end].splitlines()
-                for row in range(1, len(table) - 1):
-                    self._data_table.append(
+                data_table = []
+                for row in range(1, len(table)):
+                    data_table.append(
                         EM27Property(
                             table[row].split("<TD>")[2].rstrip("</TD>"),
                             Decimal(table[row].split("<TD>")[5].strip("</TD>")),
                             table[row].split("<TD>")[6].rstrip("</TD></TR"),
                         )
                     )
-                pub.sendMessage("psf27.data.send", data=table)
+                pub.sendMessage("psf27.data.send", data=data_table)
+                self._data_table = data_table
 
     def request_data(self) -> None:
         """Request the EM27 property data from the web server."""
