@@ -1,5 +1,4 @@
 """Panel and widgets related to monitoring the interferometer."""
-from dataclasses import dataclass
 from decimal import Decimal
 from typing import Dict
 
@@ -15,31 +14,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from ..hardware.em27_diag_autom import EM27Property
 from .led_icons import LEDIcon
-
-
-@dataclass
-class EM27Property:
-    """Class for representing EM27 monitored properties.
-
-    Args:
-        name: name of the physical quantity
-        value: value of the physical quantity
-        unit: unit in which the value is presented
-    """
-
-    name: str
-    value: Decimal
-    unit: str
-
-    def val_str(self) -> str:
-        """For printing a property's value and unit in required format.
-
-        Returns:
-            str: The value and unit of a property in the format consistent with
-                 the previous FINESSE GUI.
-        """
-        return f"{self.value:.6f} {self.unit}"
 
 
 def get_vals_from_server() -> list[EM27Property]:
