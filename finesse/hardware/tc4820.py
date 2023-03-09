@@ -16,15 +16,16 @@ import logging
 from decimal import Decimal
 from typing import Any
 
-from pubsub import pub
 from serial import Serial, SerialException
+
+from .tc4820_base import TC4820Base
 
 
 class MalformedMessageError(Exception):
     """Raised when a message sent or received was malformed."""
 
 
-class TC4820:
+class TC4820(TC4820Base):
     """An interface for TC4820 temperature controllers."""
 
     MAX_POWER = 511
@@ -43,9 +44,7 @@ class TC4820:
         self.serial = serial
         self.max_attempts = max_attempts
 
-        # Listen to incoming requests
-        pub.subscribe(self.request_properties, "tc4820.request")
-        pub.subscribe(self.change_set_point, "tc4820.change_set_point")
+        super().__init__()
 
     @staticmethod
     def create(
@@ -176,23 +175,6 @@ class TC4820:
                              max attempts was exceeded
         """
         return self.to_decimal(self.request_int(command))
-
-    def request_properties(self) -> None:
-        """Requests that various device properties are sent over pubsub.
-
-        Raises:
-            SerialException: An error occurred while communicating with the device or
-                             max attempts was exceeded
-        """
-        properties = {}
-        for prop in ("temperature", "power", "alarm_status", "set_point"):
-            properties[prop] = getattr(self, prop)
-
-        pub.sendMessage("tc4820.response", properties=properties)
-
-    def change_set_point(self, temperature: Decimal) -> None:
-        """Change the set point to a new value."""
-        self.set_point = temperature
 
     @property
     def temperature(self) -> Decimal:
