@@ -16,15 +16,18 @@ from finesse.hardware.tc4820 import TC4820, MalformedMessageError
 def dev(mocker: MockerFixture) -> TC4820:
     """Get an instance of a TC4820 object."""
     serial = mocker.patch("serial.Serial")
-    return TC4820(serial)
+    return TC4820("device", serial)
 
 
-def test_init(subscribe_mock: MagicMock) -> None:
+@pytest.mark.parametrize("name", ("hot_bb", "cold_bb"))
+def test_init(name: str, subscribe_mock: MagicMock) -> None:
     """Test TC4820's constructor."""
-    dev = TC4820(MagicMock())
+    dev = TC4820(name, MagicMock())
     assert dev.max_attempts == 3
-    subscribe_mock.assert_any_call(dev.request_properties, "tc4820.request")
-    subscribe_mock.assert_any_call(dev.change_set_point, "tc4820.change_set_point")
+    subscribe_mock.assert_any_call(dev.request_properties, f"tc4820.{name}.request")
+    subscribe_mock.assert_any_call(
+        dev.change_set_point, f"tc4820.{name}.change_set_point"
+    )
 
 
 def test_request_properties(dev: TC4820, sendmsg_mock: MagicMock) -> None:
@@ -39,7 +42,9 @@ def test_request_properties(dev: TC4820, sendmsg_mock: MagicMock) -> None:
     with patch.object(dev, "request_int") as mock_int:
         mock_int.return_value = 0
         dev.request_properties()
-        sendmsg_mock.assert_called_once_with("tc4820.response", properties=expected)
+        sendmsg_mock.assert_called_once_with(
+            "tc4820.device.response", properties=expected
+        )
 
 
 def checksum(message: int) -> int:
@@ -150,7 +155,7 @@ def test_request_int(
     Check that the retrying of requests works.
     """
     serial = mocker.patch("serial.Serial")
-    dev = TC4820(serial, max_attempts)
+    dev = TC4820("device", serial, max_attempts)
 
     fail_count = 0
 
