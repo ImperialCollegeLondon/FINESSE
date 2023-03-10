@@ -1,4 +1,5 @@
 """Tests for the interface to the EM27's OPUS control program."""
+from itertools import product
 from typing import Any, Optional
 from unittest.mock import MagicMock, Mock, patch
 
@@ -76,8 +77,8 @@ def _format_td(name: str, value: Any) -> str:
 def _get_opus_html(
     status: Optional[int],
     text: Optional[str],
-    errcode: Optional[int],
-    errtext: Optional[str],
+    errcode: Optional[int] = None,
+    errtext: Optional[str] = None,
     extra_text: str = "",
 ) -> str:
     return f"""
@@ -107,26 +108,46 @@ def _get_opus_response(http_status_code: int, *args: Any, **kwargs: Any) -> Magi
     return response
 
 
-@pytest.mark.parametrize(
-    "status,text,errcode,errtext",
-    (
-        (status, text, errcode, errtext)
-        for status in (None, 0, 1)
-        for text in (None, "", "status text")
-        for errcode in (None, 0, 1)
-        for errtext in (None, "", "error text")
-    ),
-)
-def test_parse_response(
-    status: Optional[int],
-    text: Optional[str],
-    errcode: Optional[int],
-    errtext: Optional[str],
-    opus: OPUSInterface,
-    sendmsg_mock: MagicMock,
+@pytest.mark.parametrize("status,text", product(range(2), ("", "status text")))
+def test_parse_response_no_error(
+    status: int, text: str, opus: OPUSInterface, sendmsg_mock: MagicMock
+) -> None:
+    """Test the _parse_response() method works when no error has occurred."""
+    response = _get_opus_response(200, status, text)
+
+    with patch.object(opus, "error_occurred") as error_mock:
+        opus._parse_response(response, "my.topic")
+        error_mock.assert_not_called()
+        sendmsg_mock.assert_called_once_with(
+            "my.topic", url=response.url, status=status, text=text, error=None
+        )
+
+
+@pytest.mark.parametrize("errcode,errtext", product(range(2), ("", "error text")))
+def test_parse_response_error(
+    errcode: int, errtext: str, opus: OPUSInterface, sendmsg_mock: MagicMock
+) -> None:
+    """Test the _parse_response() method when an error has occurred."""
+    response = _get_opus_response(200, 1, "status text", errcode, errtext)
+
+    with patch.object(opus, "error_occurred") as error_mock:
+        opus._parse_response(response, "my.topic")
+        error_mock.assert_not_called()
+        sendmsg_mock.assert_called_once_with(
+            "my.topic",
+            url=response.url,
+            status=1,
+            text="status text",
+            error=(errcode, errtext),
+        )
+
+
+@pytest.mark.parametrize("status,text", product((None, 1), (None, "status text")))
+def test_parse_response_missing_fields(
+    status: Optional[int], text: Optional[str], opus: OPUSInterface
 ) -> None:
     """Test the _parse_response() method."""
-    response = _get_opus_response(200, status, text, errcode, errtext)
+    response = _get_opus_response(200, status, text)
 
     with patch.object(opus, "error_occurred") as error_mock:
         opus._parse_response(response, "my.topic")
@@ -134,10 +155,6 @@ def test_parse_response(
             # Required fields missing
             error_mock.assert_called()
         else:
-            error = None if errcode is None else (errcode, errtext)
-            sendmsg_mock.assert_called_once_with(
-                "my.topic", url=response.url, status=status, text=text, error=error
-            )
             error_mock.assert_not_called()
 
 
