@@ -1,6 +1,6 @@
 """Tests for the interface to the EM27's OPUS control program."""
 from typing import Any, Optional
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
@@ -78,12 +78,14 @@ def _get_opus_html(
     text: Optional[str],
     errcode: Optional[int],
     errtext: Optional[str],
+    extra_text: str = "",
 ) -> str:
     return f"""
     <html>
         <body>
             <table>
                 <tr>
+                    {extra_text}
                     {_format_td("STATUS", status)}
                     {_format_td("TEXT", text)}
                     {_format_td("ERRCODE", errcode)}
@@ -137,6 +139,28 @@ def test_parse_response(
                 "my.topic", url=response.url, status=status, text=text, error=error
             )
             error_mock.assert_not_called()
+
+
+def test_parse_response_no_id(opus: OPUSInterface) -> None:
+    """Test that _parse_response() can handle <td> tags without an id."""
+    response = _get_opus_response(200, 1, "text", 1, "errtext", "<td>something</td>")
+
+    with patch.object(opus, "error_occurred") as error_mock:
+        opus._parse_response(response, "my.topic")
+        error_mock.assert_not_called()
+
+
+@patch("finesse.hardware.em27_opus.logging.warning")
+def test_parse_response_bad_id(warning_mock: Mock, opus: OPUSInterface) -> None:
+    """Test that _parse_response() can handle <td> tags with unexpected id values."""
+    response = _get_opus_response(
+        200, 1, "text", 1, "errtext", '<td id="MADE_UP">something</td>'
+    )
+
+    with patch.object(opus, "error_occurred") as error_mock:
+        opus._parse_response(response, "my.topic")
+        error_mock.assert_not_called()
+        warning_mock.assert_called()
 
 
 @pytest.mark.parametrize("http_status_code", (200, 403, 404))
