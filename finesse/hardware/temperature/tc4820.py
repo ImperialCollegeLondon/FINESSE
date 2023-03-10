@@ -47,6 +47,10 @@ class TC4820(TemperatureControllerBase):
 
         super().__init__(name)
 
+    def close(self) -> None:
+        """Shut down the device."""
+        self.serial.close()
+
     @staticmethod
     def create(
         port: str,

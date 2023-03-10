@@ -217,19 +217,22 @@ class ST10Controller(StepperMotorBase):
         serial = Serial(port, baudrate, *serial_args, timeout=timeout, **serial_kwargs)
         return ST10Controller(serial)
 
-    def __del__(self) -> None:
+    def close(self) -> None:
         """Leave mirror facing downwards when finished.
 
         This prevents dust accumulating.
         """
+        # Set flag that indicates the thread should quit
+        self._reader.quit()
+
+        if not self.serial.is_open():
+            return
+
         try:
             self.stop_moving()
             self.move_to("nadir")
         except Exception as e:
             logging.error(f"Failed to reset mirror to downward position: {e}")
-
-        # Set flag that indicates the thread should quit
-        self._reader.quit()
 
         # If _reader is blocking on a read (which is likely), we could end up waiting
         # forever, so close the socket so that the read operation will terminate

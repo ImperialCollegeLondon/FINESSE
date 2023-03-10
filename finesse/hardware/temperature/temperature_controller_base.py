@@ -1,11 +1,13 @@
 """Provides a base class for temperature controller devices or mock devices."""
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from decimal import Decimal
 
 from pubsub import pub
 
+from ..device_base import DeviceBase
 
-class TemperatureControllerBase(ABC):
+
+class TemperatureControllerBase(DeviceBase):
     """The base class for temperature controller devices or mock devices."""
 
     def __init__(self, name: str) -> None:
