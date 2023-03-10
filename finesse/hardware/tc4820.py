@@ -31,10 +31,11 @@ class TC4820(TC4820Base):
     MAX_POWER = 511
     """The maximum value for the power property."""
 
-    def __init__(self, serial: Serial, max_attempts: int = 3) -> None:
+    def __init__(self, name: str, serial: Serial, max_attempts: int = 3) -> None:
         """Create a new TC4820 from an existing serial device.
 
         Args:
+            name: The name of the device, to distinguish it from others
             serial: Serial device
             max_attempts: Maximum number of attempts for requests
         """
@@ -44,7 +45,7 @@ class TC4820(TC4820Base):
         self.serial = serial
         self.max_attempts = max_attempts
 
-        super().__init__()
+        super().__init__(name)
 
     @staticmethod
     def create(

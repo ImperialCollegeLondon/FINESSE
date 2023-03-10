@@ -23,6 +23,7 @@ class DummyTC4820(TC4820Base):
 
     def __init__(
         self,
+        name: str,
         temperature_params: NoiseParameters = NoiseParameters(35.0, 2.0),
         power_params: NoiseParameters = NoiseParameters(40.0, 2.0),
         alarm_status: int = 0,
@@ -34,6 +35,7 @@ class DummyTC4820(TC4820Base):
         this class can be created.
 
         Args:
+            name: The name of the device, to distinguish it from others
             temperature_params: The parameters for temperature's NoiseProducer
             power_params: The parameters for power's NoiseProducer
             alarm_status: The value of the alarm status used forever (0 is no error)
@@ -46,7 +48,7 @@ class DummyTC4820(TC4820Base):
         self._alarm_status = alarm_status
         self._set_point = initial_set_point
 
-        super().__init__()
+        super().__init__(name)
 
     @property
     def temperature(self) -> Decimal:

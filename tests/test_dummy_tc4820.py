@@ -14,7 +14,7 @@ def test_temperature(noise_mock: Mock) -> None:
     temperature_mock = MagicMock(return_value=Decimal(10))
     noise_mock.return_value = temperature_mock
     params = NoiseParameters(mean=1.0, standard_deviation=2.0, seed=100)
-    dev = DummyTC4820(temperature_params=params)
+    dev = DummyTC4820("device", temperature_params=params)
     noise_mock.assert_any_call(**asdict(params), type=Decimal)
     assert dev.temperature == Decimal(10)
 
@@ -25,7 +25,7 @@ def test_power(noise_mock: Mock) -> None:
     power_mock = MagicMock(return_value=Decimal(10))
     noise_mock.return_value = power_mock
     params = NoiseParameters(mean=1.0, standard_deviation=2.0, seed=100)
-    dev = DummyTC4820(power_params=params)
+    dev = DummyTC4820("device", power_params=params)
     noise_mock.assert_any_call(**asdict(params), type=int)
     assert dev.power == Decimal(10)
 
@@ -33,7 +33,7 @@ def test_power(noise_mock: Mock) -> None:
 @pytest.mark.parametrize("alarm_status", range(2))
 def test_alarm_status(alarm_status: int) -> None:
     """Test that the alarm_status property works."""
-    dev = DummyTC4820(alarm_status=alarm_status)
+    dev = DummyTC4820("device", alarm_status=alarm_status)
 
     # Should report the same status forever
     assert dev.alarm_status == alarm_status
@@ -43,7 +43,7 @@ def test_alarm_status(alarm_status: int) -> None:
 @pytest.mark.parametrize("set_point", range(3))
 def test_set_point(set_point: int) -> None:
     """Test the set_point property works."""
-    dev = DummyTC4820(initial_set_point=Decimal(10))
+    dev = DummyTC4820("device", initial_set_point=Decimal(10))
     assert dev.set_point == Decimal(10)
     dev.change_set_point(Decimal(set_point))
     assert dev.set_point == Decimal(set_point)
