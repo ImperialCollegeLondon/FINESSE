@@ -1,38 +1,31 @@
 """Provides a dummy TC4820 device."""
 from __future__ import annotations
 
-from collections.abc import Callable
+from dataclasses import asdict, dataclass
 from decimal import Decimal
-from typing import Any
+from typing import Optional
 
 from .noise_producer import NoiseProducer
 from .tc4820_base import TC4820Base
 
 
-def alarm_status_ok(*args: Any, **kwargs: Any) -> int:
-    """Signals that the alarm status is OK."""
-    return 0
+@dataclass
+class NoiseParameters:
+    """A compact way of expressing arguments to NoiseProducer."""
+
+    mean: float = 0.0
+    standard_deviation: float = 1.0
+    seed: Optional[int] = 42
 
 
 class DummyTC4820(TC4820Base):
-    """A dummy TC4820 device which allows for setting custom mock attributes.
-
-    Temperature, power and alarm status can be configured to produce custom results
-    (defaulting to random noise). The set point is a simple field whose value can be
-    get/set as usual.
-    """
-
-    _instance_exists = False
-
-    temperature: property
-    power: property
-    alarm_status: property
+    """A dummy TC4820 device which produces random noise for its properties."""
 
     def __init__(
         self,
-        temperature_producer: Callable[[], Decimal] = NoiseProducer(35.0, 2.0, Decimal),
-        power_producer: Callable[[], int] = NoiseProducer(40.0, 2.0, int),
-        alarm_status_producer: Callable[[], int] = alarm_status_ok,
+        temperature_params: NoiseParameters = NoiseParameters(35.0, 2.0),
+        power_params: NoiseParameters = NoiseParameters(40.0, 2.0),
+        alarm_status: int = 0,
         initial_set_point: Decimal = Decimal(70),
     ) -> None:
         """Create a new DummyTC4820.
@@ -41,23 +34,46 @@ class DummyTC4820(TC4820Base):
         this class can be created.
 
         Args:
-            temperature_producer: Function returning temperature
-            power_producer: Function returning power
-            alarm_status_producer: Function returning alarm status (0 means "OK")
+            temperature_params: The parameters for temperature's NoiseProducer
+            power_params: The parameters for power's NoiseProducer
+            alarm_status: The value of the alarm status used forever (0 is no error)
             initial_set_point: What the temperature set point is initially
         """
-        assert not self._instance_exists
-        self._instance_exists = True
-
-        # Properties have to be assigned to classes rather than objects
-        DummyTC4820.temperature = property(temperature_producer)  # type: ignore
-        DummyTC4820.power = property(power_producer)  # type: ignore
-        DummyTC4820.alarm_status = property(alarm_status_producer)  # type: ignore
-
-        self.set_point = initial_set_point
+        self._temperature_producer = NoiseProducer(
+            **asdict(temperature_params), type=Decimal
+        )
+        self._power_producer = NoiseProducer(**asdict(power_params), type=int)
+        self._alarm_status = alarm_status
+        self._set_point = initial_set_point
 
         super().__init__()
 
-    def __del__(self) -> None:
-        """Reset the flag so a new instance can be created."""
-        self._instance_exists = False
+    @property
+    def temperature(self) -> Decimal:
+        """The current temperature reported by the device."""
+        return self._temperature_producer()
+
+    @property
+    def power(self) -> int:
+        """The current power output of the device."""
+        return self._power_producer()
+
+    @property
+    def alarm_status(self) -> int:
+        """The current error status of the system.
+
+        A value of zero indicates that no error has occurred.
+        """
+        return self._alarm_status
+
+    @property
+    def set_point(self) -> Decimal:
+        """The set point temperature (in degrees).
+
+        In other words, this indicates the temperature the device is aiming towards.
+        """
+        return self._set_point
+
+    @set_point.setter
+    def set_point(self, temperature: Decimal) -> None:
+        self._set_point = temperature
