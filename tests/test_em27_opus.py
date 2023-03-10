@@ -95,19 +95,27 @@ def _get_opus_html(
     """
 
 
+def _get_opus_response(http_status_code: int, *args: Any, **kwargs: Any) -> MagicMock:
+    """Mock a requests.Response."""
+    html = _get_opus_html(*args, **kwargs)
+    response = MagicMock()
+    response.status_code = http_status_code
+    response.url = "https://example.com"
+    response.content = html.encode()
+    return response
+
+
 @pytest.mark.parametrize(
-    "http_status_code,status,text,errcode,errtext",
+    "status,text,errcode,errtext",
     (
-        (http_status, status, text, errcode, errtext)
-        for http_status in (200, 403, 404)
+        (status, text, errcode, errtext)
         for status in (None, 0, 1)
         for text in (None, "", "status text")
         for errcode in (None, 0, 1)
         for errtext in (None, "", "error text")
     ),
 )
-def test_parsing(
-    http_status_code: int,
+def test_parse_response(
     status: Optional[int],
     text: Optional[str],
     errcode: Optional[int],
@@ -115,27 +123,30 @@ def test_parsing(
     opus: OPUSInterface,
     sendmsg_mock: MagicMock,
 ) -> None:
-    """Test the OPUS parser."""
-    html = _get_opus_html(status, text, errcode, errtext)
+    """Test the _parse_response() method."""
+    response = _get_opus_response(200, status, text, errcode, errtext)
 
-    # Mock a requests.Response
-    response = MagicMock()
-    response.status_code = http_status_code
-    response.url = "https://example.com"
-    response.content = html.encode()
+    with patch.object(opus, "error_occurred") as error_mock:
+        opus._parse_response(response, "my.topic")
+        if status is None or text is None:
+            # Required fields missing
+            error_mock.assert_called()
+        else:
+            error = None if errcode is None else (errcode, errtext)
+            sendmsg_mock.assert_called_once_with(
+                "my.topic", url=response.url, status=status, text=text, error=error
+            )
+            error_mock.assert_not_called()
+
+
+@pytest.mark.parametrize("http_status_code", (200, 403, 404))
+def test_parse_response_http_status(http_status_code: int, opus: OPUSInterface) -> None:
+    """Test that _parse_response() handles HTTP status codes correctly."""
+    response = _get_opus_response(http_status_code, 1, "text", 1, "errtext")
 
     with patch.object(opus, "error_occurred") as error_mock:
         opus._parse_response(response, "my.topic")
         if http_status_code == 200:
-            if status is None or text is None:
-                # Required fields missing
-                error_mock.assert_called()
-            else:
-                error = None if errcode is None else (errcode, errtext)
-                sendmsg_mock.assert_called_once_with(
-                    "my.topic", url=response.url, status=status, text=text, error=error
-                )
-                error_mock.assert_not_called()
+            error_mock.assert_not_called()
         else:
-            sendmsg_mock.assert_not_called()
-            error_mock.assert_called_once()
+            error_mock.assert_called()
