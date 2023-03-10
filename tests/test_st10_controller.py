@@ -5,7 +5,6 @@ from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
-from pubsub import pub
 from serial import SerialException, SerialTimeoutException
 
 from finesse.hardware.st10_controller import (
@@ -72,25 +71,17 @@ def test_init() -> None:
                 home_mock.assert_called_once()
 
 
-def test_send_move_end_message(dev: ST10Controller) -> None:
+def test_send_move_end_message(sendmsg_mock: MagicMock, dev: ST10Controller) -> None:
     """Test the _send_move_end_message() method."""
-    handler = MagicMock()
-    pub.subscribe(handler, "stepper.move.end")
     dev._send_move_end_message()
-    handler.assert_called_once()
+    sendmsg_mock.assert_called_once_with("stepper.move.end")
 
 
-def test_send_error_message(dev: ST10Controller) -> None:
+def test_send_error_message(sendmsg_mock: MagicMock, dev: ST10Controller) -> None:
     """Test the _send_error_message() method."""
-    has_run = False
-
-    def handler(error: BaseException):
-        nonlocal has_run
-        has_run = True
-
-    pub.subscribe(handler, "stepper.error")
-    dev._send_error_message(Exception())
-    assert has_run
+    error = Exception()
+    dev._send_error_message(error)
+    sendmsg_mock.assert_called_once_with("stepper.error", error=error)
 
 
 def read_mock(dev: ST10Controller, return_value: str):
