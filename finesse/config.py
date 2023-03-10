@@ -20,6 +20,9 @@ ANGLE_PRESETS = {
 BAUDRATES = (4800, 9600, 19200, 38400, 57600, 115200)
 """The valid baud rates for use by the GUI."""
 
+DUMMY_DEVICE_PORT = "Dummy"
+"""The port name to display for dummy serial devices."""
+
 DEFAULT_SCRIPT_PATH = Path.home()
 """The default path to search for script files in."""
 
