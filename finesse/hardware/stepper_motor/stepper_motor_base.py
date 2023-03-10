@@ -1,13 +1,14 @@
 """Provides the base class for stepper motor implementations."""
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import Optional, Union
 
 from pubsub import pub
 
 from ...config import ANGLE_PRESETS
+from ..device_base import DeviceBase
 
 
-class StepperMotorBase(ABC):
+class StepperMotorBase(DeviceBase):
     """A base class for stepper motor implementations."""
 
     def __init__(self) -> None:

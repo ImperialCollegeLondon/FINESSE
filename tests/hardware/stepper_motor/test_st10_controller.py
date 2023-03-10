@@ -71,6 +71,12 @@ def test_init() -> None:
                 home_mock.assert_called_once()
 
 
+def test_close(dev: ST10Controller) -> None:
+    """Test the close() method."""
+    dev.close()
+    dev.serial.close.assert_called_once_with()
+
+
 def test_send_move_end_message(sendmsg_mock: MagicMock, dev: ST10Controller) -> None:
     """Test the _send_move_end_message() method."""
     dev._send_move_end_message()

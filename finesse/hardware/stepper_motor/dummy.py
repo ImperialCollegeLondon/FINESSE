@@ -24,6 +24,9 @@ class DummyStepperMotor(StepperMotorBase):
 
         super().__init__()
 
+    def close(self) -> None:
+        """Shut down the device."""
+
     @property
     def steps_per_rotation(self) -> int:
         """The number of steps that correspond to a full rotation."""
