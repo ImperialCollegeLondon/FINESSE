@@ -1,5 +1,6 @@
 """Tests for the NoiseProducer class."""
 from decimal import Decimal
+from itertools import product
 from typing import Optional
 from unittest.mock import MagicMock, Mock, patch
 
@@ -30,7 +31,7 @@ def test_init_defaults(rng_mock: Mock) -> None:
 
 
 @pytest.mark.parametrize(
-    "mean,standard_deviation,type", zip(range(3), range(3), (float, int, Decimal))
+    "mean,standard_deviation,type", product(range(3), range(3), (float, int, Decimal))
 )
 def test_call(mean: int, standard_deviation: int, type: type) -> None:
     """Test calling NoiseProducers."""
