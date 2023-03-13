@@ -9,6 +9,7 @@ else:
     from .opus.em27 import OPUSInterface  # type: ignore
 
 from .stepper_motor import create_stepper_motor_serial_manager
+from .temperature import create_temperature_controller_serial_managers
 
 opus: OPUSInterface
 
@@ -28,3 +29,4 @@ pub.subscribe(_init_hardware, "window.opened")
 pub.subscribe(_stop_hardware, "window.closed")
 
 create_stepper_motor_serial_manager()
+create_temperature_controller_serial_managers()
