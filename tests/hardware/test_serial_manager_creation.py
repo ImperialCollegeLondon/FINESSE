@@ -28,3 +28,38 @@ def test_stepper_motor(
     _serial_manager._open("COM1", 1234)
     serial_mock.assert_called_once_with("COM1", 1234)
     st10_mock.assert_called_once_with(serial)
+
+
+@patch("finesse.hardware.temperature.DummyTemperatureController")
+@patch("finesse.hardware.temperature.TC4820")
+@patch("finesse.hardware.serial_manager.Serial")
+def test_tc4820(
+    serial_mock: Mock, tc4820_mock: Mock, dummy_mock: Mock, subscribe_mock: Mock
+) -> None:
+    """Test for the two TC4820 SerialManagers."""
+    serial = MagicMock()
+    serial_mock.return_value = serial
+
+    from finesse.hardware.temperature import (
+        create_temperature_controller_serial_managers,
+    )
+
+    create_temperature_controller_serial_managers()
+    from finesse.hardware.temperature import (
+        _serial_manager_cold_bb,
+        _serial_manager_hot_bb,
+    )
+
+    # Check the dummy devices are created
+    _serial_manager_cold_bb._open(DUMMY_DEVICE_PORT, 1234)
+    dummy_mock.assert_called_once()
+    dummy_mock.reset_mock()
+    _serial_manager_hot_bb._open(DUMMY_DEVICE_PORT, 1234)
+    dummy_mock.assert_called_once()
+
+    # Check the real devices are created
+    _serial_manager_cold_bb._open("COM1", 1234)
+    tc4820_mock.assert_called_once()
+    tc4820_mock.reset_mock()
+    _serial_manager_hot_bb._open("COM1", 1234)
+    tc4820_mock.assert_called_once()
