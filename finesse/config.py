@@ -34,3 +34,6 @@ TEMPERATURE_CONTROLLER_TOPIC = "temperature_controller"
 
 OPUS_IP = "10.10.0.2"
 """The IP address of the machine running the OPUS software."""
+
+ALLOW_DUMMY_DEVICES = True
+"""Whether to allow the user to choose dummy serial devices."""
