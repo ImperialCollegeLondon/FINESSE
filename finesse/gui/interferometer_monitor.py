@@ -29,7 +29,7 @@ class EM27Monitor(QGroupBox):
         self._data_table: list[EM27Property] = []
 
         self._poll_light = LEDIcon.create_poll_icon()
-        self._poll_light._timer.timeout.connect(self.poll_server)  # type: ignore
+        self._poll_light._timer.timeout.connect(self._poll_server)  # type: ignore
 
         self._create_layouts()
 
@@ -41,9 +41,9 @@ class EM27Monitor(QGroupBox):
 
         self.setLayout(self._layout)
 
-        pub.subscribe(self.begin_polling, "psf27.opened")
-        #        pub.subscribe(self.end_polling, "psf27.closed")
-        pub.subscribe(self.get_data_table, "psf27.data.send")
+        pub.subscribe(self.get_data_table, "psf27.data.response")
+
+        self.begin_polling()
 
     def _create_layouts(self) -> None:
         """Creates layouts to house the widgets."""
@@ -89,7 +89,7 @@ class EM27Monitor(QGroupBox):
             lineedit.setText(prop.val_str())
 
     def get_data_table(self, data: list[EM27Property]):
-        """Receive the table containing the property data from the server."""
+        """Receive the data table from the server."""
         self._data_table = data
 
     def begin_polling(self) -> None:
@@ -100,7 +100,7 @@ class EM27Monitor(QGroupBox):
         """Terminate polling the server."""
         self._poll_light._timer.stop()
 
-    def poll_server(self) -> None:
+    def _poll_server(self) -> None:
         """Polls the server to obtain the latest values."""
         self._poll_light._flash()
         pub.sendMessage("psf27.data.request")
