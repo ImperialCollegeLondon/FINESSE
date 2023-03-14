@@ -3,14 +3,11 @@
 This is used to scrape the PSF27 sensor data table off the server.
 """
 import logging
-import traceback
 from dataclasses import dataclass
 from decimal import Decimal
-from importlib import resources
-from urllib.error import HTTPError, URLError
-from urllib.request import urlopen
 
 from pubsub import pub
+from requests import get
 
 from ..config import EM27_URL
 
@@ -60,63 +57,49 @@ class EM27Scraper:
         Args:
             url: Web address of the automation units diagnostics page.
         """
-        self._is_open = False
-        self._is_read = False
         self._url = url
+        self._is_read = False
+        self._data_table: list[EM27Property] = []
 
-        pub.subscribe(self.request_data, "psf27.data.request")
-        self.open()
+        pub.subscribe(self.send_data, "psf27.data.request")
 
-    def open(self, timeout: int = 2) -> None:
-        """Connect to the webpage.
+    def read(self, timeout: int = 2) -> str:
+        """Read the webpage.
 
-        Args:
-            timeout: Number of seconds to wait for response.
+        Returns:
+            content: html source read from the webpage
         """
-        if not self._is_open:
-            try:
-                self._page = urlopen(self._url, timeout=timeout)
-                self._is_open = True
-                pub.sendMessage("psf27.opened")
-                logging.info("Opened connection to automation units diagnostics page.")
-            except HTTPError as e:
-                self._error_occurred(e)
-            except URLError as e:
-                self._error_occurred(e)
-            except TimeoutError as e:
-                self._error_occurred(e)
+        content = ""
+        try:
+            request = get(self._url, timeout=timeout)
+            if request.status_code == 404:
+                request.raise_for_status()
+            else:
+                content = request.text
+                self._is_read = True
+                logging.info("Read PSF27Sensor table")
+        except Exception as e:
+            self._is_read = False
+            self._error_occurred(PSF27Error(e))
+        finally:
+            return content
 
-    def close(self) -> None:
-        """Disconnect from the webpage."""
-        if self._is_open:
-            self._page.close()
-            self._is_open = False
-            pub.sendMessage("psf27.closed")
-            logging.info("Closed connection to automation units diagnostics page.")
-
-    def read(self) -> None:
-        """Read the webpage and store in EM27 object."""
-        if self._is_open:
-            self._html = self._page.read()
-            self._is_read = True
-
-    def get_psf27sensor_data(self) -> None:
+    def get_psf27sensor_data(self, content: str) -> None:
         """Search for the PSF27Sensor table and store the data."""
         if self._is_read:
-            html_text = self._html.decode("utf-8")
             table_header = (
                 "<TR><TH>No</TH><TH>Name</TH><TH>Description</TH>"
                 + "<TH>Status</TH><TH>Value</TH><TH>Meas. Unit</TH></TR>\n"
             )
-            table_start = html_text.find(table_header)
+            table_start = content.find(table_header)
             try:
                 if table_start == -1:
                     raise PSF27Error("PSF27Sensor table not found")
             except Exception as e:
                 self._error_occurred(e)
             else:
-                table_end = table_start + html_text[table_start:].find("</TABLE>")
-                table = html_text[table_start:table_end].splitlines()
+                table_end = table_start + content[table_start:].find("</TABLE>")
+                table = content[table_start:table_end].splitlines()
                 data_table = []
                 for row in range(1, len(table)):
                     data_table.append(
@@ -126,37 +109,19 @@ class EM27Scraper:
                             table[row].split("<TD>")[6].rstrip("</TD></TR"),
                         )
                     )
-                pub.sendMessage("psf27.data.send", data=data_table)
                 self._data_table = data_table
 
-    def request_data(self) -> None:
-        """Request the EM27 property data from the web server."""
-        self.open()
-        self.read()
-        self.get_psf27sensor_data()
-        self.close()
+    def send_data(self) -> None:
+        """Request the EM27 property data from the web server and send to GUI."""
+        content = self.read()
+        if self._is_read:
+            self.get_psf27sensor_data(content)
+            pub.sendMessage("psf27.data.response", data=self._data_table)
+            self._is_read = False
+        else:
+            pub.sendMessage("psf27.data.response", data=[])
 
     def _error_occurred(self, exception: BaseException) -> None:
         """Log and communicate that an error occurred."""
-        traceback_str = "".join(traceback.format_tb(exception.__traceback__))
-        logging.error(f"Error during PSF27Sensor query: {traceback_str}")
+        logging.error(f"Error during PSF27Sensor query:\t{exception}")
         pub.sendMessage("psf27.error", message=str(exception))
-
-
-class DummyEM27Scraper(EM27Scraper):
-    """An interface for EM27 monitor testing."""
-
-    def __init__(self) -> None:
-        """Create a new monitor for a dummy EM27."""
-        dummy_em27_fp = resources.files("finesse.hardware").joinpath("diag_autom.htm")
-        super().__init__("file://" + str(dummy_em27_fp))
-
-
-if __name__ == "__main__":
-    dev = DummyEM27Scraper()
-    dev.open()
-    dev.read()
-    dev.get_psf27sensor_data()
-    for prop in dev._data_table:
-        print(prop)
-    dev.close()
