@@ -1688,18 +1688,15 @@ six = ">=1.5"
 
 [[package]]
 name = "python-statemachine"
-version = "1.0.3"
+version = "2.0.0"
 description = "Python Finite State Machines made easy."
 category = "main"
 optional = false
-python-versions = "*"
+python-versions = ">=3.7,<3.12"
 files = [
-    {file = "python-statemachine-1.0.3.tar.gz", hash = "sha256:5e192b472fb6fa5c2dbf4828e0b6bbb313ec55fd21bb6d823d94ceb92be95476"},
-    {file = "python_statemachine-1.0.3-py2.py3-none-any.whl", hash = "sha256:6134984d2516badb84a934b0f07c988798fee272dad21839a0e4ab5e626a1040"},
+    {file = "python_statemachine-2.0.0-py3-none-any.whl", hash = "sha256:90bb9ac523bf24ee2cd7b43c478f84a92ee38e2ced7d387186e15092ea6c77be"},
+    {file = "python_statemachine-2.0.0.tar.gz", hash = "sha256:dd6cafe88fd5eb473afbe365d89c0ac009d71da3b615a5ebd2210c178dfa032b"},
 ]
-
-[package.extras]
-diagrams = ["pydot"]
 
 [[package]]
 name = "pywin32-ctypes"
@@ -2072,4 +2069,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.12"
-content-hash = "75f729eda12f48431805927c1f824acc5c537cae5a25d7c7f0b394ba80686e20"
+content-hash = "3457182f5152f0dec73d7a9ecd5b1bb3c36b85ec8a6544dd6374023744146941"
