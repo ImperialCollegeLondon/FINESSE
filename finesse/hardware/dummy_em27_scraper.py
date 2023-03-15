@@ -9,11 +9,7 @@ class DummyEM27Scraper(EM27Scraper):
     """An interface for testing monitoring EM27 properties."""
 
     def __init__(self) -> None:
-        """Create a new EM27 property monitor.
-
-        Args:
-            url: Web address of the automation units diagnostics page.
-        """
+        """Create a new EM27 property monitor."""
         dummy_em27_fp = resources.files("finesse.hardware").joinpath("diag_autom.htm")
         super().__init__(str(dummy_em27_fp))
 

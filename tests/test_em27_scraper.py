@@ -70,5 +70,4 @@ def test_error_occurred(dev, send_message_mock):
         raise PSF27Error("Error occurred")
     except PSF27Error as e:
         dev._error_occurred(e)
-        # assert error recorded in log?
         send_message_mock.assert_called_with("psf27.error", message="Error occurred")
