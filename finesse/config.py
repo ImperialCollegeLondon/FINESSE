@@ -23,5 +23,11 @@ BAUDRATES = (4800, 9600, 19200, 38400, 57600, 115200)
 DEFAULT_SCRIPT_PATH = Path.home()
 """The default path to search for script files in."""
 
+STEPPER_MOTOR_TOPIC = "stepper_motor"
+"""The topic name to use for stepper motor-related messages."""
+
+TEMPERATURE_CONTROLLER_TOPIC = "temperature_controller"
+"""The topic name to user for temperature controller-related messages."""
+
 OPUS_IP = "10.10.0.2"
 """The IP address of the machine running the OPUS software."""

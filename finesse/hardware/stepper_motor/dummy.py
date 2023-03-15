@@ -4,6 +4,7 @@ from typing import Optional
 
 from pubsub import pub
 
+from ...config import STEPPER_MOTOR_TOPIC
 from .stepper_motor_base import StepperMotorBase
 
 
@@ -67,4 +68,4 @@ class DummyStepperMotor(StepperMotorBase):
 
         As this is a dummy class, this completes immediately.
         """
-        pub.sendMessage("stepper.move.end")
+        pub.sendMessage(f"serial.{STEPPER_MOTOR_TOPIC}.move.end")
