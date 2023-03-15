@@ -57,13 +57,14 @@ class EM27Scraper:
         Args:
             url: Web address of the automation units diagnostics page.
         """
-        self._url = url
-        self._is_read = False
+        self._url: str = url
+        self._timeout: int = 2
+        self._is_read: bool = False
         self._data_table: list[EM27Property] = []
 
         pub.subscribe(self.send_data, "psf27.data.request")
 
-    def read(self, timeout: int = 2) -> str:
+    def read(self) -> str:
         """Read the webpage.
 
         Returns:
@@ -71,7 +72,7 @@ class EM27Scraper:
         """
         content = ""
         try:
-            request = get(self._url, timeout=timeout)
+            request = get(self._url, timeout=self._timeout)
             if request.status_code == 404:
                 request.raise_for_status()
             else:
