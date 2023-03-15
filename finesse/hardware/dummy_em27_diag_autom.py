@@ -17,7 +17,7 @@ class DummyEM27Scraper(EM27Scraper):
         dummy_em27_fp = resources.files("finesse.hardware").joinpath("diag_autom.htm")
         super().__init__(str(dummy_em27_fp))
 
-    def read(self, timeout: int = 0) -> str:
+    def read(self) -> str:
         """Read the webpage.
 
         Returns:
