@@ -2,7 +2,7 @@
 
 import pytest
 
-from finesse.hardware.dummy_em27_diag_autom import DummyEM27Scraper
+from finesse.hardware.dummy_em27_scraper import DummyEM27Scraper
 
 
 @pytest.fixture

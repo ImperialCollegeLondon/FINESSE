@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from ..hardware.em27_diag_autom import EM27Property
+from ..hardware.em27_scraper import EM27Property
 from .led_icons import LEDIcon
 
 
