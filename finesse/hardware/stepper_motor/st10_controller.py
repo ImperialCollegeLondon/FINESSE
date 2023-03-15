@@ -15,6 +15,7 @@ from pubsub import pub
 from PySide6.QtCore import QThread, Signal, Slot
 from serial import Serial, SerialException, SerialTimeoutException
 
+from ...config import STEPPER_MOTOR_TOPIC
 from .stepper_motor_base import StepperMotorBase
 
 
@@ -240,11 +241,11 @@ class ST10Controller(StepperMotorBase):
 
     @Slot()
     def _send_move_end_message(self) -> None:
-        pub.sendMessage("stepper.move.end")
+        pub.sendMessage(f"serial.{STEPPER_MOTOR_TOPIC}.move.end")
 
     @Slot()
     def _send_error_message(self, error: BaseException) -> None:
-        pub.sendMessage("stepper.error", error=error)
+        pub.sendMessage(f"serial.{STEPPER_MOTOR_TOPIC}.error", error=error)
 
     def _check_device_id(self) -> None:
         """Check that the ID is the correct one for an ST10.

@@ -7,6 +7,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from serial import SerialException, SerialTimeoutException
 
+from finesse.config import STEPPER_MOTOR_TOPIC
 from finesse.hardware.stepper_motor.st10_controller import (
     ST10Controller,
     ST10ControllerError,
@@ -80,14 +81,16 @@ def test_close(dev: ST10Controller) -> None:
 def test_send_move_end_message(sendmsg_mock: MagicMock, dev: ST10Controller) -> None:
     """Test the _send_move_end_message() method."""
     dev._send_move_end_message()
-    sendmsg_mock.assert_called_once_with("stepper.move.end")
+    sendmsg_mock.assert_called_once_with(f"serial.{STEPPER_MOTOR_TOPIC}.move.end")
 
 
 def test_send_error_message(sendmsg_mock: MagicMock, dev: ST10Controller) -> None:
     """Test the _send_error_message() method."""
     error = Exception()
     dev._send_error_message(error)
-    sendmsg_mock.assert_called_once_with("stepper.error", error=error)
+    sendmsg_mock.assert_called_once_with(
+        f"serial.{STEPPER_MOTOR_TOPIC}.error", error=error
+    )
 
 
 def read_mock(dev: ST10Controller, return_value: str):

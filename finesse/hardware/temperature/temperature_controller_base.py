@@ -4,6 +4,7 @@ from decimal import Decimal
 
 from pubsub import pub
 
+from ...config import TEMPERATURE_CONTROLLER_TOPIC
 from ..device_base import DeviceBase
 
 
@@ -20,9 +21,13 @@ class TemperatureControllerBase(DeviceBase):
         """
         super().__init__()
         self.name = name
-        pub.subscribe(self.request_properties, f"temperature_controller.{name}.request")
         pub.subscribe(
-            self.change_set_point, f"temperature_controller.{name}.change_set_point"
+            self.request_properties,
+            f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{name}.request",
+        )
+        pub.subscribe(
+            self.change_set_point,
+            f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{name}.change_set_point",
         )
 
     def request_properties(self) -> None:
@@ -32,7 +37,8 @@ class TemperatureControllerBase(DeviceBase):
             properties[prop] = getattr(self, prop)
 
         pub.sendMessage(
-            f"temperature_controller.{self.name}.response", properties=properties
+            f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{self.name}.response",
+            properties=properties,
         )
 
     def change_set_point(self, temperature: Decimal) -> None:
