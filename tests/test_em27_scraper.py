@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 import pytest
 from pubsub import pub
 
-from finesse.hardware.em27_diag_autom import EM27Property, EM27Scraper, PSF27Error
+from finesse.hardware.em27_scraper import EM27Property, EM27Scraper, PSF27Error
 
 
 @pytest.fixture

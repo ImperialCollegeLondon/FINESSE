@@ -2,7 +2,7 @@
 import logging
 from importlib import resources
 
-from .em27_diag_autom import EM27Scraper, PSF27Error
+from .em27_scraper import EM27Scraper, PSF27Error
 
 
 class DummyEM27Scraper(EM27Scraper):

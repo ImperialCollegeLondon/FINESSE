@@ -4,11 +4,11 @@ import sys
 from pubsub import pub
 
 if "--dummy-em27" in sys.argv:
-    from .dummy_em27_diag_autom import DummyEM27Scraper as EM27Scraper
+    from .dummy_em27_scraper import DummyEM27Scraper as EM27Scraper
     from .dummy_opus import DummyOPUSInterface as OPUSInterface
 else:
     from .em27_opus import OPUSInterface  # type: ignore
-    from .em27_diag_autom import EM27Scraper  # type: ignore
+    from .em27_scraper import EM27Scraper  # type: ignore
 
 from .dummy_stepper_motor import DummyStepperMotor
 
