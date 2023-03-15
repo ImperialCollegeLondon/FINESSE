@@ -15,7 +15,7 @@ def test_init(dev):
     """Test DummyEM27Scraper's __init__() method."""
     unix_path = "finesse/hardware/diag_autom.htm"
     win_path = "finesse\\hardware\\diag_autom.htm"
-    assert (dev._url.count(unix_path) == 1) or (dev._url.count(win_path) == 1)
+    assert (dev._url.count(unix_path) == 1) ^ (dev._url.count(win_path) == 1)
 
 
 def test_read_fail(dev):
