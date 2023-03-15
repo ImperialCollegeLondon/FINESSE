@@ -18,8 +18,10 @@ class TemperatureControllerBase(ABC):
         """
         super().__init__()
         self.name = name
-        pub.subscribe(self.request_properties, f"tc4820.{name}.request")
-        pub.subscribe(self.change_set_point, f"tc4820.{name}.change_set_point")
+        pub.subscribe(self.request_properties, f"temperature_controller.{name}.request")
+        pub.subscribe(
+            self.change_set_point, f"temperature_controller.{name}.change_set_point"
+        )
 
     def request_properties(self) -> None:
         """Requests that various device properties are sent over pubsub."""
@@ -27,7 +29,9 @@ class TemperatureControllerBase(ABC):
         for prop in ("temperature", "power", "alarm_status", "set_point"):
             properties[prop] = getattr(self, prop)
 
-        pub.sendMessage(f"tc4820.{self.name}.response", properties=properties)
+        pub.sendMessage(
+            f"temperature_controller.{self.name}.response", properties=properties
+        )
 
     def change_set_point(self, temperature: Decimal) -> None:
         """Change the set point to a new value."""
