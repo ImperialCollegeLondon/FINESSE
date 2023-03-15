@@ -1,15 +1,15 @@
-"""Provides a base class for TC4820 devices or mock devices."""
+"""Provides a base class for temperature controller devices or mock devices."""
 from abc import ABC, abstractmethod
 from decimal import Decimal
 
 from pubsub import pub
 
 
-class TC4820Base(ABC):
-    """The base class for TC4820 devices or mock devices."""
+class TemperatureControllerBase(ABC):
+    """The base class for temperature controller devices or mock devices."""
 
     def __init__(self, name: str) -> None:
-        """Create a new TC4820Base object.
+        """Create a new TemperatureControllerBase object.
 
         Subscribes to incoming requests.
 

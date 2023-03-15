@@ -6,7 +6,7 @@ from decimal import Decimal
 from typing import Optional
 
 from .noise_producer import NoiseProducer
-from .tc4820_base import TC4820Base
+from .temperature_controller_base import TemperatureControllerBase
 
 
 @dataclass
@@ -18,8 +18,8 @@ class NoiseParameters:
     seed: Optional[int] = 42
 
 
-class DummyTC4820(TC4820Base):
-    """A dummy TC4820 device which produces random noise for its properties."""
+class DummyTemperatureController(TemperatureControllerBase):
+    """A dummy temperature controller device which produces random noise."""
 
     def __init__(
         self,
@@ -29,10 +29,7 @@ class DummyTC4820(TC4820Base):
         alarm_status: int = 0,
         initial_set_point: Decimal = Decimal(70),
     ) -> None:
-        """Create a new DummyTC4820.
-
-        Note that because of how properties work in Python, only a single instance of
-        this class can be created.
+        """Create a new DummyTemperatureController.
 
         Args:
             name: The name of the device, to distinguish it from others

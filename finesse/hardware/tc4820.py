@@ -18,14 +18,14 @@ from typing import Any
 
 from serial import Serial, SerialException
 
-from .tc4820_base import TC4820Base
+from .temperature_controller_base import TemperatureControllerBase
 
 
 class MalformedMessageError(Exception):
     """Raised when a message sent or received was malformed."""
 
 
-class TC4820(TC4820Base):
+class TC4820(TemperatureControllerBase):
     """An interface for TC4820 temperature controllers."""
 
     MAX_POWER = 511
