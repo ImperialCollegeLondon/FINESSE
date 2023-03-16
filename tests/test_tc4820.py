@@ -1,7 +1,9 @@
 """Tests for the interface to the TC4820 device."""
 from contextlib import nullcontext as does_not_raise
+from decimal import Decimal
 from itertools import chain
 from typing import Any, Tuple
+from unittest.mock import MagicMock, patch
 
 import pytest
 from pytest_mock import MockerFixture
@@ -14,11 +16,37 @@ from finesse.hardware.tc4820 import TC4820, MalformedMessageError
 def dev(mocker: MockerFixture) -> TC4820:
     """Get an instance of a TC4820 object."""
     serial = mocker.patch("serial.Serial")
-    tc_dev = TC4820(serial)
+    return TC4820("device", serial)
 
-    # Check default argument
-    assert tc_dev.max_attempts == 3
-    return tc_dev
+
+@pytest.mark.parametrize("name", ("hot_bb", "cold_bb"))
+def test_init(name: str, subscribe_mock: MagicMock) -> None:
+    """Test TC4820's constructor."""
+    dev = TC4820(name, MagicMock())
+    assert dev.max_attempts == 3
+    subscribe_mock.assert_any_call(
+        dev.request_properties, f"temperature_controller.{name}.request"
+    )
+    subscribe_mock.assert_any_call(
+        dev.change_set_point, f"temperature_controller.{name}.change_set_point"
+    )
+
+
+def test_request_properties(dev: TC4820, sendmsg_mock: MagicMock) -> None:
+    """Test the request_properties() method."""
+    expected = {
+        "power": 0,
+        "alarm_status": 0,
+        "temperature": Decimal(0),
+        "set_point": Decimal(0),
+    }
+
+    with patch.object(dev, "request_int") as mock_int:
+        mock_int.return_value = 0
+        dev.request_properties()
+        sendmsg_mock.assert_called_once_with(
+            "temperature_controller.device.response", properties=expected
+        )
 
 
 def checksum(message: int) -> int:
@@ -129,7 +157,7 @@ def test_request_int(
     Check that the retrying of requests works.
     """
     serial = mocker.patch("serial.Serial")
-    dev = TC4820(serial, max_attempts)
+    dev = TC4820("device", serial, max_attempts)
 
     fail_count = 0
 
