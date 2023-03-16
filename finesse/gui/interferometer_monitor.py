@@ -29,7 +29,7 @@ class EM27Monitor(QGroupBox):
         self._data_table: list[EM27Property] = []
 
         self._poll_light = LEDIcon.create_poll_icon()
-        self._poll_light._timer.timeout.connect(self._poll_server)  # type: ignore
+        self._poll_light.timer.timeout.connect(self._poll_server)  # type: ignore
 
         self._create_layouts()
 
@@ -90,6 +90,7 @@ class EM27Monitor(QGroupBox):
 
     def _display_props(self) -> None:
         """Creates and populates the widgets to view the EM27 properties."""
+        # TODO: remove/hide row from table if it is no longer in _data_table
         for prop in self._data_table:
             lineedit = self._get_prop_lineedit(prop)
             lineedit.setText(prop.val_str())
@@ -100,15 +101,15 @@ class EM27Monitor(QGroupBox):
 
     def begin_polling(self) -> None:
         """Initiate polling the server."""
-        self._poll_light._timer.start(2000)
+        self._poll_light.timer.start(2000)
 
     def end_polling(self) -> None:
         """Terminate polling the server."""
-        self._poll_light._timer.stop()
+        self._poll_light.timer.stop()
 
     def _poll_server(self) -> None:
         """Polls the server to obtain the latest values."""
-        self._poll_light._flash()
+        self._poll_light.flash()
         pub.sendMessage("psf27.data.request")
         self._display_props()
 
