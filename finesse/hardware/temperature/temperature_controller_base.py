@@ -32,18 +32,28 @@ class TemperatureControllerBase(DeviceBase):
 
     def request_properties(self) -> None:
         """Requests that various device properties are sent over pubsub."""
-        properties = {}
-        for prop in ("temperature", "power", "alarm_status", "set_point"):
-            properties[prop] = getattr(self, prop)
-
-        pub.sendMessage(
-            f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{self.name}.response",
-            properties=properties,
-        )
+        try:
+            properties = {}
+            for prop in ("temperature", "power", "alarm_status", "set_point"):
+                properties[prop] = getattr(self, prop)
+        except Exception as error:
+            pub.sendMessage(
+                f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{self.name}.error", error=error
+            )
+        else:
+            pub.sendMessage(
+                f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{self.name}.response",
+                properties=properties,
+            )
 
     def change_set_point(self, temperature: Decimal) -> None:
         """Change the set point to a new value."""
-        self.set_point = temperature
+        try:
+            self.set_point = temperature
+        except Exception as error:
+            pub.sendMessage(
+                f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{self.name}.error", error=error
+            )
 
     @property
     @abstractmethod
