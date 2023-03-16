@@ -132,29 +132,6 @@ class DummyOPUSInterface(OPUSInterfaceBase):
         )
         """An object representing the internal state of the device."""
 
-    def _send_response(self, type: str) -> None:
-        """Send a message signalling that a response was received.
-
-        Args:
-            type: Either "status" or "command", indicating what message to send
-        """
-        state = self.state_machine.current_state
-
-        pub.sendMessage(
-            f"opus.{type}.response",
-            url="https://example.com",
-            status=state.value,
-            text=state.name,
-            error=self.last_error.to_tuple(),
-        )
-
-    def request_status(self) -> None:
-        """Request the device's current status."""
-        if self.state_machine.current_state == OPUSStateMachine.idle:
-            self.last_error = OPUSError.NOT_CONNECTED
-
-        self._send_response("status")
-
     def _run_command(self, command: str) -> None:
         """Try to run the specified command.
 
@@ -165,6 +142,7 @@ class DummyOPUSInterface(OPUSInterfaceBase):
         """
         fun = getattr(self.state_machine, command)
 
+        self.last_error = OPUSError.NO_ERROR
         try:
             fun()
         except TransitionNotAllowed:
@@ -173,17 +151,29 @@ class DummyOPUSInterface(OPUSInterfaceBase):
     def request_command(self, command: str) -> None:
         """Execute the specified command on the device.
 
+        Note that we treat "status" as a command, even though it requires a different
+        URL to access.
+
         Args:
             command: The command to run
         """
-        self.last_error = OPUSError.NO_ERROR
-
-        if command in self._COMMAND_ERRORS:
+        if command == "status":
+            if self.state_machine.current_state == OPUSStateMachine.idle:
+                self.last_error = OPUSError.NOT_CONNECTED
+        elif command in self._COMMAND_ERRORS:
             self._run_command(command)
         else:
             self.last_error = OPUSError.UNKNOWN_COMMAND
 
-        self._send_response("command")
+        # Broadcast the response for the command
+        state = self.state_machine.current_state
+        pub.sendMessage(
+            f"opus.response.{command}",
+            url="https://example.com",
+            status=state.value,
+            text=state.name,
+            error=self.last_error.to_tuple(),
+        )
 
     def _measuring_finished(self) -> None:
         """Finish measurement successfully."""
