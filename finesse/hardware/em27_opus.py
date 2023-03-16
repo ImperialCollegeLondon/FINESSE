@@ -91,16 +91,16 @@ class OPUSInterface(OPUSInterfaceBase):
                 raise OPUSError(f"HTTP status code {response.status_code}")
 
             status: Optional[int] = None
-            text = ""
+            text: Optional[str] = None
             errcode: Optional[int] = None
-            errtext = ""
+            errtext: Optional[str] = None
             soup = BeautifulSoup(response.content, "html.parser")
             for td in soup.find_all("td"):
                 if "id" not in td.attrs:
                     continue
 
                 id = td.attrs["id"]
-                data = td.contents[0]
+                data = td.contents[0] if td.contents else ""
                 if id == "STATUS":
                     status = int(data)
                 elif id == "TEXT":
@@ -112,7 +112,7 @@ class OPUSInterface(OPUSInterfaceBase):
                 else:
                     logging.warning(f"Received unknown ID: {id}")
 
-            if status is None or not text:
+            if status is None or text is None:
                 raise OPUSError("Required tags not found")
             error = None if errcode is None else (errcode, errtext)
         except Exception as e:
@@ -123,12 +123,18 @@ class OPUSInterface(OPUSInterfaceBase):
             topic, url=response.url, status=cast(int, status), text=text, error=error
         )
 
-    def request_status(self) -> None:
-        """Request an update on the device's status."""
-        self.submit_request.emit(STATUS_FILENAME, "opus.status.response")
-
     def request_command(self, command: str) -> None:
-        """Request that OPUS run the specified command."""
-        self.submit_request.emit(
-            f"{COMMAND_FILENAME}?opusrs{command}", "opus.command.response"
+        """Request that OPUS run the specified command.
+
+        Note that we treat "status" as a command, even though it requires a different
+        URL to access.
+
+        Args:
+            command: Name of command to run
+        """
+        filename = (
+            STATUS_FILENAME
+            if command == "status"
+            else f"{COMMAND_FILENAME}?opusrs{command}"
         )
+        self.submit_request.emit(filename, f"opus.response.{command}")
