@@ -8,6 +8,7 @@ from decimal import Decimal
 
 from pubsub import pub
 from requests import get
+from requests.exceptions import ConnectionError, HTTPError, Timeout
 
 from ..config import EM27_URL
 
@@ -59,7 +60,6 @@ class EM27Scraper:
         """
         self._url: str = url
         self._timeout: int = 2
-        self._is_read: bool = False
         self._data_table: list[EM27Property] = []
 
         pub.subscribe(self.send_data, "psf27.data.request")
@@ -70,57 +70,54 @@ class EM27Scraper:
         Returns:
             content: html source read from the webpage
         """
-        content = ""
         try:
             request = get(self._url, timeout=self._timeout)
-            if request.status_code == 404:
-                request.raise_for_status()
-            else:
-                content = request.text
-                self._is_read = True
-                logging.info("Read PSF27Sensor table")
-        except Exception as e:
-            self._is_read = False
-            self._error_occurred(PSF27Error(e))
-        finally:
+
+            # Check whether an error occured
+            request.raise_for_status()
+
+            content = request.text
+            logging.info("Read PSF27Sensor table")
             return content
+        except ConnectionError:
+            raise PSF27Error(f"Error connecting to {self._url}")
+        except HTTPError:
+            raise PSF27Error(f"{self._url} not found")
+        except Timeout:
+            raise PSF27Error("Request timed out")
 
     def get_psf27sensor_data(self, content: str) -> None:
         """Search for the PSF27Sensor table and store the data."""
-        if self._is_read:
-            table_header = (
-                "<TR><TH>No</TH><TH>Name</TH><TH>Description</TH>"
-                + "<TH>Status</TH><TH>Value</TH><TH>Meas. Unit</TH></TR>\n"
-            )
-            table_start = content.find(table_header)
-            try:
-                if table_start == -1:
-                    raise PSF27Error("PSF27Sensor table not found")
-            except Exception as e:
-                self._error_occurred(e)
-            else:
-                table_end = table_start + content[table_start:].find("</TABLE>")
-                table = content[table_start:table_end].splitlines()
-                data_table = []
-                for row in range(1, len(table)):
-                    data_table.append(
-                        EM27Property(
-                            table[row].split("<TD>")[2].rstrip("</TD>"),
-                            Decimal(table[row].split("<TD>")[5].strip("</TD>")),
-                            table[row].split("<TD>")[6].rstrip("</TD></TR"),
-                        )
+        table_header = (
+            "<TR><TH>No</TH><TH>Name</TH><TH>Description</TH>"
+            + "<TH>Status</TH><TH>Value</TH><TH>Meas. Unit</TH></TR>\n"
+        )
+        table_start = content.find(table_header)
+        if table_start == -1:
+            raise PSF27Error("PSF27Sensor table not found")
+        else:
+            table_end = table_start + content[table_start:].find("</TABLE>")
+            table = content[table_start:table_end].splitlines()
+            data_table = []
+            for row in range(1, len(table)):
+                data_table.append(
+                    EM27Property(
+                        table[row].split("<TD>")[2].rstrip("</TD>"),
+                        Decimal(table[row].split("<TD>")[5].strip("</TD>")),
+                        table[row].split("<TD>")[6].rstrip("</TD></TR"),
                     )
-                self._data_table = data_table
+                )
+            self._data_table = data_table
 
     def send_data(self) -> None:
         """Request the EM27 property data from the web server and send to GUI."""
-        content = self.read()
-        if self._is_read:
+        try:
+            content = self.read()
             self.get_psf27sensor_data(content)
-            pub.sendMessage("psf27.data.response", data=self._data_table)
-            self._is_read = False
-        else:
-            pub.sendMessage("psf27.data.response", data=[])
+        except PSF27Error as e:
+            self._error_occurred(e)
+
+        pub.sendMessage("psf27.data.response", data=self._data_table)
 
     def _error_occurred(self, exception: BaseException) -> None:
         """Log and communicate that an error occurred."""
