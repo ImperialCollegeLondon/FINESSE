@@ -8,16 +8,13 @@ if "--dummy-em27" in sys.argv:
 else:
     from .opus.em27 import OPUSInterface  # type: ignore
 
-from .stepper_motor.dummy import DummyStepperMotor
+from .stepper_motor import create_stepper_motor_serial_manager
 
-stepper: DummyStepperMotor
 opus: OPUSInterface
 
 
 def _init_hardware():
-    global stepper, opus
-    # TODO: Replace with a real stepper motor device
-    stepper = DummyStepperMotor(3600)
+    global opus
 
     opus = OPUSInterface()
 
@@ -29,3 +26,5 @@ def _stop_hardware():
 
 pub.subscribe(_init_hardware, "window.opened")
 pub.subscribe(_stop_hardware, "window.closed")
+
+create_stepper_motor_serial_manager()
