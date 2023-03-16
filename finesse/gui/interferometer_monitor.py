@@ -109,9 +109,15 @@ class EM27Monitor(QGroupBox):
         """
         if prop.name not in self._val_lineedits:
             prop_label = QLabel(prop.name)
+            prop_label.setSizePolicy(
+                QSizePolicy.Fixed, QSizePolicy.Fixed  # type: ignore
+            )
             val_lineedit = QLineEdit()
             val_lineedit.setReadOnly(True)
             val_lineedit.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            val_lineedit.setSizePolicy(
+                QSizePolicy.MinimumExpanding, QSizePolicy.Fixed  # type: ignore
+            )
 
             self._val_lineedits[prop.name] = val_lineedit
 
