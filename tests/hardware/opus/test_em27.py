@@ -6,11 +6,11 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 
 from finesse.config import OPUS_IP
-from finesse.hardware.em27_opus import OPUSInterface, OPUSRequester
+from finesse.hardware.opus.em27 import OPUSInterface, OPUSRequester
 
 
 @pytest.fixture
-@patch("finesse.hardware.em27_opus.QThread.start")
+@patch("finesse.hardware.opus.em27.QThread.start")
 def opus(mock) -> OPUSInterface:
     """Fixture for OPUSInterface."""
     return OPUSInterface()
@@ -32,7 +32,7 @@ def test_request_command(opus: OPUSInterface) -> None:
         )
 
 
-@patch("finesse.hardware.em27_opus.requests")
+@patch("finesse.hardware.opus.em27.requests")
 def test_make_request_success(requests_mock) -> None:
     """Test OPUSRequester's make_request() method with a successful request."""
     requester = OPUSRequester(5.0)
@@ -49,7 +49,7 @@ def test_make_request_success(requests_mock) -> None:
         request_complete_mock.emit.assert_called_once_with("MAGIC", topic)
 
 
-@patch("finesse.hardware.em27_opus.requests")
+@patch("finesse.hardware.opus.em27.requests")
 def test_make_request_error(requests_mock) -> None:
     """Test OPUSRequester's make_request() method with failed request."""
     requester = OPUSRequester(5.0)
@@ -167,7 +167,7 @@ def test_parse_response_no_id(opus: OPUSInterface) -> None:
         error_mock.assert_not_called()
 
 
-@patch("finesse.hardware.em27_opus.logging.warning")
+@patch("finesse.hardware.opus.em27.logging.warning")
 def test_parse_response_bad_id(warning_mock: Mock, opus: OPUSInterface) -> None:
     """Test that _parse_response() can handle <td> tags with unexpected id values."""
     response = _get_opus_response(

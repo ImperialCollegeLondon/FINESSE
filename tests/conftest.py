@@ -1,4 +1,5 @@
 """Configuration for pytest."""
+import os
 from unittest.mock import MagicMock
 
 import pytest
@@ -19,3 +20,7 @@ def sendmsg_mock(monkeypatch) -> MagicMock:
     mock = MagicMock()
     monkeypatch.setattr(pub, "sendMessage", mock)
     return mock
+
+
+# Don't actually raise windows etc.
+os.environ["QT_QPA_PLATFORM"] = "offscreen"

@@ -1,0 +1,6 @@
+repeats: 1
+sequence:
+- angle: zenith
+  measurements: 1
+- angle: 0.0
+  measurements: 1
