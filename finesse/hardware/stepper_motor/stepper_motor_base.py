@@ -4,7 +4,7 @@ from typing import Optional, Union
 
 from pubsub import pub
 
-from ..config import ANGLE_PRESETS
+from ...config import ANGLE_PRESETS
 
 
 class StepperMotorBase(ABC):

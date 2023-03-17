@@ -5,7 +5,7 @@ from dataclasses import asdict, dataclass
 from decimal import Decimal
 from typing import Optional
 
-from .noise_producer import NoiseProducer
+from ..noise_producer import NoiseProducer
 from .temperature_controller_base import TemperatureControllerBase
 
 
