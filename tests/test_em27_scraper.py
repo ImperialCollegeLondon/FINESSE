@@ -28,9 +28,9 @@ def test_init(dev):
 
 
 def test_read(dev, send_message_mock):
-    """Test EM27Scraper's read() method."""
+    """Test EM27Scraper's _read() method."""
     try:
-        content = dev.read()
+        content = dev._read()
         assert dev._is_read
         assert type(content) == str
         assert content.count("PSF27Sensor") == 1
@@ -39,9 +39,9 @@ def test_read(dev, send_message_mock):
 
 
 def test_get_psf27sensor_data(dev):
-    """Test EM27Scraper's get_psf27sensor_data() method."""
-    content = dev.read()
-    dev.get_psf27sensor_data(content)
+    """Test EM27Scraper's _get_psf27sensor_data() method."""
+    content = dev._read()
+    dev._get_psf27sensor_data(content)
     if dev._is_read:
         assert dev._data_table != []
         for row in dev._data_table:
@@ -65,7 +65,7 @@ def test_send_data(dev, send_message_mock):
 
 
 def test_error_occurred(dev, send_message_mock):
-    """Test EM27Scraper's error_occurred() method."""
+    """Test EM27Scraper's _error_occurred() method."""
     try:
         raise PSF27Error("Error occurred")
     except PSF27Error as e:

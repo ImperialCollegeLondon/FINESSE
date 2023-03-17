@@ -64,7 +64,7 @@ class EM27Scraper:
 
         pub.subscribe(self.send_data, "psf27.data.request")
 
-    def read(self) -> str:
+    def _read(self) -> str:
         """Read the webpage.
 
         Returns:
@@ -86,7 +86,7 @@ class EM27Scraper:
         except Timeout:
             raise PSF27Error("Request timed out")
 
-    def get_psf27sensor_data(self, content: str) -> None:
+    def _get_psf27sensor_data(self, content: str) -> None:
         """Search for the PSF27Sensor table and store the data."""
         table_header = (
             "<TR><TH>No</TH><TH>Name</TH><TH>Description</TH>"
@@ -112,8 +112,8 @@ class EM27Scraper:
     def send_data(self) -> None:
         """Request the EM27 property data from the web server and send to GUI."""
         try:
-            content = self.read()
-            self.get_psf27sensor_data(content)
+            content = self._read()
+            self._get_psf27sensor_data(content)
         except PSF27Error as e:
             self._error_occurred(e)
 

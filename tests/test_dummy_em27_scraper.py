@@ -19,10 +19,10 @@ def test_init(dev):
 
 
 def test_read_fail(dev):
-    """Test failure of DummyEM27Scraper's read() method."""
+    """Test failure of DummyEM27Scraper's _read() method."""
     dev._url = dev._url + "chars"
     try:
-        content = dev.read()
+        content = dev._read()
         assert dev._is_read
         assert type(content) == str
         assert content.count("PSF27Sensor") == 1

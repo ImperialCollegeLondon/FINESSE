@@ -41,9 +41,9 @@ class EM27Monitor(QGroupBox):
 
         self.setLayout(self._layout)
 
-        pub.subscribe(self.get_data_table, "psf27.data.response")
+        pub.subscribe(self._get_data_table, "psf27.data.response")
 
-        self.begin_polling()
+        self._begin_polling()
 
     def _create_layouts(self) -> None:
         """Creates layouts to house the widgets."""
@@ -95,15 +95,15 @@ class EM27Monitor(QGroupBox):
             lineedit = self._get_prop_lineedit(prop)
             lineedit.setText(prop.val_str())
 
-    def get_data_table(self, data: list[EM27Property]):
+    def _get_data_table(self, data: list[EM27Property]):
         """Receive the data table from the server."""
         self._data_table = data
 
-    def begin_polling(self) -> None:
+    def _begin_polling(self) -> None:
         """Initiate polling the server."""
         self._poll_light.timer.start(2000)
 
-    def end_polling(self) -> None:
+    def _end_polling(self) -> None:
         """Terminate polling the server."""
         self._poll_light.timer.stop()
 
