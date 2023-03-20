@@ -6,12 +6,8 @@ from pubsub import pub
 from serial import EIGHTBITS, PARITY_NONE, STOPBITS_ONE, Serial, SerialException
 
 
-class DP9800Error(SerialException):
-    """Indicates that an error has occurred with the DP9800 comms."""
-
-
-class MalformedMessageError(Exception):
-    """Raised when a message received was malformed."""
+class DP9800Error(Exception):
+    """Indicates that an error occurred while communicating with the device."""
 
 
 class DP9800:
@@ -36,8 +32,11 @@ class DP9800:
 
         self.serial = serial
         self.max_attempts = max_attempts
-        self._data: bytes = b""
         self._sysflag: str = ""
+
+        # logger: opened serial port on port self.serial.port
+        pub.sendMessage("dp9800.open")
+        pub.subscribe(self.get_temperatures, "dp9800.data.request")
 
     @staticmethod
     def create(
@@ -69,14 +68,16 @@ class DP9800:
             timeout=timeout,
         )
 
-        # logger: opened serial port on port self.serial.port
-        pub.sendMessage("dp9800_state", is_open=True)
         return DP9800(serial, max_attempts)
 
     def close(self) -> None:
         """Close the connection to the device."""
-        self.serial.close()
-        pub.sendMessage("dp9800_state", is_open=False)
+        try:
+            self.serial.close()
+            pub.sendMessage("dp9800.close")
+            # logger: closed connection to DP9800
+        except Exception as e:
+            raise DP9800Error(e)
 
     def print_sysflag(self) -> None:
         """Print the settings of the device as stored in the system flag.
@@ -106,7 +107,7 @@ class DP9800:
             print(f"Audible button: {audible_state}")
             print(f"Temperature unit: {temp_unit}")
 
-    def read(self) -> None:
+    def read(self) -> bytes:
         """Read temperature data from the DP9800.
 
         The DP9800 returns a sequence of bytes containing the
@@ -131,70 +132,71 @@ class DP9800:
         to the values with indices 1 to 8. The first value (at index 0) is
         therefore ignored.
 
-        Raises:
-            SerialException: An error occurred while reading from the device
-            MalformedMessageError: The message read was malformed
+        Returns:
+            data: the sequence of bytes read from the device
         """
-        error = 0
         num_bytes_to_read = self.serial.in_waiting
         if num_bytes_to_read == 0:
-            print("No bytes to read")
-            error = 1
+            data = b""
         else:
-            line = self.serial.read(num_bytes_to_read)
-            bcc = line[-2]
+            try:
+                data = self.serial.read(num_bytes_to_read)
+            except SerialException as e:
+                # logger: unsuccessful read from DP9800
+                raise DP9800Error(e)
 
-        # Perform message integrity checks
-        # Check characters we know
-        assert line[0] == 2  # STX
-        assert line[-3] == 3  # ETX
-        assert line[-1] == 0  # NUL
+            # Perform message integrity checks
+            # Check characters we know
+            if data[0] != 2:  # STX
+                # logger: unsuccessful read from DP9800
+                raise DP9800Error("Start transmission character not detected")
+            if data[-3] != 3:  # ETX
+                # logger: unsuccessful read from DP9800
+                raise DP9800Error("End transmission character not detected")
+            if data[-1] != 0:  # NUL
+                # logger: unsuccessful read from DP9800
+                raise DP9800Error("Null terminator not detected")
 
-        # Check BCC
-        bcc_chars = line[1:-2]
-        byte_sum = 0
-        for byte in bcc_chars:
-            byte_sum ^= byte
+            # Check BCC
+            bcc = data[-2]
+            bcc_chars = data[1:-2]
+            byte_sum = 0
+            for byte in bcc_chars:
+                byte_sum ^= byte
 
-        if byte_sum != bcc:
-            print("Error with BCC")
-            raise MalformedMessageError("BCC check failed")
-            error = 1
+            if byte_sum != bcc:
+                raise DP9800Error("BCC check failed")
 
-        if not error:
-            self._data = line
             # logger: successful read from DP9800
-        # else:
-        # logger: unsuccessful read from DP9800
+        return data
 
-    def parse(self) -> List[float]:
+    def parse(self, data: bytes) -> List[float]:
         """Parse temperature data read from the DP9800.
 
         The sequence of bytes is translated into a list of ASCII strings
         representing each of the temperatures, and finally into floats.
 
         Returns:
-            vals: A list containing the temperature values recorded by
-                  the DP9800 device.
+            vals: A list of floats containing the temperature values recorded
+                  by the DP9800 device.
         """
-        if self._data == b"":
-            print("No data")
+        if data == b"":
             return []
         else:
-            line_ascii = self._data.decode("ascii")
+            data_ascii = data.decode("ascii")
             vals_str = [""] * (self.NUM_CHANNELS + 1)
             vals = [0.0] * (self.NUM_CHANNELS + 1)
             offset = 3  # offset of temperature values from start of message
             width = 7  # width of temperature strings
             for i in range(self.NUM_CHANNELS + 1):
-                vals_str[i] = line_ascii[
+                vals_str[i] = data_ascii[
                     self.NUM_CHANNELS * i
                     + offset : self.NUM_CHANNELS * i
                     + (offset + width)
                 ]
                 vals[i] = float(vals_str[i])
 
-            sysflag = bin(int(line_ascii[-5:-3], 16))
+            sysflag = bin(int(data_ascii[-5:-3], 16))
             self._sysflag = sysflag[2:]
 
         return vals[1:]
@@ -230,9 +232,9 @@ class DP9800:
         Parses the data and broadcasts the temperatures.
         """
         self.write(b"\x04T\x05")
-        self.read()
-        temperatures = self.parse()
-        pub.sendMessage("dp9800_data", values=temperatures)
+        data = self.read()
+        temperatures = self.parse(data)
+        pub.sendMessage("dp9800.data.response", values=temperatures)
 
 
 class DummyDP9800(DP9800):
@@ -241,7 +243,6 @@ class DummyDP9800(DP9800):
     def __init__(self) -> None:
         """Open the connection to the device."""
         self.in_waiting: int = 0
-        self._data: bytes = b""
         self._sysflag: str = ""
 
     @staticmethod
@@ -255,60 +256,41 @@ class DummyDP9800(DP9800):
         max_attempts: int = 3,
     ) -> "DummyDP9800":
         """Create the device."""
-        pub.sendMessage("dp9800_state", is_open=True)
+        pub.sendMessage("dp9800.open")
         return DummyDP9800()
 
     def close(self) -> None:
         """Close the connection to the device."""
-        pub.sendMessage("dp9800_state", is_open=False)
+        pub.sendMessage("dp9800.close")
 
-    def read(self) -> None:
-        """Mimic reading data from the device."""
-        error = 0
+    def read(self) -> bytes:
+        """Mimic reading data from the device.
+
+        Returns:
+            data: sequence of bytes representative of that read
+                  from the physical device
+        """
         num_bytes_to_read = self.in_waiting
         if num_bytes_to_read == 0:
-            print("No bytes to read")
-            error = 1
+            data = b""
         else:
-            line = (
+            data = (
                 b"\x02T   27.16   19.13   17.61   26.49  850.00"
                 + b"   24.35   68.65   69.92   24.1986\x03M\x00"
             )
-            bcc = line[-2]
 
-        # Perform message integrity checks
-        # Check characters we know
-        assert line[0] == 2  # STX
-        assert line[-3] == 3  # ETX
-        assert line[-1] == 0  # NUL
-
-        # Check BCC
-        bcc_chars = line[1:-2]
-        byte_sum = 0
-        for byte in bcc_chars:
-            byte_sum ^= byte
-
-        if byte_sum != bcc:
-            print("Error with BCC")
-            raise MalformedMessageError("BCC check failed")
-            error = 1
-
-        if not error:
-            self._data = line
-            # logger: successful read from DP9800
-        # else:
-        # logger: unsuccessful read from DP9800
-
+        # logger: successful read from DP9800
         self.in_waiting = 0
+        return data
 
     def write(self, command: bytes) -> int:
         """Pretend to write data to the device.
 
         Returns:
-            0: indicates successful write to the device
+            the number of bytes that would be written to the device
         """
         self.in_waiting = 79
-        return 0
+        return len(command)
 
 
 if __name__ == "__main__":
