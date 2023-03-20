@@ -1,5 +1,6 @@
 """Panel and widgets related to the control of the serial ports."""
 import logging
+from dataclasses import dataclass
 from typing import Sequence
 
 from pubsub import pub
@@ -37,6 +38,16 @@ def get_default_ports() -> list[str]:
     return ports
 
 
+@dataclass
+class Device:
+    """The parameters to use for a particular device."""
+
+    label: str
+    """A human-readable label for the device"""
+    name: str
+    """The name of the device as used in pubsub topic"""
+
+
 class DeviceControls:
     """A set of controls for opening/closing a connection to a single serial device."""
 
@@ -44,8 +55,7 @@ class DeviceControls:
         self,
         layout: QGridLayout,
         row: int,
-        name: str,
-        label: str,
+        device: Device,
         avail_ports: Sequence[str],
         avail_baudrates: Sequence[int],
     ) -> None:
@@ -56,16 +66,15 @@ class DeviceControls:
         Args:
             layout: The QGridLayout to add the controls to
             row: The row of the QGridLayout to add the controls to
-            name: The name of the device to use in pubsub messages
-            label: A human-readable name for the device
+            device: The device these controls refer to
             avail_ports: Possible serial ports to choose from
             avail_baudrates: Possible baudrates to choose from
         """
-        self.name = name
-        self.label = label
+        self.name = device.name
+        self.label = device.label
 
         # Add a label showing the device name
-        layout.addWidget(QLabel(label), row, 0)
+        layout.addWidget(QLabel(self.label), row, 0)
 
         self.ports = QComboBox()
         """The available serial ports for the device."""
@@ -86,9 +95,9 @@ class DeviceControls:
         layout.addWidget(self.open_close_btn, row, 3)
         self.open_close_btn.setChecked(False)
 
-        pub.subscribe(self._set_button_to_close, f"serial.{name}.opened")
-        pub.subscribe(self._set_button_to_open, f"serial.{name}.close")
-        pub.subscribe(self._show_error_message, f"serial.{name}.error")
+        pub.subscribe(self._set_button_to_close, f"serial.{self.name}.opened")
+        pub.subscribe(self._set_button_to_open, f"serial.{self.name}.close")
+        pub.subscribe(self._show_error_message, f"serial.{self.name}.error")
 
     def _set_button_to_open(self):
         """Change the button to say Open."""
@@ -134,12 +143,11 @@ class SerialPortControl(QGroupBox):
 
     def __init__(
         self,
-        devices: Sequence[str] = (
-            STEPPER_MOTOR_TOPIC,
-            f"{TEMPERATURE_CONTROLLER_TOPIC}.hot_bb",
-            f"{TEMPERATURE_CONTROLLER_TOPIC}.cold_bb",
+        devices: Sequence[Device] = (
+            Device("ST10", STEPPER_MOTOR_TOPIC),
+            Device("TC4820 Hot", f"{TEMPERATURE_CONTROLLER_TOPIC}.hot_bb"),
+            Device("TC4820 Cold", f"{TEMPERATURE_CONTROLLER_TOPIC}.cold_bb"),
         ),
-        device_labels: Sequence[str] = ("ST10", "TC4820 Hot", "TC4820 Cold"),
         avail_ports: Sequence[str] = get_default_ports(),
         avail_baudrates: Sequence[int] = BAUDRATES,
     ) -> None:
@@ -147,7 +155,6 @@ class SerialPortControl(QGroupBox):
 
         Args:
             devices: The names of devices to list (for pubsub messages)
-            device_labels: Human-readable names for the devices
             avail_ports: Sequence of available USB serial ports
             avail_baudrates: Sequence of possible baudrates
         """
@@ -155,8 +162,8 @@ class SerialPortControl(QGroupBox):
 
         layout = QGridLayout()
         self._devices = [
-            DeviceControls(layout, i, device, label, avail_ports, avail_baudrates)
-            for i, (device, label) in enumerate(zip(devices, device_labels))
+            DeviceControls(layout, i, device, avail_ports, avail_baudrates)
+            for i, device in enumerate(devices)
         ]
 
         self.setLayout(layout)

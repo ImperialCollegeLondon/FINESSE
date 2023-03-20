@@ -9,6 +9,7 @@ from pytestqt.qtbot import QtBot
 
 from finesse.gui.serial_view import (
     DUMMY_DEVICE_PORT,
+    Device,
     DeviceControls,
     SerialPortControl,
     get_default_ports,
@@ -24,7 +25,9 @@ def device_controls(qtbot: QtBot) -> DeviceControls:
     """A fixture providing a DeviceControls object."""
     ports = ("COM0",)
     baudrates = range(3)
-    return DeviceControls(QGridLayout(), 0, DEVICE_NAME, "My device", ports, baudrates)
+    return DeviceControls(
+        QGridLayout(), 0, Device("My device", DEVICE_NAME), ports, baudrates
+    )
 
 
 MockPortInfo = namedtuple("MockPortInfo", "device vid")
@@ -98,7 +101,7 @@ def test_device_controls_init(
     baudrates = range(3)
 
     controls = DeviceControls(
-        MagicMock(), 0, DEVICE_NAME, "My device", ports, baudrates
+        MagicMock(), 0, Device("My device", DEVICE_NAME), ports, baudrates
     )
     assert items_equal(controls.ports, ports)
     assert items_equal(controls.baudrates, baudrates)
@@ -199,14 +202,11 @@ def test_serial_port_control_init(
     layout = QGridLayout()
     grid_mock.return_value = layout
 
-    devices = ("device1", "device2")
-    labels = ("DEVICE1", "DEVICE2")
+    devices = (Device("device1", "DEVICE1"), Device("device2", "DEVICE2"))
     avail_ports = ("port1", "port2")
     avail_baudrates = range(2)
-    SerialPortControl(devices, labels, avail_ports, avail_baudrates)
+    SerialPortControl(devices, avail_ports, avail_baudrates)
 
     # Check that the appropriate DeviceControls have been created
-    for i, (device, label) in enumerate(zip(devices, labels)):
-        controls_mock.assert_any_call(
-            layout, i, device, label, avail_ports, avail_baudrates
-        )
+    for i, device in enumerate(devices):
+        controls_mock.assert_any_call(layout, i, device, avail_ports, avail_baudrates)
