@@ -9,7 +9,7 @@ The specification is available online:
 
 import logging
 from queue import Queue
-from typing import Any, Optional, Union
+from typing import Optional, Union
 
 from pubsub import pub
 from PySide6.QtCore import QThread, Signal, Slot
@@ -194,29 +194,6 @@ class ST10Controller(StepperMotorBase):
         self._home_and_reset()
 
         super().__init__()
-
-    @staticmethod
-    def create(
-        port: str,
-        baudrate: int = 9600,
-        timeout: float = 1.0,
-        *serial_args: Any,
-        **serial_kwargs: Any,
-    ):
-        """Create a new ST10Controller with the specified serial device properties.
-
-        Args:
-            port: Serial port name
-            baudrate: Serial port baudrate
-            timeout: How long to wait for read operations (seconds)
-            serial_args: Extra arguments to Serial constructor
-            serial_kwargs: Extra keyword arguments to Serial constructor
-        """
-        if "write_timeout" not in serial_kwargs:
-            serial_kwargs["write_timeout"] = timeout
-
-        serial = Serial(port, baudrate, *serial_args, timeout=timeout, **serial_kwargs)
-        return ST10Controller(serial)
 
     def close(self) -> None:
         """Leave mirror facing downwards when finished.
@@ -484,22 +461,3 @@ class ST10Controller(StepperMotorBase):
     def notify_on_stopped(self) -> None:
         """Wait until the motor has stopped moving and send a message when done."""
         self._send_string(_SEND_STRING_MAGIC)
-
-
-if __name__ == "__main__":
-    import sys
-
-    print(f"Connecting to device {sys.argv[1]}...")
-    dev = ST10Controller.create(sys.argv[1])
-    print("Done. Homing...")
-
-    dev.wait_until_stopped()
-    print("Homing complete")
-    print(f"Current angle: {dev.angle}°")
-
-    angles = (0.0, 90.0, 180.0, "hot_bb")
-    for ang in angles:
-        print(f"Moving to {ang}")
-        dev.move_to(ang)
-        dev.wait_until_stopped()
-        print(f"Current angle: {dev.angle}°")
