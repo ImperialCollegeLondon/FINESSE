@@ -1,13 +1,11 @@
 """Panel and widgets related to temperature monitoring."""
 from datetime import datetime
 from functools import partial
-from importlib import resources
 from typing import Tuple
 
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QImage, QPixmap
 from PySide6.QtWidgets import (
     QGridLayout,
     QGroupBox,
@@ -19,15 +17,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-img_files = resources.files("finesse.gui.images")
-poll_on_img_data = img_files.joinpath("poll_on.png").read_bytes()
-poll_off_img_data = img_files.joinpath("poll_off.png").read_bytes()
-alarm_on_img_data = img_files.joinpath("alarm_on.png").read_bytes()
-alarm_off_img_data = img_files.joinpath("alarm_off.png").read_bytes()
-poll_on_img = QImage.fromData(poll_on_img_data)
-poll_off_img = QImage.fromData(poll_off_img_data)
-alarm_on_img = QImage.fromData(alarm_on_img_data)
-alarm_off_img = QImage.fromData(alarm_off_img_data)
+from .led_icons import LEDIcon
 
 
 def get_temperature_data() -> Tuple[float, float, float]:
@@ -197,8 +187,7 @@ class DP9800(QGroupBox):
         )
         layout.addWidget(poll_label, 0, 9, 2, 1)
 
-        self._poll_light = QLabel()
-        self._poll_light.setPixmap(QPixmap(poll_off_img))
+        self._poll_light = LEDIcon.create_poll_icon()
         layout.addWidget(self._poll_light, 0, 10, 2, 1)
 
         return layout
@@ -268,10 +257,8 @@ class TC4820(QGroupBox):
         layout.addWidget(self._power_bar, 1, 1, 1, 3)
         layout.addWidget(QLineEdit("40"), 1, 4)
 
-        self._poll_light = QLabel()
-        self._poll_light.setPixmap(QPixmap(poll_off_img))
-        self._alarm_light = QLabel()
-        self._alarm_light.setPixmap(QPixmap(alarm_off_img))
+        self._poll_light = LEDIcon.create_poll_icon()
+        self._alarm_light = LEDIcon.create_alarm_icon()
         layout.addWidget(self._poll_light, 0, 5)
         layout.addWidget(self._alarm_light, 2, 5)
 

@@ -6,15 +6,15 @@ The OPUS program must be running on the computer at OPUS_IP for the commands to 
 Note that this is a separate machine from the EM27!
 """
 import logging
-import traceback
 from typing import Optional, cast
 
 import requests
 from bs4 import BeautifulSoup
 from pubsub import pub
-from PySide6.QtCore import QObject, QThread, Signal, Slot
+from PySide6.QtCore import QThread, Signal, Slot
 
-from ..config import OPUS_IP
+from ...config import OPUS_IP
+from .opus_interface_base import OPUSInterfaceBase
 
 STATUS_FILENAME = "stat.htm"
 COMMAND_FILENAME = "cmd.htm"
@@ -52,7 +52,7 @@ class OPUSRequester(QThread):
             self.request_error.emit(e)
 
 
-class OPUSInterface(QObject):
+class OPUSInterface(OPUSInterfaceBase):
     """Interface for communicating with the OPUS program.
 
     HTTP requests are handled on a background thread.
@@ -72,17 +72,13 @@ class OPUSInterface(QObject):
         self.requester = OPUSRequester(timeout)
         """For running HTTP requests in the background."""
         self.requester.request_complete.connect(self._parse_response)
-        self.requester.request_error.connect(self._error_occurred)
-
-        # Set up a signal for communicating between threads
-        self.submit_request.connect(self.requester.make_request)
-
-        # Subscribe to requests coming from the GUI
-        pub.subscribe(self.request_status, "opus.status.request")
-        pub.subscribe(self.request_command, "opus.command.request")
+        self.requester.request_error.connect(self.error_occurred)
 
         # Start processing requests
         self.requester.start()
+
+        # Set up a signal for communicating between threads
+        self.submit_request.connect(self.requester.make_request)
 
     def __del__(self) -> None:
         """Stop the background request thread."""
@@ -95,16 +91,16 @@ class OPUSInterface(QObject):
                 raise OPUSError(f"HTTP status code {response.status_code}")
 
             status: Optional[int] = None
-            text = ""
+            text: Optional[str] = None
             errcode: Optional[int] = None
-            errtext = ""
+            errtext: Optional[str] = None
             soup = BeautifulSoup(response.content, "html.parser")
             for td in soup.find_all("td"):
                 if "id" not in td.attrs:
                     continue
 
                 id = td.attrs["id"]
-                data = td.contents[0]
+                data = td.contents[0] if td.contents else ""
                 if id == "STATUS":
                     status = int(data)
                 elif id == "TEXT":
@@ -116,32 +112,29 @@ class OPUSInterface(QObject):
                 else:
                     logging.warning(f"Received unknown ID: {id}")
 
-            if status is None or not text:
+            if status is None or text is None:
                 raise OPUSError("Required tags not found")
             error = None if errcode is None else (errcode, errtext)
         except Exception as e:
-            self._error_occurred(e)
+            self.error_occurred(e)
             return
 
         pub.sendMessage(
             topic, url=response.url, status=cast(int, status), text=text, error=error
         )
 
-    def _error_occurred(self, exception: BaseException) -> None:
-        traceback_str = "".join(traceback.format_tb(exception.__traceback__))
-
-        # Write details including stack trace to program log
-        logging.error(f"Error during OPUS request: {traceback_str}")
-
-        # Notify listeners
-        pub.sendMessage("opus.error", message=str(exception))
-
-    def request_status(self) -> None:
-        """Request an update on the device's status."""
-        self.submit_request.emit(STATUS_FILENAME, "opus.status.response")
-
     def request_command(self, command: str) -> None:
-        """Request that OPUS run the specified command."""
-        self.submit_request.emit(
-            f"{COMMAND_FILENAME}?opusrs{command}", "opus.command.response"
+        """Request that OPUS run the specified command.
+
+        Note that we treat "status" as a command, even though it requires a different
+        URL to access.
+
+        Args:
+            command: Name of command to run
+        """
+        filename = (
+            STATUS_FILENAME
+            if command == "status"
+            else f"{COMMAND_FILENAME}?opusrs{command}"
         )
+        self.submit_request.emit(filename, f"opus.response.{command}")

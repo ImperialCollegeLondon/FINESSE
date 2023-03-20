@@ -6,7 +6,7 @@ from typing import Any
 import pytest
 
 from finesse.config import ANGLE_PRESETS
-from finesse.hardware.dummy_stepper_motor import DummyStepperMotor
+from finesse.hardware.stepper_motor.dummy import DummyStepperMotor
 
 
 @pytest.mark.parametrize(

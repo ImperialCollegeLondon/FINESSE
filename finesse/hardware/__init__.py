@@ -1,8 +1,14 @@
 """This module contains code for interfacing with different hardware devices."""
+import sys
+
 from pubsub import pub
 
-from .dummy_stepper_motor import DummyStepperMotor
-from .em27_opus import OPUSInterface
+if "--dummy-em27" in sys.argv:
+    from .opus.dummy import DummyOPUSInterface as OPUSInterface
+else:
+    from .opus.em27 import OPUSInterface  # type: ignore
+
+from .stepper_motor.dummy import DummyStepperMotor
 
 stepper: DummyStepperMotor
 opus: OPUSInterface

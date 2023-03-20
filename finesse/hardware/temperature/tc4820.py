@@ -10,27 +10,32 @@ IO error occurred while communicating with the device (e.g. because a USB cable 
 become disconnected) and are unlikely to be recoverable. A SerialException is also
 raised if multiple attempts at a request have failed.
 """
+from __future__ import annotations
+
 import logging
 from decimal import Decimal
 from typing import Any
 
 from serial import Serial, SerialException
 
+from .temperature_controller_base import TemperatureControllerBase
+
 
 class MalformedMessageError(Exception):
     """Raised when a message sent or received was malformed."""
 
 
-class TC4820:
+class TC4820(TemperatureControllerBase):
     """An interface for TC4820 temperature controllers."""
 
     MAX_POWER = 511
     """The maximum value for the power property."""
 
-    def __init__(self, serial: Serial, max_attempts: int = 3) -> None:
+    def __init__(self, name: str, serial: Serial, max_attempts: int = 3) -> None:
         """Create a new TC4820 from an existing serial device.
 
         Args:
+            name: The name of the device, to distinguish it from others
             serial: Serial device
             max_attempts: Maximum number of attempts for requests
         """
@@ -40,6 +45,8 @@ class TC4820:
         self.serial = serial
         self.max_attempts = max_attempts
 
+        super().__init__(name)
+
     @staticmethod
     def create(
         port: str,
@@ -48,7 +55,7 @@ class TC4820:
         max_attempts: int = 3,
         *serial_args: Any,
         **serial_kwargs: Any,
-    ) -> "TC4820":
+    ) -> TC4820:
         """Create a new TC4820.
 
         If the user hasn't specified an explicit timeout for write operations with the

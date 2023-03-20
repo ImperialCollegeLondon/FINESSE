@@ -1,16 +1,10 @@
 """Code for FINESSE's main GUI window."""
 from pubsub import pub
 from PySide6.QtGui import QHideEvent, QShowEvent
-from PySide6.QtWidgets import (
-    QGridLayout,
-    QGroupBox,
-    QHBoxLayout,
-    QMainWindow,
-    QVBoxLayout,
-    QWidget,
-)
+from PySide6.QtWidgets import QGridLayout, QGroupBox, QHBoxLayout, QMainWindow, QWidget
 
 from ..config import APP_NAME
+from .interferometer_monitor import EM27Monitor
 from .measure_script.script_view import ScriptControl
 from .opus_view import OPUSControl
 from .serial_view import SerialPortControl
@@ -29,7 +23,7 @@ class MainWindow(QMainWindow):
 
         set_uncaught_exception_handler(self)
 
-        layout_left = QVBoxLayout()
+        layout_left = QGridLayout()
 
         # Setup for stepper motor control
         stepper_motor = StepperMotorControl()
@@ -47,9 +41,13 @@ class MainWindow(QMainWindow):
             ("COM1", "COM5", "COM7"),
         )
 
-        layout_left.addWidget(stepper_motor)
-        layout_left.addWidget(measure_script)
-        layout_left.addWidget(serial_port)
+        # Setup for interferometer monitor
+        em27_monitor = EM27Monitor()
+
+        layout_left.addWidget(stepper_motor, 0, 0, 1, 2)
+        layout_left.addWidget(measure_script, 1, 0, 1, 1)
+        layout_left.addWidget(serial_port, 2, 0, 1, 1)
+        layout_left.addWidget(em27_monitor, 2, 1, 1, 1)
 
         layout_right = QGridLayout()
         opus: QGroupBox = OPUSControl()
@@ -73,6 +71,7 @@ class MainWindow(QMainWindow):
         layout = QHBoxLayout()
         layout.addWidget(left)
         layout.addWidget(right)
+
         central = QWidget()
         central.setLayout(layout)
 
