@@ -1,5 +1,6 @@
 """Panel and widgets related to temperature monitoring."""
 from datetime import datetime
+from decimal import Decimal
 from functools import partial
 
 import matplotlib.pyplot as plt
@@ -96,7 +97,9 @@ class BBMonitor(QGroupBox):
         self._ax[name].lines[0].set_visible(not state)
         self._canvas.draw()
 
-    def _update_figure(self, new_time, new_hot_data, new_cold_data) -> None:
+    def _update_figure(
+        self, new_time: float, new_hot_data: Decimal, new_cold_data: Decimal
+    ) -> None:
         """Updates the matplotlib figure to be contained within the panel."""
         time = list(self._ax["hot"].lines[0].get_xdata())
         hot_data = list(self._ax["hot"].lines[0].get_ydata())
@@ -132,11 +135,11 @@ class BBMonitor(QGroupBox):
 
         self._canvas.draw()
 
-    def _get_bb_temps(self, values):
+    def _get_bb_temps(self, values: list[Decimal]):
         timestamp_now = datetime.now().timestamp()
         hot_bb_temp = values[-2]
         cold_bb_temp = values[-1]
-
+        print(type(timestamp_now))
         self._update_figure(timestamp_now, hot_bb_temp, cold_bb_temp)
 
 
@@ -208,7 +211,7 @@ class DP9800(QGroupBox):
 
         return layout
 
-    def _update_pt100s(self, values):
+    def _update_pt100s(self, values: list[Decimal]):
         for i in range(self._num_channels):
             self._channels[i].setText(f"{values[i]: .2f}")
 

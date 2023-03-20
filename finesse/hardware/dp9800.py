@@ -1,6 +1,6 @@
 """This module provides an interface to DP9800 temperature readers."""
 import logging
-from typing import List
+from decimal import Decimal
 
 from pubsub import pub
 from serial import EIGHTBITS, PARITY_NONE, STOPBITS_ONE, Serial, SerialException
@@ -171,14 +171,14 @@ class DP9800:
         logging.info(f"Read {len(data)} bytes from DP9800")
         return data
 
-    def parse(self, data: bytes) -> List[float]:
+    def parse(self, data: bytes) -> list[Decimal]:
         """Parse temperature data read from the DP9800.
 
         The sequence of bytes is translated into a list of ASCII strings
         representing each of the temperatures, and finally into floats.
 
         Returns:
-            vals: A list of floats containing the temperature values recorded
+            vals: A list of Decimals containing the temperature values recorded
                   by the DP9800 device.
         """
         if data == b"":
@@ -186,7 +186,7 @@ class DP9800:
         else:
             data_ascii = data.decode("ascii")
             vals_str = [""] * (self.NUM_CHANNELS + 1)
-            vals = [0.0] * (self.NUM_CHANNELS + 1)
+            vals = [Decimal(0.0)] * (self.NUM_CHANNELS + 1)
             offset = 3  # offset of temperature values from start of message
             width = 7  # width of temperature strings
             for i in range(self.NUM_CHANNELS + 1):
@@ -195,7 +195,7 @@ class DP9800:
                     + offset : self.NUM_CHANNELS * i
                     + (offset + width)
                 ]
-                vals[i] = float(vals_str[i])
+                vals[i] = Decimal(vals_str[i])
 
             sysflag = bin(int(data_ascii[-5:-3], 16))
             self._sysflag = sysflag[2:]
