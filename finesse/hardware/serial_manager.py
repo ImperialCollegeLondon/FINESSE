@@ -8,6 +8,28 @@ from ..config import DUMMY_DEVICE_PORT
 from .device_base import DeviceBase
 
 
+def make_device_factory(
+    device_factory: Callable[[Serial], DeviceBase],
+    dummy_device_factory: Callable[[], DeviceBase],
+) -> Callable[[str, int], DeviceBase]:
+    """Make a device factory function.
+
+    Args:
+        device_factory: A factory function taking a Serial object as an argument
+        dummy_device_factory: A factory function taking no arguments and returning a
+                              dummy device object
+    """
+
+    def create_device(port: str, baudrate: int) -> DeviceBase:
+        if port == DUMMY_DEVICE_PORT:
+            return dummy_device_factory()
+        else:
+            serial = Serial(port, baudrate)
+            return device_factory(serial)
+
+    return create_device
+
+
 class SerialManager:
     """A class for managing the opening and closing of USB serial devices.
 
@@ -20,20 +42,18 @@ class SerialManager:
     def __init__(
         self,
         name: str,
-        device_ctor: Callable[[Serial], DeviceBase],
-        dummy_device_ctor: Callable[[], DeviceBase],
+        device_factory: Callable[[str, int], DeviceBase],
     ) -> None:
         """Create a new SerialManager object.
 
         Args:
             name: A unique name for the device to be used in pubsub topic names
-            device_ctor: A constructor for the real device (accepting a Serial object)
-            dummy_device_ctor: A constructor for the dummy device
+            device_factory: A factory method taking a port and baudrate as arguments and
+                            returning a constructed device
         """
         self.name = name
         self.device: DeviceBase
-        self.device_ctor = device_ctor
-        self.dummy_device_ctor = dummy_device_ctor
+        self.device_factory = device_factory
 
         # Listen for open events for this device
         pub.subscribe(self._open, f"serial.{name}.open")
@@ -41,18 +61,13 @@ class SerialManager:
     def _open(self, port: str, baudrate: int) -> None:
         """Open the device.
 
-        If the port is "Dummy", then a dummy device will be created.
-
         Args:
             port: The serial port to use
             baudrate: The baudrate to use
         """
         try:
-            if port == DUMMY_DEVICE_PORT:
-                self.device = self.dummy_device_ctor()
-            else:
-                serial = Serial(port, baudrate)
-                self.device = self.device_ctor(serial)
+            # Create a new device object using the provided factory function
+            self.device = self.device_factory(port, baudrate)
         except Exception as error:
             pub.sendMessage(f"serial.{self.name}.error", error=error)
         else:

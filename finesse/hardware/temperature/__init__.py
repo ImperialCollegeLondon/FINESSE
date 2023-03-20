@@ -2,7 +2,7 @@
 from functools import partial
 
 from ...config import TEMPERATURE_CONTROLLER_TOPIC
-from ..serial_manager import SerialManager
+from ..serial_manager import SerialManager, make_device_factory
 from .dummy_temperature_controller import DummyTemperatureController
 from .tc4820 import TC4820
 
@@ -13,8 +13,9 @@ _serial_manager_cold_bb: SerialManager
 def _create_serial_manager(name: str) -> SerialManager:
     return SerialManager(
         f"{TEMPERATURE_CONTROLLER_TOPIC}.{name}",
-        partial(TC4820, name),
-        partial(DummyTemperatureController, name),
+        make_device_factory(
+            partial(TC4820, name), partial(DummyTemperatureController, name)
+        ),
     )
 
 
