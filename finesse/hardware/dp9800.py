@@ -1,5 +1,5 @@
 """This module provides an interface to DP9800 temperature readers."""
-# import logging
+import logging
 from typing import List
 
 from pubsub import pub
@@ -36,7 +36,7 @@ class DP9800:
 
         # logger: opened serial port on port self.serial.port
         pub.sendMessage("dp9800.open")
-        pub.subscribe(self.get_temperatures, "dp9800.data.request")
+        pub.subscribe(self.send_temperatures, "dp9800.data.request")
 
     @staticmethod
     def create(
@@ -75,7 +75,7 @@ class DP9800:
         try:
             self.serial.close()
             pub.sendMessage("dp9800.close")
-            # logger: closed connection to DP9800
+            logging.info("Closed connection to DP9800")
         except Exception as e:
             raise DP9800Error(e)
 
@@ -142,20 +142,21 @@ class DP9800:
             try:
                 data = self.serial.read(num_bytes_to_read)
             except SerialException as e:
-                # logger: unsuccessful read from DP9800
+                logging.info("Error reading from DP9800")
                 raise DP9800Error(e)
 
             # Perform message integrity checks
             # Check characters we know
             if data[0] != 2:  # STX
-                # logger: unsuccessful read from DP9800
-                raise DP9800Error("Start transmission character not detected")
+                self._error_occurred(
+                    DP9800Error("Start transmission character not detected")
+                )
             if data[-3] != 3:  # ETX
-                # logger: unsuccessful read from DP9800
-                raise DP9800Error("End transmission character not detected")
+                self._error_occurred(
+                    DP9800Error("End transmission character not detected")
+                )
             if data[-1] != 0:  # NUL
-                # logger: unsuccessful read from DP9800
-                raise DP9800Error("Null terminator not detected")
+                self._error_occurred(DP9800Error("Null terminator not detected"))
 
             # Check BCC
             bcc = data[-2]
@@ -165,9 +166,9 @@ class DP9800:
                 byte_sum ^= byte
 
             if byte_sum != bcc:
-                raise DP9800Error("BCC check failed")
+                self._error_occurred(DP9800Error("BCC check failed"))
 
-            # logger: successful read from DP9800
+        logging.info(f"Read {len(data)} bytes from DP9800")
         return data
 
     def parse(self, data: bytes) -> List[float]:
@@ -218,13 +219,13 @@ class DP9800:
             command: The command to write to the device
 
         Returns:
-            val: Result of write to device (necessary?)
+            val: Number of bytes written to the device
         """
         num_bytes_written = self.serial.write(command)
-        # logger: wrote num_bytes_written to DP9800
+        logging.info(f"Wrote {num_bytes_written} bytes to DP9800")
         return num_bytes_written
 
-    def get_temperatures(self) -> None:
+    def send_temperatures(self) -> None:
         """Perform the complete process of reading from the DP9800.
 
         Writes to the DP9800 requesting a read operation.
@@ -236,70 +237,7 @@ class DP9800:
         temperatures = self.parse(data)
         pub.sendMessage("dp9800.data.response", values=temperatures)
 
-
-class DummyDP9800(DP9800):
-    """A fake DP9800 device used for unit tests etc."""
-
-    def __init__(self) -> None:
-        """Open the connection to the device."""
-        self.in_waiting: int = 0
-        self._sysflag: str = ""
-
-    @staticmethod
-    def create(
-        port: str = "",
-        baudrate: int = 38400,
-        bytesize: int = EIGHTBITS,
-        parity: str = PARITY_NONE,
-        stopbits: int = STOPBITS_ONE,
-        timeout: float = 2.0,
-        max_attempts: int = 3,
-    ) -> "DummyDP9800":
-        """Create the device."""
-        pub.sendMessage("dp9800.open")
-        return DummyDP9800()
-
-    def close(self) -> None:
-        """Close the connection to the device."""
-        pub.sendMessage("dp9800.close")
-
-    def read(self) -> bytes:
-        """Mimic reading data from the device.
-
-        Returns:
-            data: sequence of bytes representative of that read
-                  from the physical device
-        """
-        num_bytes_to_read = self.in_waiting
-        if num_bytes_to_read == 0:
-            data = b""
-        else:
-            data = (
-                b"\x02T   27.16   19.13   17.61   26.49  850.00"
-                + b"   24.35   68.65   69.92   24.1986\x03M\x00"
-            )
-
-        # logger: successful read from DP9800
-        self.in_waiting = 0
-        return data
-
-    def write(self, command: bytes) -> int:
-        """Pretend to write data to the device.
-
-        Returns:
-            the number of bytes that would be written to the device
-        """
-        self.in_waiting = 79
-        return len(command)
-
-
-if __name__ == "__main__":
-    import sys
-
-    if len(sys.argv) == 2:
-        dev = DP9800.create(sys.argv[1])
-    else:
-        dev = DummyDP9800()
-
-    dev.get_temperatures()
-    dev.close()
+    def _error_occurred(self, exception: BaseException) -> None:
+        """Log and communicate that an error occurred."""
+        logging.error(f"Error during DP9800 query:\t{exception}")
+        pub.sendMessage("dp9800.error", message=str(exception))
