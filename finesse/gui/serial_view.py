@@ -17,6 +17,8 @@ from serial.tools.list_ports import comports
 from ..config import (
     ALLOW_DUMMY_DEVICES,
     BAUDRATES,
+    DEFAULT_ST10_BAUDRATE,
+    DEFAULT_TC4820_BAUDRATE,
     DUMMY_DEVICE_PORT,
     STEPPER_MOTOR_TOPIC,
     TEMPERATURE_CONTROLLER_TOPIC,
@@ -46,6 +48,8 @@ class Device:
     """A human-readable label for the device"""
     name: str
     """The name of the device as used in pubsub topic"""
+    default_baudrate: int
+    """The default baudrate to select for the device"""
 
 
 class DeviceControls:
@@ -87,6 +91,10 @@ class DeviceControls:
         self.baudrates.addItems([str(br) for br in avail_baudrates])
         # TODO: Remember which baudrate was used last time
         layout.addWidget(self.baudrates, row, 2)
+
+        if device.default_baudrate not in avail_baudrates:
+            raise ValueError("Invalid default baudrate supplied")
+        self.baudrates.setCurrentText(str(device.default_baudrate))
 
         self.open_close_btn = QPushButton("Open")
         """A button for opening and closing the port manually."""
@@ -144,9 +152,17 @@ class SerialPortControl(QGroupBox):
     def __init__(
         self,
         devices: Sequence[Device] = (
-            Device("ST10", STEPPER_MOTOR_TOPIC),
-            Device("TC4820 Hot", f"{TEMPERATURE_CONTROLLER_TOPIC}.hot_bb"),
-            Device("TC4820 Cold", f"{TEMPERATURE_CONTROLLER_TOPIC}.cold_bb"),
+            Device("ST10", STEPPER_MOTOR_TOPIC, DEFAULT_ST10_BAUDRATE),
+            Device(
+                "TC4820 Hot",
+                f"{TEMPERATURE_CONTROLLER_TOPIC}.hot_bb",
+                DEFAULT_TC4820_BAUDRATE,
+            ),
+            Device(
+                "TC4820 Cold",
+                f"{TEMPERATURE_CONTROLLER_TOPIC}.cold_bb",
+                DEFAULT_TC4820_BAUDRATE,
+            ),
         ),
         avail_ports: Sequence[str] = get_default_ports(),
         avail_baudrates: Sequence[int] = BAUDRATES,

@@ -26,7 +26,7 @@ def device_controls(qtbot: QtBot) -> DeviceControls:
     ports = ("COM0",)
     baudrates = range(3)
     return DeviceControls(
-        QGridLayout(), 0, Device("My device", DEVICE_NAME), ports, baudrates
+        QGridLayout(), 0, Device("My device", DEVICE_NAME, 1), ports, baudrates
     )
 
 
@@ -101,10 +101,11 @@ def test_device_controls_init(
     baudrates = range(3)
 
     controls = DeviceControls(
-        MagicMock(), 0, Device("My device", DEVICE_NAME), ports, baudrates
+        MagicMock(), 0, Device("My device", DEVICE_NAME, 1), ports, baudrates
     )
     assert items_equal(controls.ports, ports)
     assert items_equal(controls.baudrates, baudrates)
+    assert controls.baudrates.currentText() == "1"
 
     btn.clicked.connect.assert_called_once_with(controls._on_open_close_clicked)
 
@@ -202,7 +203,7 @@ def test_serial_port_control_init(
     layout = QGridLayout()
     grid_mock.return_value = layout
 
-    devices = (Device("device1", "DEVICE1"), Device("device2", "DEVICE2"))
+    devices = (Device("device1", "DEVICE1", 1), Device("device2", "DEVICE2", 1))
     avail_ports = ("port1", "port2")
     avail_baudrates = range(2)
     SerialPortControl(devices, avail_ports, avail_baudrates)

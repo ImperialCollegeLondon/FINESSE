@@ -29,8 +29,14 @@ DEFAULT_SCRIPT_PATH = Path.home()
 STEPPER_MOTOR_TOPIC = "stepper_motor"
 """The topic name to use for stepper motor-related messages."""
 
+DEFAULT_ST10_BAUDRATE = 9600
+"""The default baudrate to use for the ST10 controller."""
+
 TEMPERATURE_CONTROLLER_TOPIC = "temperature_controller"
 """The topic name to user for temperature controller-related messages."""
+
+DEFAULT_TC4820_BAUDRATE = 115200
+"""The default baudrate to use for TC4820 temperature controllers."""
 
 OPUS_IP = "10.10.0.2"
 """The IP address of the machine running the OPUS software."""
