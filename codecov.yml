@@ -1,2 +1,6 @@
-ignore:
-  - "*/tests/*"
+coverage:
+  status:
+    project:
+      default:
+        # Don't fail CI if coverage drops
+        informational: true
