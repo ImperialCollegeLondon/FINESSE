@@ -31,5 +31,7 @@ pub.subscribe(_stop_hardware, "window.closed")
 create_stepper_motor_serial_manager()
 create_temperature_controller_serial_managers()
 
-# HACK: Temporary workaround so that we can still use the dummy device for now
+# HACK: Temporary workaround so that we can use dummy devices for now
 pub.sendMessage("serial.stepper_motor.open", port="Dummy", baudrate=-1)
+pub.sendMessage("serial.temperature_controller.hot_bb.open", port="Dummy", baudrate=-1)
+pub.sendMessage("serial.temperature_controller.cold_bb.open", port="Dummy", baudrate=-1)
