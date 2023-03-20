@@ -1,4 +1,5 @@
 """Common functionality for opening and closing USB serial devices."""
+import logging
 from collections.abc import Callable
 
 from pubsub import pub
@@ -69,6 +70,7 @@ class SerialManager:
             # Create a new device object using the provided factory function
             self.device = self.device_factory(port, baudrate)
         except Exception as error:
+            logging.error(f"Failed to open device {self.name}: {str(error)}")
             pub.sendMessage(f"serial.{self.name}.error", error=error)
         else:
             # Listen for close events for this device
@@ -79,6 +81,8 @@ class SerialManager:
 
             # Signal that serial device is now open
             pub.sendMessage(f"serial.{self.name}.opened")
+
+            logging.info(f"Opened device {self.name}")
 
     def _send_close_message(self, error: BaseException) -> None:
         pub.sendMessage(f"serial.{self.name}.close")
@@ -91,3 +95,5 @@ class SerialManager:
         pub.unsubscribe(self._close, f"serial.{self.name}.close")
         self.device.close()
         del self.device
+
+        logging.info(f"Closed device {self.name}")
