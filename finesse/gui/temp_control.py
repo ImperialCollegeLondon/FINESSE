@@ -1,11 +1,11 @@
 """Panel and widgets related to temperature monitoring."""
 from datetime import datetime
 from functools import partial
-from typing import Tuple
 
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
-from PySide6.QtCore import Qt
+from pubsub import pub
+from PySide6.QtCore import QSize, Qt
 from PySide6.QtWidgets import (
     QGridLayout,
     QGroupBox,
@@ -13,27 +13,12 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QProgressBar,
     QPushButton,
+    QSizePolicy,
     QSpinBox,
     QWidget,
 )
 
 from .led_icons import LEDIcon
-
-
-def get_temperature_data() -> Tuple[float, float, float]:
-    """Read temperatures of hot and cold blackbodies.
-
-    Returns:
-        time: The time at which the temperatures were read
-        hot_bb_temp: The temperature of the hot blackbody
-        cold_bb_temp: The temperature of the cold blackbody
-    """
-    time_now = datetime.now().timestamp()
-
-    # Placeholder. Later read from sensors.
-    hot_bb_temp = (60 * time_now + 50) % 70
-    cold_bb_temp = (5 * time_now + 1) % 8
-    return (time_now, hot_bb_temp, cold_bb_temp)
 
 
 class BBMonitor(QGroupBox):
@@ -45,6 +30,8 @@ class BBMonitor(QGroupBox):
 
         layout = self._create_controls()
         self.setLayout(layout)
+
+        pub.subscribe(self._get_bb_temps, "dp9800.data.response")
 
     def _create_controls(self) -> QGridLayout:
         """Creates the overall layout for the panel.
@@ -61,6 +48,11 @@ class BBMonitor(QGroupBox):
             partial(self._toggle_axis_visibility, name="cold")
         )
         self._create_figure()
+        self._canvas.setMinimumSize(QSize(640, 120))
+
+        self._canvas.setSizePolicy(
+            QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding
+        )
 
         layout.addWidget(self._btns["hot"], 0, 0)
         layout.addWidget(self._btns["cold"], 1, 0)
@@ -70,12 +62,9 @@ class BBMonitor(QGroupBox):
 
     def _create_figure(self) -> None:
         """Creates the matplotlib figure to be contained within the panel."""
-        self._figure, ax = plt.subplots()
+        self._figure, ax = plt.subplots(constrained_layout=True)
         self._ax = {"hot": ax}
         self._canvas = FigureCanvasQTAgg(self._figure)
-
-        # Placeholder callback to test updating of figure
-        self._canvas.mpl_connect("button_press_event", self._update_figure)
 
         self._figure_num_pts = 10
         t = [None] * self._figure_num_pts
@@ -107,7 +96,7 @@ class BBMonitor(QGroupBox):
         self._ax[name].lines[0].set_visible(not state)
         self._canvas.draw()
 
-    def _update_figure(self, event) -> None:
+    def _update_figure(self, new_time, new_hot_data, new_cold_data) -> None:
         """Updates the matplotlib figure to be contained within the panel."""
         time = list(self._ax["hot"].lines[0].get_xdata())
         hot_data = list(self._ax["hot"].lines[0].get_ydata())
@@ -117,7 +106,6 @@ class BBMonitor(QGroupBox):
         hot_data.pop(0)
         cold_data.pop(0)
 
-        new_time, new_hot_data, new_cold_data = get_temperature_data()
         time.append(new_time)
         hot_data.append(new_hot_data)
         cold_data.append(new_cold_data)
@@ -144,6 +132,13 @@ class BBMonitor(QGroupBox):
 
         self._canvas.draw()
 
+    def _get_bb_temps(self, values):
+        timestamp_now = datetime.now().timestamp()
+        hot_bb_temp = values[-2]
+        cold_bb_temp = values[-1]
+
+        self._update_figure(timestamp_now, hot_bb_temp, cold_bb_temp)
+
 
 class DP9800(QGroupBox):
     """Widgets to view the DP9800 properties."""
@@ -161,6 +156,25 @@ class DP9800(QGroupBox):
         layout = self._create_controls()
         self.setLayout(layout)
 
+        self.begin_polling()
+
+        pub.subscribe(self.begin_polling, "dp9800.open")
+        pub.subscribe(self.end_polling, "dp9800.close")
+        pub.subscribe(self._update_pt100s, "dp9800.data.response")
+
+    def begin_polling(self) -> None:
+        """Initiate polling the DP9800 device."""
+        self._poll_light._timer.start(2000)
+
+    def end_polling(self) -> None:
+        """Terminate polling the DP9800 device."""
+        self._poll_light._timer.stop()
+
+    def _poll_dp9800(self) -> None:
+        """Polls the device to obtain the latest values."""
+        self._poll_light._flash()
+        pub.sendMessage("dp9800.data.request")
+
     def _create_controls(self) -> QGridLayout:
         """Creates the overall layout for the panel.
 
@@ -177,6 +191,7 @@ class DP9800(QGroupBox):
             layout.addWidget(channel_label, 0, i + 1)
 
             channel_tbox = QLineEdit()
+            channel_tbox.setAlignment(Qt.AlignmentFlag.AlignCenter)
             channel_tbox.setReadOnly(True)
             self._channels.append(channel_tbox)
             layout.addWidget(channel_tbox, 1, i + 1)
@@ -188,9 +203,14 @@ class DP9800(QGroupBox):
         layout.addWidget(poll_label, 0, 9, 2, 1)
 
         self._poll_light = LEDIcon.create_poll_icon()
+        self._poll_light._timer.timeout.connect(self._poll_dp9800)
         layout.addWidget(self._poll_light, 0, 10, 2, 1)
 
         return layout
+
+    def _update_pt100s(self, values):
+        for i in range(self._num_channels):
+            self._channels[i].setText(f"{values[i]: .2f}")
 
 
 class TC4820(QGroupBox):

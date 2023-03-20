@@ -8,18 +8,26 @@ if "--dummy-em27" in sys.argv:
 else:
     from .opus.em27 import OPUSInterface  # type: ignore
 
+if "--dummy-dp9800" in sys.argv:
+    from .dummy_dp9800 import DummyDP9800 as DP9800
+else:
+    from .dp9800 import DP9800  # type: ignore
+
 from .stepper_motor.dummy import DummyStepperMotor
 
+dp9800: DP9800
 stepper: DummyStepperMotor
 opus: OPUSInterface
 
 
 def _init_hardware():
-    global stepper, opus
+    global stepper, opus, dp9800
     # TODO: Replace with a real stepper motor device
     stepper = DummyStepperMotor(3600)
 
     opus = OPUSInterface()
+
+    dp9800 = DP9800()
 
 
 def _stop_hardware():
