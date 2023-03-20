@@ -1,7 +1,7 @@
 """Panel and widgets related to the control of the serial ports."""
 import logging
 from dataclasses import dataclass
-from typing import Sequence
+from typing import Sequence, cast
 
 from pubsub import pub
 from PySide6.QtWidgets import (
@@ -23,6 +23,10 @@ from ..config import (
     STEPPER_MOTOR_TOPIC,
     TEMPERATURE_CONTROLLER_TOPIC,
 )
+from ..settings import settings
+
+_KEY_PREFIX = "serial"
+"""Prefix to use for settings keys."""
 
 
 def get_usb_serial_ports() -> list[str]:
@@ -67,6 +71,10 @@ class DeviceControls:
 
         The controls are added as a new row to a QGridLayout.
 
+        The initially selected port and baudrate are loaded from the program settings if
+        available, otherwise the first available port and the device's default baudrate
+        are used, respectively.
+
         Args:
             layout: The QGridLayout to add the controls to
             row: The row of the QGridLayout to add the controls to
@@ -83,18 +91,29 @@ class DeviceControls:
         self.ports = QComboBox()
         """The available serial ports for the device."""
         self.ports.addItems(avail_ports)
-        # TODO: Remember which port was used last time
         layout.addWidget(self.ports, row, 1)
+
+        # Try to load the port from settings
+        if avail_ports:
+            saved_port = cast(
+                str, settings.value(f"{_KEY_PREFIX}/{self.name}/port", avail_ports[0])
+            )
+            self.ports.setCurrentText(saved_port)
 
         self.baudrates = QComboBox()
         """The available baudrates for the device."""
         self.baudrates.addItems([str(br) for br in avail_baudrates])
-        # TODO: Remember which baudrate was used last time
         layout.addWidget(self.baudrates, row, 2)
 
-        if device.default_baudrate not in avail_baudrates:
-            raise ValueError("Invalid default baudrate supplied")
-        self.baudrates.setCurrentText(str(device.default_baudrate))
+        # Try to load the baudrate from settings, falling back on the device's default
+        if avail_baudrates:
+            saved_baudrate = cast(
+                int,
+                settings.value(
+                    f"{_KEY_PREFIX}/{self.name}/baudrate", device.default_baudrate
+                ),
+            )
+            self.baudrates.setCurrentText(str(saved_baudrate))
 
         self.open_close_btn = QPushButton("Open")
         """A button for opening and closing the port manually."""
@@ -131,6 +150,12 @@ class DeviceControls:
 
         port = self.ports.currentText()
         baudrate = int(self.baudrates.currentText())
+
+        # Remember these settings for the next time program is run
+        settings.setValue(f"{_KEY_PREFIX}/{self.name}/port", port)
+        settings.setValue(f"{_KEY_PREFIX}/{self.name}/baudrate", baudrate)
+
+        # Tell backend to open serial device
         pub.sendMessage(f"serial.{self.name}.open", port=port, baudrate=baudrate)
 
     def _close_device(self) -> None:

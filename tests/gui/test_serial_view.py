@@ -19,6 +19,9 @@ from finesse.gui.serial_view import (
 DEVICE_NAME = "device"
 """The name to use for the mock serial device."""
 
+PORT_KEY = f"serial/{DEVICE_NAME}/port"
+BAUDRATE_KEY = f"serial/{DEVICE_NAME}/baudrate"
+
 
 @pytest.fixture
 def device_controls(qtbot: QtBot) -> DeviceControls:
@@ -91,21 +94,44 @@ def items_equal(combo: QComboBox, values: Sequence[Any]) -> bool:
 
 
 @patch("finesse.gui.serial_view.QPushButton")
+@patch("finesse.gui.serial_view.settings")
 def test_device_controls_init(
-    btn_mock: Mock, subscribe_mock: MagicMock, qtbot: QtBot
+    settings_mock: Mock, btn_mock: Mock, subscribe_mock: MagicMock, qtbot: QtBot
 ) -> None:
     """Test DeviceControls' constructor."""
+    PORT_DEFAULT = "COM0"
+    PORT_SETTINGS = "COM1"
+    BAUDRATE_DEFAULT = 1
+    BAUDRATE_SETTINGS = 2
+
+    settings_get_mock = MagicMock()
+
+    def get_setting(key, *args, **kwargs):
+        settings_get_mock(key, *args, **kwargs)
+        settings_values = {PORT_KEY: PORT_SETTINGS, BAUDRATE_KEY: BAUDRATE_SETTINGS}
+        return settings_values[key]
+
+    settings_mock.value = get_setting
+
     btn = MagicMock()
     btn_mock.return_value = btn
-    ports = ("COM0",)
+    ports = ("COM0", "COM1")
     baudrates = range(3)
 
     controls = DeviceControls(
-        MagicMock(), 0, Device("My device", DEVICE_NAME, 1), ports, baudrates
+        MagicMock(),
+        0,
+        Device("My device", DEVICE_NAME, BAUDRATE_DEFAULT),
+        ports,
+        baudrates,
     )
+
+    settings_get_mock.assert_any_call(PORT_KEY, PORT_DEFAULT)
+    settings_get_mock.assert_any_call(BAUDRATE_KEY, BAUDRATE_DEFAULT)
+
     assert items_equal(controls.ports, ports)
     assert items_equal(controls.baudrates, baudrates)
-    assert controls.baudrates.currentText() == "1"
+    assert controls.baudrates.currentText() == "2"
 
     btn.clicked.connect.assert_called_once_with(controls._on_open_close_clicked)
 
@@ -169,10 +195,12 @@ def test_on_open_close_clicked(device_controls: DeviceControls, qtbot: QtBot) ->
             close_mock.assert_called_once()
 
 
+@patch("finesse.gui.serial_view.settings")
 def test_open_device(
+    settings_mock: Mock,
     device_controls: DeviceControls,
-    qtbot: QtBot,
     sendmsg_mock: MagicMock,
+    qtbot: QtBot,
 ) -> None:
     """Test _open_device()."""
     with patch.object(device_controls.ports, "currentText") as ports_mock:
@@ -180,9 +208,15 @@ def test_open_device(
         with patch.object(device_controls.baudrates, "currentText") as baudrates_mock:
             baudrates_mock.return_value = "1234"
             device_controls._open_device()
+
+            # Check that the appropriate command was sent to the backend
             sendmsg_mock.assert_any_call(
                 f"serial.{DEVICE_NAME}.open", port="COM0", baudrate=1234
             )
+
+            # Check that the settings were updated
+            settings_mock.setValue.assert_any_call(PORT_KEY, "COM0")
+            settings_mock.setValue.assert_any_call(BAUDRATE_KEY, 1234)
 
 
 def test_close_device(
