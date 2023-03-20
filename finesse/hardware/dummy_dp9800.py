@@ -15,6 +15,9 @@ class DummyDP9800(DP9800):
         self.in_waiting: int = 0
         self._sysflag: str = ""
 
+        pub.sendMessage("dp9800.open")
+        pub.subscribe(self.send_temperatures, "dp9800.data.request")
+
     @staticmethod
     def create(
         port: str = "",
@@ -26,7 +29,6 @@ class DummyDP9800(DP9800):
         max_attempts: int = 3,
     ) -> "DummyDP9800":
         """Create the device."""
-        pub.sendMessage("dp9800.open")
         return DummyDP9800()
 
     def close(self) -> None:
