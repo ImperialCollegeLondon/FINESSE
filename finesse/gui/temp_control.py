@@ -51,7 +51,7 @@ class BBMonitor(QGroupBox):
         self._create_figure()
         self._canvas.setMinimumSize(QSize(640, 120))
         self._canvas.setSizePolicy(
-            QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding
+            QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding  # type: ignore
         )
 
         layout.addWidget(self._btns["hot"], 0, 0)
@@ -220,7 +220,7 @@ class DP9800(QGroupBox):
         layout.addWidget(poll_label, 0, 9, 2, 1)
 
         self._poll_light = LEDIcon.create_poll_icon()
-        self._poll_light._timer.timeout.connect(self._poll_dp9800)
+        self._poll_light._timer.timeout.connect(self._poll_dp9800)  # type: ignore
         layout.addWidget(self._poll_light, 0, 10, 2, 1)
 
         return layout
