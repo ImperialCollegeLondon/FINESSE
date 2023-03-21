@@ -34,7 +34,7 @@ class DP9800:
         self.max_attempts = max_attempts
         self._sysflag: str = ""
 
-        # logger: opened serial port on port self.serial.port
+        logging.info(f"Opened connection to DP9800 on port {self.serial.port}")
         pub.sendMessage("dp9800.open")
         pub.subscribe(self.send_temperatures, "dp9800.data.request")
 
@@ -76,8 +76,8 @@ class DP9800:
             self.serial.close()
             pub.sendMessage("dp9800.close")
             logging.info("Closed connection to DP9800")
-        except Exception as e:
-            raise DP9800Error(e)
+        except SerialException as e:
+            self._error_occurred(DP9800Error(e))
 
     def print_sysflag(self) -> None:
         """Print the settings of the device as stored in the system flag.
@@ -142,8 +142,7 @@ class DP9800:
             try:
                 data = self.serial.read(num_bytes_to_read)
             except SerialException as e:
-                logging.info("Error reading from DP9800")
-                raise DP9800Error(e)
+                self._error_occurred(DP9800Error(e))
 
             # Perform message integrity checks
             # Check characters we know
