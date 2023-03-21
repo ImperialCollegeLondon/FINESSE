@@ -144,17 +144,17 @@ class BBMonitor(QGroupBox):
 
         self._canvas.draw()
 
-    def _plot_bb_temps(self, values: list[Decimal]):
+    def _plot_bb_temps(self, values: list[Decimal], time: float) -> None:
         """Extract blackbody temperatures from DP9800 data and plot them.
 
         Args:
             values: the list of temperatures measured by the DP9800
+            time: the time that the values were read
         """
-        timestamp_now = datetime.now().timestamp()
-        hot_bb_temp = values[-2]
-        cold_bb_temp = values[-1]
+        hot_bb_temp = values[6]
+        cold_bb_temp = values[7]
 
-        self._update_figure(timestamp_now, hot_bb_temp, cold_bb_temp)
+        self._update_figure(time, hot_bb_temp, cold_bb_temp)
 
 
 class DP9800(QGroupBox):
@@ -225,11 +225,12 @@ class DP9800(QGroupBox):
 
         return layout
 
-    def _update_pt100s(self, values: list[Decimal]):
+    def _update_pt100s(self, values: list[Decimal], time: float) -> None:
         """Display the latest Pt 100 temperatures.
 
         Args:
             values: the temperatures retrieved from the DP9800
+            time: the time that the values were retrieved
         """
         for i in range(self._num_channels):
             self._channels[i].setText(f"{values[i]: .2f}")
