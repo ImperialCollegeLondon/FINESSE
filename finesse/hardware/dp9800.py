@@ -137,38 +137,46 @@ class DP9800:
         """
         num_bytes_to_read = self.serial.in_waiting
         if num_bytes_to_read == 0:
-            data = b""
-        else:
-            try:
-                data = self.serial.read(num_bytes_to_read)
-            except SerialException as e:
-                self._error_occurred(DP9800Error(e))
+            return b""
 
-            # Perform message integrity checks
-            # Check characters we know
-            if data[0] != 2:  # STX
-                self._error_occurred(
-                    DP9800Error("Start transmission character not detected")
-                )
-            if data[-3] != 3:  # ETX
-                self._error_occurred(
-                    DP9800Error("End transmission character not detected")
-                )
-            if data[-1] != 0:  # NUL
-                self._error_occurred(DP9800Error("Null terminator not detected"))
+        try:
+            data = self.serial.read(num_bytes_to_read)
+        except SerialException as e:
+            self._error_occurred(DP9800Error(e))
 
-            # Check BCC
-            bcc = data[-2]
-            bcc_chars = data[1:-2]
-            byte_sum = 0
-            for byte in bcc_chars:
-                byte_sum ^= byte
-
-            if byte_sum != bcc:
-                self._error_occurred(DP9800Error("BCC check failed"))
+        try:
+            self.check_data(data)
+        except DP9800Error as e:
+            self._error_occurred(e)
 
         logging.info(f"Read {len(data)} bytes from DP9800")
         return data
+
+    def check_data(self, data: bytes) -> None:
+        """Perform message integrity checks.
+
+        First check characters that we know. Then calculate the BCC and compare
+        it to that transmitted.
+
+        Args:
+            data: the message to check
+        """
+        if data[0] != 2:  # STX
+            raise DP9800Error("Start transmission character not detected")
+        if data[-3] != 3:  # ETX
+            raise DP9800Error("End transmission character not detected")
+        if data[-1] != 0:  # NUL
+            raise DP9800Error("Null terminator not detected")
+
+        # Check BCC
+        bcc = data[-2]
+        bcc_chars = data[1:-2]
+        byte_sum = 0
+        for byte in bcc_chars:
+            byte_sum ^= byte
+
+        if byte_sum != bcc:
+            raise DP9800Error("BCC check failed")
 
     def parse(self, data: bytes) -> list[Decimal]:
         """Parse temperature data read from the DP9800.
