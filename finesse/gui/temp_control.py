@@ -157,7 +157,7 @@ class BBMonitor(QGroupBox):
         self._update_figure(time, hot_bb_temp, cold_bb_temp)
 
 
-class DP9800(QGroupBox):
+class DP9800Controls(QGroupBox):
     """Widgets to view the DP9800 properties."""
 
     def __init__(self, num_channels: int) -> None:
@@ -236,7 +236,7 @@ class DP9800(QGroupBox):
             self._channels[i].setText(f"{values[i]: .2f}")
 
 
-class TC4820(QGroupBox):
+class TC4820Controls(QGroupBox):
     """Widgets to view the TC4820 properties."""
 
     def __init__(self, name: str) -> None:
@@ -326,9 +326,9 @@ if __name__ == "__main__":
     layout = QGridLayout()
 
     bb_monitor = BBMonitor()
-    dp9800 = DP9800(8)
-    tc4820_hot = TC4820("hot")
-    tc4820_cold = TC4820("cold")
+    dp9800 = DP9800Controls(8)
+    tc4820_hot = TC4820Controls("hot")
+    tc4820_cold = TC4820Controls("cold")
 
     layout.addWidget(bb_monitor, 0, 0, 1, 0)
     layout.addWidget(dp9800, 1, 0, 1, 0)
