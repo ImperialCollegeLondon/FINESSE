@@ -1,5 +1,6 @@
 """This module provides an interface to DP9800 temperature readers."""
 import logging
+from datetime import datetime
 from decimal import Decimal
 
 from pubsub import pub
@@ -239,10 +240,13 @@ class DP9800:
         Reads the raw data from the DP9800.
         Parses the data and broadcasts the temperatures.
         """
+        time_now = datetime.now().timestamp()
         self.write(b"\x04T\x05")
         data = self.read()
         temperatures = self.parse(data)
-        pub.sendMessage("temperature_monitor.data.response", values=temperatures)
+        pub.sendMessage(
+            "temperature_monitor.data.response", values=temperatures, time=time_now
+        )
 
     def _error_occurred(self, exception: BaseException) -> None:
         """Log and communicate that an error occurred."""
