@@ -15,6 +15,7 @@ class DummyDP9800(DP9800):
         self.in_waiting: int = 0
         self._sysflag: str = ""
 
+        logging.info("Opened connection to dummy DP9800")
         pub.sendMessage("dp9800.open")
         pub.subscribe(self.send_temperatures, "dp9800.data.request")
 
