@@ -32,7 +32,7 @@ class BBMonitor(QGroupBox):
         layout = self._create_controls()
         self.setLayout(layout)
 
-        pub.subscribe(self._get_bb_temps, "dp9800.data.response")
+        pub.subscribe(self._plot_bb_temps, "dp9800.data.response")
 
     def _create_controls(self) -> QGridLayout:
         """Creates the overall layout for the panel.
@@ -50,7 +50,6 @@ class BBMonitor(QGroupBox):
         )
         self._create_figure()
         self._canvas.setMinimumSize(QSize(640, 120))
-
         self._canvas.setSizePolicy(
             QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding
         )
@@ -90,7 +89,11 @@ class BBMonitor(QGroupBox):
         self._canvas.draw()
 
     def _toggle_axis_visibility(self, name: str) -> None:
-        """Shows or hides BB plots."""
+        """Shows or hides BB plots.
+
+        Args:
+            name: the name of the blackbody whose data visibility is togged
+        """
         state = self._ax[name].yaxis.get_visible()
         self._btns[name].setFlat(state)
         self._ax[name].yaxis.set_visible(not state)
@@ -100,7 +103,13 @@ class BBMonitor(QGroupBox):
     def _update_figure(
         self, new_time: float, new_hot_data: Decimal, new_cold_data: Decimal
     ) -> None:
-        """Updates the matplotlib figure to be contained within the panel."""
+        """Updates the matplotlib figure to be contained within the panel.
+
+        Args:
+            new_time: the time at which the new data were retrieved
+            new_hot_data: the new temperature of the hot blackbody
+            new_cold_data: the new temperature of the cold blackbody
+        """
         time = list(self._ax["hot"].lines[0].get_xdata())
         hot_data = list(self._ax["hot"].lines[0].get_ydata())
         cold_data = list(self._ax["cold"].lines[0].get_ydata())
@@ -135,11 +144,16 @@ class BBMonitor(QGroupBox):
 
         self._canvas.draw()
 
-    def _get_bb_temps(self, values: list[Decimal]):
+    def _plot_bb_temps(self, values: list[Decimal]):
+        """Extract blackbody temperatures from DP9800 data and plot them.
+
+        Args:
+            values: the list of temperatures measured by the DP9800
+        """
         timestamp_now = datetime.now().timestamp()
         hot_bb_temp = values[-2]
         cold_bb_temp = values[-1]
-        print(type(timestamp_now))
+
         self._update_figure(timestamp_now, hot_bb_temp, cold_bb_temp)
 
 
@@ -150,7 +164,7 @@ class DP9800(QGroupBox):
         """Creates the widgets to monitor DP9800.
 
         Args:
-            num_channels (int): Number of Pt 100 channels being monitored
+            num_channels: Number of Pt 100 channels being monitored
         """
         super().__init__("DP9800")
 
@@ -159,17 +173,17 @@ class DP9800(QGroupBox):
         layout = self._create_controls()
         self.setLayout(layout)
 
-        self.begin_polling()
+        self._begin_polling()
 
-        pub.subscribe(self.begin_polling, "dp9800.open")
-        pub.subscribe(self.end_polling, "dp9800.close")
+        pub.subscribe(self._begin_polling, "dp9800.open")
+        pub.subscribe(self._end_polling, "dp9800.close")
         pub.subscribe(self._update_pt100s, "dp9800.data.response")
 
-    def begin_polling(self) -> None:
+    def _begin_polling(self) -> None:
         """Initiate polling the DP9800 device."""
         self._poll_light._timer.start(2000)
 
-    def end_polling(self) -> None:
+    def _end_polling(self) -> None:
         """Terminate polling the DP9800 device."""
         self._poll_light._timer.stop()
 
@@ -212,6 +226,11 @@ class DP9800(QGroupBox):
         return layout
 
     def _update_pt100s(self, values: list[Decimal]):
+        """Display the latest Pt 100 temperatures.
+
+        Args:
+            values: the temperatures retrieved from the DP9800
+        """
         for i in range(self._num_channels):
             self._channels[i].setText(f"{values[i]: .2f}")
 
@@ -223,7 +242,7 @@ class TC4820(QGroupBox):
         """Creates the widgets to control and monitor a TC4820.
 
         Args:
-            name (str): Name of the blackbody the TC4820 is controlling
+            name: Name of the blackbody the TC4820 is controlling
         """
         super().__init__(f"TC4820 {name.upper()}")
 
@@ -264,12 +283,12 @@ class TC4820(QGroupBox):
         alarm_label.setAlignment(align)
         layout.addWidget(alarm_label, 2, 4)
 
-        self._control_val = QLineEdit("70.5")
+        self._control_val = QLineEdit()
         self._control_val.setReadOnly(True)
         self._control_val.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self._control_val, 0, 1)
 
-        self._pt100_val = QLineEdit("70.34")  # CH_7?
+        self._pt100_val = QLineEdit()
         self._pt100_val.setReadOnly(True)
         self._pt100_val.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self._pt100_val, 0, 3)
@@ -278,7 +297,7 @@ class TC4820(QGroupBox):
         self._power_bar.setTextVisible(False)
         self._power_bar.setOrientation(Qt.Orientation.Horizontal)
         layout.addWidget(self._power_bar, 1, 1, 1, 3)
-        layout.addWidget(QLineEdit("40"), 1, 4)
+        layout.addWidget(QLineEdit(), 1, 4)
 
         self._poll_light = LEDIcon.create_poll_icon()
         self._alarm_light = LEDIcon.create_alarm_icon()
