@@ -32,7 +32,7 @@ class BBMonitor(QGroupBox):
         layout = self._create_controls()
         self.setLayout(layout)
 
-        pub.subscribe(self._plot_bb_temps, "dp9800.data.response")
+        pub.subscribe(self._plot_bb_temps, "temperature_monitor.data.response")
 
     def _create_controls(self) -> QGridLayout:
         """Creates the overall layout for the panel.
@@ -92,7 +92,7 @@ class BBMonitor(QGroupBox):
         """Shows or hides BB plots.
 
         Args:
-            name: the name of the blackbody whose data visibility is togged
+            name: the name of the blackbody whose data visibility is toggled
         """
         state = self._ax[name].yaxis.get_visible()
         self._btns[name].setFlat(state)
@@ -175,9 +175,9 @@ class DP9800(QGroupBox):
 
         self._begin_polling()
 
-        pub.subscribe(self._begin_polling, "dp9800.open")
-        pub.subscribe(self._end_polling, "dp9800.close")
-        pub.subscribe(self._update_pt100s, "dp9800.data.response")
+        pub.subscribe(self._begin_polling, "temperature_monitor.open")
+        pub.subscribe(self._end_polling, "temperature_monitor.close")
+        pub.subscribe(self._update_pt100s, "temperature_monitor.data.response")
 
     def _begin_polling(self) -> None:
         """Initiate polling the DP9800 device."""
@@ -190,7 +190,7 @@ class DP9800(QGroupBox):
     def _poll_dp9800(self) -> None:
         """Polls the device to obtain the latest values."""
         self._poll_light._flash()
-        pub.sendMessage("dp9800.data.request")
+        pub.sendMessage("temperature_monitor.data.request")
 
     def _create_controls(self) -> QGridLayout:
         """Creates the overall layout for the panel.
