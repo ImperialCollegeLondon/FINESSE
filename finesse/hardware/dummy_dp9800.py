@@ -16,8 +16,8 @@ class DummyDP9800(DP9800):
         self._sysflag: str = ""
 
         logging.info("Opened connection to dummy DP9800")
-        pub.sendMessage("dp9800.open")
-        pub.subscribe(self.send_temperatures, "dp9800.data.request")
+        pub.subscribe(self.send_temperatures, "temperature_monitor.data.request")
+        pub.sendMessage("temperature_monitor.open")
 
     @staticmethod
     def create(
@@ -34,7 +34,7 @@ class DummyDP9800(DP9800):
 
     def close(self) -> None:
         """Close the connection to the device."""
-        pub.sendMessage("dp9800.close")
+        pub.sendMessage("temperature_monitor.close")
         logging.info("Closed connection to DP9800")
 
     def read(self) -> bytes:

@@ -35,8 +35,8 @@ class DP9800:
         self._sysflag: str = ""
 
         logging.info(f"Opened connection to DP9800 on port {self.serial.port}")
-        pub.sendMessage("dp9800.open")
-        pub.subscribe(self.send_temperatures, "dp9800.data.request")
+        pub.sendMessage("temperature_monitor.open")
+        pub.subscribe(self.send_temperatures, "temperature_monitor.data.request")
 
     @staticmethod
     def create(
@@ -74,7 +74,7 @@ class DP9800:
         """Close the connection to the device."""
         try:
             self.serial.close()
-            pub.sendMessage("dp9800.close")
+            pub.sendMessage("temperature_monitor.close")
             logging.info("Closed connection to DP9800")
         except SerialException as e:
             self._error_occurred(DP9800Error(e))
@@ -234,9 +234,9 @@ class DP9800:
         self.write(b"\x04T\x05")
         data = self.read()
         temperatures = self.parse(data)
-        pub.sendMessage("dp9800.data.response", values=temperatures)
+        pub.sendMessage("temperature_monitor.data.response", values=temperatures)
 
     def _error_occurred(self, exception: BaseException) -> None:
         """Log and communicate that an error occurred."""
         logging.error(f"Error during DP9800 query:\t{exception}")
-        pub.sendMessage("dp9800.error", message=str(exception))
+        pub.sendMessage("temperature_monitor.error", message=str(exception))
