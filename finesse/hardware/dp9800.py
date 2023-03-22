@@ -138,7 +138,6 @@ class DP9800:
         """
         num_bytes_to_read = self.serial.in_waiting
         if num_bytes_to_read == 0:
-            logging.info("Read 0 bytes from DP9800")
             return b""
 
         try:
@@ -151,7 +150,6 @@ class DP9800:
         except DP9800Error as e:
             self._error_occurred(e)
 
-        logging.info(f"Read {len(data)} bytes from DP9800")
         return data
 
     def check_data(self, data: bytes) -> None:
@@ -228,7 +226,6 @@ class DP9800:
             val: Number of bytes written to the device
         """
         num_bytes_written = self.serial.write(command)
-        logging.info(f"Wrote {num_bytes_written} bytes to DP9800")
         return num_bytes_written
 
     def send_temperatures(self) -> None:
