@@ -109,12 +109,13 @@ class DP9800:
         The DP9800 returns a sequence of bytes containing the
         temperatures measured on each channel, in the format
 
-          STX T SP t1 SP t2 SP t3 SP t4 SP t5 SP t6 SP t7 SP t8 SP t9 ff ETX BCC
+          STX T SP t1 SP t2 SP t3 SP t4 SP t5 SP t6 SP t7 SP t8 SP t9 ff ETX BCC NUL
 
         where
             t1, t2, ..., t9: temperature values in the format %4.2f
             STX: Start of Text (ASCII 2)
             ETX: End of Text (ASCII 3)
+            NUL: Null character (ASCII 0)
             SP: Space (ASCII 32)
             BCC: Block Check Character
             ff: System flag in hexadecimal
