@@ -72,7 +72,11 @@ class DP9800:
         return DP9800(serial, max_attempts)
 
     def close(self) -> None:
-        """Close the connection to the device."""
+        """Close the connection to the device.
+
+        Raises:
+            SerialException: Error communicating with device
+        """
         try:
             self.serial.close()
             pub.sendMessage("temperature_monitor.close")
@@ -94,9 +98,7 @@ class DP9800:
             x - bit 6: must be 0
             T - bit 7: instrument type:  0 = TC, 1 = PT
         """
-        if self._sysflag == "":
-            print("No system flag. Read from device first.")
-        else:
+        if self._sysflag != "":
             instr_type = ["TC", "PT"][int(self._sysflag[0])]
             logging_state = ["no logging", "logging active"][int(self._sysflag[3])]
             scanning_state = ["no scan", "autoscan active"][int(self._sysflag[5])]
@@ -135,9 +137,14 @@ class DP9800:
 
         Returns:
             data: the sequence of bytes read from the device
+
+        Raises:
+            SerialException: Error communicating with device
+            DP9800Error: Malformed message received from device
         """
         num_bytes_to_read = self.serial.in_waiting
         if num_bytes_to_read == 0:
+            logging.info("Read 0 bytes from DP9800")
             return b""
 
         try:
@@ -156,11 +163,14 @@ class DP9800:
     def check_data(self, data: bytes) -> None:
         """Perform message integrity checks.
 
-        First check characters that we know. Then calculate the BCC and compare
-        it to that transmitted.
+        First check characters that we know should be constant.
+        Then calculate the BCC and compare it to that transmitted.
 
         Args:
             data: the message to check
+
+        Raises:
+            DP9800Error: Malformed message received from device
         """
         if data[0] != 2:  # STX
             raise DP9800Error("Start transmission character not detected")
@@ -169,7 +179,6 @@ class DP9800:
         if data[-1] != 0:  # NUL
             raise DP9800Error("Null terminator not detected")
 
-        # Check BCC
         bcc = data[-2]
         bcc_chars = data[1:-2]
         byte_sum = 0
