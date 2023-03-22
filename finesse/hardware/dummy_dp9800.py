@@ -52,7 +52,6 @@ class DummyDP9800(DP9800):
                 + b"   24.35   68.65   69.92   24.1986\x03M\x00"
             )
 
-        logging.info(f"Read {len(data)} bytes from DP9800")
         self.in_waiting = 0
         return data
 
@@ -62,6 +61,5 @@ class DummyDP9800(DP9800):
         Returns:
             the number of bytes that would be written to the device
         """
-        logging.info(f"Wrote {len(command)} bytes to DP9800")
         self.in_waiting = 79
         return len(command)
