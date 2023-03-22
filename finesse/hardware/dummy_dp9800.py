@@ -27,7 +27,6 @@ class DummyDP9800(DP9800):
         parity: str = PARITY_NONE,
         stopbits: int = STOPBITS_ONE,
         timeout: float = 2.0,
-        max_attempts: int = 3,
     ) -> "DummyDP9800":
         """Create the device."""
         return DummyDP9800()

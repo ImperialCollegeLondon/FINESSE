@@ -21,18 +21,13 @@ class DP9800:
     NUM_CHANNELS = 8
     """The number of channels on the DP9800 device."""
 
-    def __init__(self, serial: Serial, max_attempts: int = 3) -> None:
+    def __init__(self, serial: Serial) -> None:
         """Create a new DP9800 from an existing serial device.
 
         Args:
             serial: Serial device
-            max_attempts: Maximum number of attempts for requests
         """
-        if max_attempts < 1:
-            raise ValueError("max_attempts must be at least 1")
-
         self.serial = serial
-        self.max_attempts = max_attempts
         self._sysflag: str = ""
 
         logging.info(f"Opened connection to DP9800 on port {self.serial.port}")
@@ -47,7 +42,6 @@ class DP9800:
         parity: str = PARITY_NONE,
         stopbits: int = STOPBITS_ONE,
         timeout: float = 2.0,
-        max_attempts: int = 3,
     ) -> "DP9800":
         """Create a new DP9800.
 
@@ -58,7 +52,6 @@ class DP9800:
             parity: the parity
             stopbits: the stop bits
             timeout: How long to wait for read operations (seconds)
-            max_attempts: Maximum number of attempts for requests
         """
         serial = Serial(
             port=port,
@@ -69,7 +62,7 @@ class DP9800:
             timeout=timeout,
         )
 
-        return DP9800(serial, max_attempts)
+        return DP9800(serial)
 
     def close(self) -> None:
         """Close the connection to the device.
