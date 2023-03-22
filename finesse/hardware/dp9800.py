@@ -168,7 +168,7 @@ class DP9800:
         """
         if data[0] != 2:  # STX
             raise DP9800Error("Start transmission character not detected")
-        if data[-3] != 3:  # ETX
+        if data.find(3) == -1:  # ETX
             raise DP9800Error("End transmission character not detected")
         if data[-1] != 0:  # NUL
             raise DP9800Error("Null terminator not detected")
@@ -194,22 +194,17 @@ class DP9800:
         """
         if data == b"":
             return []
-        else:
-            data_ascii = data.decode("ascii")
-            vals_str = [""] * (self.NUM_CHANNELS + 1)
-            vals = [Decimal(0.0)] * (self.NUM_CHANNELS + 1)
-            offset = 3  # offset of temperature values from start of message
-            width = 7  # width of temperature strings
-            for i in range(self.NUM_CHANNELS + 1):
-                vals_str[i] = data_ascii[
-                    self.NUM_CHANNELS * i
-                    + offset : self.NUM_CHANNELS * i
-                    + (offset + width)
-                ]
-                vals[i] = Decimal(vals_str[i])
 
-            sysflag = bin(int(data_ascii[-5:-3], 16))
-            self._sysflag = sysflag[2:]
+        data_ascii = data.decode("ascii")
+        vals_begin = 3
+        vals_end = 74
+        etx_index = data.find(b"\x03")
+
+        vals = [Decimal(val) for val in data_ascii[vals_begin:vals_end].split()]
+
+        sysflag = bin(int(data_ascii[vals_end:etx_index], 16))
+
+        self._sysflag = sysflag[2:]
 
         return vals[1:]
 
