@@ -4,7 +4,14 @@ from datetime import datetime
 from decimal import Decimal
 
 from pubsub import pub
-from serial import EIGHTBITS, PARITY_NONE, STOPBITS_ONE, Serial, SerialException
+from serial import (
+    EIGHTBITS,
+    PARITY_NONE,
+    STOPBITS_ONE,
+    Serial,
+    SerialException,
+    SerialTimeoutException,
+)
 
 
 class DP9800Error(Exception):
@@ -75,7 +82,7 @@ class DP9800:
             pub.sendMessage("temperature_monitor.close")
             logging.info("Closed connection to DP9800")
         except SerialException as e:
-            self._error_occurred(DP9800Error(e))
+            raise DP9800Error(e)
 
     def print_sysflag(self) -> None:
         """Print the settings of the device as stored in the system flag.
@@ -136,19 +143,18 @@ class DP9800:
             SerialException: Error communicating with device
             DP9800Error: Malformed message received from device
         """
-        num_bytes_to_read = self.serial.in_waiting
-        if num_bytes_to_read == 0:
-            return b""
+        if self.serial.in_waiting == 0:
+            raise DP9800Error("No data waiting to be read")
 
         try:
-            data = self.serial.read(num_bytes_to_read)
-        except SerialException as e:
-            self._error_occurred(DP9800Error(e))
+            data = self.serial.read_until(b"\x00")
+        except SerialTimeoutException:
+            raise DP9800Error("Read request timed out")
 
         try:
             self.check_data(data)
         except DP9800Error as e:
-            self._error_occurred(e)
+            raise DP9800Error(e)
 
         return data
 
@@ -236,12 +242,15 @@ class DP9800:
         Parses the data and broadcasts the temperatures.
         """
         time_now = datetime.now().timestamp()
-        self.write(b"\x04T\x05")
-        data = self.read()
-        temperatures = self.parse(data)
-        pub.sendMessage(
-            "temperature_monitor.data.response", values=temperatures, time=time_now
-        )
+        try:
+            self.write(b"\x04T\x05")
+            data = self.read()
+            temperatures = self.parse(data)
+            pub.sendMessage(
+                "temperature_monitor.data.response", values=temperatures, time=time_now
+            )
+        except Exception as e:
+            self._error_occurred(e)
 
     def _error_occurred(self, exception: BaseException) -> None:
         """Log and communicate that an error occurred."""
