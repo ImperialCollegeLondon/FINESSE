@@ -5,6 +5,7 @@ from typing import Tuple
 
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
+from pubsub import pub
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QGridLayout,
@@ -203,9 +204,41 @@ class TC4820(QGroupBox):
             name (str): Name of the blackbody the TC4820 is controlling
         """
         super().__init__(f"TC4820 {name.upper()}")
+        self._name = name
 
         layout = self._create_controls()
         self.setLayout(layout)
+
+        self._begin_polling()
+
+        pub.subscribe(self._begin_polling, f"temperature_controller.{name}.open")
+        pub.subscribe(self._end_polling, f"temperature_controller.{name}.close")
+        pub.subscribe(self._update_controls, f"temperature_controller.{name}.response")
+        pub.subscribe(self._update_pt100, "dp9800.data.response")
+
+    def _begin_polling(self) -> None:
+        """Initiate polling the TC4820 device."""
+        self._poll_light._timer.start(2000)
+
+    def _end_polling(self) -> None:
+        """Terminate polling the TC4820 device."""
+        self._poll_light._timer.stop()
+
+    def _poll_tc4820(self) -> None:
+        self._poll_light._flash()
+        pub.sendMessage(f"temperature_controller.{self._name}.request")
+
+    def _update_controls(self, properties):
+        self._control_val.setText(f"{properties['temperature']: .2f}")
+        self._power_bar.setValue(properties["power"])
+        self._power_label.setText(f"{properties['power']}")
+        self._set_sbox.setValue(int(properties["set_point"]))
+
+    def _update_pt100(self, values, time):
+        if self._name.count("hot"):
+            self._pt100_val.setText(values[6])
+        elif self._name.count("cold"):
+            self._pt100_val.setText(values[7])
 
     def _create_controls(self) -> QGridLayout:
         """Creates the overall layout for the panel.
@@ -241,12 +274,12 @@ class TC4820(QGroupBox):
         alarm_label.setAlignment(align)
         layout.addWidget(alarm_label, 2, 4)
 
-        self._control_val = QLineEdit("70.5")
+        self._control_val = QLineEdit()
         self._control_val.setReadOnly(True)
         self._control_val.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self._control_val, 0, 1)
 
-        self._pt100_val = QLineEdit("70.34")  # CH_7?
+        self._pt100_val = QLineEdit()
         self._pt100_val.setReadOnly(True)
         self._pt100_val.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self._pt100_val, 0, 3)
@@ -255,9 +288,12 @@ class TC4820(QGroupBox):
         self._power_bar.setTextVisible(False)
         self._power_bar.setOrientation(Qt.Orientation.Horizontal)
         layout.addWidget(self._power_bar, 1, 1, 1, 3)
-        layout.addWidget(QLineEdit("40"), 1, 4)
+        self._power_label = QLineEdit()
+        self._power_label.setReadOnly(True)
+        layout.addWidget(self._power_label, 1, 4)
 
         self._poll_light = LEDIcon.create_poll_icon()
+        self._poll_light._timer.timeout.connect(self._poll_tc4820)
         self._alarm_light = LEDIcon.create_alarm_icon()
         layout.addWidget(self._poll_light, 0, 5)
         layout.addWidget(self._alarm_light, 2, 5)
