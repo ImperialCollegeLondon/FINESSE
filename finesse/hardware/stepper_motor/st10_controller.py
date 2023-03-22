@@ -181,7 +181,7 @@ class ST10Controller(StepperMotorBase):
 
         self._reader = _SerialReader(serial, timeout)
         self._reader.async_read_completed.connect(self._send_move_end_message)
-        self._reader.read_error.connect(self._send_error_message)
+        self._reader.read_error.connect(self.send_error_message)
         self._reader.start()
 
         # Check that we are connecting to an ST10
@@ -219,10 +219,6 @@ class ST10Controller(StepperMotorBase):
     @Slot()
     def _send_move_end_message(self) -> None:
         pub.sendMessage(f"serial.{STEPPER_MOTOR_TOPIC}.move.end")
-
-    @Slot()
-    def _send_error_message(self, error: BaseException) -> None:
-        pub.sendMessage(f"serial.{STEPPER_MOTOR_TOPIC}.error", error=error)
 
     def _check_device_id(self) -> None:
         """Check that the ID is the correct one for an ST10.

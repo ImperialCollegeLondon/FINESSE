@@ -23,6 +23,11 @@ class StepperMotorBase(DeviceBase):
         )
 
     @staticmethod
+    def send_error_message(error: BaseException) -> None:
+        """Send an error message when a device error has occurred."""
+        pub.sendMessage(f"serial.{STEPPER_MOTOR_TOPIC}.error", error=error)
+
+    @staticmethod
     def preset_angle(name: str) -> float:
         """Get the angle for one of the preset positions.
 
