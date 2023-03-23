@@ -1,13 +1,14 @@
 """Provides the base class for stepper motor implementations."""
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import Optional, Union
 
 from pubsub import pub
 
-from ...config import ANGLE_PRESETS
+from ...config import ANGLE_PRESETS, STEPPER_MOTOR_TOPIC
+from ..device_base import DeviceBase
 
 
-class StepperMotorBase(ABC):
+class StepperMotorBase(DeviceBase):
     """A base class for stepper motor implementations."""
 
     def __init__(self) -> None:
@@ -15,9 +16,11 @@ class StepperMotorBase(ABC):
 
         Subscribe to stepper.move messages.
         """
-        pub.subscribe(self.move_to, "stepper.move.begin")
-        pub.subscribe(self.stop_moving, "stepper.stop")
-        pub.subscribe(self.notify_on_stopped, "stepper.notify_on_stopped")
+        pub.subscribe(self.move_to, f"serial.{STEPPER_MOTOR_TOPIC}.move.begin")
+        pub.subscribe(self.stop_moving, f"serial.{STEPPER_MOTOR_TOPIC}.stop")
+        pub.subscribe(
+            self.notify_on_stopped, f"serial.{STEPPER_MOTOR_TOPIC}.notify_on_stopped"
+        )
 
     @staticmethod
     def preset_angle(name: str) -> float:

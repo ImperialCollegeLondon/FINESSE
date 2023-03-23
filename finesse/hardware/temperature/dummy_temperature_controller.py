@@ -47,6 +47,9 @@ class DummyTemperatureController(TemperatureControllerBase):
 
         super().__init__(name)
 
+    def close(self) -> None:
+        """Shut down the device."""
+
     @property
     def temperature(self) -> Decimal:
         """The current temperature reported by the device."""
