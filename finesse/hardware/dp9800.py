@@ -140,7 +140,6 @@ class DP9800:
             data: the sequence of bytes read from the device
 
         Raises:
-            SerialException: Error communicating with device
             DP9800Error: Malformed message received from device
         """
         if self.serial.in_waiting == 0:
@@ -212,8 +211,8 @@ class DP9800:
 
         return vals[1:]
 
-    def write(self, command: bytes) -> int:
-        r"""Write a message to the DP9800.
+    def request_read(self) -> None:
+        """Write a message to the DP9800 to prepare for a read operation.
 
         Format:
 
@@ -222,16 +221,14 @@ class DP9800:
         EOT: End of Transmission (ASCII 4)
         ENQ: Enquiry (ASCII 5)
 
-        Likely to just be used to initiate a read operation, triggered
-        with the command \x04T\x05.
-
-        Args:
-            command: The command to write to the device
-
-        Returns:
-            val: Number of bytes written to the device
+        Raises:
+            DP9800Error: Error writing to the device
         """
-        num_bytes_written = self.serial.write(command)
+        try:
+            num_bytes_written = self.serial.write(b"\x04T\x05")
+        except Exception as e:
+            raise DP9800Error(e)
+
         return num_bytes_written
 
     def send_temperatures(self) -> None:
@@ -243,7 +240,7 @@ class DP9800:
         """
         time_now = datetime.now().timestamp()
         try:
-            self.write(b"\x04T\x05")
+            self.request_read()
             data = self.read()
             temperatures = self.parse(data)
             pub.sendMessage(

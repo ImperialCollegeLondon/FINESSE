@@ -4,7 +4,7 @@ import logging
 from pubsub import pub
 from serial import EIGHTBITS, PARITY_NONE, STOPBITS_ONE
 
-from .dp9800 import DP9800
+from .dp9800 import DP9800, DP9800Error
 
 
 class DummyDP9800(DP9800):
@@ -43,23 +43,21 @@ class DummyDP9800(DP9800):
             data: sequence of bytes representative of that read
                   from the physical device
         """
-        num_bytes_to_read = self.in_waiting
-        if num_bytes_to_read == 0:
-            data = b""
-        else:
-            data = (
-                b"\x02T   27.16   19.13   17.61   26.49  850.00"
-                + b"   24.35   68.65   69.92   24.1986\x03M\x00"
-            )
+        if self.in_waiting == 0:
+            raise DP9800Error("No data waiting to be read")
+
+        data = (
+            b"\x02T   27.16   19.13   17.61   26.49  850.00"
+            + b"   24.35   68.65   69.92   24.1986\x03M\x00"
+        )
 
         self.in_waiting = 0
         return data
 
-    def write(self, command: bytes) -> int:
-        """Pretend to write data to the device.
+    def request_read(self) -> None:
+        """Mimic writing to the device to prepare for a read operation.
 
         Returns:
             the number of bytes that would be written to the device
         """
         self.in_waiting = 79
-        return len(command)
