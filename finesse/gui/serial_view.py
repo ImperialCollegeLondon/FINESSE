@@ -1,5 +1,4 @@
 """Panel and widgets related to the control of the serial ports."""
-import logging
 from dataclasses import dataclass
 from typing import Sequence, cast
 
@@ -143,8 +142,6 @@ class DeviceControls:
 
     def _open_device(self) -> None:
         """Open the specified serial device."""
-        logging.info(f"Opening device {self.name}...")
-
         port = self.ports.currentText()
         baudrate = int(self.baudrates.currentText())
 
@@ -158,7 +155,6 @@ class DeviceControls:
     def _close_device(self) -> None:
         """Close the specified serial device."""
         pub.sendMessage(f"serial.{self.name}.close")
-        logging.info(f"Port for device {self.name} is closed")
 
     def _on_open_close_clicked(self) -> None:
         """Open/close the connection of the chosen device when the button is pushed."""
