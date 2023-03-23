@@ -120,7 +120,6 @@ class DeviceControls:
         self.open_close_btn.setCheckable(True)
         self.open_close_btn.clicked.connect(self._on_open_close_clicked)  # type: ignore
         layout.addWidget(self.open_close_btn, row, 3)
-        self.open_close_btn.setChecked(False)
 
         pub.subscribe(self._set_button_to_close, f"serial.{self.name}.opened")
         pub.subscribe(self._set_button_to_open, f"serial.{self.name}.close")
@@ -129,12 +128,10 @@ class DeviceControls:
     def _set_button_to_open(self):
         """Change the button to say Open."""
         self.open_close_btn.setText("Open")
-        self.open_close_btn.setChecked(False)
 
     def _set_button_to_close(self):
         """Change the button to say Close."""
         self.open_close_btn.setText("Close")
-        self.open_close_btn.setChecked(True)
 
     def _show_error_message(self, error: BaseException) -> None:
         """Show an error message when something has gone wrong with the device."""
