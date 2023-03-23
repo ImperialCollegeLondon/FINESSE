@@ -8,7 +8,7 @@ from PySide6.QtWidgets import (
     QSpinBox,
 )
 
-from ..config import ANGLE_PRESETS
+from ..config import ANGLE_PRESETS, STEPPER_MOTOR_TOPIC
 
 
 class StepperMotorControl(QGroupBox):
@@ -55,7 +55,7 @@ class StepperMotorControl(QGroupBox):
     def _preset_clicked(self, btn: QPushButton) -> None:
         """Move the stepper motor to preset position."""
         # If the motor is already moving, stop it now
-        pub.sendMessage("stepper.stop")
+        pub.sendMessage(f"serial.{STEPPER_MOTOR_TOPIC}.stop")
 
         target = float(self.angle.value()) if btn is self.goto else btn.text().lower()
-        pub.sendMessage("stepper.move.begin", target=target)
+        pub.sendMessage(f"serial.{STEPPER_MOTOR_TOPIC}.move.begin", target=target)

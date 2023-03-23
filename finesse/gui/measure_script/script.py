@@ -12,7 +12,7 @@ from pubsub import pub
 from PySide6.QtWidgets import QWidget
 from schema import And, Or, Schema, SchemaError
 
-from ...config import ANGLE_PRESETS
+from ...config import ANGLE_PRESETS, STEPPER_MOTOR_TOPIC
 from ..error_message import show_error_message
 
 
@@ -33,7 +33,7 @@ class Measurement:
     def run(self) -> None:
         """A placeholder function for recording multiple measurements."""
         # Move the mirror to the correct location
-        pub.sendMessage("stepper.move.begin", target=self.angle)
+        pub.sendMessage(f"serial.{STEPPER_MOTOR_TOPIC}.move.begin", target=self.angle)
 
         # Take the recordings
         logging.info(f"Recording {self.measurements} measurements")
