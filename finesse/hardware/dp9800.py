@@ -113,11 +113,6 @@ class DP9800:
         except SerialTimeoutException:
             raise DP9800Error("Read request timed out")
 
-        try:
-            self.check_data(data)
-        except DP9800Error as e:
-            raise DP9800Error(e)
-
         return data
 
     def check_data(self, data: bytes) -> None:
@@ -132,6 +127,9 @@ class DP9800:
         Raises:
             DP9800Error: Malformed message received from device
         """
+        if data == b"":
+            raise DP9800Error("No data read")
+
         if data[0] != 2:  # STX
             raise DP9800Error("Start transmission character not detected")
         if data.find(3) == -1:  # ETX
@@ -158,10 +156,11 @@ class DP9800:
             vals: A list of Decimals containing the temperature values recorded
                   by the DP9800 device.
         """
-        if data == b"":
-            return []
+        try:
+            data_ascii = data.decode("ascii")
+        except Exception as e:
+            raise DP9800Error(e)
 
-        data_ascii = data.decode("ascii")
         vals_begin = 3
         vals_end = 74
         etx_index = data.find(b"\x03")
@@ -205,6 +204,7 @@ class DP9800:
         try:
             self.request_read()
             data = self.read()
+            self.check_data(data)
             temperatures = self.parse(data)
             pub.sendMessage(
                 "temperature_monitor.data.response", values=temperatures, time=time_now
