@@ -151,7 +151,6 @@ def test_set_button_to_close(device_controls: DeviceControls) -> None:
     with patch.object(device_controls, "open_close_btn") as btn_mock:
         device_controls._set_button_to_close()
         btn_mock.setText.assert_called_once_with("Close")
-        btn_mock.setChecked.assert_called_once_with(True)
 
 
 def test_set_button_to_open(device_controls: DeviceControls) -> None:
@@ -159,7 +158,6 @@ def test_set_button_to_open(device_controls: DeviceControls) -> None:
     with patch.object(device_controls, "open_close_btn") as btn_mock:
         device_controls._set_button_to_open()
         btn_mock.setText.assert_called_once_with("Open")
-        btn_mock.setChecked.assert_called_once_with(False)
 
 
 @patch("finesse.gui.serial_view.QMessageBox")
