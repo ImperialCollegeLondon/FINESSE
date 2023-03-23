@@ -2,7 +2,6 @@
 import logging
 
 from pubsub import pub
-from serial import EIGHTBITS, PARITY_NONE, STOPBITS_ONE
 
 from .dp9800 import DP9800, DP9800Error
 
@@ -18,18 +17,6 @@ class DummyDP9800(DP9800):
         logging.info("Opened connection to dummy DP9800")
         pub.subscribe(self.send_temperatures, "temperature_monitor.data.request")
         pub.sendMessage("temperature_monitor.open")
-
-    @staticmethod
-    def create(
-        port: str = "",
-        baudrate: int = 38400,
-        bytesize: int = EIGHTBITS,
-        parity: str = PARITY_NONE,
-        stopbits: int = STOPBITS_ONE,
-        timeout: float = 2.0,
-    ) -> "DummyDP9800":
-        """Create the device."""
-        return DummyDP9800()
 
     def close(self) -> None:
         """Close the connection to the device."""

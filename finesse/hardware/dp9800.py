@@ -4,14 +4,7 @@ from datetime import datetime
 from decimal import Decimal
 
 from pubsub import pub
-from serial import (
-    EIGHTBITS,
-    PARITY_NONE,
-    STOPBITS_ONE,
-    Serial,
-    SerialException,
-    SerialTimeoutException,
-)
+from serial import Serial, SerialException, SerialTimeoutException
 
 
 class DP9800Error(Exception):
@@ -40,36 +33,6 @@ class DP9800:
         logging.info(f"Opened connection to DP9800 on port {self.serial.port}")
         pub.sendMessage("temperature_monitor.open")
         pub.subscribe(self.send_temperatures, "temperature_monitor.data.request")
-
-    @staticmethod
-    def create(
-        port: str,
-        baudrate: int = 38400,
-        bytesize: int = EIGHTBITS,
-        parity: str = PARITY_NONE,
-        stopbits: int = STOPBITS_ONE,
-        timeout: float = 2.0,
-    ) -> "DP9800":
-        """Create a new DP9800.
-
-        Args:
-            port: Serial port name
-            baudrate: Serial port baud rate
-            bytesize: the byte size
-            parity: the parity
-            stopbits: the stop bits
-            timeout: How long to wait for read operations (seconds)
-        """
-        serial = Serial(
-            port=port,
-            baudrate=baudrate,
-            bytesize=bytesize,
-            parity=parity,
-            stopbits=stopbits,
-            timeout=timeout,
-        )
-
-        return DP9800(serial)
 
     def close(self) -> None:
         """Close the connection to the device.
