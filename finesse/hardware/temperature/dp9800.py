@@ -19,8 +19,11 @@ def check_data(data: bytes) -> None:
     Raises:
         DP9800Error: Malformed message received from device
     """
-    if data == b"":
-        raise DP9800Error("No data read")
+    header_width = 2
+    value_width = 8
+    num_values = 9
+    if len(data) < (header_width + value_width * num_values):
+        raise DP9800Error("Insufficient data read")
 
     if data[0] != 2:  # STX
         raise DP9800Error("Start transmission character not detected")
@@ -39,7 +42,7 @@ def check_data(data: bytes) -> None:
         raise DP9800Error("BCC check failed")
 
 
-def parse_data(data: bytes):  # -> tuple(list[Decimal], str):
+def parse_data(data: bytes) -> tuple[list[Decimal], str]:
     """Parse temperature data read from the DP9800.
 
     The sequence of bytes is translated into a list of ASCII strings
@@ -48,7 +51,7 @@ def parse_data(data: bytes):  # -> tuple(list[Decimal], str):
     Returns:
         vals: A list of Decimals containing the temperature values recorded
               by the DP9800 device.
-        sysflag:
+        sysflag: string representation of the system flag bitmask
     """
     try:
         data_ascii = data.decode("ascii")
@@ -77,9 +80,6 @@ class DP9800:
     https://assets.omega.com/manuals/M5210.pdf
     """
 
-    NUM_CHANNELS = 8
-    """The number of channels on the DP9800 device."""
-
     def __init__(self, serial: Serial) -> None:
         """Create a new DP9800 from an existing serial device.
 
@@ -87,7 +87,6 @@ class DP9800:
             serial: Serial device
         """
         self.serial = serial
-        self._sysflag: str = ""
 
         logging.info(f"Opened connection to DP9800 on port {self.serial.port}")
         pub.sendMessage("temperature_monitor.open")
@@ -119,13 +118,16 @@ class DP9800:
             x - bit 5: must be 0
             x - bit 6: must be 0
             T - bit 7: instrument type:  0 = TC, 1 = PT
+
+        Args:
+            sysflag: string representation of the system flag bitmask
         """
-        if self._sysflag != "":
-            instr_type = ["TC", "PT"][int(self._sysflag[0])]
-            logging_state = ["no logging", "logging active"][int(self._sysflag[3])]
-            scanning_state = ["no scan", "autoscan active"][int(self._sysflag[5])]
-            audible_state = ["silence", "audible"][int(self._sysflag[6])]
-            temp_unit = ["deg C", "deg F"][int(self._sysflag[7])]
+        if sysflag != "":
+            instr_type = ["TC", "PT"][int(sysflag[0])]
+            logging_state = ["no logging", "logging active"][int(sysflag[3])]
+            scanning_state = ["no scan", "autoscan active"][int(sysflag[5])]
+            audible_state = ["silence", "audible"][int(sysflag[6])]
+            temp_unit = ["deg C", "deg F"][int(sysflag[7])]
             print(f"Instrument type: {instr_type}")
             print(f"Logging: {logging_state}")
             print(f"Autoscan: {scanning_state}")
@@ -188,11 +190,9 @@ class DP9800:
             DP9800Error: Error writing to the device
         """
         try:
-            num_bytes_written = self.serial.write(b"\x04T\x05")
+            self.serial.write(b"\x04T\x05")
         except Exception as e:
             raise DP9800Error(e)
-
-        return num_bytes_written
 
     def send_temperatures(self) -> None:
         """Perform the complete process of reading from the DP9800.
