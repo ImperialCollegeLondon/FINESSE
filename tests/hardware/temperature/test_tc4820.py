@@ -52,6 +52,28 @@ def test_request_properties(dev: TC4820, sendmsg_mock: MagicMock) -> None:
         )
 
 
+def test_request_properties_error(dev: TC4820, sendmsg_mock: MagicMock) -> None:
+    """Test the request_properties() method handles errors correctly."""
+    with patch.object(dev, "request_int") as mock_int:
+        error = SerialException()
+        mock_int.side_effect = error
+        dev.request_properties()
+        sendmsg_mock.assert_called_once_with(
+            f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.device.error", error=error
+        )
+
+
+def test_change_set_point_error(dev: TC4820, sendmsg_mock: MagicMock) -> None:
+    """Test that the change_set_point() method handles errors correctly."""
+    with patch.object(dev, "request_int") as mock_int:
+        error = SerialException()
+        mock_int.side_effect = error
+        dev.change_set_point(Decimal(10))
+        sendmsg_mock.assert_called_once_with(
+            f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.device.error", error=error
+        )
+
+
 def checksum(message: int) -> int:
     """Calculate the checksum as an int."""
     return sum(f"{message:0{4}x}".encode("ascii")) & 0xFF
