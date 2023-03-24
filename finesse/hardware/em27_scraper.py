@@ -45,6 +45,35 @@ class EM27Property:
         return f"{self.value:.6f} {self.unit}"
 
 
+def get_psf27sensor_data(content: str) -> list[EM27Property]:
+    """Search for the PSF27Sensor table and store the data.
+
+    Returns:
+        data_table: a list of sensor properties and their values
+    """
+    table_header = (
+        "<TR><TH>No</TH><TH>Name</TH><TH>Description</TH>"
+        + "<TH>Status</TH><TH>Value</TH><TH>Meas. Unit</TH></TR>\n"
+    )
+    table_start = content.find(table_header)
+    if table_start == -1:
+        raise PSF27Error("PSF27Sensor table not found")
+
+    table_end = table_start + content[table_start:].find("</TABLE>")
+    table = content[table_start:table_end].splitlines()
+    data_table = []
+    for row in range(1, len(table)):
+        data_table.append(
+            EM27Property(
+                table[row].split("<TD>")[2].rstrip("</TD>"),
+                Decimal(table[row].split("<TD>")[5].strip("</TD>")),
+                table[row].split("<TD>")[6].rstrip("</TD></TR"),
+            )
+        )
+
+    return data_table
+
+
 class PSF27Error(Exception):
     """Indicates than an error occurred while parsing the webpage."""
 
@@ -60,7 +89,6 @@ class EM27Scraper:
         """
         self._url: str = url
         self._timeout: int = 2
-        self._data_table: list[EM27Property] = []
 
         pub.subscribe(self.send_data, "psf27.data.request")
 
@@ -86,38 +114,15 @@ class EM27Scraper:
         except Timeout:
             raise PSF27Error("Request timed out")
 
-    def _get_psf27sensor_data(self, content: str) -> None:
-        """Search for the PSF27Sensor table and store the data."""
-        table_header = (
-            "<TR><TH>No</TH><TH>Name</TH><TH>Description</TH>"
-            + "<TH>Status</TH><TH>Value</TH><TH>Meas. Unit</TH></TR>\n"
-        )
-        table_start = content.find(table_header)
-        if table_start == -1:
-            raise PSF27Error("PSF27Sensor table not found")
-        else:
-            table_end = table_start + content[table_start:].find("</TABLE>")
-            table = content[table_start:table_end].splitlines()
-            data_table = []
-            for row in range(1, len(table)):
-                data_table.append(
-                    EM27Property(
-                        table[row].split("<TD>")[2].rstrip("</TD>"),
-                        Decimal(table[row].split("<TD>")[5].strip("</TD>")),
-                        table[row].split("<TD>")[6].rstrip("</TD></TR"),
-                    )
-                )
-            self._data_table = data_table
-
     def send_data(self) -> None:
         """Request the EM27 property data from the web server and send to GUI."""
         try:
             content = self._read()
-            self._get_psf27sensor_data(content)
+            data_table = get_psf27sensor_data(content)
         except PSF27Error as e:
             self._error_occurred(e)
 
-        pub.sendMessage("psf27.data.response", data=self._data_table)
+        pub.sendMessage("psf27.data.response", data=data_table)
 
     def _error_occurred(self, exception: BaseException) -> None:
         """Log and communicate that an error occurred."""
