@@ -33,9 +33,10 @@ class TemperatureControllerBase(DeviceBase):
     def request_properties(self) -> None:
         """Requests that various device properties are sent over pubsub."""
         try:
-            properties = {}
-            for prop in ("temperature", "power", "alarm_status", "set_point"):
-                properties[prop] = getattr(self, prop)
+            properties = {
+                prop: getattr(self, prop)
+                for prop in ("temperature", "power", "alarm_status", "set_point")
+            }
         except Exception as error:
             pub.sendMessage(
                 f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{self.name}.error", error=error
