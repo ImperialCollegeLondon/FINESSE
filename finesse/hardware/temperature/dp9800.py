@@ -7,6 +7,65 @@ from pubsub import pub
 from serial import Serial, SerialException, SerialTimeoutException
 
 
+def check_data(data: bytes) -> None:
+    """Perform message integrity checks.
+
+    First check characters that we know should be constant.
+    Then calculate the BCC and compare it to that transmitted.
+
+    Args:
+        data: the message to check
+
+    Raises:
+        DP9800Error: Malformed message received from device
+    """
+    if data == b"":
+        raise DP9800Error("No data read")
+
+    if data[0] != 2:  # STX
+        raise DP9800Error("Start transmission character not detected")
+    if data.find(3) == -1:  # ETX
+        raise DP9800Error("End transmission character not detected")
+    if data[-1] != 0:  # NUL
+        raise DP9800Error("Null terminator not detected")
+
+    bcc = data[-2]
+    bcc_chars = data[1:-2]
+    byte_sum = 0
+    for byte in bcc_chars:
+        byte_sum ^= byte
+
+    if byte_sum != bcc:
+        raise DP9800Error("BCC check failed")
+
+
+def parse_data(data: bytes):  # -> tuple(list[Decimal], str):
+    """Parse temperature data read from the DP9800.
+
+    The sequence of bytes is translated into a list of ASCII strings
+    representing each of the temperatures, and finally into floats.
+
+    Returns:
+        vals: A list of Decimals containing the temperature values recorded
+              by the DP9800 device.
+        sysflag:
+    """
+    try:
+        data_ascii = data.decode("ascii")
+    except Exception as e:
+        raise DP9800Error(e)
+
+    vals_begin = 3
+    vals_end = 74
+    etx_index = data.find(b"\x03")
+
+    vals = [Decimal(val) for val in data_ascii[vals_begin:vals_end].split()]
+
+    sysflag = bin(int(data_ascii[vals_end:etx_index], 16))
+
+    return (vals[1:], sysflag[2:])
+
+
 class DP9800Error(Exception):
     """Indicates that an error occurred while communicating with the device."""
 
@@ -47,7 +106,7 @@ class DP9800:
         except SerialException as e:
             raise DP9800Error(e)
 
-    def print_sysflag(self) -> None:
+    def print_sysflag(self, sysflag: str) -> None:
         """Print the settings of the device as stored in the system flag.
 
         The system flag is stored as a bit mask with the format TxxLxSAF,
@@ -115,64 +174,6 @@ class DP9800:
 
         return data
 
-    def check_data(self, data: bytes) -> None:
-        """Perform message integrity checks.
-
-        First check characters that we know should be constant.
-        Then calculate the BCC and compare it to that transmitted.
-
-        Args:
-            data: the message to check
-
-        Raises:
-            DP9800Error: Malformed message received from device
-        """
-        if data == b"":
-            raise DP9800Error("No data read")
-
-        if data[0] != 2:  # STX
-            raise DP9800Error("Start transmission character not detected")
-        if data.find(3) == -1:  # ETX
-            raise DP9800Error("End transmission character not detected")
-        if data[-1] != 0:  # NUL
-            raise DP9800Error("Null terminator not detected")
-
-        bcc = data[-2]
-        bcc_chars = data[1:-2]
-        byte_sum = 0
-        for byte in bcc_chars:
-            byte_sum ^= byte
-
-        if byte_sum != bcc:
-            raise DP9800Error("BCC check failed")
-
-    def parse(self, data: bytes) -> list[Decimal]:
-        """Parse temperature data read from the DP9800.
-
-        The sequence of bytes is translated into a list of ASCII strings
-        representing each of the temperatures, and finally into floats.
-
-        Returns:
-            vals: A list of Decimals containing the temperature values recorded
-                  by the DP9800 device.
-        """
-        try:
-            data_ascii = data.decode("ascii")
-        except Exception as e:
-            raise DP9800Error(e)
-
-        vals_begin = 3
-        vals_end = 74
-        etx_index = data.find(b"\x03")
-
-        vals = [Decimal(val) for val in data_ascii[vals_begin:vals_end].split()]
-
-        sysflag = bin(int(data_ascii[vals_end:etx_index], 16))
-
-        self._sysflag = sysflag[2:]
-
-        return vals[1:]
-
     def request_read(self) -> None:
         """Write a message to the DP9800 to prepare for a read operation.
 
@@ -204,8 +205,8 @@ class DP9800:
         try:
             self.request_read()
             data = self.read()
-            self.check_data(data)
-            temperatures = self.parse(data)
+            check_data(data)
+            temperatures, _ = parse_data(data)
             pub.sendMessage(
                 "temperature_monitor.data.response", values=temperatures, time=time_now
             )
