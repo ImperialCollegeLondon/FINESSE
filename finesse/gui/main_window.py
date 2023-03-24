@@ -54,7 +54,7 @@ class MainWindow(QMainWindow):
         layout_right.addWidget(opus, 0, 0, 1, 2)
 
         bb_monitor: QGroupBox = BBMonitor()
-        dp9800: QGroupBox = DP9800Controls(8)
+        dp9800: QGroupBox = DP9800Controls()
         tc4820_hot: QGroupBox = TC4820Controls("hot")
         tc4820_cold: QGroupBox = TC4820Controls("cold")
 

@@ -160,7 +160,7 @@ class BBMonitor(QGroupBox):
 class DP9800Controls(QGroupBox):
     """Widgets to view the DP9800 properties."""
 
-    def __init__(self, num_channels: int) -> None:
+    def __init__(self, num_channels: int = 8) -> None:
         """Creates the widgets to monitor DP9800.
 
         Args:
@@ -232,8 +232,8 @@ class DP9800Controls(QGroupBox):
             values: the temperatures retrieved from the DP9800
             time: the time that the values were retrieved
         """
-        for i in range(self._num_channels):
-            self._channels[i].setText(f"{values[i]: .2f}")
+        for channel, value in zip(self._channels, values):
+            channel.setText(f"{value: .2f}")
 
 
 class TC4820Controls(QGroupBox):
