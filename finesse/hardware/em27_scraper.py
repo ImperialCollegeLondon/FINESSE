@@ -88,7 +88,7 @@ class EM27Scraper:
             url: Web address of the automation units diagnostics page.
         """
         self._url: str = url
-        self._timeout: int = 2
+        self._timeout: float = 2.0
 
         pub.subscribe(self.send_data, "psf27.data.request")
 
@@ -119,10 +119,9 @@ class EM27Scraper:
         try:
             content = self._read()
             data_table = get_psf27sensor_data(content)
+            pub.sendMessage("psf27.data.response", data=data_table)
         except PSF27Error as e:
             self._error_occurred(e)
-
-        pub.sendMessage("psf27.data.response", data=data_table)
 
     def _error_occurred(self, exception: BaseException) -> None:
         """Log and communicate that an error occurred."""

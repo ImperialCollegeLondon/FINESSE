@@ -2,7 +2,7 @@
 
 import pytest
 
-from finesse.hardware.dummy_em27_scraper import DummyEM27Scraper
+from finesse.hardware.dummy_em27_scraper import DummyEM27Scraper, PSF27Error
 
 
 @pytest.fixture
@@ -18,13 +18,17 @@ def test_init(dev):
     assert (dev._url.count(unix_path) == 1) ^ (dev._url.count(win_path) == 1)
 
 
+def test_read_pass(dev):
+    """Test success of DummyEM27Scraper's _read() method."""
+    content = dev._read()
+    assert type(content) == str
+    assert content.count("PSF27Sensor") == 1
+    assert content.endswith("</HTML>\n")
+
+
 def test_read_fail(dev):
     """Test failure of DummyEM27Scraper's _read() method."""
-    dev._url = dev._url + "chars"
-    try:
+    dev._url += "chars"
+    with pytest.raises(PSF27Error):
         content = dev._read()
-        assert dev._is_read
-        assert type(content) == str
-        assert content.count("PSF27Sensor") == 1
-    except Exception:
-        assert content == ""
+        assert content is None
