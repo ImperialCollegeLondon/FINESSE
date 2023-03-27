@@ -102,7 +102,11 @@ class BBMonitor(QGroupBox):
         self._canvas.draw()
 
     def _toggle_axis_visibility(self, name: str) -> None:
-        """Shows or hides BB plots."""
+        """Shows or hides BB plots.
+
+        Args:
+            name: the name of the blackbody whose data visibility is being toggled
+        """
         state = self._ax[name].yaxis.get_visible()
         self._btns[name].setFlat(state)
         self._ax[name].yaxis.set_visible(not state)
@@ -202,7 +206,7 @@ class TC4820(QGroupBox):
         """Creates the widgets to control and monitor a TC4820.
 
         Args:
-            name (str): Name of the blackbody the TC4820 is controlling
+            name: Name of the blackbody the TC4820 is controlling
         """
         super().__init__(f"TC4820 {name.upper()}")
         self._name = name
@@ -298,7 +302,11 @@ class TC4820(QGroupBox):
         pub.sendMessage(f"temperature_controller.{self._name}.request")
 
     def _update_controls(self, properties: dict):
-        """Update panel with latest info from temperature controller."""
+        """Update panel with latest info from temperature controller.
+
+        Args:
+            properties: dictionary containing the retrieved properties
+        """
         self._control_val.setText(f"{properties['temperature']: .2f}")
         self._power_bar.setValue(properties["power"])
         self._power_label.setText(f"{properties['power']}")
@@ -310,7 +318,12 @@ class TC4820(QGroupBox):
                 self._alarm_light._turn_off()
 
     def _update_pt100(self, values: list[Decimal], time: float):
-        """Show the latest blackbody temperature."""
+        """Show the latest blackbody temperature.
+
+        Args:
+            values: list of temperatures retrieved from device
+            time: the timestamp at which the properties were sent
+        """
         if self._name.count("hot"):
             self._pt100_val.setText(f"{values[6]: .2f}")
         elif self._name.count("cold"):
