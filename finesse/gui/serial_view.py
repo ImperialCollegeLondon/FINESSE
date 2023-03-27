@@ -81,11 +81,10 @@ class DeviceControls:
             avail_ports: Possible serial ports to choose from
             avail_baudrates: Possible baudrates to choose from
         """
-        self.name = device.name
-        self.label = device.label
+        self.device = device
 
         # Add a label showing the device name
-        layout.addWidget(QLabel(self.label), row, 0)
+        layout.addWidget(QLabel(self.device.label), row, 0)
 
         self.ports = QComboBox()
         """The available serial ports for the device."""
@@ -95,7 +94,10 @@ class DeviceControls:
         # Try to load the port from settings
         if avail_ports:
             saved_port = cast(
-                str, settings.value(f"{_KEY_PREFIX}/{self.name}/port", avail_ports[0])
+                str,
+                settings.value(
+                    f"{_KEY_PREFIX}/{self.device.name}/port", avail_ports[0]
+                ),
             )
             self.ports.setCurrentText(saved_port)
 
@@ -109,7 +111,8 @@ class DeviceControls:
             saved_baudrate = cast(
                 int,
                 settings.value(
-                    f"{_KEY_PREFIX}/{self.name}/baudrate", device.default_baudrate
+                    f"{_KEY_PREFIX}/{self.device.name}/baudrate",
+                    device.default_baudrate,
                 ),
             )
             self.baudrates.setCurrentText(str(saved_baudrate))
@@ -120,9 +123,9 @@ class DeviceControls:
         self.open_close_btn.clicked.connect(self._on_open_close_clicked)  # type: ignore
         layout.addWidget(self.open_close_btn, row, 3)
 
-        pub.subscribe(self._set_button_to_close, f"serial.{self.name}.opened")
-        pub.subscribe(self._set_button_to_open, f"serial.{self.name}.close")
-        pub.subscribe(self._show_error_message, f"serial.{self.name}.error")
+        pub.subscribe(self._set_button_to_close, f"serial.{self.device.name}.opened")
+        pub.subscribe(self._set_button_to_open, f"serial.{self.device.name}.close")
+        pub.subscribe(self._show_error_message, f"serial.{self.device.name}.error")
 
     def _set_button_to_open(self):
         """Change the button to say Open."""
@@ -137,7 +140,7 @@ class DeviceControls:
         QMessageBox(
             QMessageBox.Icon.Critical,
             "A device error has occurred",
-            f"A fatal error has occurred with the {self.label} device.",
+            f"A fatal error has occurred with the {self.device.label} device.",
         ).exec()
 
     def _open_device(self) -> None:
@@ -146,15 +149,15 @@ class DeviceControls:
         baudrate = int(self.baudrates.currentText())
 
         # Remember these settings for the next time program is run
-        settings.setValue(f"{_KEY_PREFIX}/{self.name}/port", port)
-        settings.setValue(f"{_KEY_PREFIX}/{self.name}/baudrate", baudrate)
+        settings.setValue(f"{_KEY_PREFIX}/{self.device.name}/port", port)
+        settings.setValue(f"{_KEY_PREFIX}/{self.device.name}/baudrate", baudrate)
 
         # Tell backend to open serial device
-        pub.sendMessage(f"serial.{self.name}.open", port=port, baudrate=baudrate)
+        pub.sendMessage(f"serial.{self.device.name}.open", port=port, baudrate=baudrate)
 
     def _close_device(self) -> None:
         """Close the specified serial device."""
-        pub.sendMessage(f"serial.{self.name}.close")
+        pub.sendMessage(f"serial.{self.device.name}.close")
 
     def _on_open_close_clicked(self) -> None:
         """Open/close the connection of the chosen device when the button is pushed."""
