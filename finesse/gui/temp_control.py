@@ -1,5 +1,6 @@
 """Panel and widgets related to temperature monitoring."""
 from datetime import datetime
+from decimal import Decimal
 from functools import partial
 from typing import Tuple
 
@@ -216,30 +217,6 @@ class TC4820(QGroupBox):
         pub.subscribe(self._update_controls, f"temperature_controller.{name}.response")
         pub.subscribe(self._update_pt100, "dp9800.data.response")
 
-    def _begin_polling(self) -> None:
-        """Initiate polling the TC4820 device."""
-        self._poll_light._timer.start(2000)
-
-    def _end_polling(self) -> None:
-        """Terminate polling the TC4820 device."""
-        self._poll_light._timer.stop()
-
-    def _poll_tc4820(self) -> None:
-        self._poll_light._flash()
-        pub.sendMessage(f"temperature_controller.{self._name}.request")
-
-    def _update_controls(self, properties):
-        self._control_val.setText(f"{properties['temperature']: .2f}")
-        self._power_bar.setValue(properties["power"])
-        self._power_label.setText(f"{properties['power']}")
-        self._set_sbox.setValue(int(properties["set_point"]))
-
-    def _update_pt100(self, values, time):
-        if self._name.count("hot"):
-            self._pt100_val.setText(values[6])
-        elif self._name.count("cold"):
-            self._pt100_val.setText(values[7])
-
     def _create_controls(self) -> QGridLayout:
         """Creates the overall layout for the panel.
 
@@ -293,7 +270,7 @@ class TC4820(QGroupBox):
         layout.addWidget(self._power_label, 1, 4)
 
         self._poll_light = LEDIcon.create_poll_icon()
-        self._poll_light._timer.timeout.connect(self._poll_tc4820)
+        self._poll_light._timer.timeout.connect(self._poll_tc4820)  # type: ignore
         self._alarm_light = LEDIcon.create_alarm_icon()
         layout.addWidget(self._poll_light, 0, 5)
         layout.addWidget(self._alarm_light, 2, 5)
@@ -302,9 +279,49 @@ class TC4820(QGroupBox):
         layout.addWidget(self._set_sbox, 2, 1)
 
         self._update_pbtn = QPushButton("UPDATE")
+        self._update_pbtn.clicked.connect(self._set_new_set_point)  # type: ignore
         layout.addWidget(self._update_pbtn, 2, 3)
 
         return layout
+
+    def _begin_polling(self) -> None:
+        """Initiate polling the TC4820 device."""
+        self._poll_light._timer.start(2000)
+
+    def _end_polling(self) -> None:
+        """Terminate polling the TC4820 device."""
+        self._poll_light._timer.stop()
+
+    def _poll_tc4820(self) -> None:
+        """Polls the device to obtain the latest info."""
+        self._poll_light._flash()
+        pub.sendMessage(f"temperature_controller.{self._name}.request")
+
+    def _update_controls(self, properties: dict):
+        """Update panel with latest info from temperature controller."""
+        self._control_val.setText(f"{properties['temperature']: .2f}")
+        self._power_bar.setValue(properties["power"])
+        self._power_label.setText(f"{properties['power']}")
+        self._set_sbox.setValue(int(properties["set_point"]))
+        if properties["alarm_status"] != 0:
+            self._alarm_light._turn_on()
+        else:
+            if self._alarm_light._is_on:
+                self._alarm_light._turn_off()
+
+    def _update_pt100(self, values: list[Decimal], time: float):
+        """Show the latest blackbody temperature."""
+        if self._name.count("hot"):
+            self._pt100_val.setText(f"{values[6]: .2f}")
+        elif self._name.count("cold"):
+            self._pt100_val.setText(f"{values[7]: .2f}")
+
+    def _set_new_set_point(self) -> None:
+        """Send new target temperature to temperature controller."""
+        pub.sendMessage(
+            f"temperature_controller.{self._name}.change_set_point",
+            temperature=Decimal(self._set_sbox.value()),
+        )
 
 
 if __name__ == "__main__":
