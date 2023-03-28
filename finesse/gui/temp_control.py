@@ -144,15 +144,15 @@ class TemperaturePlot(QGroupBox):
 
         self._canvas.draw()
 
-    def _plot_bb_temps(self, values: list[Decimal], time: float) -> None:
+    def _plot_bb_temps(self, time: float, temperatures: list[Decimal]) -> None:
         """Extract blackbody temperatures from DP9800 data and plot them.
 
         Args:
-            values: the list of temperatures measured by the DP9800
-            time: the time that the values were read
+            time: the time that the temperatures were read
+            temperatures: the list of temperatures measured by the DP9800
         """
-        hot_bb_temp = values[6]
-        cold_bb_temp = values[7]
+        hot_bb_temp = temperatures[6]
+        cold_bb_temp = temperatures[7]
 
         self._update_figure(time, hot_bb_temp, cold_bb_temp)
 
@@ -225,15 +225,15 @@ class DP9800Controls(QGroupBox):
 
         return layout
 
-    def _update_pt100s(self, values: list[Decimal], time: float) -> None:
+    def _update_pt100s(self, temperatures: list[Decimal], time: float) -> None:
         """Display the latest Pt 100 temperatures.
 
         Args:
-            values: the temperatures retrieved from the DP9800
-            time: the time that the values were retrieved
+            temperatures: the temperatures retrieved from the DP9800
+            time: the time that the temperatures were retrieved
         """
-        for channel, value in zip(self._channels, values):
-            channel.setText(f"{value: .2f}")
+        for channel, temperature in zip(self._channels, temperatures):
+            channel.setText(f"{temperature: .2f}")
 
 
 class TC4820Controls(QGroupBox):

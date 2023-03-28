@@ -222,7 +222,9 @@ class DP9800:
             data = self.read()
             temperatures, _ = parse_data(data)
             pub.sendMessage(
-                "temperature_monitor.data.response", values=temperatures, time=time_now
+                "temperature_monitor.data.response",
+                temperatures=temperatures,
+                time=time_now,
             )
         except Exception as e:
             self._error_occurred(e)
