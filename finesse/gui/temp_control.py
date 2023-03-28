@@ -89,7 +89,7 @@ class TemperaturePlot(QGroupBox):
         self._canvas.draw()
 
     def _toggle_axis_visibility(self, name: str) -> None:
-        """Shows or hides BB plots.
+        """Shows or hides individual blackbody temperature plots.
 
         Args:
             name: the name of the blackbody whose data visibility is toggled
