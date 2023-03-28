@@ -1,13 +1,14 @@
 """Provides the base class for stepper motor implementations."""
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import Optional, Union
 
 from pubsub import pub
 
-from ...config import ANGLE_PRESETS
+from ...config import ANGLE_PRESETS, STEPPER_MOTOR_TOPIC
+from ..device_base import DeviceBase
 
 
-class StepperMotorBase(ABC):
+class StepperMotorBase(DeviceBase):
     """A base class for stepper motor implementations."""
 
     def __init__(self) -> None:
@@ -15,9 +16,19 @@ class StepperMotorBase(ABC):
 
         Subscribe to stepper.move messages.
         """
-        pub.subscribe(self.move_to, "stepper.move.begin")
-        pub.subscribe(self.stop_moving, "stepper.stop")
-        pub.subscribe(self.notify_on_stopped, "stepper.notify_on_stopped")
+        pub.subscribe(
+            self._move_to,
+            f"serial.{STEPPER_MOTOR_TOPIC}.move.begin",
+        )
+        pub.subscribe(self._stop_moving, f"serial.{STEPPER_MOTOR_TOPIC}.stop")
+        pub.subscribe(
+            self._notify_on_stopped, f"serial.{STEPPER_MOTOR_TOPIC}.notify_on_stopped"
+        )
+
+    @staticmethod
+    def send_error_message(error: BaseException) -> None:
+        """Send an error message when a device error has occurred."""
+        pub.sendMessage(f"serial.{STEPPER_MOTOR_TOPIC}.error", error=error)
 
     @staticmethod
     def preset_angle(name: str) -> float:
@@ -92,3 +103,21 @@ class StepperMotorBase(ABC):
             raise ValueError("Angle must be between 0° and 270°")
 
         self.step = round(self.steps_per_rotation * target / 360.0)
+
+    def _move_to(self, target: Union[float, str]) -> None:
+        try:
+            self.move_to(target)
+        except Exception as error:
+            self.send_error_message(error)
+
+    def _stop_moving(self) -> None:
+        try:
+            self.stop_moving()
+        except Exception as error:
+            self.send_error_message(error)
+
+    def _notify_on_stopped(self) -> None:
+        try:
+            self.notify_on_stopped()
+        except Exception as error:
+            self.send_error_message(error)
