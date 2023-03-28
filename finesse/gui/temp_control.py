@@ -51,7 +51,7 @@ class TemperaturePlot(QGroupBox):
         self._create_figure()
         self._canvas.setMinimumSize(QSize(640, 120))
         self._canvas.setSizePolicy(
-            QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding  # type: ignore
+            QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.MinimumExpanding
         )
 
         layout.addWidget(self._btns["hot"], 0, 0)
