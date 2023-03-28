@@ -10,8 +10,9 @@ from serial import Serial, SerialException, SerialTimeoutException
 def check_data(data: bytes) -> None:
     """Perform message integrity checks.
 
-    First check characters that we know should be constant.
-    Then calculate the BCC and compare it to that transmitted.
+    Check characters that we know should be constant. The message should
+    start with STX, end with NUL and contain an ETX. The exact position
+    of ETX is uncertain since it depends on the width of the BCC.
 
     Args:
         data: the message to check
@@ -74,6 +75,7 @@ def parse_data(data: bytes) -> tuple[list[Decimal], str]:
 
     sysflag = bin(int(data_ascii[vals_end:etx_index], 16))
 
+    # Omit mysterious first temperature, and omit binary identifier characters
     return vals[1:], sysflag[2:]
 
 
