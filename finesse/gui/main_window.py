@@ -9,7 +9,7 @@ from .measure_script.script_view import ScriptControl
 from .opus_view import OPUSControl
 from .serial_view import SerialPortControl
 from .stepper_motor_view import StepperMotorControl
-from .temp_control import BBMonitor, DP9800Controls, TC4820Controls
+from .temp_control import DP9800Controls, TC4820Controls, TemperaturePlot
 from .uncaught_exceptions import set_uncaught_exception_handler
 
 
@@ -53,7 +53,7 @@ class MainWindow(QMainWindow):
         opus: QGroupBox = OPUSControl()
         layout_right.addWidget(opus, 0, 0, 1, 2)
 
-        bb_monitor: QGroupBox = BBMonitor()
+        bb_monitor: QGroupBox = TemperaturePlot()
         dp9800: QGroupBox = DP9800Controls()
         tc4820_hot: QGroupBox = TC4820Controls("hot")
         tc4820_cold: QGroupBox = TC4820Controls("cold")

@@ -22,7 +22,7 @@ from PySide6.QtWidgets import (
 from .led_icons import LEDIcon
 
 
-class BBMonitor(QGroupBox):
+class TemperaturePlot(QGroupBox):
     """Widgets to view the temperature properties."""
 
     def __init__(self) -> None:
@@ -325,12 +325,12 @@ if __name__ == "__main__":
 
     layout = QGridLayout()
 
-    bb_monitor = BBMonitor()
-    dp9800 = DP9800Controls(8)
+    temperature_plot = TemperaturePlot()
+    dp9800 = DP9800Controls()
     tc4820_hot = TC4820Controls("hot")
     tc4820_cold = TC4820Controls("cold")
 
-    layout.addWidget(bb_monitor, 0, 0, 1, 0)
+    layout.addWidget(temperature_plot, 0, 0, 1, 0)
     layout.addWidget(dp9800, 1, 0, 1, 0)
     layout.addWidget(tc4820_hot, 2, 0)
     layout.addWidget(tc4820_cold, 2, 1)
