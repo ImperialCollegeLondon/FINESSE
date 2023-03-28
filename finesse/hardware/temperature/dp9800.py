@@ -4,7 +4,7 @@ from datetime import datetime
 from decimal import Decimal
 
 from pubsub import pub
-from serial import Serial, SerialException, SerialTimeoutException
+from serial import Serial, SerialException
 
 
 def check_data(data: bytes) -> None:
@@ -115,10 +115,11 @@ class DP9800:
         """
         try:
             self.serial.close()
-            pub.sendMessage("temperature_monitor.close")
-            logging.info("Closed connection to DP9800")
         except SerialException as e:
             raise DP9800Error(e)
+        else:
+            pub.sendMessage("temperature_monitor.close")
+            logging.info("Closed connection to DP9800")
 
     def get_device_settings(self, sysflag: str) -> dict[str, str]:
         """Provide the settings of the device as stored in the system flag.
@@ -181,15 +182,18 @@ class DP9800:
         Raises:
             DP9800Error: Malformed message received from device
         """
-        if self.serial.in_waiting == 0:
-            raise DP9800Error("No data waiting to be read")
-
+        # require at least 4 bytes else checks will fail
+        # but know message should always be > 78 bytes...
+        min_length = 4
         try:
-            data = self.serial.read_until(b"\x00")
-        except SerialTimeoutException:
-            raise DP9800Error("Read request timed out")
+            data = self.serial.read_until(b"\x00", size=min_length)
+        except SerialException as e:
+            raise DP9800Error(e)
 
-        return data
+        if len(data) < min_length:
+            raise DP9800Error("Insufficient data read from device")
+        else:
+            return data
 
     def request_read(self) -> None:
         """Write a message to the DP9800 to prepare for a read operation.
@@ -221,13 +225,14 @@ class DP9800:
             self.request_read()
             data = self.read()
             temperatures, _ = parse_data(data)
+        except DP9800Error as e:
+            self._error_occurred(e)
+        else:
             pub.sendMessage(
                 "temperature_monitor.data.response",
                 temperatures=temperatures,
                 time=time_now,
             )
-        except Exception as e:
-            self._error_occurred(e)
 
     def _error_occurred(self, exception: BaseException) -> None:
         """Log and communicate that an error occurred."""
