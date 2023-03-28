@@ -63,7 +63,7 @@ def parse_data(data: bytes) -> tuple[list[Decimal], str]:
     """
     try:
         data_ascii = data.decode("ascii")
-    except Exception as e:
+    except UnicodeDecodeError as e:
         raise DP9800Error(e)
 
     vals_begin = 3
