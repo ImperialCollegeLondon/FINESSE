@@ -120,8 +120,8 @@ class DP9800:
         except SerialException as e:
             raise DP9800Error(e)
 
-    def print_sysflag(self, sysflag: str) -> None:
-        """Print the settings of the device as stored in the system flag.
+    def get_device_settings(self, sysflag: str) -> dict[str, str]:
+        """Provide the settings of the device as stored in the system flag.
 
         The system flag is stored as a bit mask with the format TxxLxSAF,
         where:
@@ -136,18 +136,18 @@ class DP9800:
 
         Args:
             sysflag: string representation of the system flag bitmask
+
+        Returns:
+            dev_settings: dictionary containing the current device settings
         """
-        if sysflag != "":
-            instr_type = ["TC", "PT"][int(sysflag[0])]
-            logging_state = ["no logging", "logging active"][int(sysflag[3])]
-            scanning_state = ["no scan", "autoscan active"][int(sysflag[5])]
-            audible_state = ["silence", "audible"][int(sysflag[6])]
-            temp_unit = ["deg C", "deg F"][int(sysflag[7])]
-            print(f"Instrument type: {instr_type}")
-            print(f"Logging: {logging_state}")
-            print(f"Autoscan: {scanning_state}")
-            print(f"Audible button: {audible_state}")
-            print(f"Temperature unit: {temp_unit}")
+        dev_settings = {
+            "instrument_type": ["TC", "PT"][int(sysflag[0])],
+            "logging_state": ["no logging", "logging active"][int(sysflag[3])],
+            "scanning_state": ["no scan", "autoscan active"][int(sysflag[5])],
+            "audible_state": ["silence", "audible"][int(sysflag[6])],
+            "temperature_unit": ["deg C", "deg F"][int(sysflag[7])],
+        }
+        return dev_settings
 
     def read(self) -> bytes:
         """Read temperature data from the DP9800.
