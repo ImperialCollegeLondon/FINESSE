@@ -116,16 +116,19 @@ class DeviceControls:
         self.open_close_btn.clicked.connect(self._on_open_close_clicked)  # type: ignore
         layout.addWidget(self.open_close_btn, row, 3)
 
-        pub.subscribe(self._set_button_to_close, f"serial.{self.device.name}.opened")
-        pub.subscribe(self._set_button_to_open, f"serial.{self.device.name}.close")
+        pub.subscribe(self._on_device_opened, f"serial.{self.device.name}.opened")
+        pub.subscribe(self._on_device_closed, f"serial.{self.device.name}.close")
         pub.subscribe(self._show_error_message, f"serial.{self.device.name}.error")
 
-    def _set_button_to_open(self):
+    def _on_device_closed(self):
         """Change the button to say Open."""
         self.open_close_btn.setText("Open")
 
-    def _set_button_to_close(self):
-        """Change the button to say Close."""
+    def _on_device_opened(self):
+        # Remember these settings for the next time program is run
+        settings.setValue(f"serial/{self.device.name}/port", self.current_port)
+        settings.setValue(f"serial/{self.device.name}/baudrate", self.current_baudrate)
+
         self.open_close_btn.setText("Close")
 
     def _show_error_message(self, error: BaseException) -> None:
@@ -137,16 +140,12 @@ class DeviceControls:
         ).exec()
 
     def _open_device(self) -> None:
-        """Open the specified serial device."""
-        port = self.ports.currentText()
-        baudrate = int(self.baudrates.currentText())
-
-        # Remember these settings for the next time program is run
-        settings.setValue(f"serial/{self.device.name}/port", port)
-        settings.setValue(f"serial/{self.device.name}/baudrate", baudrate)
-
-        # Tell backend to open serial device
-        pub.sendMessage(f"serial.{self.device.name}.open", port=port, baudrate=baudrate)
+        """Open the specified serial device on the backend."""
+        pub.sendMessage(
+            f"serial.{self.device.name}.open",
+            port=self.current_port,
+            baudrate=self.current_baudrate,
+        )
 
     def _close_device(self) -> None:
         """Close the specified serial device."""
@@ -158,6 +157,16 @@ class DeviceControls:
             self._open_device()
         else:
             self._close_device()
+
+    @property
+    def current_port(self) -> str:
+        """The currently selected port."""
+        return self.ports.currentText()
+
+    @property
+    def current_baudrate(self) -> int:
+        """The currently selected baudrate."""
+        return int(self.baudrates.currentText())
 
 
 class SerialPortControl(QGroupBox):

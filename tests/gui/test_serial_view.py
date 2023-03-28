@@ -136,27 +136,36 @@ def test_device_controls_init(
     btn.clicked.connect.assert_called_once_with(controls._on_open_close_clicked)
 
     subscribe_mock.assert_any_call(
-        controls._set_button_to_close, f"serial.{DEVICE_NAME}.opened"
+        controls._on_device_opened, f"serial.{DEVICE_NAME}.opened"
     )
     subscribe_mock.assert_any_call(
-        controls._set_button_to_open, f"serial.{DEVICE_NAME}.close"
+        controls._on_device_closed, f"serial.{DEVICE_NAME}.close"
     )
     subscribe_mock.assert_any_call(
         controls._show_error_message, f"serial.{DEVICE_NAME}.error"
     )
 
 
-def test_set_button_to_close(device_controls: DeviceControls) -> None:
-    """Test the _set_button_to_close() method."""
-    with patch.object(device_controls, "open_close_btn") as btn_mock:
-        device_controls._set_button_to_close()
-        btn_mock.setText.assert_called_once_with("Close")
+@patch("finesse.gui.serial_view.settings")
+def test_on_device_opened(settings_mock: Mock, device_controls: DeviceControls) -> None:
+    """Test the _on_device_opened() method."""
+    with patch.object(device_controls.ports, "currentText") as ports_mock:
+        ports_mock.return_value = "COM0"
+        with patch.object(device_controls.baudrates, "currentText") as baudrates_mock:
+            baudrates_mock.return_value = "1234"
+            with patch.object(device_controls, "open_close_btn") as btn_mock:
+                device_controls._on_device_opened()
+                btn_mock.setText.assert_called_once_with("Close")
+
+                # Check that the settings were updated
+                settings_mock.setValue.assert_any_call(PORT_KEY, "COM0")
+                settings_mock.setValue.assert_any_call(BAUDRATE_KEY, 1234)
 
 
-def test_set_button_to_open(device_controls: DeviceControls) -> None:
-    """Test the _set_button_to_open() method."""
+def test_on_device_closed(device_controls: DeviceControls) -> None:
+    """Test the _on_device_closed() method."""
     with patch.object(device_controls, "open_close_btn") as btn_mock:
-        device_controls._set_button_to_open()
+        device_controls._on_device_closed()
         btn_mock.setText.assert_called_once_with("Open")
 
 
@@ -183,7 +192,7 @@ def test_on_open_close_clicked(device_controls: DeviceControls, qtbot: QtBot) ->
             close_mock.assert_not_called()
 
             # Signal that the device opened successfully
-            device_controls._set_button_to_close()
+            device_controls._on_device_opened()
 
             # Check that we can close it again successfully
             open_mock.reset_mock()
@@ -193,9 +202,7 @@ def test_on_open_close_clicked(device_controls: DeviceControls, qtbot: QtBot) ->
             close_mock.assert_called_once()
 
 
-@patch("finesse.gui.serial_view.settings")
 def test_open_device(
-    settings_mock: Mock,
     device_controls: DeviceControls,
     sendmsg_mock: MagicMock,
     qtbot: QtBot,
@@ -211,10 +218,6 @@ def test_open_device(
             sendmsg_mock.assert_any_call(
                 f"serial.{DEVICE_NAME}.open", port="COM0", baudrate=1234
             )
-
-            # Check that the settings were updated
-            settings_mock.setValue.assert_any_call(PORT_KEY, "COM0")
-            settings_mock.setValue.assert_any_call(BAUDRATE_KEY, 1234)
 
 
 def test_close_device(
