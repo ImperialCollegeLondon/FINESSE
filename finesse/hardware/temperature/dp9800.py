@@ -32,14 +32,22 @@ def check_data(data: bytes) -> None:
     if data[-1] != 0:  # NUL
         raise DP9800Error("Null terminator not detected")
 
-    bcc = data[-2]
-    bcc_chars = data[1:-2]
-    byte_sum = 0
-    for byte in bcc_chars:
-        byte_sum ^= byte
 
-    if byte_sum != bcc:
-        raise DP9800Error("BCC check failed")
+def calculate_bcc(data: bytes) -> int:
+    """Calculate block check character.
+
+    Args:
+        data: the message to check
+
+    Returns:
+        bcc: block check character
+    """
+    bcc_chars = data[1:-2]
+    bcc = 0
+    for byte in bcc_chars:
+        bcc ^= byte
+
+    return bcc
 
 
 def parse_data(data: bytes) -> tuple[list[Decimal], str]:
@@ -66,7 +74,7 @@ def parse_data(data: bytes) -> tuple[list[Decimal], str]:
 
     sysflag = bin(int(data_ascii[vals_end:etx_index], 16))
 
-    return (vals[1:], sysflag[2:])
+    return vals[1:], sysflag[2:]
 
 
 class DP9800Error(Exception):
@@ -206,6 +214,10 @@ class DP9800:
             self.request_read()
             data = self.read()
             check_data(data)
+            bcc = calculate_bcc(data)
+            if bcc != data[-2]:
+                raise DP9800Error("BCC check failed")
+
             temperatures, _ = parse_data(data)
             pub.sendMessage(
                 "temperature_monitor.data.response", values=temperatures, time=time_now
