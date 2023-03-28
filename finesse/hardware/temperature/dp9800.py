@@ -62,6 +62,11 @@ def parse_data(data: bytes) -> tuple[list[Decimal], str]:
               by the DP9800 device.
         sysflag: string representation of the system flag bitmask
     """
+    check_data(data)
+    bcc = calculate_bcc(data)
+    if bcc != data[-2]:
+        raise DP9800Error("BCC check failed")
+
     try:
         data_ascii = data.decode("ascii")
     except UnicodeDecodeError as e:
@@ -215,11 +220,6 @@ class DP9800:
         try:
             self.request_read()
             data = self.read()
-            check_data(data)
-            bcc = calculate_bcc(data)
-            if bcc != data[-2]:
-                raise DP9800Error("BCC check failed")
-
             temperatures, _ = parse_data(data)
             pub.sendMessage(
                 "temperature_monitor.data.response", values=temperatures, time=time_now
