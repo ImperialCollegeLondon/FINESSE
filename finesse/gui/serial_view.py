@@ -24,9 +24,6 @@ from ..config import (
 )
 from ..settings import settings
 
-_KEY_PREFIX = "serial"
-"""Prefix to use for settings keys."""
-
 
 def get_usb_serial_ports() -> list[str]:
     """Get the ports for connected USB serial devices."""
@@ -94,10 +91,7 @@ class DeviceControls:
         # Try to load the port from settings
         if avail_ports:
             saved_port = cast(
-                str,
-                settings.value(
-                    f"{_KEY_PREFIX}/{self.device.name}/port", avail_ports[0]
-                ),
+                str, settings.value(f"serial/{self.device.name}/port", avail_ports[0])
             )
             self.ports.setCurrentText(saved_port)
 
@@ -111,8 +105,7 @@ class DeviceControls:
             saved_baudrate = cast(
                 int,
                 settings.value(
-                    f"{_KEY_PREFIX}/{self.device.name}/baudrate",
-                    device.default_baudrate,
+                    f"serial/{self.device.name}/baudrate", device.default_baudrate
                 ),
             )
             self.baudrates.setCurrentText(str(saved_baudrate))
@@ -149,8 +142,8 @@ class DeviceControls:
         baudrate = int(self.baudrates.currentText())
 
         # Remember these settings for the next time program is run
-        settings.setValue(f"{_KEY_PREFIX}/{self.device.name}/port", port)
-        settings.setValue(f"{_KEY_PREFIX}/{self.device.name}/baudrate", baudrate)
+        settings.setValue(f"serial/{self.device.name}/port", port)
+        settings.setValue(f"serial/{self.device.name}/baudrate", baudrate)
 
         # Tell backend to open serial device
         pub.sendMessage(f"serial.{self.device.name}.open", port=port, baudrate=baudrate)
