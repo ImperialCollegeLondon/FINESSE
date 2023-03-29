@@ -167,7 +167,7 @@ class ScriptRunner(StateMachine):
     """Record another measurement at the same angle."""
     start_next_move = measuring.to(moving)
     """Trigger a move to the angle for the next measurement."""
-    finish = moving.to(not_running, after=lambda: pub.sendMessage("measure_script.end"))
+    finish = moving.to(not_running)
     """To be called when all measurements are complete."""
 
     def __init__(self, script: Script, poll_interval_msec: int = 1000) -> None:
@@ -195,14 +195,6 @@ class ScriptRunner(StateMachine):
         self._measure_poll_timer.setInterval(poll_interval_msec)
         self._measure_poll_timer.timeout.connect(_poll_em27_status)  # type: ignore
 
-        # Listen for stepper motor messages (TODO: add error handling)
-        pub.subscribe(self.start_measuring, "serial.stepper_motor.move.end")
-
-        # Listen for EM27 messages
-        pub.subscribe(self._measuring_error, "opus.error")
-        pub.subscribe(self._measuring_started, "opus.response.start")
-        pub.subscribe(self._status_received, "opus.response.status")
-
         # Send stop command in case motor is moving
         pub.sendMessage("serial.stepper_motor.stop")
 
@@ -214,6 +206,33 @@ class ScriptRunner(StateMachine):
         This is just a placeholder so we can see the measure scripts running.
         """
         logging.info(f"Measure script: Entering state {target.name}")
+
+    def on_enter_not_running(self, event: str) -> None:
+        """If finished, unsubscribe from pubsub messages and send message."""
+        if event == "__initial__":
+            # If this is the first state, do nothing
+            return
+
+        # Stepper motor messages
+        pub.unsubscribe(self.start_measuring, "serial.stepper_motor.move.end")
+
+        # EM27 messages
+        pub.unsubscribe(self._measuring_error, "opus.error")
+        pub.unsubscribe(self._measuring_started, "opus.response.start")
+        pub.unsubscribe(self._status_received, "opus.response.status")
+
+        # Send message signalling that the measure script is no longer running
+        pub.sendMessage("measure_script.end")
+
+    def on_exit_not_running(self) -> None:
+        """Subscribe to pubsub messages for the stepper motor and OPUS."""
+        # Listen for stepper motor messages (TODO: add error handling)
+        pub.subscribe(self.start_measuring, "serial.stepper_motor.move.end")
+
+        # Listen for EM27 messages
+        pub.subscribe(self._measuring_error, "opus.error")
+        pub.subscribe(self._measuring_started, "opus.response.start")
+        pub.subscribe(self._status_received, "opus.response.status")
 
     def _load_next_measurement(self) -> bool:
         """Load the next measurement in the sequence.
