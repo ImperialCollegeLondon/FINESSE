@@ -149,6 +149,10 @@ class ScriptRunner(StateMachine):
         moving, before=lambda: pub.sendMessage("measure_script.begin")
     )
     """Start moving the motor to the required angle for the current measurement."""
+    cancel_move = moving.to(
+        not_running, after=lambda: pub.sendMessage(f"serial.{STEPPER_MOTOR_TOPIC}.stop")
+    )
+    """Cancel the current movement."""
     start_measuring = moving.to(measuring)
     """Start recording the current measurement."""
     repeat_measuring = measuring.to(measuring)
@@ -219,6 +223,9 @@ class ScriptRunner(StateMachine):
 
         # Stepper motor messages
         pub.unsubscribe(self.start_measuring, f"serial.{STEPPER_MOTOR_TOPIC}.move.end")
+        pub.unsubscribe(
+            self._on_stepper_motor_error, f"serial.{STEPPER_MOTOR_TOPIC}.error"
+        )
 
         # EM27 messages
         pub.unsubscribe(self._measuring_error, "opus.error")
@@ -230,8 +237,11 @@ class ScriptRunner(StateMachine):
 
     def on_exit_not_running(self) -> None:
         """Subscribe to pubsub messages for the stepper motor and OPUS."""
-        # Listen for stepper motor messages (TODO: add error handling)
+        # Listen for stepper motor messages
         pub.subscribe(self.start_measuring, f"serial.{STEPPER_MOTOR_TOPIC}.move.end")
+        pub.subscribe(
+            self._on_stepper_motor_error, f"serial.{STEPPER_MOTOR_TOPIC}.error"
+        )
 
         # Listen for EM27 messages
         pub.subscribe(self._measuring_error, "opus.error")
@@ -312,9 +322,21 @@ class ScriptRunner(StateMachine):
             # Poll again later
             self._measure_poll_timer.start()
 
+    def abort(self) -> None:
+        """Abort the current measure script run."""
+        state = self.current_state
+        if state == self.moving:
+            self.cancel_move()
+        elif state == self.measuring:
+            self.cancel_measuring()
+
+    def _on_stepper_motor_error(self, error: BaseException) -> None:
+        """Call abort()."""
+        self.abort()
+
     def _on_em27_error(self, message: str) -> None:
         """Cancel current measurement and show an error message to the user."""
-        self.cancel_measuring()
+        self.abort()
 
         show_error_message(
             self.parent,
