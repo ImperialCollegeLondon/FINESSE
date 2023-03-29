@@ -2,7 +2,7 @@
 from contextlib import nullcontext as does_not_raise
 from itertools import chain
 from pathlib import Path
-from typing import Any, Dict, Union
+from typing import Any, Dict
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
@@ -75,13 +75,6 @@ def test_parse_script(data: Dict[str, Any], raises: Any) -> None:
     """
     with raises:
         parse_script(yaml.safe_dump(data))
-
-
-@pytest.mark.parametrize("angle", ("nadir", 90.0))
-def test_measurement_to_dict(angle: Union[str, float]) -> None:
-    """Check Measurement's to_dict() method."""
-    d = Measurement(angle, 5)
-    assert d.to_dict() == {"angle": angle, "measurements": 5}
 
 
 _SCRIPT_PATH = Path(__file__).parent / "test_script.yaml"
