@@ -165,6 +165,10 @@ class ScriptRunner(StateMachine):
     """Start recording the current measurement."""
     repeat_measuring = measuring.to(measuring)
     """Record another measurement at the same angle."""
+    cancel_measuring = measuring.to(
+        not_running, after=lambda: pub.sendMessage("opus.request", command="cancel")
+    )
+    """Cancel the current measurement."""
     start_next_move = measuring.to(moving)
     """Trigger a move to the angle for the next measurement."""
     finish = moving.to(not_running)
@@ -181,7 +185,7 @@ class ScriptRunner(StateMachine):
             min_poll_interval: Minimum rate at which to poll EM27 (seconds)
 
         Todo:
-            Error handling for the EM27 and stepper motor
+            Error handling for the stepper motor
         """
         self.script = script
         """The running script."""
@@ -287,12 +291,11 @@ class ScriptRunner(StateMachine):
         error: Optional[tuple[int, str]],
         url: str,
     ):
-        """Start polling the EM27 so we know when the measurement is finished.
-
-        Todo:
-            Error handling, for now assume it's fine
-        """
-        _poll_em27_status()
+        """Start polling the EM27 so we know when the measurement is finished."""
+        if error:
+            self._on_em27_error_message(*error)
+        else:
+            _poll_em27_status()
 
     def _status_received(
         self,
@@ -301,23 +304,29 @@ class ScriptRunner(StateMachine):
         error: Optional[tuple[int, str]],
         url: str,
     ):
-        """Move onto the next measurement if the measurement has finished.
+        """Move on to the next measurement if the measurement has finished."""
+        if error:
+            self._on_em27_error_message(*error)
+            return
 
-        Todo:
-            Add error handing
-        """
         if status == 2:  # "connected" state, indicating measurement is finished
             self._measuring_end()
         else:
             # Poll again later
             self._measure_poll_timer.start()
 
-    def _measuring_error(self, error: BaseException) -> None:
-        """Log errors from OPUS.
+    def _on_em27_error_message(self, errcode: int, errmsg: str) -> None:
+        """Cancel current measurement and show an error message to the user."""
+        self.cancel_measuring()
 
-        Todo:
-            Stop script when errors occur
-        """
+        show_error_message(
+            None,
+            "EM27 error occurred. Measure script will stop running.\n\n"
+            f"Error {errcode}: {errmsg}",
+        )
+
+    def _measuring_error(self, error: BaseException) -> None:
+        """Log errors from OPUS."""
         logging.error(f"OPUS error: {str(error)}")
 
     def _measuring_end(self) -> None:
