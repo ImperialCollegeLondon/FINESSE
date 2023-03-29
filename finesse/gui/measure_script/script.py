@@ -312,13 +312,13 @@ class ScriptRunner(StateMachine):
             # Poll again later
             self._measure_poll_timer.start()
 
-    def _measuring_error(self, message: str) -> None:
+    def _measuring_error(self, error: BaseException) -> None:
         """Log errors from OPUS.
 
         Todo:
             Stop script when errors occur
         """
-        logging.error(f"OPUS error: {message}")
+        logging.error(f"OPUS error: {str(error)}")
 
     def _measuring_end(self) -> None:
         """Move onto the next measurement or perform another measurement here."""
