@@ -9,7 +9,7 @@ from finesse.gui.measure_script.script import Script, ScriptRunner, _poll_em27_s
 
 
 @pytest.fixture
-def runner(subscribe_mock: MagicMock):
+def runner():
     """Fixture for a ScriptRunner in its initial state."""
     script = Script(Path(), 1, ({"angle": 0.0, "measurements": 3},))
     runner = ScriptRunner(script)
@@ -18,7 +18,9 @@ def runner(subscribe_mock: MagicMock):
 
 
 @pytest.fixture
-def runner_measuring(runner: ScriptRunner, sendmsg_mock: MagicMock) -> ScriptRunner:
+def runner_measuring(
+    runner: ScriptRunner, subscribe_mock: MagicMock, sendmsg_mock: MagicMock
+) -> ScriptRunner:
     """Fixture for a ScriptRunner in a measuring state."""
     runner.start_moving()
     runner.start_measuring()
@@ -27,9 +29,7 @@ def runner_measuring(runner: ScriptRunner, sendmsg_mock: MagicMock) -> ScriptRun
 
 
 @patch("finesse.gui.measure_script.script.QTimer")
-def test_init(
-    timer_mock: Mock, sendmsg_mock: MagicMock, subscribe_mock: MagicMock
-) -> None:
+def test_init(timer_mock: Mock, sendmsg_mock: MagicMock) -> None:
     """Test ScriptRunner's constructor."""
     mock2 = MagicMock()
     timer_mock.return_value = mock2
@@ -44,18 +44,6 @@ def test_init(
     # Initial state
     assert script_runner.current_state == ScriptRunner.not_running
 
-    # Check subscriptions
-    subscribe_mock.assert_any_call(
-        script_runner.start_measuring, "serial.stepper_motor.move.end"
-    )
-    subscribe_mock.assert_any_call(script_runner._measuring_error, "opus.error")
-    subscribe_mock.assert_any_call(
-        script_runner._measuring_started, "opus.response.start"
-    )
-    subscribe_mock.assert_any_call(
-        script_runner._status_received, "opus.response.status"
-    )
-
     # Check timer is properly set up
     mock2.timeout.connect.assert_called_once_with(_poll_em27_status)
 
@@ -69,7 +57,9 @@ def test_poll_em27_status(sendmsg_mock: Mock) -> None:
     sendmsg_mock.assert_called_once_with("opus.request", command="status")
 
 
-def test_start_moving(sendmsg_mock: MagicMock, runner: ScriptRunner) -> None:
+def test_start_moving(
+    runner: ScriptRunner, subscribe_mock: MagicMock, sendmsg_mock: MagicMock
+) -> None:
     """Test the start_moving() method."""
     runner.start_moving()
     assert runner.current_state == ScriptRunner.moving
@@ -87,9 +77,22 @@ def test_start_moving(sendmsg_mock: MagicMock, runner: ScriptRunner) -> None:
     )
     sendmsg_mock.assert_has_calls(calls)
 
+    # Check subscriptions
+    subscribe_mock.assert_any_call(
+        runner.start_measuring, "serial.stepper_motor.move.end"
+    )
+    subscribe_mock.assert_any_call(runner._measuring_error, "opus.error")
+    subscribe_mock.assert_any_call(runner._measuring_started, "opus.response.start")
+    subscribe_mock.assert_any_call(runner._status_received, "opus.response.status")
+
 
 @pytest.mark.parametrize("repeats", range(1, 3))
-def test_finish_moving(repeats: int, sendmsg_mock: MagicMock):
+def test_finish_moving(
+    repeats: int,
+    subscribe_mock: MagicMock,
+    unsubscribe_mock: MagicMock,
+    sendmsg_mock: MagicMock,
+):
     """Test that the ScriptRunner terminates after n repeats."""
     script = Script(Path(), repeats, ({"angle": 0.0, "measurements": 1},))
     script_runner = ScriptRunner(script)
@@ -104,10 +107,22 @@ def test_finish_moving(repeats: int, sendmsg_mock: MagicMock):
         sendmsg_mock.reset_mock()
         script_runner.start_next_move()
 
+    assert script_runner.current_state == ScriptRunner.not_running
+
+    # Check we've unsubscribed from device messages
+    unsubscribe_mock.assert_any_call(
+        script_runner.start_measuring, "serial.stepper_motor.move.end"
+    )
+    unsubscribe_mock.assert_any_call(script_runner._measuring_error, "opus.error")
+    unsubscribe_mock.assert_any_call(
+        script_runner._measuring_started, "opus.response.start"
+    )
+    unsubscribe_mock.assert_any_call(
+        script_runner._status_received, "opus.response.status"
+    )
+
     # Check that this message is sent on the last iteration
     sendmsg_mock.assert_called_once_with("measure_script.end")
-
-    assert script_runner.current_state == ScriptRunner.not_running
 
 
 def test_start_measuring(runner: ScriptRunner, sendmsg_mock: MagicMock) -> None:
