@@ -69,10 +69,10 @@ class Script:
             itertools.repeat(self.sequence, self.repeats)
         )
 
-    def run(self) -> None:
+    def run(self, parent: Optional[QWidget] = None) -> None:
         """Run this measure script."""
         logging.info(f"Running {self.path}")
-        self.runner = ScriptRunner(self)
+        self.runner = ScriptRunner(self, parent=parent)
         self.runner.start_moving()
 
     @classmethod
@@ -174,7 +174,12 @@ class ScriptRunner(StateMachine):
     finish = moving.to(not_running)
     """To be called when all measurements are complete."""
 
-    def __init__(self, script: Script, min_poll_interval: float = 1.0) -> None:
+    def __init__(
+        self,
+        script: Script,
+        min_poll_interval: float = 1.0,
+        parent: Optional[QWidget] = None,
+    ) -> None:
         """Create a new ScriptRunner.
 
         Note that the EM27 often takes more than one second to respond to requests,
@@ -183,6 +188,7 @@ class ScriptRunner(StateMachine):
         Args:
             script: The script to run
             min_poll_interval: Minimum rate at which to poll EM27 (seconds)
+            parent: The parent widget
 
         Todo:
             Error handling for the stepper motor
@@ -191,6 +197,8 @@ class ScriptRunner(StateMachine):
         """The running script."""
         self.measurement_iter = iter(self.script)
         """An iterator yielding the required sequence of measurements."""
+        self.parent = parent
+        """The parent widget."""
 
         self.current_measurement: Measurement
         """The current measurement to acquire."""
@@ -320,7 +328,7 @@ class ScriptRunner(StateMachine):
         self.cancel_measuring()
 
         show_error_message(
-            None,
+            self.parent,
             "EM27 error occurred. Measure script will stop running.\n\n"
             f"Error {errcode}: {errmsg}",
         )

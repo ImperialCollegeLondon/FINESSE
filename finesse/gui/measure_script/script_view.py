@@ -80,7 +80,7 @@ class ScriptControl(QGroupBox):
             return
 
         # Run the script!
-        script.run()
+        script.run(self)
 
 
 class OpenScriptPathWidget(ScriptPathWidget):
