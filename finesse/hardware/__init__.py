@@ -18,10 +18,9 @@ scraper: EM27Scraper
 
 
 def _init_hardware():
-    global opus, scraper
+    global opus
 
     opus = OPUSInterface()
-    scraper = EM27Scraper()
 
 
 def _stop_hardware():
@@ -32,6 +31,7 @@ def _stop_hardware():
 pub.subscribe(_init_hardware, "window.opened")
 pub.subscribe(_stop_hardware, "window.closed")
 
+scraper = EM27Scraper()
 create_stepper_motor_serial_manager()
 create_temperature_controller_serial_managers()
 

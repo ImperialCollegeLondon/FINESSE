@@ -41,6 +41,9 @@ class EM27Monitor(QGroupBox):
 
         pub.subscribe(self._set_data_table, "em27.data.response")
 
+        pub.sendMessage("em27.data.request")
+        self._display_props()
+
         self._begin_polling()
 
     def _create_layouts(self) -> None:
