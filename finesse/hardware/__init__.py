@@ -12,7 +12,7 @@ from .stepper_motor import create_stepper_motor_serial_manager
 from .temperature import create_temperature_controller_serial_managers
 
 if "--dummy-dp9800" in sys.argv:
-    from .temperature.dummy_dp9800 import DummyDP9800 as DP9800
+    from .temperature.dummy_temperature_monitor import DummyTemperatureMonitor as DP9800
 else:
     from .temperature.dp9800 import DP9800  # type: ignore
 
