@@ -4,6 +4,7 @@ from typing import cast
 from unittest.mock import MagicMock, Mock, call, patch
 
 import pytest
+from statemachine import State
 
 from finesse.config import STEPPER_MOTOR_TOPIC
 from finesse.gui.measure_script.script import Script, ScriptRunner, _poll_em27_status
@@ -86,6 +87,9 @@ def test_start_moving(
     subscribe_mock.assert_any_call(
         runner.start_measuring, f"serial.{STEPPER_MOTOR_TOPIC}.move.end"
     )
+    subscribe_mock.assert_any_call(
+        runner._on_stepper_motor_error, f"serial.{STEPPER_MOTOR_TOPIC}.error"
+    )
     subscribe_mock.assert_any_call(runner._measuring_error, "opus.error")
     subscribe_mock.assert_any_call(runner._measuring_started, "opus.response.start")
     subscribe_mock.assert_any_call(runner._status_received, "opus.response.status")
@@ -117,6 +121,9 @@ def test_finish_moving(
     # Check we've unsubscribed from device messages
     unsubscribe_mock.assert_any_call(
         script_runner.start_measuring, f"serial.{STEPPER_MOTOR_TOPIC}.move.end"
+    )
+    unsubscribe_mock.assert_any_call(
+        script_runner._on_stepper_motor_error, f"serial.{STEPPER_MOTOR_TOPIC}.error"
     )
     unsubscribe_mock.assert_any_call(script_runner._measuring_error, "opus.error")
     unsubscribe_mock.assert_any_call(
@@ -245,12 +252,33 @@ def test_measuring_end(
                 repeat_measuring_mock.assert_called_once()
 
 
+@pytest.mark.parametrize("state", ScriptRunner.states)
+def test_abort(
+    state: State,
+    runner: ScriptRunner,
+    subscribe_mock: Mock,
+    unsubscribe_mock: Mock,
+    sendmsg_mock: Mock,
+) -> None:
+    """Test that the abort() method resets the ScriptRunner's state to not_running."""
+    runner.current_state = state
+    runner.abort()
+    assert runner.current_state == ScriptRunner.not_running
+
+
+def test_on_stepper_motor_error(runner: ScriptRunner) -> None:
+    """Test that the _on_stepper_motor_error() method calls abort()."""
+    with patch.object(runner, "abort") as abort_mock:
+        runner._on_stepper_motor_error(RuntimeError("hello"))
+        abort_mock.assert_called_once_with()
+
+
 @patch("finesse.gui.measure_script.script.show_error_message")
 def test_on_em27_error(show_error_message_mock: Mock, runner: ScriptRunner) -> None:
     """Test the _on_em27_error() method."""
-    with patch.object(runner, "cancel_measuring") as cancel_mock:
+    with patch.object(runner, "abort") as abort_mock:
         runner._on_em27_error("ERROR MESSAGE")
-        cancel_mock.assert_called_once_with()
+        abort_mock.assert_called_once_with()
         show_error_message_mock.assert_called_once_with(
             None,
             "EM27 error occurred. Measure script will stop running.\n\nERROR MESSAGE",
