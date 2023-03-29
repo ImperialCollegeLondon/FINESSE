@@ -9,7 +9,8 @@ import pytest
 from pytest_mock import MockerFixture
 from serial import SerialException
 
-from finesse.hardware.tc4820 import TC4820, MalformedMessageError
+from finesse.config import TEMPERATURE_CONTROLLER_TOPIC
+from finesse.hardware.temperature.tc4820 import TC4820, MalformedMessageError
 
 
 @pytest.fixture
@@ -25,10 +26,11 @@ def test_init(name: str, subscribe_mock: MagicMock) -> None:
     dev = TC4820(name, MagicMock())
     assert dev.max_attempts == 3
     subscribe_mock.assert_any_call(
-        dev.request_properties, f"temperature_controller.{name}.request"
+        dev.request_properties, f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{name}.request"
     )
     subscribe_mock.assert_any_call(
-        dev.change_set_point, f"temperature_controller.{name}.change_set_point"
+        dev.change_set_point,
+        f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{name}.change_set_point",
     )
 
 
@@ -45,7 +47,30 @@ def test_request_properties(dev: TC4820, sendmsg_mock: MagicMock) -> None:
         mock_int.return_value = 0
         dev.request_properties()
         sendmsg_mock.assert_called_once_with(
-            "temperature_controller.device.response", properties=expected
+            f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.device.response",
+            properties=expected,
+        )
+
+
+def test_request_properties_error(dev: TC4820, sendmsg_mock: MagicMock) -> None:
+    """Test the request_properties() method handles errors correctly."""
+    with patch.object(dev, "request_int") as mock_int:
+        error = SerialException()
+        mock_int.side_effect = error
+        dev.request_properties()
+        sendmsg_mock.assert_called_once_with(
+            f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.device.error", error=error
+        )
+
+
+def test_change_set_point_error(dev: TC4820, sendmsg_mock: MagicMock) -> None:
+    """Test that the change_set_point() method handles errors correctly."""
+    with patch.object(dev, "request_int") as mock_int:
+        error = SerialException()
+        mock_int.side_effect = error
+        dev.change_set_point(Decimal(10))
+        sendmsg_mock.assert_called_once_with(
+            f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.device.error", error=error
         )
 
 
@@ -171,7 +196,7 @@ def test_request_int(
         return 0
 
     mocker.patch.object(dev, "read", my_read)
-    write = mocker.patch("finesse.hardware.tc4820.TC4820.write")
+    write = mocker.patch("finesse.hardware.temperature.tc4820.TC4820.write")
     with raises:
         assert dev.request_int("some string") == 0
 
@@ -191,6 +216,6 @@ def test_get_properties(
     name: str, command: str, type: str, dev: TC4820, mocker: MockerFixture
 ) -> None:
     """Check that the getters for properties work."""
-    m = mocker.patch(f"finesse.hardware.tc4820.TC4820.request_{type}")
+    m = mocker.patch(f"finesse.hardware.temperature.tc4820.TC4820.request_{type}")
     getattr(dev, name)
     m.assert_called_once_with(command)

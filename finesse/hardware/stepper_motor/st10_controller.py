@@ -9,12 +9,13 @@ The specification is available online:
 
 import logging
 from queue import Queue
-from typing import Any, Optional, Union
+from typing import Optional, Union
 
 from pubsub import pub
 from PySide6.QtCore import QThread, Signal, Slot
 from serial import Serial, SerialException, SerialTimeoutException
 
+from ...config import STEPPER_MOTOR_TOPIC
 from .stepper_motor_base import StepperMotorBase
 
 
@@ -180,7 +181,7 @@ class ST10Controller(StepperMotorBase):
 
         self._reader = _SerialReader(serial, timeout)
         self._reader.async_read_completed.connect(self._send_move_end_message)
-        self._reader.read_error.connect(self._send_error_message)
+        self._reader.read_error.connect(self.send_error_message)
         self._reader.start()
 
         # Check that we are connecting to an ST10
@@ -194,42 +195,22 @@ class ST10Controller(StepperMotorBase):
 
         super().__init__()
 
-    @staticmethod
-    def create(
-        port: str,
-        baudrate: int = 9600,
-        timeout: float = 1.0,
-        *serial_args: Any,
-        **serial_kwargs: Any,
-    ):
-        """Create a new ST10Controller with the specified serial device properties.
-
-        Args:
-            port: Serial port name
-            baudrate: Serial port baudrate
-            timeout: How long to wait for read operations (seconds)
-            serial_args: Extra arguments to Serial constructor
-            serial_kwargs: Extra keyword arguments to Serial constructor
-        """
-        if "write_timeout" not in serial_kwargs:
-            serial_kwargs["write_timeout"] = timeout
-
-        serial = Serial(port, baudrate, *serial_args, timeout=timeout, **serial_kwargs)
-        return ST10Controller(serial)
-
-    def __del__(self) -> None:
+    def close(self) -> None:
         """Leave mirror facing downwards when finished.
 
         This prevents dust accumulating.
         """
+        # Set flag that indicates the thread should quit
+        self._reader.quit()
+
+        if not self.serial.is_open():
+            return
+
         try:
             self.stop_moving()
             self.move_to("nadir")
         except Exception as e:
             logging.error(f"Failed to reset mirror to downward position: {e}")
-
-        # Set flag that indicates the thread should quit
-        self._reader.quit()
 
         # If _reader is blocking on a read (which is likely), we could end up waiting
         # forever, so close the socket so that the read operation will terminate
@@ -237,11 +218,7 @@ class ST10Controller(StepperMotorBase):
 
     @Slot()
     def _send_move_end_message(self) -> None:
-        pub.sendMessage("stepper.move.end")
-
-    @Slot()
-    def _send_error_message(self, error: BaseException) -> None:
-        pub.sendMessage("stepper.error", error=error)
+        pub.sendMessage(f"serial.{STEPPER_MOTOR_TOPIC}.move.end")
 
     def _check_device_id(self) -> None:
         """Check that the ID is the correct one for an ST10.
@@ -480,22 +457,3 @@ class ST10Controller(StepperMotorBase):
     def notify_on_stopped(self) -> None:
         """Wait until the motor has stopped moving and send a message when done."""
         self._send_string(_SEND_STRING_MAGIC)
-
-
-if __name__ == "__main__":
-    import sys
-
-    print(f"Connecting to device {sys.argv[1]}...")
-    dev = ST10Controller.create(sys.argv[1])
-    print("Done. Homing...")
-
-    dev.wait_until_stopped()
-    print("Homing complete")
-    print(f"Current angle: {dev.angle}°")
-
-    angles = (0.0, 90.0, 180.0, "hot_bb")
-    for ang in angles:
-        print(f"Moving to {ang}")
-        dev.move_to(ang)
-        dev.wait_until_stopped()
-        print(f"Current angle: {dev.angle}°")

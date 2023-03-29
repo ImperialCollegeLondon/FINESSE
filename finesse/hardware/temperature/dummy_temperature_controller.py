@@ -5,7 +5,7 @@ from dataclasses import asdict, dataclass
 from decimal import Decimal
 from typing import Optional
 
-from .noise_producer import NoiseProducer
+from ..noise_producer import NoiseProducer
 from .temperature_controller_base import TemperatureControllerBase
 
 
@@ -46,6 +46,9 @@ class DummyTemperatureController(TemperatureControllerBase):
         self._set_point = initial_set_point
 
         super().__init__(name)
+
+    def close(self) -> None:
+        """Shut down the device."""
 
     @property
     def temperature(self) -> Decimal:
