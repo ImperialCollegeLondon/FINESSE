@@ -208,12 +208,9 @@ class ScriptRunner(StateMachine):
 
         super().__init__()
 
-    def on_enter_state(self, target: State) -> None:
-        """Log the state every time it changes.
-
-        This is just a placeholder so we can see the measure scripts running.
-        """
-        logging.info(f"Measure script: Entering state {target.name}")
+    def on_enter_state(self, target: State, event: str) -> None:
+        """Log the state every time it changes."""
+        logging.info(f"Measure script: Entering state {target.name} (event: {event})")
 
     def on_enter_not_running(self, event: str) -> None:
         """If finished, unsubscribe from pubsub messages and send message."""
