@@ -167,13 +167,17 @@ def test_status_received(status: int, runner_measuring: ScriptRunner) -> None:
         runner_measuring._status_received(status, "", None, "")
 
         # Status code 2 indicates success
-        timer_stop = cast(MagicMock, runner_measuring._measure_poll_timer.stop)
         if status == 2:
-            timer_stop.assert_called_once()
             measuring_end_mock.assert_called_once()
         else:
-            timer_stop.assert_not_called()
             measuring_end_mock.assert_not_called()
+
+
+def test_on_exit_measuring(runner_measuring: ScriptRunner) -> None:
+    """Test that the timer is stopped when exiting measuring state."""
+    runner_measuring.on_exit_measuring()
+    timer_stop = cast(MagicMock, runner_measuring._measure_poll_timer.stop)
+    timer_stop.assert_called_once()
 
 
 @pytest.mark.parametrize("current_measurement_repeat", range(3))

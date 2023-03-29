@@ -272,6 +272,10 @@ class ScriptRunner(StateMachine):
         """
         pub.sendMessage("opus.request", command="start")
 
+    def on_exit_measuring(self) -> None:
+        """Ensure that the polling timer is stopped."""
+        self._measure_poll_timer.stop()
+
     def _measuring_started(
         self,
         status: int,
@@ -299,7 +303,6 @@ class ScriptRunner(StateMachine):
             Add error handing
         """
         if status == 2:  # "connected" state, indicating measurement is finished
-            self._measure_poll_timer.stop()
             self._measuring_end()
 
     def _measuring_error(self, message: str) -> None:
