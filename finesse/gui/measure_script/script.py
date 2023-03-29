@@ -18,7 +18,7 @@ from PySide6.QtWidgets import QWidget
 from schema import And, Or, Schema, SchemaError
 from statemachine import State, StateMachine
 
-from ...config import ANGLE_PRESETS
+from ...config import ANGLE_PRESETS, STEPPER_MOTOR_TOPIC
 from ..error_message import show_error_message
 
 
@@ -200,7 +200,7 @@ class ScriptRunner(StateMachine):
         self._measure_poll_timer.timeout.connect(_poll_em27_status)  # type: ignore
 
         # Send stop command in case motor is moving
-        pub.sendMessage("serial.stepper_motor.stop")
+        pub.sendMessage(f"serial.{STEPPER_MOTOR_TOPIC}.stop")
 
         super().__init__()
 
@@ -218,7 +218,7 @@ class ScriptRunner(StateMachine):
             return
 
         # Stepper motor messages
-        pub.unsubscribe(self.start_measuring, "serial.stepper_motor.move.end")
+        pub.unsubscribe(self.start_measuring, f"serial.{STEPPER_MOTOR_TOPIC}.move.end")
 
         # EM27 messages
         pub.unsubscribe(self._measuring_error, "opus.error")
@@ -231,7 +231,7 @@ class ScriptRunner(StateMachine):
     def on_exit_not_running(self) -> None:
         """Subscribe to pubsub messages for the stepper motor and OPUS."""
         # Listen for stepper motor messages (TODO: add error handling)
-        pub.subscribe(self.start_measuring, "serial.stepper_motor.move.end")
+        pub.subscribe(self.start_measuring, f"serial.{STEPPER_MOTOR_TOPIC}.move.end")
 
         # Listen for EM27 messages
         pub.subscribe(self._measuring_error, "opus.error")
@@ -263,11 +263,12 @@ class ScriptRunner(StateMachine):
 
         # Start moving the stepper motor
         pub.sendMessage(
-            "serial.stepper_motor.move.begin", target=self.current_measurement.angle
+            f"serial.{STEPPER_MOTOR_TOPIC}.move.begin",
+            target=self.current_measurement.angle,
         )
 
         # Flag that we want a message when the movement has stopped
-        pub.sendMessage("serial.stepper_motor.notify_on_stopped")
+        pub.sendMessage(f"serial.{STEPPER_MOTOR_TOPIC}.notify_on_stopped")
 
     def on_enter_measuring(self) -> None:
         """Tell the EM27 to start a new measurement.

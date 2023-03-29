@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, Mock, call, patch
 
 import pytest
 
+from finesse.config import STEPPER_MOTOR_TOPIC
 from finesse.gui.measure_script.script import Script, ScriptRunner, _poll_em27_status
 
 
@@ -46,7 +47,7 @@ def test_init(timer_mock: Mock, sendmsg_mock: MagicMock) -> None:
     timer.timeout.connect.assert_called_once_with(_poll_em27_status)
 
     # Check we're stopping the motor
-    sendmsg_mock.assert_any_call("serial.stepper_motor.stop")
+    sendmsg_mock.assert_any_call(f"serial.{STEPPER_MOTOR_TOPIC}.stop")
 
     # Initial state
     assert script_runner.current_state == ScriptRunner.not_running
@@ -73,14 +74,17 @@ def test_start_moving(
     # stepper motor
     calls = (
         call("measure_script.begin"),
-        call("serial.stepper_motor.move.begin", target=runner.script.sequence[0].angle),
-        call("serial.stepper_motor.notify_on_stopped"),
+        call(
+            f"serial.{STEPPER_MOTOR_TOPIC}.move.begin",
+            target=runner.script.sequence[0].angle,
+        ),
+        call(f"serial.{STEPPER_MOTOR_TOPIC}.notify_on_stopped"),
     )
     sendmsg_mock.assert_has_calls(calls)
 
     # Check subscriptions
     subscribe_mock.assert_any_call(
-        runner.start_measuring, "serial.stepper_motor.move.end"
+        runner.start_measuring, f"serial.{STEPPER_MOTOR_TOPIC}.move.end"
     )
     subscribe_mock.assert_any_call(runner._measuring_error, "opus.error")
     subscribe_mock.assert_any_call(runner._measuring_started, "opus.response.start")
@@ -112,7 +116,7 @@ def test_finish_moving(
 
     # Check we've unsubscribed from device messages
     unsubscribe_mock.assert_any_call(
-        script_runner.start_measuring, "serial.stepper_motor.move.end"
+        script_runner.start_measuring, f"serial.{STEPPER_MOTOR_TOPIC}.move.end"
     )
     unsubscribe_mock.assert_any_call(script_runner._measuring_error, "opus.error")
     unsubscribe_mock.assert_any_call(
