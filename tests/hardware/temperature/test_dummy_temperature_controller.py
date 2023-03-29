@@ -5,13 +5,13 @@ from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
-from finesse.hardware.dummy_temperature_controller import (
+from finesse.hardware.temperature.dummy_temperature_controller import (
     DummyTemperatureController,
     NoiseParameters,
 )
 
 
-@patch("finesse.hardware.dummy_temperature_controller.NoiseProducer")
+@patch("finesse.hardware.temperature.dummy_temperature_controller.NoiseProducer")
 def test_temperature(noise_mock: Mock) -> None:
     """Test that the temperature property works."""
     temperature_mock = MagicMock(return_value=Decimal(10))
@@ -22,7 +22,7 @@ def test_temperature(noise_mock: Mock) -> None:
     assert dev.temperature == Decimal(10)
 
 
-@patch("finesse.hardware.dummy_temperature_controller.NoiseProducer")
+@patch("finesse.hardware.temperature.dummy_temperature_controller.NoiseProducer")
 def test_power(noise_mock: Mock) -> None:
     """Test that the power property works."""
     power_mock = MagicMock(return_value=Decimal(10))

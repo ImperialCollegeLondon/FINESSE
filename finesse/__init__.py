@@ -8,11 +8,13 @@ def run() -> None:
 
     from PySide6.QtWidgets import QApplication
 
-    from . import hardware  # noqa
-    from .gui.main_window import MainWindow
+    # This must be done before our own modules are imported
     from .logger import initialise_logging
 
     initialise_logging()
+
+    from . import hardware  # noqa
+    from .gui.main_window import MainWindow
 
     app = QApplication(sys.argv)
 

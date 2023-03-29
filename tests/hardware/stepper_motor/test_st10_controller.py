@@ -7,7 +7,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 from serial import SerialException, SerialTimeoutException
 
-from finesse.hardware.st10_controller import (
+from finesse.config import STEPPER_MOTOR_TOPIC
+from finesse.hardware.stepper_motor.st10_controller import (
     ST10Controller,
     ST10ControllerError,
     _SerialReader,
@@ -33,7 +34,7 @@ class MockSerialReader(_SerialReader):
 
 
 @pytest.fixture
-@patch("finesse.hardware.st10_controller._SerialReader", MockSerialReader)
+@patch("finesse.hardware.stepper_motor.st10_controller._SerialReader", MockSerialReader)
 def dev() -> ST10Controller:
     """A fixture providing an ST10Controller with a patched Serial object."""
     serial = MagicMock()
@@ -47,7 +48,7 @@ def dev() -> ST10Controller:
                 return ST10Controller(serial)
 
 
-@patch("finesse.hardware.st10_controller._SerialReader", MockSerialReader)
+@patch("finesse.hardware.stepper_motor.st10_controller._SerialReader", MockSerialReader)
 def test_init() -> None:
     """Test __init__()."""
     serial = MagicMock()
@@ -64,24 +65,32 @@ def test_init() -> None:
                     st10._send_move_end_message
                 )
                 r.read_error.connect.assert_called_once_with(  # type: ignore
-                    st10._send_error_message
+                    st10.send_error_message
                 )
                 check_mock.assert_called_once()
                 stop_mock.assert_called_once()
                 home_mock.assert_called_once()
 
 
+def test_close(dev: ST10Controller) -> None:
+    """Test the close() method."""
+    dev.close()
+    dev.serial.close.assert_called_once_with()
+
+
 def test_send_move_end_message(sendmsg_mock: MagicMock, dev: ST10Controller) -> None:
     """Test the _send_move_end_message() method."""
     dev._send_move_end_message()
-    sendmsg_mock.assert_called_once_with("stepper.move.end")
+    sendmsg_mock.assert_called_once_with(f"serial.{STEPPER_MOTOR_TOPIC}.move.end")
 
 
 def test_send_error_message(sendmsg_mock: MagicMock, dev: ST10Controller) -> None:
     """Test the _send_error_message() method."""
     error = Exception()
-    dev._send_error_message(error)
-    sendmsg_mock.assert_called_once_with("stepper.error", error=error)
+    dev.send_error_message(error)
+    sendmsg_mock.assert_called_once_with(
+        f"serial.{STEPPER_MOTOR_TOPIC}.error", error=error
+    )
 
 
 def read_mock(dev: ST10Controller, return_value: str):

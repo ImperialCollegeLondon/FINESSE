@@ -5,7 +5,7 @@ from typing import Optional
 from PySide6.QtWidgets import QFileDialog, QGridLayout, QGroupBox, QPushButton
 
 from ...config import DEFAULT_SCRIPT_PATH
-from .parse import try_load_script
+from .script import Script
 from .script_edit_dialog import ScriptEditDialog
 from .script_path_widget import ScriptPathWidget
 
@@ -59,7 +59,7 @@ class ScriptControl(QGroupBox):
             # User closed dialog
             return
 
-        script = try_load_script(self, Path(file_path))
+        script = Script.try_load(self, Path(file_path))
         if not script:
             # An error occurred while loading script
             return
@@ -74,7 +74,7 @@ class ScriptControl(QGroupBox):
             # User cancelled
             return
 
-        script = try_load_script(self, file_path)
+        script = Script.try_load(self, file_path)
         if not script:
             # Failed to load script
             return

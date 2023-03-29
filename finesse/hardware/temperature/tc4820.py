@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import logging
 from decimal import Decimal
-from typing import Any
 
 from serial import Serial, SerialException
 
@@ -47,34 +46,9 @@ class TC4820(TemperatureControllerBase):
 
         super().__init__(name)
 
-    @staticmethod
-    def create(
-        port: str,
-        baudrate: int = 115200,
-        timeout: float = 1.0,
-        max_attempts: int = 3,
-        *serial_args: Any,
-        **serial_kwargs: Any,
-    ) -> TC4820:
-        """Create a new TC4820.
-
-        If the user hasn't specified an explicit timeout for write operations with the
-        write_timeout argument, then the value of timeout will be used.
-
-        Args:
-            port: Serial port name
-            baudrate: Serial port baudrate
-            timeout: How long to wait for read operations (seconds)
-            max_attempts: Maximum number of attempts for requests
-            serial_args: Extra arguments to Serial constructor
-            serial_kwargs: Extra keyword arguments to Serial constructor
-        """
-        if "write_timeout" not in serial_kwargs:
-            serial_kwargs["write_timeout"] = timeout
-
-        serial = Serial(port, baudrate, *serial_args, timeout=timeout, **serial_kwargs)
-
-        return TC4820(serial, max_attempts)
+    def close(self) -> None:
+        """Shut down the device."""
+        self.serial.close()
 
     def read(self) -> int:
         """Read a message from the TC4820 and decode the number as a signed integer.
@@ -232,19 +206,3 @@ class TC4820(TemperatureControllerBase):
         """Convert an int from the TC4820 to a Decimal."""
         # Decimal values are encoded as 10x their value then converted to an int.
         return Decimal(value) / Decimal(10)
-
-
-if __name__ == "__main__":
-    import sys
-
-    dev = TC4820.create(sys.argv[1])
-
-    # Allow user to test setting the set point
-    if len(sys.argv) > 2:
-        temperature = Decimal(sys.argv[2])
-        dev.set_point = temperature
-        print(f"New set point: {temperature}")
-
-    # Print out device properties
-    for key in ("temperature", "power", "alarm_status", "set_point"):
-        print(f"{key}: {getattr(dev, key)}")

@@ -1,13 +1,21 @@
 """Tests for the measure script code."""
 from contextlib import nullcontext as does_not_raise
 from itertools import chain
-from typing import Any, Dict
+from pathlib import Path
+from typing import Any, Dict, Union
+from unittest.mock import patch
 
 import pytest
 import yaml
+from PySide6.QtWidgets import QWidget
 
 from finesse.config import ANGLE_PRESETS
-from finesse.gui.measure_script.parse import ParseError, parse_script
+from finesse.gui.measure_script.script import (
+    Measurement,
+    ParseError,
+    Script,
+    parse_script,
+)
 
 
 def is_valid_angle(angle: Any) -> bool:
@@ -67,3 +75,44 @@ def test_parse_script(data: Dict[str, Any], raises: Any) -> None:
     """
     with raises:
         parse_script(yaml.safe_dump(data))
+
+
+@pytest.mark.parametrize("angle", ("nadir", 90.0))
+def test_measurement_to_dict(angle: Union[str, float]) -> None:
+    """Check Measurement's to_dict() method."""
+    d = Measurement(angle, 5)
+    assert d.to_dict() == {"angle": angle, "measurements": 5}
+
+
+_SCRIPT_PATH = Path(__file__).parent / "test_script.yaml"
+
+
+def test_try_load_success(qtbot) -> None:
+    """Test the try_load() function."""
+    script = Script.try_load(QWidget(), _SCRIPT_PATH)
+    assert script, "Script could not be loaded"
+
+    assert script.repeats == 1
+    assert len(script.sequence) == 2
+    assert script.sequence[0] == Measurement("zenith", 1)
+    assert script.sequence[1] == Measurement(0.0, 1)
+
+
+@pytest.mark.parametrize(
+    "exception,raises",
+    (
+        (OSError(), does_not_raise()),
+        (ParseError(), does_not_raise()),
+        (Exception(), pytest.raises(Exception)),
+    ),
+)
+@patch("finesse.gui.measure_script.script.show_error_message")
+def test_try_load_fail(
+    show_error_mock: Any, exception: BaseException, raises: Any, qtbot
+) -> None:
+    """Test the try_load() function."""
+    with patch("finesse.gui.measure_script.script.parse_script", side_effect=exception):
+        with raises:
+            script = Script.try_load(QWidget(), _SCRIPT_PATH)
+            assert script is None, "Script should not have been loaded"
+            show_error_mock.assert_called_once()

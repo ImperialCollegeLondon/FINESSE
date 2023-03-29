@@ -1,4 +1,6 @@
 """Code for parsing the YAML-formatted measure scripts."""
+from __future__ import annotations
+
 import logging
 from dataclasses import dataclass
 from io import TextIOBase
@@ -10,7 +12,7 @@ from pubsub import pub
 from PySide6.QtWidgets import QWidget
 from schema import And, Or, Schema, SchemaError
 
-from ...config import ANGLE_PRESETS
+from ...config import ANGLE_PRESETS, STEPPER_MOTOR_TOPIC
 from ..error_message import show_error_message
 
 
@@ -31,7 +33,7 @@ class Measurement:
     def run(self) -> None:
         """A placeholder function for recording multiple measurements."""
         # Move the mirror to the correct location
-        pub.sendMessage("stepper.move.begin", target=self.angle)
+        pub.sendMessage(f"serial.{STEPPER_MOTOR_TOPIC}.move.begin", target=self.angle)
 
         # Take the recordings
         logging.info(f"Recording {self.measurements} measurements")
@@ -62,6 +64,25 @@ class Script:
             for instruction in self.sequence:
                 instruction.run()
 
+    @classmethod
+    def try_load(cls, parent: QWidget, file_path: Path) -> Optional[Script]:
+        """Try to load a measure script at the specified path.
+
+        Args:
+            parent: The parent widget (for error messages shown)
+            file_path: The path to the script to be loaded
+        Returns:
+            A Script if successful, else None
+        """
+        try:
+            with open(file_path, "r") as f:
+                return cls(file_path, **parse_script(f))
+        except OSError as e:
+            show_error_message(parent, f"Error: Could not read {file_path}: {str(e)}")
+        except ParseError:
+            show_error_message(parent, f"Error: {file_path} is in an invalid format")
+        return None
+
 
 class ParseError(Exception):
     """An error occurred while parsing a measure script."""
@@ -69,25 +90,6 @@ class ParseError(Exception):
     def __init__(_) -> None:
         """Create a new ParseError."""
         super().__init__("Error parsing measure script")
-
-
-def try_load_script(parent: QWidget, file_path: Path) -> Optional[Script]:
-    """Try to load a measure script at the specified path.
-
-    Args:
-        parent: The parent widget (for error messages shown)
-        file_path: The path to the script to be loaded
-    Returns:
-        A Script if successful, else None
-    """
-    try:
-        with open(file_path, "r") as f:
-            return Script(file_path, **parse_script(f))
-    except OSError as e:
-        show_error_message(parent, f"Error: Could not read {file_path}: {str(e)}")
-    except ParseError:
-        show_error_message(parent, f"Error: {file_path} is in an invalid format")
-    return None
 
 
 def parse_script(script: Union[str, TextIOBase]) -> Dict[str, Any]:
