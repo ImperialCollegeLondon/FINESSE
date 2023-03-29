@@ -1,20 +1,10 @@
 """Tests for SerialManager."""
 from unittest.mock import MagicMock, Mock, patch
 
-import pytest
-from pubsub import pub
 from serial import SerialException
 
 from finesse.config import DUMMY_DEVICE_PORT
 from finesse.hardware.serial_manager import SerialManager, make_device_factory
-
-
-@pytest.fixture
-def unsubscribe_mock(monkeypatch) -> MagicMock:
-    """Fixture for pub.subscribe."""
-    mock = MagicMock()
-    monkeypatch.setattr(pub, "unsubscribe", mock)
-    return mock
 
 
 @patch("finesse.hardware.serial_manager.Serial")
