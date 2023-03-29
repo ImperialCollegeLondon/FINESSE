@@ -124,8 +124,8 @@ class OPUSControl(QGroupBox):
         if error:
             self.logger.error(f"Error ({error[0]}): {error[1]}")
 
-    def _log_error(self, message: str) -> None:
-        self.logger.error(f"Error during request: {message}")
+    def _log_error(self, error: BaseException) -> None:
+        self.logger.error(f"Error during request: {str(error)}")
 
     def on_command_button_clicked(self, command: str) -> None:
         """Execute the given command by sending a message to the appropriate topic.
