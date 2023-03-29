@@ -2,7 +2,7 @@
 import logging
 from importlib import resources
 
-from .em27_scraper import EM27Scraper, PSF27Error
+from .em27_scraper import EM27Error, EM27Scraper
 
 
 class DummyEM27Scraper(EM27Scraper):
@@ -25,4 +25,4 @@ class DummyEM27Scraper(EM27Scraper):
             logging.info("Read PSF27Sensor table")
             return content
         except FileNotFoundError:
-            raise PSF27Error(f"Dummy EM27 server file {self._url} not found")
+            raise EM27Error(f"Dummy EM27 server file {self._url} not found")
