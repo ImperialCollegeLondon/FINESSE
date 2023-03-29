@@ -137,7 +137,7 @@ def test_start_measuring(runner: ScriptRunner, sendmsg_mock: MagicMock) -> None:
     sendmsg_mock.assert_called_once_with("opus.request", command="start")
 
 
-def test_repeat_measurement(
+def test_repeat_measuring(
     runner_measuring: ScriptRunner, sendmsg_mock: MagicMock
 ) -> None:
     """Test that repeat measurements work correctly."""
@@ -148,24 +148,44 @@ def test_repeat_measurement(
     sendmsg_mock.assert_called_once_with("opus.request", command="start")
 
 
+def test_cancel_measuring(
+    runner_measuring: ScriptRunner, unsubscribe_mock: MagicMock, sendmsg_mock: MagicMock
+) -> None:
+    """Test the cancel_measuring() method."""
+    runner_measuring.cancel_measuring()
+    assert runner_measuring.current_state == ScriptRunner.not_running
+
+    # Check that the cancel command was sent
+    sendmsg_mock.assert_called_with("opus.request", command="cancel")
+
+
 @patch("finesse.gui.measure_script.script._poll_em27_status")
-def test_measuring_started(poll_em27_mock: Mock, runner: ScriptRunner) -> None:
-    """Test that polling starts when measurement is running."""
+def test_measuring_started_success(poll_em27_mock: Mock, runner: ScriptRunner) -> None:
+    """Test that polling starts when measurement has started successfully."""
     runner.current_state = ScriptRunner.measuring
 
     # Simulate response from EM27
-    # TODO: Check for error handling
     runner._measuring_started(0, "", None, "")
 
     # Check the request is sent to the EM27
     poll_em27_mock.assert_called_once()
 
 
+def test_measuring_started_fail(runner: ScriptRunner) -> None:
+    """Test that _on_em27_error_message is called if starting the measurement fails."""
+    runner.current_state = ScriptRunner.measuring
+
+    with patch.object(runner, "_on_em27_error_message") as em27_error_mock:
+        # Simulate response from EM27
+        runner._measuring_started(0, "", (1, "ERROR MESSAGE"), "")
+
+        em27_error_mock.assert_called_once_with(1, "ERROR MESSAGE")
+
+
 @pytest.mark.parametrize("status", range(7))
 def test_status_received(status: int, runner_measuring: ScriptRunner) -> None:
     """Test that polling the EM27's status works."""
     with patch.object(runner_measuring, "_measuring_end") as measuring_end_mock:
-        # TODO: handle errors
         runner_measuring._status_received(status, "", None, "")
 
         # Status code 2 indicates success
@@ -173,6 +193,13 @@ def test_status_received(status: int, runner_measuring: ScriptRunner) -> None:
             measuring_end_mock.assert_called_once()
         else:
             measuring_end_mock.assert_not_called()
+
+
+def test_status_received_error(runner_measuring: ScriptRunner) -> None:
+    """Test that _on_em27_error_message is called if the status indicates an error."""
+    with patch.object(runner_measuring, "_on_em27_error_message") as em27_error_mock:
+        runner_measuring._status_received(1, "", (1, "ERROR MESSAGE"), "")
+        em27_error_mock.assert_called_once_with(1, "ERROR MESSAGE")
 
 
 def test_on_exit_measuring(runner_measuring: ScriptRunner) -> None:
@@ -212,3 +239,18 @@ def test_measuring_end(
             else:
                 start_next_move_mock.assert_not_called()
                 repeat_measuring_mock.assert_called_once()
+
+
+@patch("finesse.gui.measure_script.script.show_error_message")
+def test_on_em27_error_message(
+    show_error_message_mock: Mock, runner: ScriptRunner
+) -> None:
+    """Test the _on_em27_error_message() method."""
+    with patch.object(runner, "cancel_measuring") as cancel_mock:
+        runner._on_em27_error_message(1, "ERROR MESSAGE")
+        cancel_mock.assert_called_once_with()
+        show_error_message_mock.assert_called_once_with(
+            None,
+            "EM27 error occurred. Measure script will stop running.\n\n"
+            "Error 1: ERROR MESSAGE",
+        )
