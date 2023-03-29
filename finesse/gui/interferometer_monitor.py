@@ -41,7 +41,7 @@ class EM27Monitor(QGroupBox):
 
         self.setLayout(self._layout)
 
-        pub.subscribe(self._get_data_table, "psf27.data.response")
+        pub.subscribe(self._get_data_table, "em27.data.response")
 
         self._begin_polling()
 
@@ -110,7 +110,7 @@ class EM27Monitor(QGroupBox):
     def _poll_server(self) -> None:
         """Polls the server to obtain the latest values."""
         self._poll_light.flash()
-        pub.sendMessage("psf27.data.request")
+        pub.sendMessage("em27.data.request")
         self._display_props()
 
 
