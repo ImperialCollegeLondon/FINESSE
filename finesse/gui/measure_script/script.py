@@ -170,12 +170,15 @@ class ScriptRunner(StateMachine):
     finish = moving.to(not_running)
     """To be called when all measurements are complete."""
 
-    def __init__(self, script: Script, poll_interval_msec: int = 1000) -> None:
+    def __init__(self, script: Script, min_poll_interval: float = 1.0) -> None:
         """Create a new ScriptRunner.
+
+        Note that the EM27 often takes more than one second to respond to requests,
+        hence why we set a minimum polling interval rather than an absolute one.
 
         Args:
             script: The script to run
-            poll_interval_msec: How frequently to poll the EM27 (milliseconds)
+            min_poll_interval: Minimum rate at which to poll EM27 (seconds)
 
         Todo:
             Error handling for the EM27 and stepper motor
@@ -192,7 +195,8 @@ class ScriptRunner(StateMachine):
 
         self._measure_poll_timer = QTimer()
         """A timer which repeatedly polls the EM27."""
-        self._measure_poll_timer.setInterval(poll_interval_msec)
+        self._measure_poll_timer.setSingleShot(True)
+        self._measure_poll_timer.setInterval(round(1000 * min_poll_interval))
         self._measure_poll_timer.timeout.connect(_poll_em27_status)  # type: ignore
 
         # Send stop command in case motor is moving
@@ -288,7 +292,7 @@ class ScriptRunner(StateMachine):
         Todo:
             Error handling, for now assume it's fine
         """
-        self._measure_poll_timer.start()
+        _poll_em27_status()
 
     def _status_received(
         self,
@@ -304,6 +308,9 @@ class ScriptRunner(StateMachine):
         """
         if status == 2:  # "connected" state, indicating measurement is finished
             self._measuring_end()
+        else:
+            # Poll again later
+            self._measure_poll_timer.start()
 
     def _measuring_error(self, message: str) -> None:
         """Log errors from OPUS.
