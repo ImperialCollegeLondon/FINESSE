@@ -32,10 +32,6 @@ class Measurement:
     measurements: int
     """The number of times to record a measurement at this position."""
 
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert this object to a dict."""
-        return {"angle": self.angle, "measurements": self.measurements}
-
 
 class Script:
     """Represents a measure script, including its file path and data."""
