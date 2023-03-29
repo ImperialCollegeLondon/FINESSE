@@ -323,19 +323,22 @@ class ScriptRunner(StateMachine):
             # Poll again later
             self._measure_poll_timer.start()
 
-    def _on_em27_error_message(self, errcode: int, errmsg: str) -> None:
+    def _on_em27_error(self, message: str) -> None:
         """Cancel current measurement and show an error message to the user."""
         self.cancel_measuring()
 
         show_error_message(
             self.parent,
-            "EM27 error occurred. Measure script will stop running.\n\n"
-            f"Error {errcode}: {errmsg}",
+            f"EM27 error occurred. Measure script will stop running.\n\n{message}",
         )
+
+    def _on_em27_error_message(self, errcode: int, errmsg: str) -> None:
+        """Error reported by EM27 system."""
+        self._on_em27_error(f"Error {errcode}: {errmsg}")
 
     def _measuring_error(self, error: BaseException) -> None:
         """Log errors from OPUS."""
-        logging.error(f"OPUS error: {str(error)}")
+        self._on_em27_error(str(error))
 
     def _measuring_end(self) -> None:
         """Move onto the next measurement or perform another measurement here."""
