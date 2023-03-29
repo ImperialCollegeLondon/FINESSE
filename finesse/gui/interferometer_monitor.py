@@ -36,7 +36,7 @@ class EM27Monitor(QGroupBox):
         self._poll_wid_layout.addWidget(QLabel("POLL Server"))
         self._poll_wid_layout.addWidget(self._poll_light)
         self._poll_light.setSizePolicy(
-            QSizePolicy.Expanding, QSizePolicy.Fixed  # type: ignore
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
         )
 
         self.setLayout(self._layout)
@@ -70,14 +70,12 @@ class EM27Monitor(QGroupBox):
         """
         if prop.name not in self._val_lineedits:
             prop_label = QLabel(prop.name)
-            prop_label.setSizePolicy(
-                QSizePolicy.Fixed, QSizePolicy.Fixed  # type: ignore
-            )
+            prop_label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
             val_lineedit = QLineEdit()
             val_lineedit.setReadOnly(True)
             val_lineedit.setAlignment(Qt.AlignmentFlag.AlignCenter)
             val_lineedit.setSizePolicy(
-                QSizePolicy.MinimumExpanding, QSizePolicy.Fixed  # type: ignore
+                QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.Fixed
             )
 
             self._val_lineedits[prop.name] = val_lineedit
