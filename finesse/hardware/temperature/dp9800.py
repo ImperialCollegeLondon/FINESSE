@@ -6,6 +6,8 @@ from decimal import Decimal
 from pubsub import pub
 from serial import Serial, SerialException
 
+from .temperature_monitor_base import TemperatureMonitorBase
+
 
 def check_data(data: bytes) -> None:
     """Perform message integrity checks.
@@ -73,7 +75,7 @@ def parse_data(data: bytes) -> tuple[list[Decimal], str]:
         raise DP9800Error(e)
 
     vals_begin = 3
-    vals_end = 74
+    vals_end = 74  # assuming 9 temperatures
     etx_index = data.find(b"\x03")
 
     vals = [Decimal(val) for val in data_ascii[vals_begin:vals_end].split()]
@@ -88,7 +90,7 @@ class DP9800Error(Exception):
     """Indicates that an error occurred while communicating with the device."""
 
 
-class DP9800:
+class DP9800(TemperatureMonitorBase):
     """An interface for DP9800 temperature readers.
 
     The manual for this device is available at:
@@ -101,11 +103,8 @@ class DP9800:
         Args:
             serial: Serial device
         """
+        super().__init__("DP9800")
         self.serial = serial
-
-        logging.info(f"Opened connection to DP9800 on port {self.serial.port}")
-        pub.sendMessage("temperature_monitor.open")
-        pub.subscribe(self.send_temperatures, "temperature_monitor.data.request")
 
     def close(self) -> None:
         """Close the connection to the device.
@@ -183,7 +182,6 @@ class DP9800:
             DP9800Error: Malformed message received from device
         """
         # require at least 4 bytes else checks will fail
-        # but know message should always be > 78 bytes...
         min_length = 4
         try:
             data = self.serial.read_until(b"\x00", size=min_length)
