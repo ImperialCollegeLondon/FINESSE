@@ -31,24 +31,25 @@ def runner_measuring(
 @patch("finesse.gui.measure_script.script.QTimer")
 def test_init(timer_mock: Mock, sendmsg_mock: MagicMock) -> None:
     """Test ScriptRunner's constructor."""
-    mock2 = MagicMock()
-    timer_mock.return_value = mock2
+    timer = MagicMock()
+    timer_mock.return_value = timer
 
     script = Script(Path(), 1, ())
     script_runner = ScriptRunner(script)
 
     # Check the constructor was called once. Will need to be amended if we add timers.
     timer_mock.assert_called_once()
-    mock2.setInterval.assert_called_once_with(1000)
-
-    # Initial state
-    assert script_runner.current_state == ScriptRunner.not_running
 
     # Check timer is properly set up
-    mock2.timeout.connect.assert_called_once_with(_poll_em27_status)
+    timer.setSingleShot(True)
+    timer.setInterval.assert_called_once_with(1000)
+    timer.timeout.connect.assert_called_once_with(_poll_em27_status)
 
     # Check we're stopping the motor
     sendmsg_mock.assert_any_call("serial.stepper_motor.stop")
+
+    # Initial state
+    assert script_runner.current_state == ScriptRunner.not_running
 
 
 def test_poll_em27_status(sendmsg_mock: Mock) -> None:
@@ -147,7 +148,8 @@ def test_repeat_measurement(
     sendmsg_mock.assert_called_once_with("opus.request", command="start")
 
 
-def test_measuring_started(runner: ScriptRunner) -> None:
+@patch("finesse.gui.measure_script.script._poll_em27_status")
+def test_measuring_started(poll_em27_mock: Mock, runner: ScriptRunner) -> None:
     """Test that polling starts when measurement is running."""
     runner.current_state = ScriptRunner.measuring
 
@@ -155,8 +157,8 @@ def test_measuring_started(runner: ScriptRunner) -> None:
     # TODO: Check for error handling
     runner._measuring_started(0, "", None, "")
 
-    # Check the timer has been started
-    runner._measure_poll_timer.start.assert_called_once()  # type: ignore
+    # Check the request is sent to the EM27
+    poll_em27_mock.assert_called_once()
 
 
 @pytest.mark.parametrize("status", range(7))
