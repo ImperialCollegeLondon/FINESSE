@@ -242,15 +242,27 @@ def test_measuring_end(
 
 
 @patch("finesse.gui.measure_script.script.show_error_message")
-def test_on_em27_error_message(
-    show_error_message_mock: Mock, runner: ScriptRunner
-) -> None:
-    """Test the _on_em27_error_message() method."""
+def test_on_em27_error(show_error_message_mock: Mock, runner: ScriptRunner) -> None:
+    """Test the _on_em27_error() method."""
     with patch.object(runner, "cancel_measuring") as cancel_mock:
-        runner._on_em27_error_message(1, "ERROR MESSAGE")
+        runner._on_em27_error("ERROR MESSAGE")
         cancel_mock.assert_called_once_with()
         show_error_message_mock.assert_called_once_with(
             None,
-            "EM27 error occurred. Measure script will stop running.\n\n"
-            "Error 1: ERROR MESSAGE",
+            "EM27 error occurred. Measure script will stop running.\n\nERROR MESSAGE",
         )
+
+
+def test_on_em27_error_message(runner: ScriptRunner) -> None:
+    """Test the _on_em27_error_message() method."""
+    with patch.object(runner, "_on_em27_error") as em27_error_mock:
+        runner._on_em27_error_message(1, "ERROR MESSAGE")
+        em27_error_mock.assert_called_once_with("Error 1: ERROR MESSAGE")
+
+
+def test_measuring_error(runner: ScriptRunner) -> None:
+    """Test the _measuring_error() method."""
+    with patch.object(runner, "_on_em27_error") as em27_error_mock:
+        error = RuntimeError("hello")
+        runner._measuring_error(error)
+        em27_error_mock.assert_called_once_with(str(error))
