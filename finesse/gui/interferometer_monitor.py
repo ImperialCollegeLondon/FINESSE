@@ -1,6 +1,4 @@
 """Panel and widgets related to monitoring the interferometer."""
-from typing import Dict
-
 from pubsub import pub
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
@@ -25,7 +23,7 @@ class EM27Monitor(QGroupBox):
         """Creates the attributes required to view properties monitored by the EM27."""
         super().__init__("EM27 SOH Monitor")
 
-        self._val_lineedits: Dict[str, QLineEdit] = {}
+        self._val_lineedits: dict[str, QLineEdit] = {}
         self._data_table: list[EM27Property] = []
 
         self._poll_light = LEDIcon.create_poll_icon()
@@ -41,7 +39,7 @@ class EM27Monitor(QGroupBox):
 
         self.setLayout(self._layout)
 
-        pub.subscribe(self._get_data_table, "em27.data.response")
+        pub.subscribe(self._set_data_table, "em27.data.response")
 
         self._begin_polling()
 
@@ -93,8 +91,12 @@ class EM27Monitor(QGroupBox):
             lineedit = self._get_prop_lineedit(prop)
             lineedit.setText(prop.val_str())
 
-    def _get_data_table(self, data: list[EM27Property]):
-        """Receive the data table from the server."""
+    def _set_data_table(self, data: list[EM27Property]):
+        """Receive the data table from the server.
+
+        Args:
+            data: the data received from the server
+        """
         self._data_table = data
 
     def _begin_polling(self) -> None:

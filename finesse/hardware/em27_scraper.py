@@ -48,6 +48,9 @@ class EM27Property:
 def get_em27sensor_data(content: str) -> list[EM27Property]:
     """Search for the PSF27Sensor table and store the data.
 
+    Args:
+        content: HTML content in which to search for PSF27Sensor table
+
     Returns:
         data_table: a list of sensor properties and their values
     """
@@ -96,7 +99,7 @@ class EM27Scraper:
         """Read the webpage.
 
         Returns:
-            content: html source read from the webpage
+            content: HTML source read from the webpage
         """
         try:
             request = get(self._url, timeout=self._timeout)
