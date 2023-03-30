@@ -1,5 +1,4 @@
 """This module provides an interface to a dummy EM27 monitor."""
-import logging
 from importlib import resources
 
 from .em27_scraper import EM27Error, EM27Scraper
@@ -21,8 +20,6 @@ class DummyEM27Scraper(EM27Scraper):
         """
         try:
             with open(self._url, "r") as page:
-                content = page.read()
-            logging.info("Read PSF27Sensor table")
-            return content
+                return page.read()
         except FileNotFoundError as e:
             raise EM27Error(f"Dummy EM27 server file {self._url} not found") from e
