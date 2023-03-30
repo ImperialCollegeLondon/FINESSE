@@ -74,8 +74,8 @@ def parse_data(data: bytes) -> tuple[list[Decimal], str]:
     except UnicodeDecodeError as e:
         raise DP9800Error(e)
 
-    vals_begin = 3
-    vals_end = 74  # assuming 9 temperatures
+    vals_begin = 3  # Following STX T SP
+    vals_end = 74  # Following STX T (SP %4.2f)*9, assuming 9 vals
     etx_index = data.find(b"\x03")
 
     vals = [Decimal(val) for val in data_ascii[vals_begin:vals_end].split()]
