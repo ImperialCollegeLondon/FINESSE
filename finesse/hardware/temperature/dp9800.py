@@ -132,16 +132,15 @@ class DP9800(TemperatureMonitorBase):
             sysflag: string representation of the system flag bitmask
 
         Returns:
-            dev_settings: dictionary containing the current device settings
+            dictionary containing the current device settings
         """
-        dev_settings = {
+        return {
             "instrument_type": ["TC", "PT"][int(sysflag[0])],
             "logging_state": ["no logging", "logging active"][int(sysflag[3])],
             "scanning_state": ["no scan", "autoscan active"][int(sysflag[5])],
             "audible_state": ["silence", "audible"][int(sysflag[6])],
             "temperature_unit": ["deg C", "deg F"][int(sysflag[7])],
         }
-        return dev_settings
 
     def read(self) -> bytes:
         """Read temperature data from the DP9800.
@@ -184,8 +183,8 @@ class DP9800(TemperatureMonitorBase):
 
         if len(data) < min_length:
             raise DP9800Error("Insufficient data read from device")
-        else:
-            return data
+
+        return data
 
     def request_read(self) -> None:
         """Write a message to the DP9800 to prepare for a read operation.
