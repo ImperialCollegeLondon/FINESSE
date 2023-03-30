@@ -32,14 +32,7 @@ class MainWindow(QMainWindow):
         measure_script = ScriptControl()
 
         # Setup for serial port control
-        devices = {
-            "ST10": {"port": "COM5", "baud_rate": "9600"},
-            "DP9800": {"port": "COM1", "baud_rate": "9600"},
-        }
-        serial_port: QGroupBox = SerialPortControl(
-            devices,
-            ("COM1", "COM5", "COM7"),
-        )
+        serial_port: QGroupBox = SerialPortControl()
 
         # Setup for interferometer monitor
         em27_monitor = EM27Monitor()

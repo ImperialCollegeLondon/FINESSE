@@ -1,8 +1,5 @@
 """Panel and widgets related to monitoring the interferometer."""
-from dataclasses import dataclass
-from decimal import Decimal
-from typing import Dict
-
+from pubsub import pub
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QGridLayout,
@@ -15,49 +12,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from ..hardware.em27_scraper import EM27Property
 from .led_icons import LEDIcon
-
-
-@dataclass
-class EM27Property:
-    """Class for representing EM27 monitored properties.
-
-    Args:
-        name: name of the physical quantity
-        value: value of the physical quantity
-        unit: unit in which the value is presented
-    """
-
-    name: str
-    value: Decimal
-    unit: str
-
-    def val_str(self) -> str:
-        """For printing a property's value and unit in required format.
-
-        Returns:
-            str: The value and unit of a property in the format consistent with
-                 the previous FINESSE GUI.
-        """
-        return f"{self.value:.6f} {self.unit}"
-
-
-def get_vals_from_server() -> list[EM27Property]:
-    """Placeholder function for retrieving interferometer properties.
-
-    Returns:
-        data_table: A list containing the physical properties being monitored
-    """
-    data_table = [
-        EM27Property("PSF27 Temp", Decimal(28.151062), "deg. C"),
-        EM27Property("Cryo Temp", Decimal(0.0), "deg. K"),
-        EM27Property("Blackbody Hum", Decimal(2.463968), "%"),
-        EM27Property("Source Temp", Decimal(70.007156), "deg. C"),
-        EM27Property("Aux Volt", Decimal(6.285875), "V"),
-        EM27Property("Aux Curr", Decimal(0.910230), "A"),
-        EM27Property("Laser Curr", Decimal(0.583892), "A"),
-    ]
-    return data_table
 
 
 class EM27Monitor(QGroupBox):
@@ -67,22 +23,28 @@ class EM27Monitor(QGroupBox):
         """Creates the attributes required to view properties monitored by the EM27."""
         super().__init__("EM27 SOH Monitor")
 
-        self._val_lineedits: Dict[str, QLineEdit] = {}
+        self._val_lineedits: dict[str, QLineEdit] = {}
         self._data_table: list[EM27Property] = []
 
         self._poll_light = LEDIcon.create_poll_icon()
-        self._poll_light._timer.timeout.connect(self.poll_server)  # type: ignore
-        self._poll_light._timer.start(2000)
+        self._poll_light.timer.timeout.connect(self._poll_server)  # type: ignore
 
         self._create_layouts()
 
         self._poll_wid_layout.addWidget(QLabel("POLL Server"))
         self._poll_wid_layout.addWidget(self._poll_light)
         self._poll_light.setSizePolicy(
-            QSizePolicy.Expanding, QSizePolicy.Fixed  # type: ignore
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
         )
 
         self.setLayout(self._layout)
+
+        pub.subscribe(self._set_data_table, "em27.data.response")
+
+        pub.sendMessage("em27.data.request")
+        self._display_props()
+
+        self._begin_polling()
 
     def _create_layouts(self) -> None:
         """Creates layouts to house the widgets."""
@@ -109,14 +71,12 @@ class EM27Monitor(QGroupBox):
         """
         if prop.name not in self._val_lineedits:
             prop_label = QLabel(prop.name)
-            prop_label.setSizePolicy(
-                QSizePolicy.Fixed, QSizePolicy.Fixed  # type: ignore
-            )
+            prop_label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
             val_lineedit = QLineEdit()
             val_lineedit.setReadOnly(True)
             val_lineedit.setAlignment(Qt.AlignmentFlag.AlignCenter)
             val_lineedit.setSizePolicy(
-                QSizePolicy.MinimumExpanding, QSizePolicy.Fixed  # type: ignore
+                QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.Fixed
             )
 
             self._val_lineedits[prop.name] = val_lineedit
@@ -129,14 +89,33 @@ class EM27Monitor(QGroupBox):
 
     def _display_props(self) -> None:
         """Creates and populates the widgets to view the EM27 properties."""
+        # TODO: remove/hide row from table if it is no longer in _data_table
         for prop in self._data_table:
             lineedit = self._get_prop_lineedit(prop)
             lineedit.setText(prop.val_str())
 
-    def poll_server(self) -> None:
+    def _set_data_table(self, data: list[EM27Property]):
+        """Receive the data table from the server.
+
+        This requires its own method in order to be called by pubsub.
+
+        Args:
+            data: the data received from the server
+        """
+        self._data_table = data
+
+    def _begin_polling(self) -> None:
+        """Initiate polling the server."""
+        self._poll_light.timer.start(2000)
+
+    def _end_polling(self) -> None:
+        """Terminate polling the server."""
+        self._poll_light.timer.stop()
+
+    def _poll_server(self) -> None:
         """Polls the server to obtain the latest values."""
-        self._poll_light._flash()
-        self._data_table = get_vals_from_server()
+        self._poll_light.flash()
+        pub.sendMessage("em27.data.request")
         self._display_props()
 
 
