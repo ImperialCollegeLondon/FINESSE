@@ -14,7 +14,6 @@ from .stepper_motor import create_stepper_motor_serial_manager
 from .temperature import create_temperature_controller_serial_managers
 
 opus: OPUSInterface
-scraper: EM27Scraper
 
 
 def _init_hardware():
