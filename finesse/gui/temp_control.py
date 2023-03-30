@@ -181,15 +181,15 @@ class DP9800Controls(QGroupBox):
 
     def _begin_polling(self) -> None:
         """Initiate polling the DP9800 device."""
-        self._poll_light._timer.start(2000)
+        self._poll_light.timer.start(2000)
 
     def _end_polling(self) -> None:
         """Terminate polling the DP9800 device."""
-        self._poll_light._timer.stop()
+        self._poll_light.timer.stop()
 
     def _poll_dp9800(self) -> None:
         """Polls the device to obtain the latest values."""
-        self._poll_light._flash()
+        self._poll_light.flash()
         pub.sendMessage("temperature_monitor.data.request")
 
     def _create_controls(self) -> QGridLayout:
@@ -220,7 +220,7 @@ class DP9800Controls(QGroupBox):
         layout.addWidget(poll_label, 0, 9, 2, 1)
 
         self._poll_light = LEDIcon.create_poll_icon()
-        self._poll_light._timer.timeout.connect(self._poll_dp9800)  # type: ignore
+        self._poll_light.timer.timeout.connect(self._poll_dp9800)  # type: ignore
         layout.addWidget(self._poll_light, 0, 10, 2, 1)
 
         return layout
