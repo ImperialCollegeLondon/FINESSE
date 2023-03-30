@@ -15,6 +15,7 @@ class DummyTemperatureMonitor(TemperatureMonitorBase):
     def __init__(self) -> None:
         """Create a new DummyTemperatureMonitor."""
         super().__init__("dummy")
+        self._noise_producer = NoiseProducer(seed=datetime.now().second)
 
     def close(self) -> None:
         """Close the connection to the device."""
@@ -23,19 +24,11 @@ class DummyTemperatureMonitor(TemperatureMonitorBase):
 
     def send_temperatures(self) -> None:
         """Publish fluctuating temperatures."""
-        noise = NoiseProducer(seed=datetime.now().second)()
-
+        _BASE_TEMPS = (19, 17, 26, 22, 24, 68, 69, 24)
+        noise = self._noise_producer()
+        temperatures = [Decimal(noise + temp) for temp in _BASE_TEMPS]
         time_now = datetime.now().timestamp()
-        temperatures = [
-            Decimal(19 + noise),
-            Decimal(17 + noise),
-            Decimal(26 + noise),
-            Decimal(850.00),
-            Decimal(24 + noise),
-            Decimal(68 + noise),
-            Decimal(69 + noise),
-            Decimal(24 + noise),
-        ]
+
         pub.sendMessage(
             "temperature_monitor.data.response",
             temperatures=temperatures,
