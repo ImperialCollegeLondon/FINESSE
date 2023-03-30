@@ -197,11 +197,11 @@ class ScriptRunner(StateMachine):
         self.current_measurement_count: int
         """How many times a measurement has been recorded at the current angle."""
 
-        self._measure_poll_timer = QTimer()
-        """A timer which repeatedly polls the EM27."""
-        self._measure_poll_timer.setSingleShot(True)
-        self._measure_poll_timer.setInterval(round(1000 * min_poll_interval))
-        self._measure_poll_timer.timeout.connect(_poll_em27_status)  # type: ignore
+        self._check_status_timer = QTimer()
+        """A timer which checks whether the EM27's measurement is complete."""
+        self._check_status_timer.setSingleShot(True)
+        self._check_status_timer.setInterval(round(1000 * min_poll_interval))
+        self._check_status_timer.timeout.connect(_poll_em27_status)  # type: ignore
 
         # Send stop command in case motor is moving
         pub.sendMessage(f"serial.{STEPPER_MOTOR_TOPIC}.stop")
@@ -286,7 +286,7 @@ class ScriptRunner(StateMachine):
 
     def on_exit_measuring(self) -> None:
         """Ensure that the polling timer is stopped."""
-        self._measure_poll_timer.stop()
+        self._check_status_timer.stop()
 
     def _measuring_started(
         self,
@@ -317,7 +317,7 @@ class ScriptRunner(StateMachine):
             self._measuring_end()
         else:
             # Poll again later
-            self._measure_poll_timer.start()
+            self._check_status_timer.start()
 
     def abort(self) -> None:
         """Abort the current measure script run."""

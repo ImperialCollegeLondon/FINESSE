@@ -15,7 +15,7 @@ def runner():
     """Fixture for a ScriptRunner in its initial state."""
     script = Script(Path(), 1, ({"angle": 0.0, "measurements": 3},))
     runner = ScriptRunner(script)
-    runner._measure_poll_timer = MagicMock()
+    runner._check_status_timer = MagicMock()
     return runner
 
 
@@ -216,7 +216,7 @@ def test_status_received_error(runner_measuring: ScriptRunner) -> None:
 def test_on_exit_measuring(runner_measuring: ScriptRunner) -> None:
     """Test that the timer is stopped when exiting measuring state."""
     runner_measuring.on_exit_measuring()
-    timer_stop = cast(MagicMock, runner_measuring._measure_poll_timer.stop)
+    timer_stop = cast(MagicMock, runner_measuring._check_status_timer.stop)
     timer_stop.assert_called_once()
 
 
