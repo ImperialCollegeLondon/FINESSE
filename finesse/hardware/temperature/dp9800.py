@@ -211,10 +211,10 @@ class DP9800(TemperatureMonitorBase):
         Reads the raw data from the DP9800.
         Parses the data and broadcasts the temperatures.
         """
-        time_now = datetime.now().timestamp()
         try:
             self.request_read()
             data = self.read()
+            time_now = datetime.now().timestamp()
             temperatures, _ = parse_data(data)
         except DP9800Error as e:
             self._error_occurred(e)
