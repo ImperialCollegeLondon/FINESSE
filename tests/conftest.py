@@ -15,6 +15,14 @@ def subscribe_mock(monkeypatch) -> MagicMock:
 
 
 @pytest.fixture
+def unsubscribe_mock(monkeypatch) -> MagicMock:
+    """Fixture for pub.subscribe."""
+    mock = MagicMock()
+    monkeypatch.setattr(pub, "unsubscribe", mock)
+    return mock
+
+
+@pytest.fixture
 def sendmsg_mock(monkeypatch) -> MagicMock:
     """Fixture for pub.sendMessage."""
     mock = MagicMock()
