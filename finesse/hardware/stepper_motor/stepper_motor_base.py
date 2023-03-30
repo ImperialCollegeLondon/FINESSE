@@ -24,6 +24,9 @@ class StepperMotorBase(DeviceBase):
         pub.subscribe(
             self._notify_on_stopped, f"serial.{STEPPER_MOTOR_TOPIC}.notify_on_stopped"
         )
+        pub.subscribe(
+            self._request_angle, f"serial.{STEPPER_MOTOR_TOPIC}.request.angle"
+        )
 
     @staticmethod
     def send_error_message(error: BaseException) -> None:
@@ -121,3 +124,9 @@ class StepperMotorBase(DeviceBase):
             self.notify_on_stopped()
         except Exception as error:
             self.send_error_message(error)
+
+    def _request_angle(self) -> None:
+        """Request the current angle from the device and return via pubsub."""
+        pub.sendMessage(
+            f"serial.{STEPPER_MOTOR_TOPIC}.response.angle", angle=self.angle
+        )
