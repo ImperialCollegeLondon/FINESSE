@@ -1,0 +1,174 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<HTML><HEAD><TITLE>Automation units Diagnostics</TITLE>
+<META HTTP-EQUIV="PRAGMA" CONTENT="NO-CACHE"></HEAD>
+<BODY BGCOLOR="#DCDCDC">
+<H2>EM27 SN_93 Automation units Diagnostics</H2>
+<FORM ACTION="/diag_autom.htm" METHOD="GET">
+<INPUT TYPE="button" onClick="javascript:location.href = '/diag.htm'" VALUE="Back">
+<INPUT TYPE="button" onClick="javascript:location.href=location.pathname" VALUE="Refresh">
+<INPUT TYPE="submit" NAME="submit" VALUE="Auto-Reload">
+</FORM><FIELDSET><LEGEND><B>Messages</B></LEGEND>
+<TABLE BORDER>
+<TR BGCOLOR="#8FBC8F">
+<TH ID=NOERR>No error</TH></TR></TABLE></FIELDSET>
+<FIELDSET><LEGEND><B>Standard CAN Devices (CAN-S)</B></LEGEND>
+<TABLE BORDER><TR>
+
+<TH>Mot Number</TH><TH>Hex Address</TH><TH>Type</TH><TH>Used in</TH><TH>Current Pos</TH><TH>Timeout</TH><TH>Status Ready</TH><TH>Error</TH><TH>Running</TH><TH>Initialized</TH><TH>Connected</TH><TH>Firmware version</TH></TR>
+<TR><TD>161</TD><TD>0x2100</TD><TD>CAN ADI ( 3)</TD><TD></TD><TD>0</TD><TD>5</TD><TD></TD><TD></TD><TD></TD><TD>X</TD><TD></TD><TD>10</TD></TR>
+<TR><TD>1161</TD><TD>0x2120</TD><TD>CAN ADI ( 3)</TD><TD></TD><TD>0</TD><TD>5</TD><TD></TD><TD></TD><TD></TD><TD>X</TD><TD>X</TD><TD>10</TD></TR>
+<TR><TD>2161</TD><TD>0x2140</TD><TD>CAN ADI ( 3)</TD><TD></TD><TD>0</TD><TD>5</TD><TD></TD><TD></TD><TD></TD><TD>X</TD><TD></TD><TD>10</TD></TR>
+<TR><TD>3161</TD><TD>0x2160</TD><TD>CAN ADI ( 3)</TD><TD></TD><TD>0</TD><TD>5</TD><TD></TD><TD></TD><TD></TD><TD>X</TD><TD>X</TD><TD>10</TD></TR>
+<TR><TD>4161</TD><TD>0x2180</TD><TD>CAN ADI ( 3)</TD><TD></TD><TD>0</TD><TD>5</TD><TD></TD><TD></TD><TD></TD><TD>X</TD><TD>X</TD><TD>10</TD></TR>
+<TR><TD>5161</TD><TD>0x21A0</TD><TD>CAN ADI ( 3)</TD><TD></TD><TD>0</TD><TD>5</TD><TD></TD><TD></TD><TD></TD><TD>X</TD><TD>X</TD><TD>10</TD></TR>
+<TR><TD>6161</TD><TD>0x21C0</TD><TD>CAN ADI ( 3)</TD><TD></TD><TD>0</TD><TD>10</TD><TD></TD><TD></TD><TD></TD><TD>X</TD><TD>X</TD><TD>10</TD></TR>
+<TR><TD>7161</TD><TD>0x21E0</TD><TD>CAN ADI ( 3)</TD><TD></TD><TD>0</TD><TD>10</TD><TD></TD><TD></TD><TD></TD><TD>X</TD><TD>X</TD><TD>10</TD></TR>
+<TR><TD>6160</TD><TD>0x20C0</TD><TD>CAN-ADI Digout</TD><TD></TD><TD>0</TD><TD>5</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>7160</TD><TD>0x20E0</TD><TD>CAN-ADI Digin</TD><TD></TD><TD>0</TD><TD>5</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>2162</TD><TD>0x2240</TD><TD>CAN-ADI ADC 1</TD><TD></TD><TD>0</TD><TD>5</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>3162</TD><TD>0x2260</TD><TD>CAN-ADI ADC 2</TD><TD></TD><TD>0</TD><TD>5</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>4162</TD><TD>0x2280</TD><TD>CAN-ADI DAC 1</TD><TD></TD><TD>0</TD><TD>5</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>5162</TD><TD>0x22A0</TD><TD>CAN-ADI DAC 2</TD><TD></TD><TD>0</TD><TD>5</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>6162</TD><TD>0x22C0</TD><TD>CAN-ADI Digout</TD><TD></TD><TD>0</TD><TD>5</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>7162</TD><TD>0x22E0</TD><TD>CAN-ADI Digin</TD><TD></TD><TD>0</TD><TD>5</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+<TR><TD>220</TD><TD>0x5C00</TD><TD></TD><TD></TD><TD>0</TD><TD>10</TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD><TD></TD></TR>
+</TABLE></FIELDSET><FIELDSET><LEGEND><B>Controller</B></LEGEND>
+<TABLE BORDER><TR>
+
+<TH>Address</TH><TH>Board Type</TH><TH>Name</TH><TH>Use</TH><TH>Description</TH><TH>Firmware Type</TH><TH>Firmware Version</TH><TR><TD>0x00040000</TD><TD>flange</TD><TD>EM27 flangeboard</TD><TD>em27 flangeboard</TD><TD>EM27 power supply and flangeboard</TD><TD>application</TD><TD>350</TD></TR></TABLE><FIELDSET><LEGEND><B>Unit List</B></LEGEND>
+<TABLE BORDER><TR>
+
+<TH>Slot / (Realaddress)</TH><TH>UnitName</TH><TH>UnitType</TH><TH>Status</TH><TH>Unit Specific Info</TH><TH>Command List</TH><TR><TD>1 (0x40100)</TD><TD>device descriptor</TD><TD>Descriptor</TD><TD>idle</TD><TD ALIGN=center VALIGN=top>
+<TABLE BORDER ALIGN=left>
+<TR><TH>Files On Device: No</TH><TH>Name</TH></TR>
+<TR><TD>0</TD><TD>descriptor.xml</TD></TR>
+<TR><TD>1</TD><TD>x7device.xml</TD></TR>
+<TR><TD>2</TD><TD>instdata.xml</TD></TR>
+</TABLE>
+</TD><TD ALIGN=center VALIGN=top>
+<TABLE BORDER ALIGN=left>
+<TR><TH>Cmd Name</TH><TH>Parameter Types</TH><TH>Command Answer Types</TH><TH>Timeout [ms]</TH></TR>
+<TR><TD>delete</TD><TD>string</TD><TD>string</TD><TD>1500</TD></TR>
+<TR><TD>format</TD><TD></TD><TD>string</TD><TD>1500</TD></TR>
+<TR><TD>reset</TD><TD></TD><TD>string</TD><TD>1500</TD></TR>
+<TR><TD>findfile</TD><TD></TD><TD>string</TD><TD>1500</TD></TR>
+<TR><TD>nextfile</TD><TD></TD><TD>string</TD><TD>1500</TD></TR>
+<TR><TD>flip</TD><TD></TD><TD>string</TD><TD>1500</TD></TR>
+<TR><TD>loader</TD><TD></TD><TD>string</TD><TD>1500</TD></TR>
+<TR><TD>failsafe</TD><TD></TD><TD>string</TD><TD>1500</TD></TR>
+<TR><TD>OsVer</TD><TD></TD><TD>int</TD><TD>1500</TD></TR>
+<TR><TD>FwVer</TD><TD></TD><TD>int</TD><TD>1500</TD></TR>
+<TR><TD>Fw</TD><TD></TD><TD>string</TD><TD>1500</TD></TR>
+</TABLE>
+</TD></TR><TR><TD>2 (0x40200)</TD><TD>PSF27Diag</TD><TD>Standard</TD><TD>idle</TD><TD>No</TD><TD><TABLE BORDER>
+
+<TR><TH>Cmd Name</TH><TH>Parameter Types</TH><TH>Command Answer Types</TH><TH>Timeout [ms]</TH></TR>
+<TR><TD>VER</TD><TD></TD><TD>string</TD><TD>2000</TD></TR>
+<TR><TD>STA</TD><TD></TD><TD>U16Hex, U16Hex</TD><TD>2000</TD></TR>
+<TR><TD>ERR</TD><TD></TD><TD>U16Hex, U16Hex</TD><TD>2000</TD></TR>
+<TR><TD>ILAS?</TD><TD></TD><TD>float</TD><TD>2000</TD></TR>
+<TR><TD>CRYTEMP?</TD><TD></TD><TD>float</TD><TD>2000</TD></TR>
+<TR><TD>FLM?</TD><TD></TD><TD>int</TD><TD>2000</TD></TR>
+<TR><TD>TEMP?</TD><TD></TD><TD>float</TD><TD>2000</TD></TR>
+<TR><TD>HUM?</TD><TD></TD><TD>float</TD><TD>2000</TD></TR>
+<TR><TD>DEW?</TD><TD></TD><TD>float</TD><TD>2000</TD></TR>
+<TR><TD>AUXTEMP?</TD><TD></TD><TD>float</TD><TD>2000</TD></TR>
+<TR><TD>BBxI?</TD><TD></TD><TD>float</TD><TD>2000</TD></TR>
+<TR><TD>BBe?</TD><TD></TD><TD>float</TD><TD>2000</TD></TR>
+<TR><TD>VAUX?</TD><TD></TD><TD>float</TD><TD>2000</TD></TR>
+<TR><TD>IAUX?</TD><TD></TD><TD>float</TD><TD>2000</TD></TR>
+<TR><TD>VS?</TD><TD></TD><TD>float</TD><TD>2000</TD></TR>
+<TR><TD>VB+3V3?</TD><TD></TD><TD>float</TD><TD>2000</TD></TR>
+<TR><TD>VB+5V?</TD><TD></TD><TD>float</TD><TD>2000</TD></TR>
+<TR><TD>VB+12V?</TD><TD></TD><TD>float</TD><TD>2000</TD></TR>
+<TR><TD>VB-12V?</TD><TD></TD><TD>float</TD><TD>2000</TD></TR>
+<TR><TD>ADC</TD><TD>int</TD><TD>U16Hex, U16Hex</TD><TD>2000</TD></TR>
+<TR><TD>DDC</TD><TD></TD><TD>int</TD><TD>2000</TD></TR>
+<TR><TD>DDR</TD><TD>int</TD><TD>ull</TD><TD>2000</TD></TR>
+<TR><TD>LED</TD><TD>int, char</TD><TD>string</TD><TD>2000</TD></TR>
+<TR><TD>TIME?</TD><TD></TD><TD>int</TD><TD>2000</TD></TR>
+<TR><TD>EEWR</TD><TD>uint, int</TD><TD>int</TD><TD>2000</TD></TR>
+<TR><TD>EERD</TD><TD>uint</TD><TD>int</TD><TD>2000</TD></TR>
+<TR><TD>IDRD</TD><TD>uint, uint, uint</TD><TD>int, string</TD><TD>2000</TD></TR>
+<TR><TD>IDWR</TD><TD>uint, uint, uint, short, string</TD><TD>int</TD><TD>2000</TD></TR>
+<TR><TD>GetState</TD><TD></TD><TD>int</TD><TD>2000</TD></TR>
+</TABLE>
+</TD></TR><TR><TD>3 (0x40300)</TD><TD>PSF27FLM</TD><TD>DcMotor</TD><TD>idle</TD><TD>No</TD><TD><TABLE BORDER>
+
+<TR><TH>Cmd Name</TH><TH>Parameter Types</TH><TH>Command Answer Types</TH><TH>Timeout [ms]</TH></TR>
+<TR><TD>SetPI</TD><TD>int</TD><TD>int</TD><TD>20000</TD></TR>
+<TR><TD>home</TD><TD></TD><TD></TD><TD>20000</TD></TR>
+<TR><TD>GVali</TD><TD></TD><TD>int</TD><TD>2000</TD></TR>
+<TR><TD>GRai</TD><TD>int</TD><TD>int, int</TD><TD>2000</TD></TR>
+<TR><TD>GetNR</TD><TD></TD><TD>int</TD><TD>2000</TD></TR>
+<TR><TD>RdMem</TD><TD>int, int</TD><TD>int, short, string</TD><TD>10000</TD></TR>
+<TR><TD>WrMem</TD><TD>int, int, short, string</TD><TD>int, short</TD><TD>10000</TD></TR>
+<TR><TD>SzMem</TD><TD></TD><TD>int</TD><TD>2000</TD></TR>
+<TR><TD>GetFrSz</TD><TD></TD><TD>int</TD><TD>2000</TD></TR>
+<TR><TD>GetState</TD><TD></TD><TD>int</TD><TD>2000</TD></TR>
+</TABLE>
+</TD></TR><TR><TD>4 (0x40400)</TD><TD>PSF27BB</TD><TD>TempController</TD><TD>prepare</TD><TD>No</TD><TD><TABLE BORDER>
+
+<TR><TH>Cmd Name</TH><TH>Parameter Types</TH><TH>Command Answer Types</TH><TH>Timeout [ms]</TH></TR>
+<TR><TD>SetPF</TD><TD>float</TD><TD>float</TD><TD>2000</TD></TR>
+<TR><TD>GValf</TD><TD></TD><TD>float</TD><TD>2000</TD></TR>
+<TR><TD>GRaf</TD><TD>int</TD><TD>float, float</TD><TD>2000</TD></TR>
+<TR><TD>GetNR</TD><TD></TD><TD>int</TD><TD>2000</TD></TR>
+<TR><TD>en</TD><TD>int</TD><TD></TD><TD>2000</TD></TR>
+<TR><TD>stop</TD><TD></TD><TD></TD><TD>2000</TD></TR>
+<TR><TD>SetPara</TD><TD>string</TD><TD></TD><TD>2000</TD></TR>
+<TR><TD>GetPara</TD><TD>string</TD><TD>string</TD><TD>2000</TD></TR>
+<TR><TD>RdMem</TD><TD>int, int</TD><TD>int, short, U8Array</TD><TD>10000</TD></TR>
+<TR><TD>WrMem</TD><TD>int, int, short, U8Array</TD><TD>int, short</TD><TD>10000</TD></TR>
+<TR><TD>SzMem</TD><TD></TD><TD>int</TD><TD>2000</TD></TR>
+<TR><TD>GetFrSz</TD><TD></TD><TD>int</TD><TD>2000</TD></TR>
+<TR><TD>GetState</TD><TD></TD><TD>int</TD><TD>2000</TD></TR>
+</TABLE>
+</TD></TR><TR><TD>6 (0x40600)</TD><TD>PSF27Sensor</TD><TD>SensorList</TD><TD>idle</TD><TD ALIGN=left VALIGN=top>
+<TABLE BORDER>
+<TR><TH>No</TH><TH>Name</TH><TH>Description</TH><TH>Status</TH><TH>Value</TH><TH>Meas. Unit</TH></TR>
+<TR><TD>0</TD><TD>PSF27 Temp</TD><TD>Scanner compartment temperature</TD><TD>idle</TD><TD>27.374617</TD><TD>deg. C</TD></TR>
+<TR><TD>1</TD><TD>Cryo Temp</TD><TD>Cryo cooler temperature</TD><TD>idle</TD><TD>0.000000</TD><TD>deg. K</TD></TR>
+<TR><TD>2</TD><TD>Blackbody Hum</TD><TD>Blackbody humidity</TD><TD>idle</TD><TD>2.055935</TD><TD>%</TD></TR>
+<TR><TD>3</TD><TD>Source Temp</TD><TD>Reference temperature source</TD><TD>idle</TD><TD>0.000000</TD><TD>deg. C</TD></TR>
+<TR><TD>4</TD><TD>Aux Volt</TD><TD>Blackbody voltage</TD><TD>idle</TD><TD>0.000000</TD><TD>V</TD></TR>
+<TR><TD>5</TD><TD>Aux Curr</TD><TD>Blackbody current</TD><TD>idle</TD><TD>0.000000</TD><TD>A</TD></TR>
+<TR><TD>6</TD><TD>Laser Curr</TD><TD>Laser current</TD><TD>idle</TD><TD>0.584310</TD><TD>A</TD></TR>
+</TABLE>
+</TD><TD ALIGN=center VALIGN=top>
+<TABLE BORDER>
+<TR><TH>Cmd Name</TH><TH>Parameter Types</TH><TH>Command Answer Types</TH><TH>Timeout [ms]</TH></TR>
+<TR><TD>GValf</TD><TD>int</TD><TD>float</TD><TD>2000</TD></TR>
+<TR><TD>GRaf</TD><TD>int</TD><TD>float, float</TD><TD>2000</TD></TR>
+<TR><TD>GSeN</TD><TD></TD><TD>int</TD><TD>2000</TD></TR>
+<TR><TD>GetState</TD><TD></TD><TD>int</TD><TD>2000</TD></TR>
+<TR><TD>GSSt</TD><TD>int</TD><TD>short, string, int, int, string</TD><TD>2000</TD></TR>
+</TABLE>
+</TD></TR><TR><TD>7 (0x40700)</TD><TD>HeNe-Laser</TD><TD>DcMotor</TD><TD>idle</TD><TD>No</TD><TD><TABLE BORDER>
+
+<TR><TH>Cmd Name</TH><TH>Parameter Types</TH><TH>Command Answer Types</TH><TH>Timeout [ms]</TH></TR>
+<TR><TD>SetPI</TD><TD>int</TD><TD>int</TD><TD>20000</TD></TR>
+<TR><TD>GVali</TD><TD></TD><TD>int</TD><TD>2000</TD></TR>
+<TR><TD>GRai</TD><TD>int</TD><TD>int, int</TD><TD>2000</TD></TR>
+<TR><TD>GetNR</TD><TD></TD><TD>int</TD><TD>2000</TD></TR>
+<TR><TD>RdMem</TD><TD>int, int</TD><TD>int, short, string</TD><TD>10000</TD></TR>
+<TR><TD>WrMem</TD><TD>int, int, short, string</TD><TD>int, short</TD><TD>10000</TD></TR>
+<TR><TD>SzMem</TD><TD></TD><TD>int</TD><TD>2000</TD></TR>
+<TR><TD>GetFrSz</TD><TD></TD><TD>int</TD><TD>2000</TD></TR>
+<TR><TD>GetState</TD><TD></TD><TD>int</TD><TD>2000</TD></TR>
+</TABLE>
+</TD></TR><TR><TD>8 (0x40800)</TD><TD>Cryo-Cooler</TD><TD>DcMotor</TD><TD>not connected</TD><TD>No</TD><TD><TABLE BORDER>
+
+<TR><TH>Cmd Name</TH><TH>Parameter Types</TH><TH>Command Answer Types</TH><TH>Timeout [ms]</TH></TR>
+<TR><TD>SetPI</TD><TD>int</TD><TD>int</TD><TD>2000</TD></TR>
+<TR><TD>GVali</TD><TD></TD><TD>int</TD><TD>2000</TD></TR>
+<TR><TD>GRai</TD><TD>int</TD><TD>int, int</TD><TD>2000</TD></TR>
+<TR><TD>GetNR</TD><TD></TD><TD>int</TD><TD>2000</TD></TR>
+<TR><TD>RdMem</TD><TD>int, int</TD><TD>int, short, string</TD><TD>10000</TD></TR>
+<TR><TD>WrMem</TD><TD>int, int, short, string</TD><TD>int, short</TD><TD>10000</TD></TR>
+<TR><TD>SzMem</TD><TD></TD><TD>int</TD><TD>2000</TD></TR>
+<TR><TD>GetFrSz</TD><TD></TD><TD>int</TD><TD>2000</TD></TR>
+<TR><TD>GetState</TD><TD></TD><TD>int</TD><TD>2000</TD></TR>
+</TABLE>
+</TD></TR></TABLE></FIELDSET></FIELDSET><P>Page generated on Tue, 17 Jan 2023 13:28:00</BODY></HTML>
