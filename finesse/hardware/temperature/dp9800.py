@@ -104,7 +104,7 @@ class DP9800(TemperatureMonitorBase):
         """Close the connection to the device.
 
         Raises:
-            SerialException: Error communicating with device
+            DP9800Error: Error communicating with device
         """
         try:
             self.serial.close()
