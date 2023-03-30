@@ -175,24 +175,13 @@ class DP9800Controls(QGroupBox):
         layout = self._create_controls()
         self.setLayout(layout)
 
-        self._begin_polling()
-
         pub.subscribe(self._begin_polling, "temperature_monitor.open")
         pub.subscribe(self._end_polling, "temperature_monitor.close")
         pub.subscribe(self._update_pt100s, "temperature_monitor.data.response")
 
-    def _begin_polling(self) -> None:
-        """Initiate polling the DP9800 device."""
-        self._poll_light.timer.start()
-
-    def _end_polling(self) -> None:
-        """Terminate polling the DP9800 device."""
-        self._poll_light.timer.stop()
-
-    def _poll_dp9800(self) -> None:
-        """Polls the device to obtain the latest values."""
-        self._poll_light.flash()
         pub.sendMessage("temperature_monitor.data.request")
+
+        self._begin_polling()
 
     def _create_controls(self) -> QGridLayout:
         """Creates the overall layout for the panel.
@@ -227,6 +216,19 @@ class DP9800Controls(QGroupBox):
         layout.addWidget(self._poll_light, 0, 10, 2, 1)
 
         return layout
+
+    def _begin_polling(self) -> None:
+        """Initiate polling the DP9800 device."""
+        self._poll_light.timer.start()
+
+    def _end_polling(self) -> None:
+        """Terminate polling the DP9800 device."""
+        self._poll_light.timer.stop()
+
+    def _poll_dp9800(self) -> None:
+        """Polls the device to obtain the latest values."""
+        self._poll_light.flash()
+        pub.sendMessage("temperature_monitor.data.request")
 
     def _update_pt100s(self, temperatures: list[Decimal], time: float) -> None:
         """Display the latest Pt 100 temperatures.
