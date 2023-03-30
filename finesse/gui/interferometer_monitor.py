@@ -97,6 +97,8 @@ class EM27Monitor(QGroupBox):
     def _set_data_table(self, data: list[EM27Property]):
         """Receive the data table from the server.
 
+        This requires its own method in order to be called by pubsub.
+
         Args:
             data: the data received from the server
         """
