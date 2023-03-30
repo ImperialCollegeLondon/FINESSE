@@ -104,12 +104,10 @@ class EM27Scraper:
         try:
             request = get(self._url, timeout=self._timeout)
 
-            # Check whether an error occured
+            # Check whether an error occurred
             request.raise_for_status()
 
-            content = request.text
-            logging.info("Read PSF27Sensor table")
-            return content
+            return request.text
         except (ConnectionError, HTTPError, Timeout) as e:
             raise EM27Error(f"Error connecting to {self._url}") from e
 
