@@ -10,7 +10,6 @@ from PySide6.QtGui import QCloseEvent
 from PySide6.QtWidgets import (
     QDialog,
     QDialogButtonBox,
-    QFileDialog,
     QFormLayout,
     QMessageBox,
     QVBoxLayout,
@@ -19,9 +18,9 @@ from PySide6.QtWidgets import (
 
 from ...config import DEFAULT_SCRIPT_PATH
 from ..error_message import show_error_message
+from ..path_widget import SavePathWidget
 from .count_widget import CountWidget
 from .script import Script
-from .script_path_widget import ScriptPathWidget
 from .sequence_widget import SequenceWidget
 
 
@@ -38,14 +37,21 @@ class ScriptEditDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("Edit measurement script")
 
+        initial_save_path: Optional[Path] = None
         if script:
             self.count = CountWidget("Repeats", script.repeats)
             self.sequence_widget = SequenceWidget(script.sequence)
-            self.script_path = SaveScriptPathWidget(script.path)
+            initial_save_path = script.path
         else:
             self.count = CountWidget("Repeats")
             self.sequence_widget = SequenceWidget()
-            self.script_path = SaveScriptPathWidget()
+        self.script_path = SavePathWidget(
+            initial_save_path,
+            extension="yaml",
+            parent=self,
+            caption="Choose destination for measure script",
+            dir=str(DEFAULT_SCRIPT_PATH),
+        )
 
         # Put a label next to the script path
         script_widget = QWidget()
@@ -131,26 +137,3 @@ class ScriptEditDialog(QDialog):
         else:
             # User cancelled; leave this dialog open
             event.ignore()
-
-
-class SaveScriptPathWidget(ScriptPathWidget):
-    """A widget that lets the user choose the path to save a script."""
-
-    def try_get_path_from_dialog(self) -> Optional[Path]:
-        """Try to get the path to save the file to by opening a dialog."""
-        filename, _ = QFileDialog.getSaveFileName(
-            self,
-            caption="Choose destination path",
-            dir=str(DEFAULT_SCRIPT_PATH),
-            filter="*.yaml",
-        )
-
-        # User cancelled
-        if not filename:
-            return None
-
-        # Make sure it has a YAML extension
-        if not filename.lower().endswith(".yaml"):
-            filename += ".yaml"
-
-        return Path(filename)
