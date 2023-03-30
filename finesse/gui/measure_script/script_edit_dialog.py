@@ -138,14 +138,19 @@ class SaveScriptPathWidget(ScriptPathWidget):
 
     def try_get_path_from_dialog(self) -> Optional[Path]:
         """Try to get the path to save the file to by opening a dialog."""
-        dialog = QFileDialog(
+        filename, _ = QFileDialog.getSaveFileName(
             self,
             caption="Choose destination path",
-            directory=str(DEFAULT_SCRIPT_PATH),
+            dir=str(DEFAULT_SCRIPT_PATH),
             filter="*.yaml",
         )
-        dialog.setDefaultSuffix("yaml")
 
-        if dialog.exec():
-            return Path(dialog.selectedFiles()[0])
-        return None
+        # User cancelled
+        if not filename:
+            return None
+
+        # Make sure it has a YAML extension
+        if not filename.lower().endswith(".yaml"):
+            filename += ".yaml"
+
+        return Path(filename)
