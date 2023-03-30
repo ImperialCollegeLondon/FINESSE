@@ -24,5 +24,5 @@ class DummyEM27Scraper(EM27Scraper):
                 content = page.read()
             logging.info("Read PSF27Sensor table")
             return content
-        except FileNotFoundError:
-            raise EM27Error(f"Dummy EM27 server file {self._url} not found")
+        except FileNotFoundError as e:
+            raise EM27Error(f"Dummy EM27 server file {self._url} not found") from e
