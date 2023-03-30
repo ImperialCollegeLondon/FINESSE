@@ -110,12 +110,8 @@ class EM27Scraper:
             content = request.text
             logging.info("Read PSF27Sensor table")
             return content
-        except ConnectionError:
-            raise EM27Error(f"Error connecting to {self._url}")
-        except HTTPError:
-            raise EM27Error(f"{self._url} not found")
-        except Timeout:
-            raise EM27Error("Request timed out")
+        except (ConnectionError, HTTPError, Timeout) as e:
+            raise EM27Error(f"Error connecting to {self._url}") from e
 
     def send_data(self) -> None:
         """Request the EM27 property data from the web server and send to GUI."""
