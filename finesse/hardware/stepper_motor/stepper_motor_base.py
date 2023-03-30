@@ -14,7 +14,7 @@ class StepperMotorBase(DeviceBase):
     def __init__(self) -> None:
         """Create a new StepperMotorBase.
 
-        Subscribe to stepper.move messages.
+        Subscribe to stepper motor pubsub messages.
         """
         pub.subscribe(
             self._move_to,
