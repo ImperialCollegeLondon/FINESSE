@@ -2,8 +2,8 @@
 from contextlib import nullcontext as does_not_raise
 from itertools import chain
 from pathlib import Path
-from typing import Any, Dict, Union
-from unittest.mock import patch
+from typing import Any, Dict
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 import yaml
@@ -77,13 +77,6 @@ def test_parse_script(data: Dict[str, Any], raises: Any) -> None:
         parse_script(yaml.safe_dump(data))
 
 
-@pytest.mark.parametrize("angle", ("nadir", 90.0))
-def test_measurement_to_dict(angle: Union[str, float]) -> None:
-    """Check Measurement's to_dict() method."""
-    d = Measurement(angle, 5)
-    assert d.to_dict() == {"angle": angle, "measurements": 5}
-
-
 _SCRIPT_PATH = Path(__file__).parent / "test_script.yaml"
 
 
@@ -116,3 +109,45 @@ def test_try_load_fail(
             script = Script.try_load(QWidget(), _SCRIPT_PATH)
             assert script is None, "Script should not have been loaded"
             show_error_mock.assert_called_once()
+
+
+_MEASUREMENTS = [Measurement(float(i), i) for i in range(1, 4)]
+
+
+@pytest.mark.parametrize(
+    "num_measurements,repeats",
+    (
+        (num_measurements, repeats)
+        for num_measurements in range(4)
+        for repeats in range(1, 4)
+    ),
+)
+def test_script_iterator(num_measurements: int, repeats: int) -> None:
+    """Test the ScriptIterator class."""
+    script = Script(Path(), repeats, [])
+    script.sequence = _MEASUREMENTS[:num_measurements]
+    it = iter(script)
+
+    # Check that we get the correct values "repeats" times
+    with does_not_raise():
+        for _ in range(repeats):
+            assert all(next(it) == m for m in script.sequence)
+
+    # Check that we get a StopIteration at the end
+    with pytest.raises(StopIteration):
+        next(it)
+
+    # Check that calling it again still yields an error!
+    with pytest.raises(StopIteration):
+        next(it)
+
+
+@patch("finesse.gui.measure_script.script.ScriptRunner")
+def test_script_run(script_runner_mock: Mock) -> None:
+    """Test Script's run() method."""
+    mock2 = MagicMock()
+    script_runner_mock.return_value = mock2
+    script = Script(Path(), 1, ())
+    script.run()
+    script_runner_mock.assert_called_once()
+    mock2.start_moving.assert_called_once()
