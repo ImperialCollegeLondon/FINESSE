@@ -22,12 +22,6 @@ def check_data(data: bytes) -> None:
     Raises:
         DP9800Error: Malformed message received from device
     """
-    header_width = 2
-    value_width = 8
-    num_values = 9
-    if len(data) < (header_width + value_width * num_values):
-        raise DP9800Error("Insufficient data read")
-
     if data[0] != 2:  # STX
         raise DP9800Error("Start transmission character not detected")
     if data.find(3) == -1:  # ETX
