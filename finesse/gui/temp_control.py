@@ -160,15 +160,17 @@ class TemperaturePlot(QGroupBox):
 class DP9800Controls(QGroupBox):
     """Widgets to view the DP9800 properties."""
 
-    def __init__(self, num_channels: int = 8) -> None:
+    def __init__(self, num_channels: int = 8, poll_interval: int = 2000) -> None:
         """Creates the widgets to monitor DP9800.
 
         Args:
             num_channels: Number of Pt 100 channels being monitored
+            poll_interval: Period with which to update the values (in seconds)
         """
         super().__init__("DP9800")
 
         self._num_channels = num_channels
+        self._poll_interval = poll_interval
 
         layout = self._create_controls()
         self.setLayout(layout)
@@ -181,7 +183,7 @@ class DP9800Controls(QGroupBox):
 
     def _begin_polling(self) -> None:
         """Initiate polling the DP9800 device."""
-        self._poll_light.timer.start(2000)
+        self._poll_light.timer.start()
 
     def _end_polling(self) -> None:
         """Terminate polling the DP9800 device."""
@@ -220,6 +222,7 @@ class DP9800Controls(QGroupBox):
         layout.addWidget(poll_label, 0, 9, 2, 1)
 
         self._poll_light = LEDIcon.create_poll_icon()
+        self._poll_light.timer.setInterval(self._poll_interval)
         self._poll_light.timer.timeout.connect(self._poll_dp9800)  # type: ignore
         layout.addWidget(self._poll_light, 0, 10, 2, 1)
 
