@@ -1,10 +1,11 @@
 """For showing error messages."""
 import logging
+from typing import Optional
 
 from PySide6.QtWidgets import QMessageBox, QWidget
 
 
-def show_error_message(parent: QWidget, msg: str) -> None:
+def show_error_message(parent: Optional[QWidget], msg: str) -> None:
     """Show an error message in the GUI and write to the program log."""
     # Show popup box in GUI
     msg_box = QMessageBox(
