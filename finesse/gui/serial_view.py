@@ -40,7 +40,7 @@ def get_default_ports() -> list[str]:
     return ports
 
 
-@dataclass
+@dataclass(frozen=True)
 class Device:
     """The parameters to use for a particular device."""
 
