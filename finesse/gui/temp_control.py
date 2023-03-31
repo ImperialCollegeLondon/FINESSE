@@ -19,7 +19,9 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from ..config import TEMPERATURE_CONTROLLER_TOPIC
 from .led_icons import LEDIcon
+from .serial_device_panel import SerialDevicePanel
 
 
 class TemperaturePlot(QGroupBox):
@@ -241,7 +243,7 @@ class DP9800Controls(QGroupBox):
             channel.setText(f"{temperature: .2f}")
 
 
-class TC4820Controls(QGroupBox):
+class TC4820Controls(SerialDevicePanel):
     """Widgets to view the TC4820 properties."""
 
     def __init__(self, name: str) -> None:
@@ -250,7 +252,9 @@ class TC4820Controls(QGroupBox):
         Args:
             name: Name of the blackbody the TC4820 is controlling
         """
-        super().__init__(f"TC4820 {name.upper()}")
+        super().__init__(
+            f"{TEMPERATURE_CONTROLLER_TOPIC}.{name}_bb", f"TC4820 {name.upper()}"
+        )
 
         layout = self._create_controls()
         self.setLayout(layout)
