@@ -30,6 +30,7 @@ def test_start_recording(
     data_file.save_path_widget.set_path(FILE_PATH)
     data_file.record_btn.click()
     assert data_file.record_btn.text() == "Stop recording"
+    assert not data_file.save_path_widget.isEnabled()
     sendmsg_mock.assert_called_once_with("data_file.open", path=FILE_PATH)
 
 
@@ -43,6 +44,7 @@ def test_start_recording_path_dialog_cancelled(
         data_file.record_btn.click()
         path_mock.assert_called_once()
         assert data_file.record_btn.text() == "Start recording"
+        assert data_file.save_path_widget.isEnabled()
         sendmsg_mock.assert_not_called()
 
 
@@ -56,4 +58,5 @@ def test_stop_recording(
 
     data_file.record_btn.click()
     assert data_file.record_btn.text() == "Start recording"
+    assert data_file.save_path_widget.isEnabled()
     sendmsg_mock.assert_called_once_with("data_file.close")
