@@ -22,8 +22,9 @@ opus: OPUSInterface
 
 
 def _init_hardware():
-    global opus
+    global opus, dp9800
 
+    dp9800 = DP9800()
     opus = OPUSInterface()
 
 
@@ -35,7 +36,6 @@ def _stop_hardware():
 pub.subscribe(_init_hardware, "window.opened")
 pub.subscribe(_stop_hardware, "window.closed")
 
-dp9800 = DP9800()
 scraper = EM27Scraper()
 create_stepper_motor_serial_manager()
 create_temperature_controller_serial_managers()
