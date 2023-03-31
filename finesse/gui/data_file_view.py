@@ -36,8 +36,10 @@ class DataFileControl(QGroupBox):
     def _toggle_recording(self) -> None:
         """Starts or stops recording as needed."""
         if self.record_btn.text() == "Stop recording":
+            self.save_path_widget.setEnabled(True)
             self.record_btn.setText("Start recording")
             pub.sendMessage("data_file.close")
         elif file_path := self.save_path_widget.try_get_path():
+            self.save_path_widget.setEnabled(False)
             self.record_btn.setText("Stop recording")
             pub.sendMessage("data_file.open", path=file_path)
