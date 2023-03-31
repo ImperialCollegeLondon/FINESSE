@@ -12,13 +12,15 @@ else:
 
 from .stepper_motor import create_stepper_motor_serial_manager
 from .temperature import create_temperature_controller_serial_managers
+from .temperature.dummy_temperature_monitor import DummyTemperatureMonitor as DP9800
 
 opus: OPUSInterface
 
 
 def _init_hardware():
-    global opus
+    global opus, dp9800
 
+    dp9800 = DP9800()
     opus = OPUSInterface()
 
 
