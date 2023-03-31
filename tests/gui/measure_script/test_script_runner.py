@@ -74,7 +74,7 @@ def test_start_moving(
     # Check that we have signalled start of script and that command has been sent to
     # stepper motor
     calls = (
-        call("measure_script.begin"),
+        call("measure_script.begin", script_runner=runner),
         call(
             f"serial.{STEPPER_MOTOR_TOPIC}.move.begin",
             target=runner.script.sequence[0].angle,
