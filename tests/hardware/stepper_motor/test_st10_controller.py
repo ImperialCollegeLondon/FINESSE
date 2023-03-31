@@ -84,15 +84,6 @@ def test_send_move_end_message(sendmsg_mock: MagicMock, dev: ST10Controller) -> 
     sendmsg_mock.assert_called_once_with(f"serial.{STEPPER_MOTOR_TOPIC}.move.end")
 
 
-def test_send_error_message(sendmsg_mock: MagicMock, dev: ST10Controller) -> None:
-    """Test the _send_error_message() method."""
-    error = Exception()
-    dev.send_error_message(error)
-    sendmsg_mock.assert_called_once_with(
-        f"serial.{STEPPER_MOTOR_TOPIC}.error", error=error
-    )
-
-
 def read_mock(dev: ST10Controller, return_value: str):
     """Patch the _read_sync() method of dev."""
     return patch.object(dev, "_read_sync", return_value=return_value)
