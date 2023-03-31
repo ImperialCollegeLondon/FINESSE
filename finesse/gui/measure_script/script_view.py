@@ -1,13 +1,19 @@
 """Contains a panel for loading and editing measure scripts."""
 from pathlib import Path
-from typing import Optional
+from typing import Optional, cast
 
 from PySide6.QtWidgets import QFileDialog, QGridLayout, QGroupBox, QPushButton
 
 from ...config import DEFAULT_SCRIPT_PATH
 from ..path_widget import OpenPathWidget
+from ...settings import settings
 from .script import Script
 from .script_edit_dialog import ScriptEditDialog
+
+
+def _get_previous_script_path() -> Optional[Path]:
+    path = cast(str, settings.value("script/run_path", ""))
+    return Path(path) if path else None
 
 
 class ScriptControl(QGroupBox):
@@ -24,6 +30,7 @@ class ScriptControl(QGroupBox):
         edit_btn.clicked.connect(self._edit_btn_clicked)
 
         self.script_path = OpenPathWidget(
+            initial_file_path=_get_previous_script_path(),
             extension="yaml",
             parent=self,
             caption="Choose measure script to load",
@@ -83,6 +90,9 @@ class ScriptControl(QGroupBox):
         if not script:
             # Failed to load script
             return
+
+        # Save to settings
+        settings.setValue("script/run_path", str(file_path))
 
         # Run the script!
         script.run(self)
