@@ -15,7 +15,7 @@ class SerialDevicePanel(QGroupBox):
         def init_decorator(previous_init):
             def new_init(self, *args, **kwargs):
                 previous_init(self, *args, **kwargs)
-                self.disable_controls()
+                self.set_controls_enabled(False)
 
             return new_init
 
@@ -23,6 +23,8 @@ class SerialDevicePanel(QGroupBox):
 
     def __init__(self, name: str, title: str, *args: Any, **kwargs: Any) -> None:
         """Create a new SerialDevicePanel.
+
+        The controls will be disabled initially.
 
         Args:
             name: The name of the device as used in pubsub messages
@@ -34,20 +36,19 @@ class SerialDevicePanel(QGroupBox):
 
         # Enable/disable controls on device connect/disconnect
         pub.subscribe(self._on_device_opened, f"serial.{name}.opened")
-        pub.subscribe(self.disable_controls, f"serial.{name}.close")
+        pub.subscribe(self._on_device_closed, f"serial.{name}.close")
 
     def _on_device_opened(self) -> None:
-        self.enable_controls()
+        self.set_controls_enabled(True)
 
-    def enable_controls(self, enabled: bool = True) -> None:
-        """Enable the controls in this panel.
+    def _on_device_closed(self) -> None:
+        self.set_controls_enabled(False)
+
+    def set_controls_enabled(self, enabled: bool) -> None:
+        """Enable/disable the controls in this panel.
 
         Args:
             enabled: Whether to enable or disable the controls
         """
         for widget in self.findChildren(QWidget):
             widget.setEnabled(enabled)
-
-    def disable_controls(self) -> None:
-        """Disable the controls in this panel."""
-        self.enable_controls(False)
