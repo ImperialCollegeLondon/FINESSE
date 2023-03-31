@@ -145,9 +145,7 @@ class ScriptRunner(StateMachine):
     measuring = State("Measuring")
     """State indicating that a measurement is taking place."""
 
-    start_moving = not_running.to(
-        moving, before=lambda: pub.sendMessage("measure_script.begin")
-    )
+    start_moving = not_running.to(moving)
     """Start moving the motor to the required angle for the current measurement."""
     cancel_move = moving.to(
         not_running, after=lambda: pub.sendMessage(f"serial.{STEPPER_MOTOR_TOPIC}.stop")
@@ -207,6 +205,10 @@ class ScriptRunner(StateMachine):
         pub.sendMessage(f"serial.{STEPPER_MOTOR_TOPIC}.stop")
 
         super().__init__()
+
+    def before_start_moving(self) -> None:
+        """Send a pubsub message to indicate that the script is running."""
+        pub.sendMessage("measure_script.begin", script_runner=self)
 
     def on_enter_state(self, target: State, event: str) -> None:
         """Log the state every time it changes."""
