@@ -1,22 +1,17 @@
 """Code for controlling the stepper motor which moves the mirror."""
 from pubsub import pub
-from PySide6.QtWidgets import (
-    QButtonGroup,
-    QGridLayout,
-    QGroupBox,
-    QPushButton,
-    QSpinBox,
-)
+from PySide6.QtWidgets import QButtonGroup, QGridLayout, QPushButton, QSpinBox
 
-from ..config import ANGLE_PRESETS
+from ..config import ANGLE_PRESETS, STEPPER_MOTOR_TOPIC
+from .serial_device_panel import SerialDevicePanel
 
 
-class StepperMotorControl(QGroupBox):
+class StepperMotorControl(SerialDevicePanel):
     """A control showing buttons for moving the mirror to a target."""
 
     def __init__(self) -> None:
         """Create a new StepperMotorControl."""
-        super().__init__("Target control")
+        super().__init__(STEPPER_MOTOR_TOPIC, "Target control")
 
         layout = QGridLayout()
 
@@ -55,7 +50,7 @@ class StepperMotorControl(QGroupBox):
     def _preset_clicked(self, btn: QPushButton) -> None:
         """Move the stepper motor to preset position."""
         # If the motor is already moving, stop it now
-        pub.sendMessage("stepper.stop")
+        pub.sendMessage(f"serial.{STEPPER_MOTOR_TOPIC}.stop")
 
         target = float(self.angle.value()) if btn is self.goto else btn.text().lower()
-        pub.sendMessage("stepper.move.begin", target=target)
+        pub.sendMessage(f"serial.{STEPPER_MOTOR_TOPIC}.move.begin", target=target)

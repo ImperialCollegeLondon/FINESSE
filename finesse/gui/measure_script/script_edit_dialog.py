@@ -1,6 +1,7 @@
 """Contains code for a dialog to create and edit measure scripts."""
 
 import logging
+from dataclasses import asdict
 from pathlib import Path
 from typing import Optional
 
@@ -91,7 +92,7 @@ class ScriptEditDialog(QDialog):
 
         script = {
             "repeats": self.count.value(),
-            "sequence": [seq.to_dict() for seq in self.sequence_widget.sequence],
+            "sequence": [asdict(seq) for seq in self.sequence_widget.sequence],
         }
 
         try:

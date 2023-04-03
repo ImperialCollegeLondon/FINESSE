@@ -4,9 +4,12 @@ import sys
 from pubsub import pub
 
 if "--dummy-em27" in sys.argv:
+    from .dummy_em27_scraper import DummyEM27Scraper as EM27Scraper
     from .opus.dummy import DummyOPUSInterface as OPUSInterface
 else:
+    from .em27_scraper import EM27Scraper  # type: ignore
     from .opus.em27 import OPUSInterface  # type: ignore
+
 
 if "--dummy-tc4820" in sys.argv:
     from .temperature.dummy_temperature_controller import Decimal
@@ -17,19 +20,20 @@ if "--dummy-tc4820" in sys.argv:
 else:
     from .temperature.tc4820 import TC4820  # type: ignore
 
-from .stepper_motor.dummy import DummyStepperMotor
 
-stepper: DummyStepperMotor
+from .stepper_motor import create_stepper_motor_serial_manager
+from .temperature import create_temperature_controller_serial_managers
+from .temperature.dummy_temperature_monitor import DummyTemperatureMonitor as DP9800
+
 opus: OPUSInterface
 tc4820_hot: TC4820
 tc4820_cold: TC4820
 
 
 def _init_hardware():
-    global stepper, opus, tc4820_hot, tc4820_cold
-    # TODO: Replace with a real stepper motor device
-    stepper = DummyStepperMotor(3600)
+    global opus, dp9800, tc4820_hot, tc4820_cold
 
+    dp9800 = DP9800()
     opus = OPUSInterface()
     tc4820_hot = TC4820(
         name="hot",
@@ -52,3 +56,7 @@ def _stop_hardware():
 
 pub.subscribe(_init_hardware, "window.opened")
 pub.subscribe(_stop_hardware, "window.closed")
+
+scraper = EM27Scraper()
+create_stepper_motor_serial_manager()
+create_temperature_controller_serial_managers()

@@ -153,7 +153,6 @@ def test_close(
         msgbox_mock.return_value = mock2
         mock2.exec.return_value = int(btn_pressed)
         msgbox_mock.StandardButton = QMessageBox.StandardButton
-        msgbox_mock.exec.return_value = btn_pressed
 
         with patch.object(dlg, "setResult") as set_result_mock:
             with patch.object(dlg, "_try_save") as try_save_mock:
