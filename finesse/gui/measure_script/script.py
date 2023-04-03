@@ -4,12 +4,11 @@ This includes code for parsing and running the scripts.
 """
 from __future__ import annotations
 
-import itertools
 import logging
 from dataclasses import dataclass
 from io import TextIOBase
 from pathlib import Path
-from typing import Any, Dict, Iterator, Optional, Sequence, Union
+from typing import Any, Dict, Optional, Sequence, Union
 
 import yaml
 from pubsub import pub
@@ -51,11 +50,9 @@ class Script:
         self.sequence = [Measurement(**val) for val in sequence]
         self.runner: Optional[ScriptRunner] = None
 
-    def __iter__(self) -> Iterator[Measurement]:
+    def __iter__(self) -> ScriptIterator:
         """Get an iterator for the measurements."""
-        return itertools.chain.from_iterable(
-            itertools.repeat(self.sequence, self.repeats)
-        )
+        return ScriptIterator(self)
 
     def run(self, parent: Optional[QWidget] = None) -> None:
         """Run this measure script."""
@@ -128,6 +125,36 @@ def parse_script(script: Union[str, TextIOBase]) -> Dict[str, Any]:
 def _poll_em27_status() -> None:
     """Request the EM27's status from OPUS."""
     pub.sendMessage("opus.request", command="status")
+
+
+class ScriptIterator:
+    """Allows for iterating through a Script with the required number of repeats."""
+
+    def __init__(self, script: Script) -> None:
+        """Create a new ScriptIterator.
+
+        Args:
+            script: The Script from which to create this iterator.
+        """
+        self._sequence_iter = iter(script.sequence)
+        self.script = script
+        self.current_repeat = 0
+
+    def __iter__(self) -> ScriptIterator:
+        """Return self."""
+        return self
+
+    def __next__(self) -> Measurement:
+        """Return the next Measurement in the sequence."""
+        try:
+            return next(self._sequence_iter)
+        except StopIteration:
+            self.current_repeat = min(self.script.repeats, self.current_repeat + 1)
+            if self.current_repeat == self.script.repeats:
+                raise
+
+            self._sequence_iter = iter(self.script.sequence)
+            return next(self)
 
 
 class ScriptRunner(StateMachine):
