@@ -262,10 +262,12 @@ class TC4820Controls(SerialDevicePanel):
 
         self._begin_polling()
 
-        pub.subscribe(self._begin_polling, f"temperature_controller.{name}.open")
-        pub.subscribe(self._end_polling, f"temperature_controller.{name}.close")
-        pub.subscribe(self._update_controls, f"temperature_controller.{name}.response")
-        pub.subscribe(self._update_pt100, "dp9800.data.response")
+        pub.subscribe(self._begin_polling, f"serial.temperature_controller.{name}.open")
+        pub.subscribe(self._end_polling, f"serial.temperature_controller.{name}.close")
+        pub.subscribe(
+            self._update_controls, f"serial.temperature_controller.{name}.response"
+        )
+        pub.subscribe(self._update_pt100, "temperature_monitor.data.response")
 
     def _create_controls(self) -> QGridLayout:
         """Creates the overall layout for the panel.
@@ -346,7 +348,7 @@ class TC4820Controls(SerialDevicePanel):
     def _poll_tc4820(self) -> None:
         """Polls the device to obtain the latest info."""
         self._poll_light.flash()
-        pub.sendMessage(f"temperature_controller.{self._name}.request")
+        pub.sendMessage(f"serial.temperature_controller.{self._name}.request")
 
     def _update_controls(self, properties: dict):
         """Update panel with latest info from temperature controller.
@@ -364,22 +366,22 @@ class TC4820Controls(SerialDevicePanel):
             if self._alarm_light._is_on:
                 self._alarm_light._turn_off()
 
-    def _update_pt100(self, values: list[Decimal], time: float):
+    def _update_pt100(self, temperatures: list[Decimal], time: float):
         """Show the latest blackbody temperature.
 
         Args:
-            values: list of temperatures retrieved from device
+            temperatures: list of temperatures retrieved from device
             time: the timestamp at which the properties were sent
         """
         if self._name.count("hot"):
-            self._pt100_val.setText(f"{values[6]: .2f}")
+            self._pt100_val.setText(f"{temperatures[6]: .2f}")
         elif self._name.count("cold"):
-            self._pt100_val.setText(f"{values[7]: .2f}")
+            self._pt100_val.setText(f"{temperatures[7]: .2f}")
 
     def _set_new_set_point(self) -> None:
         """Send new target temperature to temperature controller."""
         pub.sendMessage(
-            f"temperature_controller.{self._name}.change_set_point",
+            f"serial.temperature_controller.{self._name}.change_set_point",
             temperature=Decimal(self._set_sbox.value()),
         )
 
