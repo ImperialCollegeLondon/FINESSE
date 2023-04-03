@@ -20,7 +20,9 @@ from finesse.hardware.stepper_motor.dummy import DummyStepperMotor
         for steps in range(-5, 5)
     ],
 )
-def test_constructor(steps: int, raises: Any, error_wrap_mock: MagicMock) -> None:
+def test_constructor(
+    steps: int, raises: Any, error_wrap_mock: MagicMock, qtbot
+) -> None:
     """Check arguments to constructor."""
     with raises:
         DummyStepperMotor(steps)
@@ -38,7 +40,9 @@ def test_constructor(steps: int, raises: Any, error_wrap_mock: MagicMock) -> Non
         for target in range(-36, 2 * 36)
     ],
 )
-def test_move_to_number(target: int, raises: Any, error_wrap_mock: MagicMock) -> None:
+def test_move_to_number(
+    target: int, raises: Any, error_wrap_mock: MagicMock, qtbot
+) -> None:
     """Check move_to, when an angle is given."""
     stepper = DummyStepperMotor(36)
     assert stepper.step == 0
@@ -64,7 +68,9 @@ BAD_PRESETS = ("", "ZENITH", "kevin", "badger")
         for name in chain(ANGLE_PRESETS.keys(), BAD_PRESETS)
     ],
 )
-def test_move_to_preset(name: str, raises: Any, error_wrap_mock: MagicMock) -> None:
+def test_move_to_preset(
+    name: str, raises: Any, error_wrap_mock: MagicMock, qtbot
+) -> None:
     """Check move_to, when a preset name is given."""
     with raises:
         DummyStepperMotor(360).move_to(name)
