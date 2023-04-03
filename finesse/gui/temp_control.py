@@ -68,7 +68,9 @@ class TemperaturePlot(QGroupBox):
         self._ax = {"hot": ax}
         self._canvas = FigureCanvasQTAgg(self._figure)
 
-        self._figure_num_pts = 10
+        poll_interval = 2  # seconds
+        interval_to_show = 15  # minutes
+        self._figure_num_pts = int(interval_to_show * 60 / poll_interval)
         t = [None] * self._figure_num_pts
         hot_bb_temp = [None] * self._figure_num_pts
         cold_bb_temp = [None] * self._figure_num_pts
@@ -77,15 +79,11 @@ class TemperaturePlot(QGroupBox):
         hot_colour = colours.by_key()["color"][0]
         cold_colour = colours.by_key()["color"][1]
 
-        self._ax["hot"].plot(
-            t, hot_bb_temp, color=hot_colour, marker="x", linestyle="-"
-        )
+        self._ax["hot"].plot(t, hot_bb_temp, color=hot_colour, linestyle="-")
         self._ax["hot"].set_ylabel("HOT BB", color=hot_colour)
 
         self._ax["cold"] = self._ax["hot"].twinx()
-        self._ax["cold"].plot(
-            t, cold_bb_temp, color=cold_colour, marker="x", linestyle="-"
-        )
+        self._ax["cold"].plot(t, cold_bb_temp, color=cold_colour, linestyle="-")
         self._ax["cold"].set_ylabel("COLD BB", color=cold_colour)
 
         self._canvas.draw()
@@ -100,6 +98,8 @@ class TemperaturePlot(QGroupBox):
         self._btns[name].setFlat(state)
         self._ax[name].yaxis.set_visible(not state)
         self._ax[name].lines[0].set_visible(not state)
+
+        self._make_axes_sensible()
         self._canvas.draw()
 
     def _update_figure(
@@ -129,13 +129,7 @@ class TemperaturePlot(QGroupBox):
         self._ax["cold"].lines[0].set_xdata(time)
         self._ax["cold"].lines[0].set_ydata(cold_data)
 
-        self._ax["hot"].relim()
-        self._ax["cold"].relim()
-        self._ax["hot"].autoscale()
-        self._ax["cold"].autoscale()
-        self._ax["cold"].set_ylim(  # Confines "cold" line to lower half of plot
-            [self._ax["cold"].get_ylim()[0], 2 * self._ax["cold"].get_ylim()[1]]
-        )
+        self._make_axes_sensible()
 
         xticks = self._ax["hot"].get_xticks()
         xticklabels = [""] * len(xticks)
@@ -145,6 +139,25 @@ class TemperaturePlot(QGroupBox):
         self._ax["hot"].set_xticklabels(xticklabels)
 
         self._canvas.draw()
+
+    def _make_axes_sensible(self) -> None:
+        """Rescales the y axes for the the blackbody temperatures."""
+        # Rescale limits to account for new data
+        self._ax["hot"].relim()
+        self._ax["cold"].relim()
+        self._ax["hot"].autoscale()
+        self._ax["cold"].autoscale()
+
+        ylim_hot = self._ax["hot"].get_ylim()
+        ylim_cold = self._ax["cold"].get_ylim()
+
+        # Confine "hot" line to upper region of plot if "cold" line also visible
+        if self._ax["cold"].yaxis.get_visible():
+            self._ax["hot"].set_ylim([ylim_hot[0] - 5, ylim_hot[1] + 1])
+
+        # Confine "cold" line to lower region of plot if "hot" line also visible
+        if self._ax["hot"].yaxis.get_visible():
+            self._ax["cold"].set_ylim([ylim_cold[0] - 1, ylim_cold[1] + 5])
 
     def _plot_bb_temps(self, time: float, temperatures: list[Decimal]) -> None:
         """Extract blackbody temperatures from DP9800 data and plot them.
