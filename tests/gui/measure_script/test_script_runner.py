@@ -75,6 +75,7 @@ def test_start_moving(
     # stepper motor
     calls = (
         call("measure_script.begin", script_runner=runner),
+        call("measure_script.start_moving", script_runner=runner),
         call(
             f"serial.{STEPPER_MOTOR_TOPIC}.move.begin",
             target=runner.script.sequence[0].angle,
@@ -145,7 +146,9 @@ def test_start_measuring(runner: ScriptRunner, sendmsg_mock: MagicMock) -> None:
     assert runner.current_state == ScriptRunner.measuring
 
     # Check that measuring has been triggered
-    sendmsg_mock.assert_called_once_with("opus.request", command="start")
+    sendmsg_mock.assert_any_call("opus.request", command="start")
+
+    sendmsg_mock.assert_any_call("measure_script.start_measuring", script_runner=runner)
 
 
 def test_repeat_measuring(
@@ -156,7 +159,11 @@ def test_repeat_measuring(
     assert runner_measuring.current_state == ScriptRunner.measuring
 
     # Check that measuring has been triggered again
-    sendmsg_mock.assert_called_once_with("opus.request", command="start")
+    sendmsg_mock.assert_any_call("opus.request", command="start")
+
+    sendmsg_mock.assert_any_call(
+        "measure_script.start_measuring", script_runner=runner_measuring
+    )
 
 
 def test_cancel_measuring(
