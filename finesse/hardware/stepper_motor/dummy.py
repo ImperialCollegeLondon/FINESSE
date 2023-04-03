@@ -3,22 +3,35 @@ import logging
 from typing import Optional
 
 from pubsub import pub
+from PySide6.QtCore import QTimer
 
 from ...config import STEPPER_MOTOR_TOPIC
 from .stepper_motor_base import StepperMotorBase
 
 
 class DummyStepperMotor(StepperMotorBase):
-    """A fake stepper motor device used for unit tests etc."""
+    """A fake stepper motor device used for testing the GUI without the hardware.
 
-    def __init__(self, steps_per_rotation: int) -> None:
+    This class uses a simple timer to notify when the move is complete after a fixed
+    amount of time. It is not sophisticated enough to handle multiple queued moves as
+    the ST10 controller does.
+    """
+
+    def __init__(self, steps_per_rotation: int, move_duration: float = 0.0) -> None:
         """Create a new DummyStepperMotor.
 
         Args:
             steps_per_rotation: Number of motor steps for an entire rotation (360°)
+            move_duration: Amount of time taken for each move
         """
         if steps_per_rotation < 1:
             raise ValueError("steps_per_rotation must be at least one")
+
+        self._move_end_timer = QTimer()
+        self._move_end_timer.setSingleShot(True)
+        self._move_end_timer.setInterval(round(move_duration * 1000))
+        self._move_end_timer.timeout.connect(self._on_move_end)
+        self._notify_requested = False
 
         self._steps_per_rotation = steps_per_rotation
         self._step = 0
@@ -45,12 +58,15 @@ class DummyStepperMotor(StepperMotorBase):
         Args:
             step: Which step position to move to
         """
-        self._step = step
         logging.info(f"Moving stepper motor to step {step}")
+        self._step = step
+        self._move_end_timer.start()
 
     def stop_moving(self) -> None:
         """Immediately stop moving the motor."""
         logging.info("Stopping motor")
+        self._move_end_timer.stop()
+        self._on_move_end()
 
     def wait_until_stopped(self, timeout: Optional[float] = None) -> None:
         """Wait until the motor has stopped moving.
@@ -65,7 +81,12 @@ class DummyStepperMotor(StepperMotorBase):
         """Wait until the motor has stopped moving and send a message when done.
 
         The message is stepper.move.end.
-
-        As this is a dummy class, this completes immediately.
         """
-        pub.sendMessage(f"serial.{STEPPER_MOTOR_TOPIC}.move.end")
+        self._notify_requested = True
+
+    def _on_move_end(self) -> None:
+        """Run when the timer signals that the move has finished."""
+        logging.info("Move finished")
+        if self._notify_requested:
+            self._notify_requested = False
+            pub.sendMessage(f"serial.{STEPPER_MOTOR_TOPIC}.move.end")
