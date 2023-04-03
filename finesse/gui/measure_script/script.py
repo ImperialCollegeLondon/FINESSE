@@ -297,6 +297,8 @@ class ScriptRunner(StateMachine):
             self.finish()
             return
 
+        pub.sendMessage("measure_script.start_moving", script_runner=self)
+
         # Start moving the stepper motor
         pub.sendMessage(
             f"serial.{STEPPER_MOTOR_TOPIC}.move.begin",
@@ -311,6 +313,7 @@ class ScriptRunner(StateMachine):
 
         NB: This is also invoked on repeat measurements
         """
+        pub.sendMessage("measure_script.start_measuring", script_runner=self)
         pub.sendMessage("opus.request", command="start")
 
     def on_exit_measuring(self) -> None:
