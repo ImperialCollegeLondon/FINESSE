@@ -1,6 +1,9 @@
+# Don't fail CI if coverage drops
 coverage:
   status:
     project:
       default:
-        # Don't fail CI if coverage drops
+        informational: true
+    patch:
+      default:
         informational: true

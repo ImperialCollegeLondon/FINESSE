@@ -37,8 +37,8 @@ class LEDIcon(QLabel):
             self._turn_on()
         else:
             self._turn_off()
-        self._timer = QTimer()
-        self._timer.timeout.connect(self._turn_off)  # type: ignore
+        self.timer = QTimer()
+        self.timer.timeout.connect(self._turn_off)  # type: ignore
 
     @classmethod
     def create_poll_icon(cls) -> LEDIcon:
@@ -60,11 +60,11 @@ class LEDIcon(QLabel):
         self._is_on = False
         self.setPixmap(QPixmap(self._off_img))
 
-    def _flash(self, duration: int = 250) -> None:
+    def flash(self, duration: int = 250) -> None:
         """Turns the LED on for a specified duration.
 
         Args:
             duration (int): Number of milliseconds to keep LED lit for
         """
         self._turn_on()
-        self._timer.singleShot(duration, self._turn_off)
+        self.timer.singleShot(duration, self._turn_off)
