@@ -26,7 +26,7 @@ class ScriptPathWidget(QWidget):
 
         browse = QPushButton("&Browse...")
         browse.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
-        browse.clicked.connect(self._browse_clicked)  # type: ignore
+        browse.clicked.connect(self._browse_clicked)
 
         layout = QHBoxLayout()
         layout.addWidget(self.line_edit)

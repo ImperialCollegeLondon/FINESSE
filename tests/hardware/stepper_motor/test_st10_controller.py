@@ -1,7 +1,7 @@
 """Tests for the ST10Controller class."""
 from contextlib import nullcontext as does_not_raise
 from itertools import chain
-from typing import Any
+from typing import Any, cast
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -59,14 +59,12 @@ def test_init() -> None:
             with patch.object(ST10Controller, "_home_and_reset") as home_mock:
                 # We assign to a variable so the destructor isn't invoked until after
                 # our checks
-                st10 = ST10Controller(serial)  # noqa
-                r = st10._reader
-                r.async_read_completed.connect.assert_called_once_with(  # type: ignore
+                st10 = ST10Controller(serial)
+                r = cast(MagicMock, st10._reader)
+                r.async_read_completed.connect.assert_called_once_with(
                     st10._send_move_end_message
                 )
-                r.read_error.connect.assert_called_once_with(  # type: ignore
-                    st10.send_error_message
-                )
+                r.read_error.connect.assert_called_once_with(st10.send_error_message)
                 check_mock.assert_called_once()
                 stop_mock.assert_called_once()
                 home_mock.assert_called_once()
@@ -113,7 +111,8 @@ def test_read_error(dev: ST10Controller) -> None:
         dev.serial.read_until.assert_called_with(b"\r")
 
     # Check that the error signal was triggered
-    dev._reader.read_error.emit.assert_called_once()  # type: ignore
+    reader = cast(MagicMock, dev._reader.read_error)
+    reader.emit.assert_called_once()
 
 
 def test_read_timed_out(dev: ST10Controller) -> None:
@@ -123,7 +122,8 @@ def test_read_timed_out(dev: ST10Controller) -> None:
         dev._read_sync()
 
     # Check that the error signal was triggered
-    dev._reader.read_error.emit.assert_called_once()  # type: ignore
+    reader = cast(MagicMock, dev._reader.read_error)
+    reader.emit.assert_called_once()
 
 
 def test_read_non_ascii(dev: ST10Controller) -> None:
@@ -133,7 +133,8 @@ def test_read_non_ascii(dev: ST10Controller) -> None:
         dev._read_sync()
 
     # Check that the error signal was triggered
-    dev._reader.read_error.emit.assert_called_once()  # type: ignore
+    reader = cast(MagicMock, dev._reader.read_error)
+    reader.emit.assert_called_once()
 
 
 @pytest.mark.parametrize(
@@ -230,4 +231,5 @@ def test_notify_on_stopped(dev: ST10Controller) -> None:
     assert dev._reader._process_read()
 
     # Check that the signal was triggered
-    dev._reader.async_read_completed.emit.assert_called_once()  # type: ignore
+    signal = cast(MagicMock, dev._reader.async_read_completed)
+    signal.emit.assert_called_once()
