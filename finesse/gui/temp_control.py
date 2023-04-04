@@ -4,6 +4,7 @@ from decimal import Decimal
 from functools import partial
 
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from pubsub import pub
 from PySide6.QtCore import QSize, Qt
@@ -82,6 +83,12 @@ class TemperaturePlot(QGroupBox):
         self._ax["hot"].plot(t, hot_bb_temp, color=hot_colour, linestyle="-")
         self._ax["hot"].set_ylabel("HOT BB", color=hot_colour)
 
+        max_ticks = 8
+        self._ax["hot"].xaxis.set_major_locator(ticker.MaxNLocator(nbins=max_ticks - 1))
+        self._ax["hot"].xaxis.set_major_formatter(
+            ticker.FuncFormatter(self._xtick_format_fcn)
+        )
+
         self._ax["cold"] = self._ax["hot"].twinx()
         self._ax["cold"].plot(t, cold_bb_temp, color=cold_colour, linestyle="-")
         self._ax["cold"].set_ylabel("COLD BB", color=cold_colour)
@@ -131,14 +138,19 @@ class TemperaturePlot(QGroupBox):
 
         self._make_axes_sensible()
 
-        xticks = self._ax["hot"].get_xticks()
-        xticklabels = [""] * len(xticks)
-        for i in range(len(xticks)):
-            t = datetime.fromtimestamp(xticks[i])
-            xticklabels[i] = t.strftime("%H:%M:%S")
-        self._ax["hot"].set_xticklabels(xticklabels)
-
         self._canvas.draw()
+
+    def _xtick_format_fcn(self, val: float, loc: int) -> str:
+        """Convert x axis tick labels from timestamp to clock format.
+
+        Args:
+            val: value of the tick whose label is being formatted
+            loc: location of the tick on the axis
+
+        Returns:
+            formatted string to display as x tick label
+        """
+        return datetime.fromtimestamp(val).strftime("%H:%M:%S")
 
     def _make_axes_sensible(self) -> None:
         """Rescales the y axes for the the blackbody temperatures."""
