@@ -18,15 +18,15 @@ class ScriptControl(QGroupBox):
         super().__init__("Script control")
 
         create_btn = QPushButton("Create new script")
-        create_btn.clicked.connect(self._create_btn_clicked)  # type: ignore
+        create_btn.clicked.connect(self._create_btn_clicked)
 
         edit_btn = QPushButton("Edit script")
-        edit_btn.clicked.connect(self._edit_btn_clicked)  # type: ignore
+        edit_btn.clicked.connect(self._edit_btn_clicked)
 
         self.script_path = OpenScriptPathWidget()
 
         run_btn = QPushButton("Run script")
-        run_btn.clicked.connect(self._run_btn_clicked)  # type: ignore
+        run_btn.clicked.connect(self._run_btn_clicked)
 
         layout = QGridLayout()
         layout.addWidget(create_btn, 0, 0)
