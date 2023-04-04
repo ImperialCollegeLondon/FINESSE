@@ -101,14 +101,14 @@ def test_accept(saved: bool, qtbot, dlg: ScriptEditDialog) -> None:
         try_save_mock.return_value = saved
 
         # We only accept if _try_save() succeeds
-        with qtbot.waitSignal(dlg.accepted) if saved else nullcontext():  # type: ignore
+        with qtbot.waitSignal(dlg.accepted) if saved else nullcontext():
             save_btn = dlg.buttonBox.button(QDialogButtonBox.StandardButton.Save)
             save_btn.click()
 
 
 def test_reject(qtbot, dlg: ScriptEditDialog) -> None:
     """Check the Cancel button."""
-    with qtbot.waitSignal(dlg.rejected):  # type: ignore
+    with qtbot.waitSignal(dlg.rejected):
         cancel_btn = dlg.buttonBox.button(QDialogButtonBox.StandardButton.Cancel)
         cancel_btn.click()
 

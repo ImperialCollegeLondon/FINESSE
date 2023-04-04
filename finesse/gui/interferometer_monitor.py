@@ -27,7 +27,7 @@ class EM27Monitor(QGroupBox):
         self._data_table: list[EM27Property] = []
 
         self._poll_light = LEDIcon.create_poll_icon()
-        self._poll_light.timer.timeout.connect(self._poll_server)  # type: ignore
+        self._poll_light.timer.timeout.connect(self._poll_server)
 
         self._create_layouts()
 
