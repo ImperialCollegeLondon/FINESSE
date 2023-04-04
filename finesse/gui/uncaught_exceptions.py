@@ -69,7 +69,7 @@ def _show_uncaught_exception_dialog(
     textEdit.setReadOnly(True)
     buttonBox = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok)
     buttonBox.setCenterButtons(True)
-    buttonBox.accepted.connect(dialog.accept)  # type: ignore
+    buttonBox.accepted.connect(dialog.accept)
 
     layout = QVBoxLayout()
     layout.addWidget(label)
