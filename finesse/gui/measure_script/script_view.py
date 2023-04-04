@@ -5,8 +5,8 @@ from typing import Optional, cast
 from PySide6.QtWidgets import QFileDialog, QGridLayout, QGroupBox, QPushButton
 
 from ...config import DEFAULT_SCRIPT_PATH
-from ..path_widget import OpenPathWidget
 from ...settings import settings
+from ..path_widget import OpenPathWidget
 from .script import Script
 from .script_edit_dialog import ScriptEditDialog
 
@@ -47,19 +47,14 @@ class ScriptControl(QGroupBox):
         layout.addWidget(run_btn, 1, 1)
         self.setLayout(layout)
 
-        self.dialog: Optional[ScriptEditDialog] = None
+        self.dialog: ScriptEditDialog
+        """A dialog for editing the contents of a measure script."""
 
     def _create_btn_clicked(self) -> None:
-        # If there is no open dialog, then create a new one
-        if not self.dialog or self.dialog.isHidden():
-            self.dialog = ScriptEditDialog(self.window())
-            self.dialog.show()
+        self.dialog = ScriptEditDialog(self.window())
+        self.dialog.show()
 
     def _edit_btn_clicked(self) -> None:
-        # If there's already a dialog open, try to close it first to save data etc.
-        if self.dialog and not self.dialog.close():
-            return
-
         # Ask user to choose script file to edit
         file_path, _ = QFileDialog.getOpenFileName(
             self,
