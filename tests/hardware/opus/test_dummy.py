@@ -1,7 +1,7 @@
 """Tests for DummyOPUSInterface."""
 
 from itertools import product
-from typing import Optional
+from typing import Optional, cast
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
@@ -32,7 +32,7 @@ def test_init(dev: DummyOPUSInterface) -> None:
     """Test that the timer's signal is connected correctly."""
     assert dev.last_error == OPUSError.NO_ERROR
 
-    timeout = dev.state_machine.measure_timer.timeout  # type: ignore
+    timeout = cast(MagicMock, dev.state_machine.measure_timer.timeout)
     timeout.connect.assert_called_once_with(dev.state_machine.stop)
 
 
