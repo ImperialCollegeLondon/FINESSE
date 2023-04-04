@@ -31,7 +31,9 @@ def runner_measuring(
 
 
 @patch("finesse.gui.measure_script.script.QTimer")
-def test_init(timer_mock: Mock, sendmsg_mock: MagicMock) -> None:
+def test_init(
+    timer_mock: Mock, subscribe_mock: MagicMock, sendmsg_mock: MagicMock
+) -> None:
     """Test ScriptRunner's constructor."""
     timer = MagicMock()
     timer_mock.return_value = timer
@@ -49,6 +51,9 @@ def test_init(timer_mock: Mock, sendmsg_mock: MagicMock) -> None:
 
     # Check we're stopping the motor
     sendmsg_mock.assert_any_call(f"serial.{STEPPER_MOTOR_TOPIC}.stop")
+
+    # Check we're subscribed to abort messages
+    subscribe_mock.assert_any_call(script_runner.abort, "measure_script.abort")
 
     # Initial state
     assert script_runner.current_state == ScriptRunner.not_running

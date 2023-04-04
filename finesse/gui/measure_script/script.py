@@ -231,6 +231,8 @@ class ScriptRunner(StateMachine):
         # Send stop command in case motor is moving
         pub.sendMessage(f"serial.{STEPPER_MOTOR_TOPIC}.stop")
 
+        pub.subscribe(self.abort, "measure_script.abort")
+
         super().__init__()
 
     def before_start_moving(self) -> None:
@@ -351,11 +353,12 @@ class ScriptRunner(StateMachine):
 
     def abort(self) -> None:
         """Abort the current measure script run."""
-        state = self.current_state
-        if state == self.moving:
-            self.cancel_move()
-        elif state == self.measuring:
-            self.cancel_measuring()
+        match self.current_state:
+            case self.moving:
+                self.cancel_move()
+            case self.measuring:
+                self.cancel_measuring()
+        logging.info("Aborting measure script")
 
     def _on_stepper_motor_error(self, error: BaseException) -> None:
         """Call abort()."""
