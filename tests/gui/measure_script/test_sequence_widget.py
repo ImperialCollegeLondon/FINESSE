@@ -33,7 +33,7 @@ def test_init(qtbot) -> None:
 
 def test_add_instruction(widget: SequenceWidget, qtbot) -> None:
     """Test the add_instruction() method."""
-    with qtbot.waitSignal(widget.model.layoutChanged):  # type: ignore
+    with qtbot.waitSignal(widget.model.layoutChanged):
         widget.add_instruction(90.0, 3)
         assert len(widget.sequence) == 1 and widget.sequence[0] == Measurement(90.0, 3)
 

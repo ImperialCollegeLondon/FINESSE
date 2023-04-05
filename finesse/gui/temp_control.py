@@ -49,10 +49,10 @@ class TemperaturePlot(QGroupBox):
         """
         layout = QGridLayout()
         self._btns = {"hot": QPushButton("Hot BB"), "cold": QPushButton("Cold BB")}
-        self._btns["hot"].clicked.connect(  # type: ignore
+        self._btns["hot"].clicked.connect(
             partial(self._toggle_axis_visibility, name="hot")
         )
-        self._btns["cold"].clicked.connect(  # type: ignore
+        self._btns["cold"].clicked.connect(
             partial(self._toggle_axis_visibility, name="cold")
         )
         self._create_figure()
@@ -241,7 +241,7 @@ class DP9800Controls(QGroupBox):
 
         self._poll_light = LEDIcon.create_poll_icon()
         self._poll_light.timer.setInterval(self._poll_interval)
-        self._poll_light.timer.timeout.connect(self._poll_dp9800)  # type: ignore
+        self._poll_light.timer.timeout.connect(self._poll_dp9800)
         layout.addWidget(self._poll_light, 0, 10, 2, 1)
 
         return layout
