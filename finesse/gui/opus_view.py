@@ -5,9 +5,7 @@ from functools import partial
 from typing import Optional
 
 from pubsub import pub
-from PySide6.QtCore import QSize
 from PySide6.QtGui import QTextCursor
-from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWidgets import (
     QGroupBox,
     QHBoxLayout,
@@ -32,14 +30,12 @@ class OPUSControl(QGroupBox):
         super().__init__("OPUS client view")
 
         self.commands = commands if commands is not None else COMMANDS
-        self.status: QWebEngineView
         self.logger = logging.getLogger("OPUS")
 
         layout = self._create_controls()
         self.setLayout(layout)
 
         pub.subscribe(self._log_response, "opus.response")
-        pub.subscribe(self._display_status, "opus.response.status")
         pub.subscribe(self._log_error, "opus.error")
 
     def _create_controls(self) -> QHBoxLayout:
@@ -51,7 +47,6 @@ class OPUSControl(QGroupBox):
         main_layout = QHBoxLayout()
         main_layout.addLayout(self._create_buttons())
         main_layout.addLayout(self._create_log_area())
-        main_layout.addLayout(self._create_status_page())
         return main_layout
 
     def _create_buttons(self) -> QVBoxLayout:
@@ -95,24 +90,6 @@ class OPUSControl(QGroupBox):
         layout.addWidget(log_box)
         return layout
 
-    def _create_status_page(self) -> QVBoxLayout:
-        """Creates the status_page.
-
-        Returns:
-            QHBoxLayout: The layout with the web view.
-        """
-        status_page = QGroupBox("Status")
-        self.status = QWebEngineView()
-        self.status.setMinimumSize(QSize(200, 200))
-
-        _layout = QVBoxLayout()
-        _layout.addWidget(self.status)
-        status_page.setLayout(_layout)
-
-        layout = QVBoxLayout()
-        layout.addWidget(status_page)
-        return layout
-
     def _log_response(
         self,
         status: int,
@@ -139,20 +116,6 @@ class OPUSControl(QGroupBox):
     def _request_status(self) -> None:
         self.logger.info("Requesting status")
         pub.sendMessage("opus.request", command="status")
-
-    def _display_status(
-        self, status: int, text: str, error: Optional[tuple[int, str]], url: str
-    ) -> None:
-        """Display the status in the GUI's browser pane.
-
-        This method is a handler for the opus.response.status message, which means that
-        we only reload the page displayed in self.status once the status has already
-        been requested! However, the self.status widget is not really necessary (the
-        user doesn't need to know how the returned HTML looks), so hopefully we can
-        remove it soon, along with this hack.
-        """
-        self.status.load(url)
-        self.status.show()
 
     def open_opus(self) -> None:
         """Opens OPUS front end somewhere else.
