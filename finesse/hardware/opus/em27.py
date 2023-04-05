@@ -6,12 +6,13 @@ The OPUS program must be running on the computer at OPUS_IP for the commands to 
 Note that this is a separate machine from the EM27!
 """
 import logging
-from typing import Optional, cast
+from functools import partial
+from typing import Optional
 
-import requests
 from bs4 import BeautifulSoup
 from pubsub import pub
-from PySide6.QtCore import QThread, Signal, Slot
+from PySide6.QtCore import Slot
+from PySide6.QtNetwork import QNetworkAccessManager, QNetworkReply, QNetworkRequest
 
 from ...config import OPUS_IP
 from .opus_interface_base import OPUSInterfaceBase
@@ -24,32 +25,35 @@ class OPUSError(Exception):
     """Indicates that an error occurred while communicating with the OPUS program."""
 
 
-class OPUSRequester(QThread):
-    """Interface for making HTTP requests on a background thread."""
+def parse_response(response: str) -> tuple[int, str, Optional[tuple[int, str]]]:
+    """Parse EM27's HTML response."""
+    status: Optional[int] = None
+    text: Optional[str] = None
+    errcode: Optional[int] = None
+    errtext: str = ""
+    soup = BeautifulSoup(response, "html.parser")
+    for td in soup.find_all("td"):
+        if "id" not in td.attrs:
+            continue
 
-    request_complete = Signal(requests.Request, str)
-    request_error = Signal(BaseException)
+        id = td.attrs["id"]
+        data = td.contents[0] if td.contents else ""
+        if id == "STATUS":
+            status = int(data)
+        elif id == "TEXT":
+            text = data
+        elif id == "ERRCODE":
+            errcode = int(data)
+        elif id == "ERRTEXT":
+            errtext = data
+        else:
+            logging.warning(f"Received unknown ID: {id}")
 
-    def __init__(self, timeout: float) -> None:
-        """Create a new OPUSRequester."""
-        super().__init__()
-        self.timeout = timeout
-        self.moveToThread(self)
+    if status is None or text is None:
+        raise OPUSError("Required tags not found")
+    error = None if errcode is None else (errcode, errtext)
 
-    @Slot()
-    def make_request(self, filename: str, topic: str):
-        """Make a request to the OPUS program.
-
-        Args:
-            filename: The final part of the path on the HTTP server
-            topic: The topic on which to publish the response
-        """
-        try:
-            url = f"http://{OPUS_IP}/opusrs/{filename}"
-            response = requests.get(url, timeout=self.timeout)
-            self.request_complete.emit(response, topic)
-        except Exception as e:
-            self.request_error.emit(e)
+    return status, text, error
 
 
 class OPUSInterface(OPUSInterfaceBase):
@@ -57,9 +61,6 @@ class OPUSInterface(OPUSInterfaceBase):
 
     HTTP requests are handled on a background thread.
     """
-
-    submit_request = Signal(str, str)
-    """Signal indicating that an HTTP request should be made."""
 
     def __init__(self, timeout: float = 3.0) -> None:
         """Create a new OPUSInterface.
@@ -69,57 +70,24 @@ class OPUSInterface(OPUSInterfaceBase):
         """
         super().__init__()
 
-        self.requester = OPUSRequester(timeout)
-        """For running HTTP requests in the background."""
-        self.requester.request_complete.connect(self._parse_response)
-        self.requester.request_error.connect(self.error_occurred)
+        self._manager = QNetworkAccessManager()
+        self._timeout = timeout
 
-        # Start processing requests
-        self.requester.start()
-
-        # Set up a signal for communicating between threads
-        self.submit_request.connect(self.requester.make_request)
-
-    def __del__(self) -> None:
-        """Stop the background request thread."""
-        self.requester.quit()
-        self.requester.wait()
-
-    def _parse_response(self, response: requests.Response, topic: str) -> None:
+    @Slot()
+    def _on_reply_received(self, reply: QNetworkReply, command: str) -> None:
+        """Handle received HTTP reply."""
         try:
-            if response.status_code != 200:
-                raise OPUSError(f"HTTP status code {response.status_code}")
+            if reply.error() != QNetworkReply.NetworkError.NoError:
+                raise OPUSError(f"Network error: {reply.errorString()}")
 
-            status: Optional[int] = None
-            text: Optional[str] = None
-            errcode: Optional[int] = None
-            errtext: Optional[str] = None
-            soup = BeautifulSoup(response.content, "html.parser")
-            for td in soup.find_all("td"):
-                if "id" not in td.attrs:
-                    continue
-
-                id = td.attrs["id"]
-                data = td.contents[0] if td.contents else ""
-                if id == "STATUS":
-                    status = int(data)
-                elif id == "TEXT":
-                    text = data
-                elif id == "ERRCODE":
-                    errcode = int(data)
-                elif id == "ERRTEXT":
-                    errtext = data
-                else:
-                    logging.warning(f"Received unknown ID: {id}")
-
-            if status is None or text is None:
-                raise OPUSError("Required tags not found")
-            error = None if errcode is None else (errcode, errtext)
-        except Exception as e:
-            self.error_occurred(e)
-            return
-
-        pub.sendMessage(topic, status=cast(int, status), text=text, error=error)
+            response = reply.readAll().data().decode()
+            status, text, error = parse_response(response)
+        except Exception as error:
+            self.error_occurred(error)
+        else:
+            pub.sendMessage(
+                f"opus.response.{command}", status=status, text=text, error=error
+            )
 
     def request_command(self, command: str) -> None:
         """Request that OPUS run the specified command.
@@ -135,4 +103,9 @@ class OPUSInterface(OPUSInterfaceBase):
             if command == "status"
             else f"{COMMAND_FILENAME}?opusrs{command}"
         )
-        self.submit_request.emit(filename, f"opus.response.{command}")
+
+        # Make HTTP request in background
+        request = QNetworkRequest(f"http://{OPUS_IP}/opusrs/{filename}")
+        request.setTransferTimeout(round(1000 * self._timeout))
+        reply = self._manager.get(request)
+        reply.finished.connect(partial(self._on_reply_received, reply, command))
