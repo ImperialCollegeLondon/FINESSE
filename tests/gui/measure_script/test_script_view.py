@@ -8,6 +8,7 @@ from PySide6.QtWidgets import QPushButton, QWidget
 from pytestqt.qtbot import QtBot
 
 from finesse.config import DEFAULT_SCRIPT_PATH
+from finesse.gui.measure_script.script_run_dialog import ScriptRunDialog
 from finesse.gui.measure_script.script_view import ScriptControl
 
 
@@ -28,8 +29,23 @@ def click_button(widget: QWidget, text: str) -> None:
 
 
 @patch("finesse.gui.measure_script.script_view.settings")
+def test_init(settings_mock: Mock, subscribe_mock: Mock, qtbot: QtBot) -> None:
+    """Test ScriptControl's constructor."""
+    settings_mock.value.return_value = "/my/path.yaml"
+    script_control = ScriptControl()
+
+    # Check we are subscribed to the relevant pubsub messages
+    subscribe_mock.assert_any_call(
+        script_control._show_run_dialog, "measure_script.begin"
+    )
+    subscribe_mock.assert_any_call(
+        script_control._hide_run_dialog, "measure_script.end"
+    )
+
+
+@patch("finesse.gui.measure_script.script_view.settings")
 @pytest.mark.parametrize("prev_path", ("/my/path.yaml", ""))
-def test_init(settings_mock: Mock, prev_path: str, qtbot: QtBot) -> None:
+def test_init_path_setting(settings_mock: Mock, prev_path: str, qtbot: QtBot) -> None:
     """Check that the constructor correctly loads previous path from settings."""
     settings_mock.value.return_value = prev_path
     script_control = ScriptControl()
@@ -56,7 +72,7 @@ def test_create_button(
 
         # Check that dialog was created and shown
         edit_dialog_mock.assert_called_once_with(window)
-        assert script_control.dialog is dialog
+        assert script_control.edit_dialog is dialog
         dialog.show.assert_called_once_with()
 
 
@@ -131,7 +147,7 @@ def test_edit_button_success(
 
         # Check that dialog is created and shown
         edit_dialog_mock.assert_called_once_with(window, script)
-        assert script_control.dialog is dialog
+        assert script_control.edit_dialog is dialog
         dialog.show.assert_called_once_with()
 
 
@@ -184,3 +200,52 @@ def test_run_button_success(
 
         # Check that the script was started
         script.run.assert_called_once_with(script_control)
+
+
+@patch("finesse.gui.measure_script.script_view.ScriptRunDialog")
+def test_show_run_dialog(
+    run_dialog_mock: Mock,
+    script_control: ScriptControl,
+    qtbot: QtBot,
+) -> None:
+    """Test the _show_run_dialog() method."""
+    dialog = MagicMock()
+    run_dialog_mock.return_value = dialog
+
+    with patch.object(script_control, "window") as window_mock:
+        window = MagicMock()
+        window_mock.return_value = window
+
+        runner = MagicMock()
+        script_control._show_run_dialog(runner)
+
+        # Check that the dialog was created and shown
+        run_dialog_mock.assert_called_once_with(window, runner)
+        assert script_control.run_dialog is dialog
+        dialog.show.assert_called_once_with()
+
+
+def test_hide_run_dialog(
+    script_control: ScriptControl, run_dialog: ScriptRunDialog, sendmsg_mock: MagicMock
+) -> None:
+    """Test the _hide_run_dialog() method."""
+    dialog = MagicMock()
+    script_control.run_dialog = dialog
+    script_control._hide_run_dialog()
+
+    dialog.hide.assert_called_once_with()  # Check window is hidden
+    assert not hasattr(script_control, "run_dialog")  # Check attribute is deleted
+
+
+def test_hide_run_dialog_no_abort(
+    script_control: ScriptControl, run_dialog: ScriptRunDialog, sendmsg_mock: MagicMock
+) -> None:
+    """Test the _hide_run_dialog() method doesn't abort the measure script.
+
+    This method should only be run when the measure script completes successfully.
+    """
+    script_control.run_dialog = run_dialog
+    script_control._hide_run_dialog()
+
+    # Check that measure_script.abort message isn't sent
+    sendmsg_mock.assert_not_called()
