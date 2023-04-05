@@ -5,9 +5,9 @@ from typing import Optional
 from PySide6.QtWidgets import QFileDialog, QGridLayout, QGroupBox, QPushButton
 
 from ...config import DEFAULT_SCRIPT_PATH
+from ..path_widget import OpenPathWidget
 from .script import Script
 from .script_edit_dialog import ScriptEditDialog
-from .script_path_widget import ScriptPathWidget
 
 
 class ScriptControl(QGroupBox):
@@ -23,7 +23,12 @@ class ScriptControl(QGroupBox):
         edit_btn = QPushButton("Edit script")
         edit_btn.clicked.connect(self._edit_btn_clicked)
 
-        self.script_path = OpenScriptPathWidget()
+        self.script_path = OpenPathWidget(
+            extension="yaml",
+            parent=self,
+            caption="Choose measure script to load",
+            dir=str(DEFAULT_SCRIPT_PATH),
+        )
 
         run_btn = QPushButton("Run script")
         run_btn.clicked.connect(self._run_btn_clicked)
@@ -81,15 +86,3 @@ class ScriptControl(QGroupBox):
 
         # Run the script!
         script.run(self)
-
-
-class OpenScriptPathWidget(ScriptPathWidget):
-    """A widget that lets the user choose the path to an existing script."""
-
-    def try_get_path_from_dialog(self) -> Optional[Path]:
-        """Try to get the path of the file to open by raising a dialog."""
-        filename, _ = QFileDialog.getOpenFileName(
-            self, "Choose script to load", str(DEFAULT_SCRIPT_PATH), "*.yaml"
-        )
-
-        return Path(filename) if filename else None

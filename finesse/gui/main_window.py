@@ -4,6 +4,7 @@ from PySide6.QtGui import QHideEvent, QShowEvent
 from PySide6.QtWidgets import QGridLayout, QGroupBox, QHBoxLayout, QMainWindow, QWidget
 
 from ..config import APP_NAME
+from .data_file_view import DataFileControl
 from .interferometer_monitor import EM27Monitor
 from .measure_script.script_view import ScriptControl
 from .opus_view import OPUSControl
@@ -37,6 +38,9 @@ class MainWindow(QMainWindow):
         # Setup for interferometer monitor
         em27_monitor = EM27Monitor()
 
+        # Setup for data file widgets
+        data_file = DataFileControl()
+
         layout_left.addWidget(stepper_motor, 0, 0, 1, 2)
         layout_left.addWidget(measure_script, 1, 0, 1, 1)
         layout_left.addWidget(serial_port, 2, 0, 1, 1)
@@ -55,6 +59,7 @@ class MainWindow(QMainWindow):
         layout_right.addWidget(dp9800, 2, 0, 1, 2)
         layout_right.addWidget(tc4820_hot, 3, 0, 1, 1)
         layout_right.addWidget(tc4820_cold, 3, 1, 1, 1)
+        layout_right.addWidget(data_file, 4, 0, 1, 2)
 
         # Display widgets in two columns
         left = QWidget()
