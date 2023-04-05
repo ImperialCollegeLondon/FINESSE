@@ -169,7 +169,6 @@ class DummyOPUSInterface(OPUSInterfaceBase):
         state = self.state_machine.current_state
         pub.sendMessage(
             f"opus.response.{command}",
-            url="https://example.com",
             status=state.value,
             text=state.name,
             error=self.last_error.to_tuple(),

@@ -119,7 +119,7 @@ def test_parse_response_no_error(
         opus._parse_response(response, "my.topic")
         error_mock.assert_not_called()
         sendmsg_mock.assert_called_once_with(
-            "my.topic", url=response.url, status=status, text=text, error=None
+            "my.topic", status=status, text=text, error=None
         )
 
 
@@ -135,7 +135,6 @@ def test_parse_response_error(
         error_mock.assert_not_called()
         sendmsg_mock.assert_called_once_with(
             "my.topic",
-            url=response.url,
             status=1,
             text="status text",
             error=(errcode, errtext),

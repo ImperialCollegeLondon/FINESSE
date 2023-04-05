@@ -95,7 +95,6 @@ class OPUSControl(QGroupBox):
         status: int,
         text: str,
         error: Optional[tuple[int, str]],
-        url: str,
     ) -> None:
         self.logger.info(f"Response ({status}): {text}")
         if error:

@@ -293,7 +293,6 @@ class ScriptRunner(StateMachine):
         status: int,
         text: str,
         error: Optional[tuple[int, str]],
-        url: str,
     ):
         """Start polling the EM27 so we know when the measurement is finished."""
         if error:
@@ -306,7 +305,6 @@ class ScriptRunner(StateMachine):
         status: int,
         text: str,
         error: Optional[tuple[int, str]],
-        url: str,
     ):
         """Move on to the next measurement if the measurement has finished."""
         if error:

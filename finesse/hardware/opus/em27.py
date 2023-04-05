@@ -119,9 +119,7 @@ class OPUSInterface(OPUSInterfaceBase):
             self.error_occurred(e)
             return
 
-        pub.sendMessage(
-            topic, url=response.url, status=cast(int, status), text=text, error=error
-        )
+        pub.sendMessage(topic, status=cast(int, status), text=text, error=error)
 
     def request_command(self, command: str) -> None:
         """Request that OPUS run the specified command.
