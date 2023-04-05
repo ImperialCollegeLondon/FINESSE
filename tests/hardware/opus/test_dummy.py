@@ -57,7 +57,6 @@ def test_request_status(
     dev.request_command("status")
     send_message_mock.assert_called_once_with(
         "opus.response.status",
-        url="https://example.com",
         status=state.value,
         text=state.name,
         error=OPUSError.NOT_CONNECTED.to_tuple()
@@ -114,7 +113,6 @@ def test_request_command(
         state = dev.state_machine.current_state
         send_message_mock.assert_called_once_with(
             f"opus.response.{command}",
-            url="https://example.com",
             status=state.value,
             text=state.name,
             error=dev.last_error.to_tuple(),
@@ -130,7 +128,6 @@ def test_request_command_bad_command(
     state = dev.state_machine.current_state
     send_message_mock.assert_called_once_with(
         "opus.response.non_existent_command",
-        url="https://example.com",
         status=state.value,
         text=state.name,
         error=OPUSError.UNKNOWN_COMMAND.to_tuple(),
