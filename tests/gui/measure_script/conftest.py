@@ -1,10 +1,14 @@
 """Provides common fixtures for measure script tests."""
 from pathlib import Path
+from typing import Generator
 from unittest.mock import MagicMock
 
 import pytest
+from PySide6.QtWidgets import QWidget
+from pytestqt.qtbot import QtBot
 
 from finesse.gui.measure_script.script import Script, ScriptRunner
+from finesse.gui.measure_script.script_run_dialog import ScriptRunDialog
 
 
 @pytest.fixture
@@ -25,3 +29,12 @@ def runner_measuring(
     runner.start_measuring()
     sendmsg_mock.reset_mock()
     return runner
+
+
+@pytest.fixture
+def run_dialog(
+    runner: ScriptRunner, subscribe_mock: MagicMock, qtbot: QtBot
+) -> Generator[ScriptRunDialog, None, None]:
+    """Provides a ScriptRunDialog."""
+    widget = QWidget()
+    yield ScriptRunDialog(widget, runner)
