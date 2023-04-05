@@ -21,11 +21,11 @@ from ...config import ANGLE_PRESETS, STEPPER_MOTOR_TOPIC
 from ..error_message import show_error_message
 
 
-@dataclass
+@dataclass(frozen=True)
 class Measurement:
     """Represents a single step (i.e. angle + number of measurements)."""
 
-    angle: Union[str, float]
+    angle: float | str
     """Either an angle in degrees or the name of a preset angle."""
 
     measurements: int
