@@ -120,7 +120,8 @@ class EM27Scraper:
         except EM27Error as e:
             self._error_occurred(e)
 
-    def _error_occurred(self, exception: BaseException) -> None:
+    @staticmethod
+    def _error_occurred(error: BaseException) -> None:
         """Log and communicate that an error occurred."""
-        logging.error(f"Error during EM27 sensor query:\t{exception}")
-        pub.sendMessage("em27.error", message=str(exception))
+        logging.error(f"Error during EM27 sensor query:\t{error}")
+        pub.sendMessage("em27.error", error=error)
