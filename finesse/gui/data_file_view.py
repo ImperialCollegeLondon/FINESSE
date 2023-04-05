@@ -1,6 +1,6 @@
 """Provides a panel which lets the user start and stop recording of data files."""
 from pubsub import pub
-from PySide6.QtWidgets import QGroupBox, QHBoxLayout, QLabel, QPushButton
+from PySide6.QtWidgets import QGroupBox, QHBoxLayout, QPushButton
 
 from ..config import DEFAULT_DATA_FILE_PATH
 from .path_widget import SavePathWidget
@@ -14,7 +14,6 @@ class DataFileControl(QGroupBox):
         super().__init__("Data file")
 
         layout = QHBoxLayout()
-        layout.addWidget(QLabel("Path"))
 
         self.save_path_widget = SavePathWidget(
             extension="csv",
