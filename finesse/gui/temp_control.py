@@ -20,7 +20,11 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from ..config import TEMPERATURE_CONTROLLER_TOPIC
+from ..config import (
+    TEMPERATURE_CONTROLLER_TOPIC,
+    TEMPERATURE_MONITOR_POLL_INTERVAL,
+    TEMPERATURE_PLOT_TIME_RANGE,
+)
 from .led_icons import LEDIcon
 from .serial_device_panel import SerialDevicePanel
 
@@ -69,16 +73,15 @@ class TemperaturePlot(QGroupBox):
         self._ax = {"hot": ax}
         self._canvas = FigureCanvasQTAgg(self._figure)
 
-        poll_interval = 2  # seconds
-        interval_to_show = 15  # minutes
-        self._figure_num_pts = int(interval_to_show * 60 / poll_interval)
+        self._figure_num_pts = int(
+            TEMPERATURE_PLOT_TIME_RANGE / TEMPERATURE_MONITOR_POLL_INTERVAL
+        )
         t = [None] * self._figure_num_pts
         hot_bb_temp = [None] * self._figure_num_pts
         cold_bb_temp = [None] * self._figure_num_pts
 
-        colours = plt.rcParams["axes.prop_cycle"]
-        hot_colour = colours.by_key()["color"][0]
-        cold_colour = colours.by_key()["color"][1]
+        hot_colour = "r"
+        cold_colour = "b"
 
         self._ax["hot"].plot(t, hot_bb_temp, color=hot_colour, linestyle="-")
         self._ax["hot"].set_ylabel("HOT BB", color=hot_colour)
@@ -187,17 +190,16 @@ class TemperaturePlot(QGroupBox):
 class DP9800Controls(QGroupBox):
     """Widgets to view the DP9800 properties."""
 
-    def __init__(self, num_channels: int = 8, poll_interval: int = 2000) -> None:
+    def __init__(self, num_channels: int = 8) -> None:
         """Creates the widgets to monitor DP9800.
 
         Args:
             num_channels: Number of Pt 100 channels being monitored
-            poll_interval: Period with which to update the values (in seconds)
         """
         super().__init__("DP9800")
 
         self._num_channels = num_channels
-        self._poll_interval = poll_interval
+        self._poll_interval = 1000 * TEMPERATURE_MONITOR_POLL_INTERVAL
 
         layout = self._create_controls()
         self.setLayout(layout)

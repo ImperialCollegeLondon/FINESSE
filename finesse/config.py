@@ -46,3 +46,9 @@ OPUS_IP = "10.10.0.2"
 
 ALLOW_DUMMY_DEVICES = True
 """Whether to allow the user to choose dummy serial devices."""
+
+TEMPERATURE_MONITOR_POLL_INTERVAL = 2
+"""Number of seconds between temperature monitoring device reads."""
+
+TEMPERATURE_PLOT_TIME_RANGE = 900
+"""Range of time axis on blackbody temperature plot, in seconds."""
