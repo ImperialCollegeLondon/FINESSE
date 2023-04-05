@@ -64,13 +64,13 @@ class OPUSControl(QGroupBox):
 
         for name in self.commands:
             button = QPushButton(name.capitalize())
-            button.clicked.connect(  # type: ignore
+            button.clicked.connect(
                 partial(self.on_command_button_clicked, command=name.lower())
             )
             btn_layout.addWidget(button)
 
         button = QPushButton("OPUS")
-        button.clicked.connect(self.open_opus)  # type: ignore
+        button.clicked.connect(self.open_opus)
         btn_layout.addWidget(button)
 
         btn_layout.addStretch()

@@ -58,8 +58,8 @@ class ScriptEditDialog(QDialog):
             | QDialogButtonBox.StandardButton.Cancel
         )
         self.buttonBox.setCenterButtons(True)
-        self.buttonBox.accepted.connect(self._try_accept)  # type: ignore
-        self.buttonBox.rejected.connect(self.reject)  # type: ignore
+        self.buttonBox.accepted.connect(self._try_accept)
+        self.buttonBox.rejected.connect(self.reject)
 
         layout = QVBoxLayout()
         layout.addWidget(self.count)

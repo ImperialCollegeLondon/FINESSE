@@ -203,7 +203,7 @@ class ST10Controller(StepperMotorBase):
         # Set flag that indicates the thread should quit
         self._reader.quit()
 
-        if not self.serial.is_open():
+        if not self.serial.is_open:
             return
 
         try:
