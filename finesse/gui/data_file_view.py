@@ -28,7 +28,7 @@ class DataFileControl(QGroupBox):
         # TODO: Enable/disable this on DP9800 connect/disconnect
         self.record_btn = QPushButton("Start recording")
         """Toggles recording state."""
-        self.record_btn.clicked.connect(self._toggle_recording)  # type: ignore
+        self.record_btn.clicked.connect(self._toggle_recording)
         layout.addWidget(self.record_btn)
 
         self.setLayout(layout)
