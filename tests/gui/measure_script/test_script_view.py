@@ -44,17 +44,17 @@ def test_init(settings_mock: Mock, subscribe_mock: Mock, qtbot: QtBot) -> None:
 
 
 @patch("finesse.gui.measure_script.script_view.settings")
-@pytest.mark.parametrize("prev_path", ("/my/path.yaml", ""))
-def test_init_path_setting(settings_mock: Mock, prev_path: str, qtbot: QtBot) -> None:
+@pytest.mark.parametrize("prev_path", (Path("/my/path.yaml"), ""))
+def test_init_path_setting(settings_mock: Mock, prev_path: Path, qtbot: QtBot) -> None:
     """Check that the constructor correctly loads previous path from settings."""
-    settings_mock.value.return_value = prev_path
+    settings_mock.value.return_value = str(prev_path)
     script_control = ScriptControl()
 
     # NB: This will need to be changed if we load more than one setting
     settings_mock.value.assert_called_once_with("script/run_path", "")
 
     # Check that the initial path is correct
-    assert script_control.script_path.line_edit.text() == prev_path
+    assert script_control.script_path.line_edit.text() == str(prev_path)
 
 
 @patch("finesse.gui.measure_script.script_view.ScriptEditDialog")
