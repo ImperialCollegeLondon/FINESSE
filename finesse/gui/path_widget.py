@@ -27,7 +27,6 @@ class PathWidget(QWidget):
         self.line_edit = QLineEdit()
         """Indicates the current selected path."""
 
-        self.line_edit.setReadOnly(True)
         if initial_file_path:
             self.line_edit.setText(str(initial_file_path))
 
