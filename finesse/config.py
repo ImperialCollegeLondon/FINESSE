@@ -26,6 +26,9 @@ DUMMY_DEVICE_PORT = "Dummy"
 DEFAULT_SCRIPT_PATH = Path.home()
 """The default path to search for script files in."""
 
+DEFAULT_DATA_FILE_PATH = Path.home()
+"""The default path to save data files."""
+
 EM27_URL = "http://10.10.0.1/diag_autom.htm"
 """The URL of the EM27 monitoring web server."""
 
