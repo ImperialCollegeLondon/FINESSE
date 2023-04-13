@@ -2,7 +2,6 @@
 
 This is used to scrape the PSF27Sensor data table off the server.
 """
-import logging
 from dataclasses import dataclass
 from decimal import Decimal
 from functools import partial
@@ -12,6 +11,7 @@ from PySide6.QtCore import Slot
 from PySide6.QtNetwork import QNetworkAccessManager, QNetworkReply, QNetworkRequest
 
 from ..config import EM27_URL
+from .pubsub_decorators import pubsub_broadcast
 
 
 @dataclass
@@ -82,24 +82,14 @@ class EM27Error(Exception):
     """Indicates than an error occurred while parsing the webpage."""
 
 
-def _error_occurred(error: BaseException) -> None:
-    """Log and communicate that an error occurred."""
-    logging.error(f"Error during EM27 sensor query:\t{error}")
-    pub.sendMessage("em27.error", error=error)
-
-
 @Slot()
-def _on_reply_received(reply: QNetworkReply) -> None:
-    try:
-        if reply.error() != QNetworkReply.NetworkError.NoError:
-            raise EM27Error(f"Network error: {reply.errorString()}")
+@pubsub_broadcast("em27.error", "em27.data.response", "data")
+def _on_reply_received(reply: QNetworkReply) -> list[EM27Property]:
+    if reply.error() != QNetworkReply.NetworkError.NoError:
+        raise EM27Error(f"Network error: {reply.errorString()}")
 
-        content = reply.readAll().data().decode()
-        data = get_em27sensor_data(content)
-    except Exception as error:
-        _error_occurred(error)
-    else:
-        pub.sendMessage("em27.data.response", data=data)
+    content = reply.readAll().data().decode()
+    return get_em27sensor_data(content)
 
 
 class EM27Scraper:
