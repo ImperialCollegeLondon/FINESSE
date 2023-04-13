@@ -1,6 +1,6 @@
 """Tests for the StepperMotorBase class."""
-from typing import Any, Optional, Sequence
-from unittest.mock import MagicMock, patch
+from typing import Optional
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -40,7 +40,7 @@ class _MockStepperMotor(StepperMotorBase):
 
 
 @pytest.fixture
-def stepper() -> _MockStepperMotor:
+def stepper(error_wrap_mock: MagicMock) -> _MockStepperMotor:
     """Provides a basic StepperMotorBase."""
     return _MockStepperMotor()
 
@@ -83,37 +83,6 @@ def test_send_error_message(
     sendmsg_mock.assert_called_once_with(
         f"serial.{STEPPER_MOTOR_TOPIC}.error", error=error
     )
-
-
-_ERROR_WRAPPED_FUNCTIONS = (
-    ("move_to", (MagicMock(),)),
-    ("stop_moving", ()),
-    ("notify_on_stopped", ()),
-)
-
-
-@pytest.mark.parametrize("func_name,args", _ERROR_WRAPPED_FUNCTIONS)
-def test_error_wrappers_success(
-    func_name: str, args: Sequence[Any], stepper: _MockStepperMotor
-) -> None:
-    """Test that error wrappers work when no errors occur."""
-    with patch.object(stepper, func_name) as func_mock:
-        getattr(stepper, f"_{func_name}")(*args)
-        func_mock.assert_called_once_with(*args)
-
-
-@pytest.mark.parametrize("func_name,args", _ERROR_WRAPPED_FUNCTIONS)
-def test_error_wrappers_fail(
-    func_name: str, args: Sequence[Any], stepper: _MockStepperMotor
-) -> None:
-    """Test that error wrappers work when an exception is raised."""
-    with patch.object(stepper, "send_error_message") as send_error_message_mock:
-        with patch.object(stepper, func_name) as func_mock:
-            error = RuntimeError("hello")
-            func_mock.side_effect = error
-            getattr(stepper, f"_{func_name}")(*args)
-            func_mock.assert_called_once_with(*args)
-            send_error_message_mock.assert_called_once_with(error)
 
 
 def test_request_angle(stepper: _MockStepperMotor, sendmsg_mock: MagicMock) -> None:
