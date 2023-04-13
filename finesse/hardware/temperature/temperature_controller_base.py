@@ -1,11 +1,13 @@
 """Provides a base class for temperature controller devices or mock devices."""
 from abc import abstractmethod
 from decimal import Decimal
+from typing import Any
 
 from pubsub import pub
 
 from ...config import TEMPERATURE_CONTROLLER_TOPIC
 from ..device_base import DeviceBase
+from ..pubsub_decorators import pubsub_broadcast, pubsub_errors
 
 
 class TemperatureControllerBase(DeviceBase):
@@ -21,40 +23,35 @@ class TemperatureControllerBase(DeviceBase):
         """
         super().__init__()
         self.name = name
+        topic_base = f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{self.name}"
+        self._request_properties = pubsub_broadcast(
+            f"{topic_base}.error", f"{topic_base}.response", "properties"
+        )(self.get_properties)
+        """Requests that various device properties are sent over pubsub."""
+
         pub.subscribe(
-            self.request_properties,
+            self._request_properties,
             f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{name}.request",
         )
+
+        self._change_set_point = pubsub_errors(f"{topic_base}.error")(
+            self.change_set_point
+        )
         pub.subscribe(
-            self.change_set_point,
+            self._change_set_point,
             f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{name}.change_set_point",
         )
 
-    def request_properties(self) -> None:
-        """Requests that various device properties are sent over pubsub."""
-        try:
-            properties = {
-                prop: getattr(self, prop)
-                for prop in ("temperature", "power", "alarm_status", "set_point")
-            }
-        except Exception as error:
-            pub.sendMessage(
-                f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{self.name}.error", error=error
-            )
-        else:
-            pub.sendMessage(
-                f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{self.name}.response",
-                properties=properties,
-            )
+    def get_properties(self) -> dict[str, Any]:
+        """Get device properties."""
+        return {
+            prop: getattr(self, prop)
+            for prop in ("temperature", "power", "alarm_status", "set_point")
+        }
 
     def change_set_point(self, temperature: Decimal) -> None:
         """Change the set point to a new value."""
-        try:
-            self.set_point = temperature
-        except Exception as error:
-            pub.sendMessage(
-                f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{self.name}.error", error=error
-            )
+        self.set_point = temperature
 
     @property
     @abstractmethod
