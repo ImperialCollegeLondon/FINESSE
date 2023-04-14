@@ -111,7 +111,6 @@ class EM27Scraper:
         Args:
             url: Web address of the automation units diagnostics page.
         """
-        super().__init__()
         self._url: str = url
         self._timeout: float = 2.0
         self._manager = QNetworkAccessManager()
