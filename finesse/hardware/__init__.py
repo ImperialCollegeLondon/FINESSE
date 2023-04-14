@@ -11,12 +11,10 @@ else:
     from .opus.em27 import OPUSInterface  # type: ignore
 
 from .stepper_motor import create_stepper_motor_serial_manager
-from .temperature import create_temperature_controller_serial_managers
-
-if "--dummy-dp9800" in sys.argv:
-    from .temperature.dummy_temperature_monitor import DummyTemperatureMonitor as DP9800
-else:
-    from .temperature.dp9800 import DP9800  # type: ignore
+from .temperature import (
+    create_temperature_controller_serial_managers,
+    create_temperature_monitor_serial_manager,
+)
 
 opus: OPUSInterface
 
@@ -35,7 +33,7 @@ def _stop_hardware():
 pub.subscribe(_init_hardware, "window.opened")
 pub.subscribe(_stop_hardware, "window.closed")
 
-dp9800 = DP9800()
 scraper = EM27Scraper()
 create_stepper_motor_serial_manager()
 create_temperature_controller_serial_managers()
+create_temperature_monitor_serial_manager()

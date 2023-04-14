@@ -1,10 +1,10 @@
 """This module provides an interface to dummy DP9800 temperature readers."""
-import logging
 from datetime import datetime
 from decimal import Decimal
 
 from pubsub import pub
 
+from ...config import TEMPERATURE_MONITOR_TOPIC
 from ..noise_producer import NoiseProducer
 from .temperature_monitor_base import TemperatureMonitorBase
 
@@ -19,8 +19,6 @@ class DummyTemperatureMonitor(TemperatureMonitorBase):
 
     def close(self) -> None:
         """Close the connection to the device."""
-        pub.sendMessage("temperature_monitor.close")
-        logging.info("Closed connection to dummy temperature monitor")
 
     def send_temperatures(self) -> None:
         """Publish fluctuating temperatures."""
@@ -30,7 +28,7 @@ class DummyTemperatureMonitor(TemperatureMonitorBase):
         time_now = datetime.now().timestamp()
 
         pub.sendMessage(
-            "temperature_monitor.data.response",
+            f"serial.{TEMPERATURE_MONITOR_TOPIC}.data.response",
             temperatures=temperatures,
             time=time_now,
         )

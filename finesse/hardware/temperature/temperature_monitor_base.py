@@ -1,22 +1,24 @@
 """Provides a base class for temperature monitor devices or mock devices."""
-import logging
 from abc import abstractmethod
 
 from pubsub import pub
 
+from ...config import TEMPERATURE_MONITOR_TOPIC
 from ..device_base import DeviceBase
 
 
 class TemperatureMonitorBase(DeviceBase):
-    """The base class for temperature monitor devices or mock devices."""
+    """The base class for temperature monitor devices or mock devices.
+
+    Subscribes to incoming requests.
+    """
 
     def __init__(self, name: str) -> None:
         """Create a new TemperatureMonitorBase object."""
         super().__init__()
-
-        logging.info(f"Opened connection to {name} temperature monitor")
-        pub.sendMessage("temperature_monitor.open")
-        pub.subscribe(self.send_temperatures, "temperature_monitor.data.request")
+        pub.subscribe(
+            self.send_temperatures, f"serial.{TEMPERATURE_MONITOR_TOPIC}.data.request"
+        )
 
     @abstractmethod
     def send_temperatures(self) -> None:
