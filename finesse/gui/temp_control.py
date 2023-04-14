@@ -21,6 +21,7 @@ from PySide6.QtWidgets import (
 )
 
 from ..config import (
+    NUM_TEMPERATURE_MONITOR_CHANNELS,
     TEMPERATURE_CONTROLLER_TOPIC,
     TEMPERATURE_MONITOR_POLL_INTERVAL,
     TEMPERATURE_MONITOR_TOPIC,
@@ -193,7 +194,7 @@ class TemperaturePlot(QGroupBox):
 class DP9800Controls(SerialDevicePanel):
     """Widgets to view the DP9800 properties."""
 
-    def __init__(self, num_channels: int = 8) -> None:
+    def __init__(self, num_channels: int = NUM_TEMPERATURE_MONITOR_CHANNELS) -> None:
         """Creates the widgets to monitor DP9800.
 
         Args:
