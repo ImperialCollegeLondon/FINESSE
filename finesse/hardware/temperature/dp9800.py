@@ -1,6 +1,5 @@
 """This module provides an interface to DP9800 temperature readers."""
 import logging
-from datetime import datetime
 from decimal import Decimal
 
 from pubsub import pub
@@ -204,28 +203,9 @@ class DP9800(TemperatureMonitorBase):
         except Exception as e:
             raise DP9800Error(e)
 
-    def send_temperatures(self) -> None:
-        """Perform the complete process of reading from the DP9800.
-
-        Writes to the DP9800 requesting a read operation.
-        Reads the raw data from the DP9800.
-        Parses the data and broadcasts the temperatures.
-        """
-        try:
-            self.request_read()
-            data = self.read()
-            time_now = datetime.now().timestamp()
-            temperatures, _ = parse_data(data)
-        except DP9800Error as e:
-            self._error_occurred(e)
-        else:
-            pub.sendMessage(
-                "temperature_monitor.data.response",
-                temperatures=temperatures,
-                time=time_now,
-            )
-
-    def _error_occurred(self, exception: BaseException) -> None:
-        """Log and communicate that an error occurred."""
-        logging.error(f"Error during DP9800 query:\t{exception}")
-        pub.sendMessage("temperature_monitor.error", message=str(exception))
+    def get_temperatures(self) -> list[Decimal]:
+        """Get the current temperatures."""
+        self.request_read()
+        data = self.read()
+        temperatures, _ = parse_data(data)
+        return temperatures
