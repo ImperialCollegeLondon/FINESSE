@@ -1,4 +1,5 @@
 """Common constants used throughout the app."""
+from importlib.metadata import version
 from pathlib import Path
 
 APP_NAME = "FINESSE"
@@ -6,6 +7,9 @@ APP_NAME = "FINESSE"
 
 APP_AUTHOR = "Imperial College London"
 """The name of the app's author (used for program data path)."""
+
+APP_VERSION = version("finesse")
+"""The current version of the app."""
 
 ANGLE_PRESETS = {
     "zenith": 180.0,
