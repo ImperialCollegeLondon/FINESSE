@@ -16,11 +16,13 @@ from serial.tools.list_ports import comports
 from ..config import (
     ALLOW_DUMMY_DEVICES,
     BAUDRATES,
+    DEFAULT_DP9800_BAUDRATE,
     DEFAULT_ST10_BAUDRATE,
     DEFAULT_TC4820_BAUDRATE,
     DUMMY_DEVICE_PORT,
     STEPPER_MOTOR_TOPIC,
     TEMPERATURE_CONTROLLER_TOPIC,
+    TEMPERATURE_MONITOR_TOPIC,
 )
 from ..settings import settings
 
@@ -186,6 +188,7 @@ class SerialPortControl(QGroupBox):
                 f"{TEMPERATURE_CONTROLLER_TOPIC}.cold_bb",
                 DEFAULT_TC4820_BAUDRATE,
             ),
+            Device("DP9800", TEMPERATURE_MONITOR_TOPIC, DEFAULT_DP9800_BAUDRATE),
         ),
         avail_ports: Sequence[str] = get_default_ports(),
         avail_baudrates: Sequence[int] = BAUDRATES,

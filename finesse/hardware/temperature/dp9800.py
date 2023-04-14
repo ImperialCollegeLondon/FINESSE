@@ -1,8 +1,6 @@
 """This module provides an interface to DP9800 temperature readers."""
-import logging
 from decimal import Decimal
 
-from pubsub import pub
 from serial import Serial, SerialException
 
 from .temperature_monitor_base import TemperatureMonitorBase
@@ -100,18 +98,8 @@ class DP9800(TemperatureMonitorBase):
         self.serial = serial
 
     def close(self) -> None:
-        """Close the connection to the device.
-
-        Raises:
-            DP9800Error: Error communicating with device
-        """
-        try:
-            self.serial.close()
-        except SerialException as e:
-            raise DP9800Error(e)
-        else:
-            pub.sendMessage("temperature_monitor.close")
-            logging.info("Closed connection to DP9800")
+        """Close the connection to the device."""
+        self.serial.close()
 
     def get_device_settings(self, sysflag: str) -> dict[str, str]:
         """Provide the settings of the device as stored in the system flag.
