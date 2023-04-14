@@ -6,13 +6,14 @@ from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
 from PySide6.QtWidgets import QDialog, QDialogButtonBox, QMessageBox, QWidget
+from pytestqt.qtbot import QtBot
 
 from finesse.gui.measure_script.script import Measurement, Script
 from finesse.gui.measure_script.script_edit_dialog import ScriptEditDialog
 
 
 @pytest.fixture()
-def dlg(qtbot):
+def dlg(qtbot: QtBot):
     """A test fixture providing a ScriptEditDialog."""
     parent = QWidget()
     yield ScriptEditDialog(parent)
@@ -34,7 +35,7 @@ _TEST_SCRIPT = Script(Path("/my/path"), 2, ({"angle": "nadir", "measurements": 3
     ),
 )
 def test_init(
-    qtbot,
+    qtbot: QtBot,
     script: Optional[Script],
     count: int,
     sequence: Sequence[Measurement],
@@ -95,20 +96,20 @@ def test_try_save(
 
 
 @pytest.mark.parametrize("saved", (True, False))
-def test_accept(saved: bool, qtbot, dlg: ScriptEditDialog) -> None:
+def test_accept(saved: bool, qtbot: QtBot, dlg: ScriptEditDialog) -> None:
     """Check the Save button."""
     with patch.object(dlg, "_try_save") as try_save_mock:
         try_save_mock.return_value = saved
 
         # We only accept if _try_save() succeeds
-        with qtbot.waitSignal(dlg.accepted) if saved else nullcontext():  # type: ignore
+        with qtbot.waitSignal(dlg.accepted) if saved else nullcontext():
             save_btn = dlg.buttonBox.button(QDialogButtonBox.StandardButton.Save)
             save_btn.click()
 
 
-def test_reject(qtbot, dlg: ScriptEditDialog) -> None:
+def test_reject(qtbot: QtBot, dlg: ScriptEditDialog) -> None:
     """Check the Cancel button."""
-    with qtbot.waitSignal(dlg.rejected):  # type: ignore
+    with qtbot.waitSignal(dlg.rejected):
         cancel_btn = dlg.buttonBox.button(QDialogButtonBox.StandardButton.Cancel)
         cancel_btn.click()
 
@@ -132,7 +133,7 @@ def test_close(
     nonempty_seq: bool,
     btn_pressed: int,
     saved: bool,
-    qtbot,
+    qtbot: QtBot,
     dlg: ScriptEditDialog,
 ) -> None:
     """Test the effect of closing the dialog."""

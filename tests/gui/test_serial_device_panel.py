@@ -1,6 +1,6 @@
 """Tests for the SerialDevicePanel."""
 from typing import Sequence
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from PySide6.QtWidgets import QVBoxLayout, QWidget
@@ -41,25 +41,32 @@ def test_init(subscribe_mock: MagicMock, qtbot: QtBot) -> None:
     panel = SerialDevicePanel("my_device", "My Title")
 
     subscribe_mock.assert_any_call(panel._on_device_opened, "serial.my_device.opened")
-    subscribe_mock.assert_any_call(panel.disable_controls, "serial.my_device.close")
+    subscribe_mock.assert_any_call(panel._on_device_closed, "serial.my_device.close")
 
 
-def test_enable_controls(panel: SerialDevicePanel) -> None:
-    """Test the enable_controls() method."""
+def test_set_controls_enabled(panel: SerialDevicePanel) -> None:
+    """Test the set_controls_enabled() method."""
     # The controls should start off disabled
     _check_controls_enabled(panel, False)
 
     # Re-enable them
-    panel.enable_controls()
+    panel.set_controls_enabled(True)
     _check_controls_enabled(panel, True)
 
-
-def test_disable_controls(panel: SerialDevicePanel) -> None:
-    """Test the disable_controls() method."""
-    # Enable controls
-    panel.enable_controls()
-    _check_controls_enabled(panel, True)
-
-    # Disable them
-    panel.disable_controls()
+    # Disable them again
+    panel.set_controls_enabled(False)
     _check_controls_enabled(panel, False)
+
+
+def test_on_device_opened(panel: SerialDevicePanel) -> None:
+    """Test the _on_device_opened() method."""
+    with patch.object(panel, "set_controls_enabled") as enable_mock:
+        panel._on_device_opened()
+        enable_mock.assert_called_once_with(True)
+
+
+def test_on_device_closed(panel: SerialDevicePanel) -> None:
+    """Test the _on_device_closed() method."""
+    with patch.object(panel, "set_controls_enabled") as enable_mock:
+        panel._on_device_closed()
+        enable_mock.assert_called_once_with(False)

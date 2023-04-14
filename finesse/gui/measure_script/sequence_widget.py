@@ -54,7 +54,7 @@ class SequenceWidget(QWidget):
             measurements: Number of times to take a measurement at this angle
         """
         self.sequence.append(Measurement(angle, measurements))
-        self.model.layoutChanged.emit()  # type: ignore
+        self.model.layoutChanged.emit()
         self.table.scrollToBottom()
 
     def _get_selected_rows(self, reverse: bool = False) -> List[int]:
@@ -214,7 +214,7 @@ class AddButtons(QGroupBox):
 
         # Add buttons for preset angles (e.g. zenith, nadir, etc.)
         self.group = QButtonGroup()
-        self.group.buttonClicked.connect(self._preset_clicked)  # type: ignore
+        self.group.buttonClicked.connect(self._preset_clicked)
         for preset in ANGLE_PRESETS:
             btn = QPushButton(preset.upper())
             self.group.addButton(btn)
@@ -228,7 +228,7 @@ class AddButtons(QGroupBox):
         self.angle.setMinimum(0)
         self.angle.setMaximum(270)
         self.goto = QPushButton("GOTO")
-        self.goto.clicked.connect(self._goto_clicked)  # type: ignore
+        self.goto.clicked.connect(self._goto_clicked)
         goto_layout.addWidget(self.angle)
         goto_layout.addWidget(self.goto)
 
@@ -254,16 +254,16 @@ class ChangeButtons(QGroupBox):
         super().__init__("Modify instructions")
 
         self.up = QPushButton("Up")
-        self.up.clicked.connect(sequence.move_selected_up)  # type: ignore
+        self.up.clicked.connect(sequence.move_selected_up)
 
         self.down = QPushButton("Down")
-        self.down.clicked.connect(sequence.move_selected_down)  # type: ignore
+        self.down.clicked.connect(sequence.move_selected_down)
 
         self.delete = QPushButton("Delete")
-        self.delete.clicked.connect(sequence.delete_selected)  # type: ignore
+        self.delete.clicked.connect(sequence.delete_selected)
 
         self.clear = QPushButton("Clear")
-        self.clear.clicked.connect(sequence.delete_all)  # type: ignore
+        self.clear.clicked.connect(sequence.delete_all)
 
         layout = QVBoxLayout()
         layout.addWidget(self.up)
