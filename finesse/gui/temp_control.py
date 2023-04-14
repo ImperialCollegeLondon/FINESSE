@@ -177,7 +177,7 @@ class TemperaturePlot(QGroupBox):
         if self._ax["hot"].yaxis.get_visible():
             self._ax["cold"].set_ylim([ylim_cold[0] - 1, ylim_cold[1] + 5])
 
-    def _plot_bb_temps(self, time: float, temperatures: list[Decimal]) -> None:
+    def _plot_bb_temps(self, time: datetime, temperatures: list[Decimal]) -> None:
         """Extract blackbody temperatures from DP9800 data and plot them.
 
         Args:
@@ -187,7 +187,7 @@ class TemperaturePlot(QGroupBox):
         hot_bb_temp = temperatures[6]
         cold_bb_temp = temperatures[7]
 
-        self._update_figure(time, hot_bb_temp, cold_bb_temp)
+        self._update_figure(time.timestamp(), hot_bb_temp, cold_bb_temp)
 
 
 class DP9800Controls(SerialDevicePanel):
@@ -260,7 +260,7 @@ class DP9800Controls(SerialDevicePanel):
         self._poll_light.flash()
         pub.sendMessage(f"serial.{TEMPERATURE_MONITOR_TOPIC}.data.request")
 
-    def _update_pt100s(self, temperatures: list[Decimal], time: float) -> None:
+    def _update_pt100s(self, temperatures: list[Decimal], time: datetime) -> None:
         """Display the latest Pt 100 temperatures.
 
         Args:
