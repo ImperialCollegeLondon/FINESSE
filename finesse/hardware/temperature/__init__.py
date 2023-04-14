@@ -1,13 +1,16 @@
 """This module contains interfaces for temperature-related hardware."""
 from functools import partial
 
-from ...config import TEMPERATURE_CONTROLLER_TOPIC
+from ...config import TEMPERATURE_CONTROLLER_TOPIC, TEMPERATURE_MONITOR_TOPIC
 from ..serial_manager import SerialManager, make_device_factory
+from .dp9800 import DP9800
 from .dummy_temperature_controller import DummyTemperatureController
+from .dummy_temperature_monitor import DummyTemperatureMonitor
 from .tc4820 import TC4820
 
 _serial_manager_hot_bb: SerialManager
 _serial_manager_cold_bb: SerialManager
+_serial_manager_dp9800: SerialManager
 
 
 def _create_serial_manager(name: str) -> SerialManager:
@@ -24,3 +27,12 @@ def create_temperature_controller_serial_managers() -> None:
     global _serial_manager_cold_bb, _serial_manager_hot_bb
     _serial_manager_hot_bb = _create_serial_manager("hot_bb")
     _serial_manager_cold_bb = _create_serial_manager("cold_bb")
+
+
+def create_temperature_monitor_serial_manager() -> None:
+    """Create SerialManagers for the temperaturemonitor."""
+    global _serial_manager_dp9800
+    _serial_manager_dp9800 = SerialManager(
+        TEMPERATURE_MONITOR_TOPIC,
+        make_device_factory(DP9800, DummyTemperatureMonitor),
+    )

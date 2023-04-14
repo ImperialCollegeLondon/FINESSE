@@ -1,8 +1,5 @@
 """This module provides an interface to dummy DP9800 temperature readers."""
-import logging
 from decimal import Decimal
-
-from pubsub import pub
 
 from ..noise_producer import NoiseProducer
 from .temperature_monitor_base import TemperatureMonitorBase
@@ -18,8 +15,6 @@ class DummyTemperatureMonitor(TemperatureMonitorBase):
 
     def close(self) -> None:
         """Close the connection to the device."""
-        pub.sendMessage("temperature_monitor.close")
-        logging.info("Closed connection to dummy temperature monitor")
 
     def get_temperatures(self) -> list[Decimal]:
         """Get current temperatures."""
