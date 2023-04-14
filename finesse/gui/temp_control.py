@@ -288,14 +288,15 @@ class TC4820Controls(SerialDevicePanel):
         self.setLayout(layout)
 
         pub.subscribe(
-            self._begin_polling, f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{name}.opened"
+            self._begin_polling,
+            f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{name}_bb.opened",
         )
         pub.subscribe(
-            self._end_polling, f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{name}.close"
+            self._end_polling, f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{name}_bb.close"
         )
         pub.subscribe(
             self._update_controls,
-            f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{name}.response",
+            f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{name}_bb.response",
         )
         pub.subscribe(self._update_pt100, "temperature_monitor.data.response")
 
@@ -378,7 +379,9 @@ class TC4820Controls(SerialDevicePanel):
     def _poll_tc4820(self) -> None:
         """Polls the device to obtain the latest info."""
         self._poll_light.flash()
-        pub.sendMessage(f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{self._name}.request")
+        pub.sendMessage(
+            f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{self._name}_bb.request"
+        )
 
     def _update_controls(self, properties: dict):
         """Update panel with latest info from temperature controller.
