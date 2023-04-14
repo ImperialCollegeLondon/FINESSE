@@ -260,12 +260,15 @@ class TC4820Controls(SerialDevicePanel):
         layout = self._create_controls()
         self.setLayout(layout)
 
-        self._begin_polling()
-
-        pub.subscribe(self._begin_polling, f"serial.temperature_controller.{name}.open")
-        pub.subscribe(self._end_polling, f"serial.temperature_controller.{name}.close")
         pub.subscribe(
-            self._update_controls, f"serial.temperature_controller.{name}.response"
+            self._begin_polling, f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{name}.opened"
+        )
+        pub.subscribe(
+            self._end_polling, f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{name}.close"
+        )
+        pub.subscribe(
+            self._update_controls,
+            f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{name}.response",
         )
         pub.subscribe(self._update_pt100, "temperature_monitor.data.response")
 
@@ -348,7 +351,7 @@ class TC4820Controls(SerialDevicePanel):
     def _poll_tc4820(self) -> None:
         """Polls the device to obtain the latest info."""
         self._poll_light.flash()
-        pub.sendMessage(f"serial.temperature_controller.{self._name}.request")
+        pub.sendMessage(f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{self._name}.request")
 
     def _update_controls(self, properties: dict):
         """Update panel with latest info from temperature controller.
@@ -381,7 +384,7 @@ class TC4820Controls(SerialDevicePanel):
     def _set_new_set_point(self) -> None:
         """Send new target temperature to temperature controller."""
         pub.sendMessage(
-            f"serial.temperature_controller.{self._name}.change_set_point",
+            f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{self._name}.change_set_point",
             temperature=Decimal(self._set_sbox.value()),
         )
 
