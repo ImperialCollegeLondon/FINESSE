@@ -4,68 +4,54 @@ from typing import Any, Optional
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
+from PySide6.QtNetwork import QNetworkReply
 
 from finesse.config import OPUS_IP
-from finesse.hardware.opus.em27 import OPUSInterface, OPUSRequester
+from finesse.hardware.opus.em27 import OPUSError, OPUSInterface, parse_response
 
 
 @pytest.fixture
-@patch("finesse.hardware.opus.em27.QThread.start")
-def opus(mock) -> OPUSInterface:
+def opus(qtbot) -> OPUSInterface:
     """Fixture for OPUSInterface."""
     return OPUSInterface()
 
 
-def test_request_status(opus: OPUSInterface) -> None:
+@patch("finesse.hardware.opus.em27.QNetworkRequest")
+def test_request_status(network_request_mock: Mock, opus: OPUSInterface, qtbot) -> None:
     """Test OPUSInterface's request_status() method."""
-    with patch.object(opus, "submit_request") as request_mock:
+    with patch.object(opus, "_manager"):
         opus.request_command("status")
-        request_mock.emit.assert_called_once_with("stat.htm", "opus.response.status")
+        network_request_mock.assert_called_once_with(
+            f"http://{OPUS_IP}/opusrs/stat.htm"
+        )
 
 
-def test_request_command(opus: OPUSInterface) -> None:
+@patch("finesse.hardware.opus.em27.QNetworkRequest")
+def test_request_command(
+    network_request_mock: Mock, opus: OPUSInterface, qtbot
+) -> None:
     """Test OPUSInterface's request_command() method."""
-    with patch.object(opus, "submit_request") as request_mock:
-        opus.request_command("hello")
-        request_mock.emit.assert_called_once_with(
-            "cmd.htm?opusrshello", "opus.response.hello"
-        )
+    request = MagicMock()
+    network_request_mock.return_value = request
+    reply = MagicMock()
 
+    with patch.object(opus, "_manager") as manager_mock:
+        with patch.object(opus, "_on_reply_received") as reply_received_mock:
+            manager_mock.get.return_value = reply
+            opus.request_command("hello")
+            network_request_mock.assert_called_once_with(
+                f"http://{OPUS_IP}/opusrs/cmd.htm?opusrshello"
+            )
+            request.setTransferTimeout.assert_called_once_with(
+                round(1000 * opus._timeout)
+            )
 
-@patch("finesse.hardware.opus.em27.requests")
-def test_make_request_success(requests_mock) -> None:
-    """Test OPUSRequester's make_request() method with a successful request."""
-    requester = OPUSRequester(5.0)
-
-    with patch.object(requester, "request_complete") as request_complete_mock:
-        filename = "filename"
-        topic = "topic"
-        requests_mock.get.return_value = "MAGIC"
-        requester.make_request(filename, topic)
-        requests_mock.get.assert_called_once_with(
-            f"http://{OPUS_IP}/opusrs/{filename}", timeout=5.0
-        )
-
-        request_complete_mock.emit.assert_called_once_with("MAGIC", topic)
-
-
-@patch("finesse.hardware.opus.em27.requests")
-def test_make_request_error(requests_mock) -> None:
-    """Test OPUSRequester's make_request() method with failed request."""
-    requester = OPUSRequester(5.0)
-    error = RuntimeError("Request failed")
-    requests_mock.get.side_effect = error
-
-    with patch.object(requester, "request_error") as request_error_mock:
-        filename = "filename"
-        topic = "topic"
-        requests_mock.get.return_value = "MAGIC"
-        requester.make_request(filename, topic)
-        requests_mock.get.assert_called_once_with(
-            f"http://{OPUS_IP}/opusrs/{filename}", timeout=5.0
-        )
-
-        request_error_mock.emit.assert_called_once_with(error)
+            # Check that the reply will be handled by _on_reply_received()
+            connect_mock = reply.finished.connect
+            connect_mock.assert_called_once()
+            handler = connect_mock.call_args_list[0].args[0]
+            handler()
+            reply_received_mock.assert_called_once()
 
 
 def _format_td(name: str, value: Any) -> str:
@@ -98,95 +84,104 @@ def _get_opus_html(
     """
 
 
-def _get_opus_response(http_status_code: int, *args: Any, **kwargs: Any) -> MagicMock:
-    """Mock a requests.Response."""
-    html = _get_opus_html(*args, **kwargs)
-    response = MagicMock()
-    response.status_code = http_status_code
-    response.url = "https://example.com"
-    response.content = html.encode()
-    return response
-
-
 @pytest.mark.parametrize("status,text", product(range(2), ("", "status text")))
-def test_parse_response_no_error(
-    status: int, text: str, opus: OPUSInterface, sendmsg_mock: MagicMock
-) -> None:
-    """Test the _parse_response() method works when no error has occurred."""
-    response = _get_opus_response(200, status, text)
-
-    with patch.object(opus, "error_occurred") as error_mock:
-        opus._parse_response(response, "my.topic")
-        error_mock.assert_not_called()
-        sendmsg_mock.assert_called_once_with(
-            "my.topic", status=status, text=text, error=None
-        )
+def test_parse_response_no_error(status: int, text: str) -> None:
+    """Test parse_response() works when no error has occurred."""
+    response = _get_opus_html(status, text)
+    parsed_status, parsed_text, parsed_error = parse_response(response)
+    assert parsed_status == status
+    assert parsed_text == text
+    assert parsed_error is None
 
 
 @pytest.mark.parametrize("errcode,errtext", product(range(2), ("", "error text")))
-def test_parse_response_error(
-    errcode: int, errtext: str, opus: OPUSInterface, sendmsg_mock: MagicMock
-) -> None:
-    """Test the _parse_response() method when an error has occurred."""
-    response = _get_opus_response(200, 1, "status text", errcode, errtext)
-
-    with patch.object(opus, "error_occurred") as error_mock:
-        opus._parse_response(response, "my.topic")
-        error_mock.assert_not_called()
-        sendmsg_mock.assert_called_once_with(
-            "my.topic",
-            status=1,
-            text="status text",
-            error=(errcode, errtext),
-        )
+def test_parse_response_error(errcode: int, errtext: str) -> None:
+    """Test parse_response() works when an error has occurred."""
+    response = _get_opus_html(1, "status text", errcode, errtext)
+    parsed_status, parsed_text, parsed_error = parse_response(response)
+    assert parsed_status == 1
+    assert parsed_text == "status text"
+    assert parsed_error == (errcode, errtext)
 
 
-@pytest.mark.parametrize("status,text", product((None, 1), (None, "status text")))
+@pytest.mark.parametrize("status,text", ((None, "text"), (1, None), (None, None)))
 def test_parse_response_missing_fields(
-    status: Optional[int], text: Optional[str], opus: OPUSInterface
+    status: Optional[int], text: Optional[str]
 ) -> None:
-    """Test the _parse_response() method."""
-    response = _get_opus_response(200, status, text)
-
-    with patch.object(opus, "error_occurred") as error_mock:
-        opus._parse_response(response, "my.topic")
-        if status is None or text is None:
-            # Required fields missing
-            error_mock.assert_called()
-        else:
-            error_mock.assert_not_called()
+    """Test parse_response() raises an error if fields are missing."""
+    response = _get_opus_html(status, text)
+    with pytest.raises(OPUSError):
+        parse_response(response)
 
 
 def test_parse_response_no_id(opus: OPUSInterface) -> None:
-    """Test that _parse_response() can handle <td> tags without an id."""
-    response = _get_opus_response(200, 1, "text", 1, "errtext", "<td>something</td>")
-
-    with patch.object(opus, "error_occurred") as error_mock:
-        opus._parse_response(response, "my.topic")
-        error_mock.assert_not_called()
+    """Test that parse_response() can handle <td> tags without an id."""
+    response = _get_opus_html(1, "text", 1, "errtext", "<td>something</td>")
+    parsed_status, parsed_text, parsed_error = parse_response(response)
+    assert parsed_status == 1
+    assert parsed_text == "text"
+    assert parsed_error == (1, "errtext")
 
 
 @patch("finesse.hardware.opus.em27.logging.warning")
-def test_parse_response_bad_id(warning_mock: Mock, opus: OPUSInterface) -> None:
-    """Test that _parse_response() can handle <td> tags with unexpected id values."""
-    response = _get_opus_response(
-        200, 1, "text", 1, "errtext", '<td id="MADE_UP">something</td>'
+def test_parse_response_bad_id(warning_mock: Mock) -> None:
+    """Test that parse_response() can handle <td> tags with unexpected id values."""
+    response = _get_opus_html(
+        1, "text", 1, "errtext", '<td id="MADE_UP">something</td>'
+    )
+    parsed_status, parsed_text, parsed_error = parse_response(response)
+    assert parsed_status == 1
+    assert parsed_text == "text"
+    assert parsed_error == (1, "errtext")
+    warning_mock.assert_called()
+
+
+@patch("finesse.hardware.opus.em27.parse_response")
+def test_on_reply_received_no_error(
+    parse_response_mock: Mock, opus: OPUSInterface, sendmsg_mock: Mock, qtbot
+) -> None:
+    """Test the _on_reply_received() method works when no error occurs."""
+    reply = MagicMock()
+    reply.error.return_value = QNetworkReply.NetworkError.NoError
+
+    # NB: These values are of the wrong type, but it doesn't matter here
+    parse_response_mock.return_value = ("status", "text", "error")
+
+    # Check the correct pubsub message is sent
+    opus._on_reply_received(reply, "hello")
+    sendmsg_mock.assert_called_once_with(
+        "opus.response.hello", status="status", text="text", error="error"
     )
 
-    with patch.object(opus, "error_occurred") as error_mock:
-        opus._parse_response(response, "my.topic")
-        error_mock.assert_not_called()
-        warning_mock.assert_called()
+
+@patch("finesse.hardware.opus.em27.parse_response")
+def test_on_reply_received_network_error(
+    parse_response_mock: Mock, opus: OPUSInterface, qtbot
+) -> None:
+    """Test the _on_reply_received() method handles network errors."""
+    reply = MagicMock()
+    reply.error = QNetworkReply.NetworkError.HostNotFoundError
+    reply.errorString("Something went wrong")
+
+    with patch.object(opus, "error_occurred") as error_occurred_mock:
+        opus._on_reply_received(reply, "hello")
+        error_occurred_mock.assert_called_once()
 
 
-@pytest.mark.parametrize("http_status_code", (200, 403, 404))
-def test_parse_response_http_status(http_status_code: int, opus: OPUSInterface) -> None:
-    """Test that _parse_response() handles HTTP status codes correctly."""
-    response = _get_opus_response(http_status_code, 1, "text", 1, "errtext")
+@patch("finesse.hardware.opus.em27.parse_response")
+def test_on_reply_received_exception(
+    parse_response_mock: Mock, opus: OPUSInterface, qtbot
+) -> None:
+    """Test that the _on_reply_received() method catches parsing errors."""
+    reply = MagicMock()
+    reply.error.return_value = QNetworkReply.NetworkError.NoError
 
-    with patch.object(opus, "error_occurred") as error_mock:
-        opus._parse_response(response, "my.topic")
-        if http_status_code == 200:
-            error_mock.assert_not_called()
-        else:
-            error_mock.assert_called()
+    # Make parse_response() raise an exception
+    error = Exception()
+    parse_response_mock.side_effect = error
+
+    with patch.object(opus, "error_occurred") as error_occurred_mock:
+        opus._on_reply_received(reply, "hello")
+
+        # Check the error was caught
+        error_occurred_mock.assert_called_once_with(error)
