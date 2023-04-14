@@ -26,6 +26,9 @@ DUMMY_DEVICE_PORT = "Dummy"
 DEFAULT_SCRIPT_PATH = Path.home()
 """The default path to search for script files in."""
 
+DEFAULT_DATA_FILE_PATH = Path.home()
+"""The default path to save data files."""
+
 EM27_URL = "http://10.10.0.1/diag_autom.htm"
 """The URL of the EM27 monitoring web server."""
 
@@ -46,3 +49,9 @@ OPUS_IP = "10.10.0.2"
 
 ALLOW_DUMMY_DEVICES = True
 """Whether to allow the user to choose dummy serial devices."""
+
+TEMPERATURE_MONITOR_POLL_INTERVAL = 2
+"""Number of seconds between temperature monitoring device reads."""
+
+TEMPERATURE_PLOT_TIME_RANGE = 900
+"""Range of time axis on blackbody temperature plot, in seconds."""

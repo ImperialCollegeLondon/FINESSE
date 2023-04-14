@@ -113,7 +113,7 @@ class DeviceControls:
         self.open_close_btn = QPushButton("Open")
         """A button for opening and closing the port manually."""
         self.open_close_btn.setCheckable(True)
-        self.open_close_btn.clicked.connect(self._on_open_close_clicked)  # type: ignore
+        self.open_close_btn.clicked.connect(self._on_open_close_clicked)
         layout.addWidget(self.open_close_btn, row, 3)
 
         pub.subscribe(self._on_device_opened, f"serial.{self.device.name}.opened")

@@ -72,7 +72,7 @@ class OPUSStateMachine(StateMachine):
         """Timer signalling the end of a measurement."""
         self.measure_timer.setInterval(round(measure_duration * 1000))
         self.measure_timer.setSingleShot(True)
-        self.measure_timer.timeout.connect(self.stop)  # type: ignore
+        self.measure_timer.timeout.connect(self.stop)
 
         super().__init__()
 
@@ -169,7 +169,6 @@ class DummyOPUSInterface(OPUSInterfaceBase):
         state = self.state_machine.current_state
         pub.sendMessage(
             f"opus.response.{command}",
-            url="https://example.com",
             status=state.value,
             text=state.name,
             error=self.last_error.to_tuple(),
