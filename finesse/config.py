@@ -45,7 +45,7 @@ DEFAULT_DP9800_BAUDRATE = 38400
 """The default baudrate to use for DP9800 temperature monitors."""
 
 TEMPERATURE_CONTROLLER_TOPIC = "temperature_controller"
-"""The topic name to user for temperature controller-related messages."""
+"""The topic name to use for temperature controller-related messages."""
 
 DEFAULT_TC4820_BAUDRATE = 115200
 """The default baudrate to use for TC4820 temperature controllers."""
