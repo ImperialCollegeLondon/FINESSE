@@ -1,7 +1,7 @@
 """Tests for DummyOPUSInterface."""
 
 from itertools import product
-from typing import Optional
+from typing import Optional, cast
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
@@ -32,7 +32,7 @@ def test_init(dev: DummyOPUSInterface) -> None:
     """Test that the timer's signal is connected correctly."""
     assert dev.last_error == OPUSError.NO_ERROR
 
-    timeout = dev.state_machine.measure_timer.timeout  # type: ignore
+    timeout = cast(MagicMock, dev.state_machine.measure_timer.timeout)
     timeout.connect.assert_called_once_with(dev.state_machine.stop)
 
 
@@ -57,7 +57,6 @@ def test_request_status(
     dev.request_command("status")
     send_message_mock.assert_called_once_with(
         "opus.response.status",
-        url="https://example.com",
         status=state.value,
         text=state.name,
         error=OPUSError.NOT_CONNECTED.to_tuple()
@@ -114,7 +113,6 @@ def test_request_command(
         state = dev.state_machine.current_state
         send_message_mock.assert_called_once_with(
             f"opus.response.{command}",
-            url="https://example.com",
             status=state.value,
             text=state.name,
             error=dev.last_error.to_tuple(),
@@ -130,7 +128,6 @@ def test_request_command_bad_command(
     state = dev.state_machine.current_state
     send_message_mock.assert_called_once_with(
         "opus.response.non_existent_command",
-        url="https://example.com",
         status=state.value,
         text=state.name,
         error=OPUSError.UNKNOWN_COMMAND.to_tuple(),

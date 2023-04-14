@@ -17,7 +17,7 @@ class StepperMotorControl(SerialDevicePanel):
 
         # Bundle all the buttons for moving the mirror into one group
         self.button_group = QButtonGroup()
-        self.button_group.buttonClicked.connect(self._preset_clicked)  # type: ignore
+        self.button_group.buttonClicked.connect(self._preset_clicked)
 
         # Add all the buttons for preset positions
         BUTTONS_PER_ROW = 4

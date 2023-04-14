@@ -38,7 +38,7 @@ class LEDIcon(QLabel):
         else:
             self._turn_off()
         self.timer = QTimer()
-        self.timer.timeout.connect(self._turn_off)  # type: ignore
+        self.timer.timeout.connect(self._turn_off)
 
     @classmethod
     def create_poll_icon(cls) -> LEDIcon:
