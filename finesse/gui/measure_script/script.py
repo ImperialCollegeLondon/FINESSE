@@ -201,7 +201,7 @@ class ScriptRunner(StateMachine):
         """A timer which checks whether the EM27's measurement is complete."""
         self._check_status_timer.setSingleShot(True)
         self._check_status_timer.setInterval(round(1000 * min_poll_interval))
-        self._check_status_timer.timeout.connect(_poll_em27_status)  # type: ignore
+        self._check_status_timer.timeout.connect(_poll_em27_status)
 
         # Send stop command in case motor is moving
         pub.sendMessage(f"serial.{STEPPER_MOTOR_TOPIC}.stop")
@@ -293,7 +293,6 @@ class ScriptRunner(StateMachine):
         status: int,
         text: str,
         error: Optional[tuple[int, str]],
-        url: str,
     ):
         """Start polling the EM27 so we know when the measurement is finished."""
         if error:
@@ -306,7 +305,6 @@ class ScriptRunner(StateMachine):
         status: int,
         text: str,
         error: Optional[tuple[int, str]],
-        url: str,
     ):
         """Move on to the next measurement if the measurement has finished."""
         if error:

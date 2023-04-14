@@ -4,6 +4,7 @@ from decimal import Decimal
 from functools import partial
 
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from pubsub import pub
 from PySide6.QtCore import QSize, Qt
@@ -19,7 +20,11 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from ..config import TEMPERATURE_CONTROLLER_TOPIC
+from ..config import (
+    TEMPERATURE_CONTROLLER_TOPIC,
+    TEMPERATURE_MONITOR_POLL_INTERVAL,
+    TEMPERATURE_PLOT_TIME_RANGE,
+)
 from .led_icons import LEDIcon
 from .serial_device_panel import SerialDevicePanel
 
@@ -44,10 +49,10 @@ class TemperaturePlot(QGroupBox):
         """
         layout = QGridLayout()
         self._btns = {"hot": QPushButton("Hot BB"), "cold": QPushButton("Cold BB")}
-        self._btns["hot"].clicked.connect(  # type: ignore
+        self._btns["hot"].clicked.connect(
             partial(self._toggle_axis_visibility, name="hot")
         )
-        self._btns["cold"].clicked.connect(  # type: ignore
+        self._btns["cold"].clicked.connect(
             partial(self._toggle_axis_visibility, name="cold")
         )
         self._create_figure()
@@ -68,24 +73,27 @@ class TemperaturePlot(QGroupBox):
         self._ax = {"hot": ax}
         self._canvas = FigureCanvasQTAgg(self._figure)
 
-        self._figure_num_pts = 10
+        self._figure_num_pts = int(
+            TEMPERATURE_PLOT_TIME_RANGE / TEMPERATURE_MONITOR_POLL_INTERVAL
+        )
         t = [None] * self._figure_num_pts
         hot_bb_temp = [None] * self._figure_num_pts
         cold_bb_temp = [None] * self._figure_num_pts
 
-        colours = plt.rcParams["axes.prop_cycle"]
-        hot_colour = colours.by_key()["color"][0]
-        cold_colour = colours.by_key()["color"][1]
+        hot_colour = "r"
+        cold_colour = "b"
 
-        self._ax["hot"].plot(
-            t, hot_bb_temp, color=hot_colour, marker="x", linestyle="-"
-        )
+        self._ax["hot"].plot(t, hot_bb_temp, color=hot_colour, linestyle="-")
         self._ax["hot"].set_ylabel("HOT BB", color=hot_colour)
 
-        self._ax["cold"] = self._ax["hot"].twinx()
-        self._ax["cold"].plot(
-            t, cold_bb_temp, color=cold_colour, marker="x", linestyle="-"
+        max_ticks = 8
+        self._ax["hot"].xaxis.set_major_locator(ticker.MaxNLocator(nbins=max_ticks - 1))
+        self._ax["hot"].xaxis.set_major_formatter(
+            ticker.FuncFormatter(self._xtick_format_fcn)
         )
+
+        self._ax["cold"] = self._ax["hot"].twinx()
+        self._ax["cold"].plot(t, cold_bb_temp, color=cold_colour, linestyle="-")
         self._ax["cold"].set_ylabel("COLD BB", color=cold_colour)
 
         self._canvas.draw()
@@ -100,6 +108,8 @@ class TemperaturePlot(QGroupBox):
         self._btns[name].setFlat(state)
         self._ax[name].yaxis.set_visible(not state)
         self._ax[name].lines[0].set_visible(not state)
+
+        self._make_axes_sensible()
         self._canvas.draw()
 
     def _update_figure(
@@ -129,22 +139,40 @@ class TemperaturePlot(QGroupBox):
         self._ax["cold"].lines[0].set_xdata(time)
         self._ax["cold"].lines[0].set_ydata(cold_data)
 
+        self._make_axes_sensible()
+
+        self._canvas.draw()
+
+    def _xtick_format_fcn(self, val: float, loc: int) -> str:
+        """Convert x axis tick labels from timestamp to clock format.
+
+        Args:
+            val: value of the tick whose label is being formatted
+            loc: location of the tick on the axis
+
+        Returns:
+            formatted string to display as x tick label
+        """
+        return datetime.fromtimestamp(val).strftime("%H:%M:%S")
+
+    def _make_axes_sensible(self) -> None:
+        """Rescales the y axes for the the blackbody temperatures."""
+        # Rescale limits to account for new data
         self._ax["hot"].relim()
         self._ax["cold"].relim()
         self._ax["hot"].autoscale()
         self._ax["cold"].autoscale()
-        self._ax["cold"].set_ylim(  # Confines "cold" line to lower half of plot
-            [self._ax["cold"].get_ylim()[0], 2 * self._ax["cold"].get_ylim()[1]]
-        )
 
-        xticks = self._ax["hot"].get_xticks()
-        xticklabels = [""] * len(xticks)
-        for i in range(len(xticks)):
-            t = datetime.fromtimestamp(xticks[i])
-            xticklabels[i] = t.strftime("%H:%M:%S")
-        self._ax["hot"].set_xticklabels(xticklabels)
+        ylim_hot = self._ax["hot"].get_ylim()
+        ylim_cold = self._ax["cold"].get_ylim()
 
-        self._canvas.draw()
+        # Confine "hot" line to upper region of plot if "cold" line also visible
+        if self._ax["cold"].yaxis.get_visible():
+            self._ax["hot"].set_ylim([ylim_hot[0] - 5, ylim_hot[1] + 1])
+
+        # Confine "cold" line to lower region of plot if "hot" line also visible
+        if self._ax["hot"].yaxis.get_visible():
+            self._ax["cold"].set_ylim([ylim_cold[0] - 1, ylim_cold[1] + 5])
 
     def _plot_bb_temps(self, time: float, temperatures: list[Decimal]) -> None:
         """Extract blackbody temperatures from DP9800 data and plot them.
@@ -162,17 +190,16 @@ class TemperaturePlot(QGroupBox):
 class DP9800Controls(QGroupBox):
     """Widgets to view the DP9800 properties."""
 
-    def __init__(self, num_channels: int = 8, poll_interval: int = 2000) -> None:
+    def __init__(self, num_channels: int = 8) -> None:
         """Creates the widgets to monitor DP9800.
 
         Args:
             num_channels: Number of Pt 100 channels being monitored
-            poll_interval: Period with which to update the values (in seconds)
         """
         super().__init__("DP9800")
 
         self._num_channels = num_channels
-        self._poll_interval = poll_interval
+        self._poll_interval = 1000 * TEMPERATURE_MONITOR_POLL_INTERVAL
 
         layout = self._create_controls()
         self.setLayout(layout)
@@ -214,7 +241,7 @@ class DP9800Controls(QGroupBox):
 
         self._poll_light = LEDIcon.create_poll_icon()
         self._poll_light.timer.setInterval(self._poll_interval)
-        self._poll_light.timer.timeout.connect(self._poll_dp9800)  # type: ignore
+        self._poll_light.timer.timeout.connect(self._poll_dp9800)
         layout.addWidget(self._poll_light, 0, 10, 2, 1)
 
         return layout
