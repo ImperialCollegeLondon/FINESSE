@@ -1,6 +1,5 @@
 """This module provides an interface to dummy DP9800 temperature readers."""
 import logging
-from datetime import datetime
 from decimal import Decimal
 
 from pubsub import pub
@@ -15,7 +14,7 @@ class DummyTemperatureMonitor(TemperatureMonitorBase):
     def __init__(self) -> None:
         """Create a new DummyTemperatureMonitor."""
         super().__init__("dummy")
-        self._noise_producer = NoiseProducer(seed=datetime.now().second)
+        self._noise_producer = NoiseProducer(seed=None)
 
     def close(self) -> None:
         """Close the connection to the device."""
