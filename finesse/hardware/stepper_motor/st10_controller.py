@@ -276,7 +276,7 @@ class ST10Controller(StepperMotorBase):
         self._write_check("SP0")
 
         # Make sure the motor has stopped
-        self.wait_until_stopped(20.0)
+        self.wait_until_stopped(3.0)
 
     def _relative_move(self, steps: int) -> None:
         """Move the stepper motor to the specified relative position.
