@@ -1,6 +1,8 @@
 """Provides a panel which lets the user start and stop recording of data files."""
+from pathlib import Path
+
 from pubsub import pub
-from PySide6.QtWidgets import QGroupBox, QHBoxLayout, QPushButton
+from PySide6.QtWidgets import QGroupBox, QHBoxLayout, QMessageBox, QPushButton
 
 from ..config import DEFAULT_DATA_FILE_PATH
 from .path_widget import SavePathWidget
@@ -32,13 +34,35 @@ class DataFileControl(QGroupBox):
 
         self.setLayout(layout)
 
+        # Update GUI on file open/close
+        pub.subscribe(self._on_file_open, "data_file.open")
+        pub.subscribe(self._on_file_close, "data_file.close")
+
+        # Show an error message if writing fails
+        pub.subscribe(self._show_error_message, "data_file.error")
+
+    def _on_file_open(self, path: Path) -> None:
+        self.save_path_widget.setEnabled(False)
+        self.record_btn.setText("Stop recording")
+
+    def _on_file_close(self) -> None:
+        self.save_path_widget.setEnabled(True)
+        self.record_btn.setText("Start recording")
+
     def _toggle_recording(self) -> None:
         """Starts or stops recording as needed."""
         if self.record_btn.text() == "Stop recording":
-            self.save_path_widget.setEnabled(True)
-            self.record_btn.setText("Start recording")
             pub.sendMessage("data_file.close")
         elif file_path := self.save_path_widget.try_get_path():
-            self.save_path_widget.setEnabled(False)
-            self.record_btn.setText("Stop recording")
             pub.sendMessage("data_file.open", path=file_path)
+
+    def _show_error_message(self, error: BaseException) -> None:
+        """Show an error dialog."""
+        msg_box = QMessageBox(
+            QMessageBox.Icon.Critical,
+            "Error writing to file",
+            f"An error occurred while writing the data file: {str(error)}",
+            QMessageBox.StandardButton.Ok,
+            self,
+        )
+        msg_box.exec()
