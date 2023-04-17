@@ -1,6 +1,7 @@
 """Contains a panel which enables/disables child controls when device opens/closes."""
 from typing import Any
 
+from decorator import decorator
 from pubsub import pub
 from PySide6.QtWidgets import QGroupBox, QWidget
 
@@ -12,12 +13,10 @@ class SerialDevicePanel(QGroupBox):
         """Disable controls after construction."""
         super().__init_subclass__(**kwargs)
 
-        def init_decorator(previous_init):
-            def new_init(self, *args, **kwargs):
-                previous_init(self, *args, **kwargs)
-                self.set_controls_enabled(False)
-
-            return new_init
+        @decorator
+        def init_decorator(previous_init, self, *args, **kwargs):
+            previous_init(self, *args, **kwargs)
+            self.set_controls_enabled(False)
 
         cls.__init__ = init_decorator(cls.__init__)
 

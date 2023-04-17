@@ -35,7 +35,7 @@ class MockSerialReader(_SerialReader):
 
 @pytest.fixture
 @patch("finesse.hardware.stepper_motor.st10_controller._SerialReader", MockSerialReader)
-def dev() -> ST10Controller:
+def dev(error_wrap_mock: MagicMock) -> ST10Controller:
     """A fixture providing an ST10Controller with a patched Serial object."""
     serial = MagicMock()
     serial.timeout = 5.0
@@ -49,7 +49,7 @@ def dev() -> ST10Controller:
 
 
 @patch("finesse.hardware.stepper_motor.st10_controller._SerialReader", MockSerialReader)
-def test_init() -> None:
+def test_init(error_wrap_mock: MagicMock) -> None:
     """Test __init__()."""
     serial = MagicMock()
     serial.timeout = 5.0
