@@ -26,16 +26,16 @@ def test_init(name: str, subscribe_mock: MagicMock) -> None:
     dev = TC4820(name, MagicMock())
     assert dev.max_attempts == 3
     subscribe_mock.assert_any_call(
-        dev.request_properties, f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{name}.request"
+        dev._request_properties, f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{name}.request"
     )
     subscribe_mock.assert_any_call(
-        dev.change_set_point,
+        dev._change_set_point,
         f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{name}.change_set_point",
     )
 
 
-def test_request_properties(dev: TC4820, sendmsg_mock: MagicMock) -> None:
-    """Test the request_properties() method."""
+def test_get_properties(dev: TC4820) -> None:
+    """Test the get_properties() method."""
     expected = {
         "power": 0,
         "alarm_status": 0,
@@ -45,33 +45,7 @@ def test_request_properties(dev: TC4820, sendmsg_mock: MagicMock) -> None:
 
     with patch.object(dev, "request_int") as mock_int:
         mock_int.return_value = 0
-        dev.request_properties()
-        sendmsg_mock.assert_called_once_with(
-            f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.device.response",
-            properties=expected,
-        )
-
-
-def test_request_properties_error(dev: TC4820, sendmsg_mock: MagicMock) -> None:
-    """Test the request_properties() method handles errors correctly."""
-    with patch.object(dev, "request_int") as mock_int:
-        error = SerialException()
-        mock_int.side_effect = error
-        dev.request_properties()
-        sendmsg_mock.assert_called_once_with(
-            f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.device.error", error=error
-        )
-
-
-def test_change_set_point_error(dev: TC4820, sendmsg_mock: MagicMock) -> None:
-    """Test that the change_set_point() method handles errors correctly."""
-    with patch.object(dev, "request_int") as mock_int:
-        error = SerialException()
-        mock_int.side_effect = error
-        dev.change_set_point(Decimal(10))
-        sendmsg_mock.assert_called_once_with(
-            f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.device.error", error=error
-        )
+        assert dev.get_properties() == expected
 
 
 def checksum(message: int) -> int:
@@ -212,7 +186,7 @@ def test_request_int(
         ("set_point", "500000", "decimal"),
     ],
 )
-def test_get_properties(
+def test_property_getters(
     name: str, command: str, type: str, dev: TC4820, mocker: MockerFixture
 ) -> None:
     """Check that the getters for properties work."""

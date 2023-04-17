@@ -6,6 +6,10 @@ from pubsub import pub
 
 from ...config import ANGLE_PRESETS, STEPPER_MOTOR_TOPIC
 from ..device_base import DeviceBase
+from ..pubsub_decorators import pubsub_broadcast, pubsub_errors
+
+error_wrap = pubsub_errors(f"serial.{STEPPER_MOTOR_TOPIC}.error")
+"""Broadcast exceptions via pubsub."""
 
 
 class StepperMotorBase(DeviceBase):
@@ -16,6 +20,11 @@ class StepperMotorBase(DeviceBase):
 
         Subscribe to stepper motor pubsub messages.
         """
+        # Versions of methods which catch and broadcast errors via pubsub
+        self._move_to = error_wrap(self.move_to)
+        self._stop_moving = error_wrap(self.stop_moving)
+        self._notify_on_stopped = error_wrap(self.notify_on_stopped)
+
         pub.subscribe(
             self._move_to,
             f"serial.{STEPPER_MOTOR_TOPIC}.move.begin",
@@ -107,26 +116,11 @@ class StepperMotorBase(DeviceBase):
 
         self.step = round(self.steps_per_rotation * target / 360.0)
 
-    def _move_to(self, target: Union[float, str]) -> None:
-        try:
-            self.move_to(target)
-        except Exception as error:
-            self.send_error_message(error)
-
-    def _stop_moving(self) -> None:
-        try:
-            self.stop_moving()
-        except Exception as error:
-            self.send_error_message(error)
-
-    def _notify_on_stopped(self) -> None:
-        try:
-            self.notify_on_stopped()
-        except Exception as error:
-            self.send_error_message(error)
-
-    def _request_angle(self) -> None:
+    @pubsub_broadcast(
+        f"serial.{STEPPER_MOTOR_TOPIC}.error",
+        f"serial.{STEPPER_MOTOR_TOPIC}.response.angle",
+        "angle",
+    )
+    def _request_angle(self) -> float:
         """Request the current angle from the device and return via pubsub."""
-        pub.sendMessage(
-            f"serial.{STEPPER_MOTOR_TOPIC}.response.angle", angle=self.angle
-        )
+        return self.angle
