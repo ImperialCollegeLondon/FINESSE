@@ -15,6 +15,11 @@ from .stepper_motor import get_stepper_motor_instance
 from .temperature import get_hot_bb_temperature_controller_instance
 
 
+def _on_error_occurred(error: BaseException) -> None:
+    """Close file in case of error."""
+    pub.sendMessage("data_file.close")
+
+
 def _get_platform_info() -> dict[str, str]:
     return {
         key: getattr(platform, key)() for key in ("platform", "python_version", "node")
@@ -52,6 +57,9 @@ class DataFileWriter:
         # Listen to open/close messages
         pub.subscribe(self.open, "data_file.open")
         pub.subscribe(self.close, "data_file.close")
+
+        # Listen for error messages
+        pub.subscribe(_on_error_occurred, "data_file.error")
 
     @pubsub_errors("data_file.error")
     def open(self, path: Path) -> None:
