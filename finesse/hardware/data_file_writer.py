@@ -11,6 +11,8 @@ from pubsub import pub
 
 from .. import config
 from .pubsub_decorators import pubsub_errors
+from .stepper_motor import get_stepper_motor_instance
+from .temperature import get_hot_bb_temperature_controller_instance
 
 
 def _get_platform_info() -> dict[str, str]:
@@ -67,6 +69,8 @@ class DataFileWriter:
                 "Time",
                 *(f"Temp{i+1}" for i in range(config.NUM_TEMPERATURE_MONITOR_CHANNELS)),
                 "TimeAsSeconds",
+                "Angle",
+                "TemperatureControllerPower",
             )
         )
 
@@ -89,13 +93,14 @@ class DataFileWriter:
         midnight = datetime(time.year, time.month, time.day)
         secs_since_midnight = floor((time - midnight).total_seconds())
 
-        # TODO: Also write current angle and power to temperature controller
         self._writer.writerow(
             (
                 time.strftime("%Y%m%d"),
                 time.strftime("%H:%M:%S"),
                 *temperatures,
                 secs_since_midnight,
+                get_stepper_motor_instance().angle,
+                get_hot_bb_temperature_controller_instance().power,
             )
         )
 

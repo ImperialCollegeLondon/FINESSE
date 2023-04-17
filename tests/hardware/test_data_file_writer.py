@@ -43,7 +43,15 @@ def test_open(
     csv_writer_mock.assert_called_once_with(path, header)
     assert writer._writer is csv_writer
     csv_writer.writerow.assert_called_once_with(
-        ("Date", "Time", "Temp1", "Temp2", "TimeAsSeconds")
+        (
+            "Date",
+            "Time",
+            "Temp1",
+            "Temp2",
+            "TimeAsSeconds",
+            "Angle",
+            "TemperatureControllerPower",
+        )
     )
     subscribe_mock.assert_any_call(
         writer.write, f"serial.{TEMPERATURE_MONITOR_TOPIC}.data.response"
@@ -87,18 +95,41 @@ def test_get_metadata() -> None:
     assert serialised.count("\n") == 12
 
 
-def test_write(writer: DataFileWriter) -> None:
+@patch("finesse.hardware.data_file_writer.get_hot_bb_temperature_controller_instance")
+@patch("finesse.hardware.data_file_writer.get_stepper_motor_instance")
+def test_write(
+    get_stepper_mock: Mock, get_hot_bb_mock: Mock, writer: DataFileWriter
+) -> None:
     """Test the write() method."""
+    get_stepper_mock.return_value = stepper = MagicMock()
+    stepper.angle = 90.0
+    get_hot_bb_mock.return_value = hot_bb = MagicMock()
+    hot_bb.power = 10
+
     time = datetime(2023, 4, 14, 0, 1, 0)  # one minute past midnight
     data = [Decimal(i) for i in range(3)]
 
     writer._writer = MagicMock()
     writer.write(time, data)
-    writer._writer.writerow.assert_called_once_with(("20230414", "00:01:00", *data, 60))
+    writer._writer.writerow.assert_called_once_with(
+        ("20230414", "00:01:00", *data, 60, 90.0, 10)
+    )
 
 
-def test_write_error(writer: DataFileWriter, sendmsg_mock: MagicMock) -> None:
+@patch("finesse.hardware.data_file_writer.get_hot_bb_temperature_controller_instance")
+@patch("finesse.hardware.data_file_writer.get_stepper_motor_instance")
+def test_write_error(
+    get_stepper_mock: Mock,
+    get_hot_bb_mock: Mock,
+    writer: DataFileWriter,
+    sendmsg_mock: MagicMock,
+) -> None:
     """Test the write() method when an error occurs."""
+    get_stepper_mock.return_value = stepper = MagicMock()
+    stepper.angle = 90.0
+    get_hot_bb_mock.return_value = hot_bb = MagicMock()
+    hot_bb.power = 10
+
     time = datetime(2023, 4, 14, 0, 1, 0)  # one minute past midnight
     data = [Decimal(i) for i in range(3)]
 
