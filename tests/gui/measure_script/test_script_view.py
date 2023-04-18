@@ -226,7 +226,10 @@ def test_show_run_dialog(
 
 
 def test_hide_run_dialog(
-    script_control: ScriptControl, run_dialog: ScriptRunDialog, sendmsg_mock: MagicMock
+    script_control: ScriptControl,
+    run_dialog: ScriptRunDialog,
+    sendmsg_mock: MagicMock,
+    qtbot: QtBot,
 ) -> None:
     """Test the _hide_run_dialog() method."""
     dialog = MagicMock()
@@ -238,7 +241,10 @@ def test_hide_run_dialog(
 
 
 def test_hide_run_dialog_no_abort(
-    script_control: ScriptControl, run_dialog: ScriptRunDialog, sendmsg_mock: MagicMock
+    script_control: ScriptControl,
+    run_dialog: ScriptRunDialog,
+    sendmsg_mock: MagicMock,
+    qtbot: QtBot,
 ) -> None:
     """Test the _hide_run_dialog() method doesn't abort the measure script.
 
