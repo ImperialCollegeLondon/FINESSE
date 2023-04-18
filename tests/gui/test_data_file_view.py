@@ -64,14 +64,14 @@ def test_stop_recording(
     sendmsg_mock.assert_called_once_with("data_file.close")
 
 
-def test_on_file_open(data_file: DataFileControl) -> None:
+def test_on_file_open(data_file: DataFileControl, qtbot) -> None:
     """Test the _on_file_open() method."""
     data_file._on_file_open(FILE_PATH)
     assert data_file.record_btn.text() == "Stop recording"
     assert not data_file.save_path_widget.isEnabled()
 
 
-def test_on_file_close(data_file: DataFileControl) -> None:
+def test_on_file_close(data_file: DataFileControl, qtbot) -> None:
     """Test the _on_file_close() method."""
     # Simulate file open to start with
     data_file._on_file_open(FILE_PATH)
@@ -84,7 +84,9 @@ def test_on_file_close(data_file: DataFileControl) -> None:
 
 
 @patch("finesse.gui.data_file_view.QMessageBox")
-def test_show_error_message(msgbox_mock: Mock, data_file: DataFileControl) -> None:
+def test_show_error_message(
+    msgbox_mock: Mock, data_file: DataFileControl, qtbot
+) -> None:
     """Test the _show_error_message() method."""
     msgbox_mock.return_value = msgbox = MagicMock()
     error = Exception()
@@ -104,7 +106,10 @@ def test_show_error_message(msgbox_mock: Mock, data_file: DataFileControl) -> No
 )
 @patch("finesse.gui.data_file_view.QMessageBox")
 def test_user_confirms_overwrite(
-    msgbox_mock: Mock, response: QMessageBox.StandardButton, data_file: DataFileControl
+    msgbox_mock: Mock,
+    response: QMessageBox.StandardButton,
+    data_file: DataFileControl,
+    qtbot,
 ) -> None:
     """Test the _user_confirms_overwrite() method."""
     msgbox_mock.StandardButton = QMessageBox.StandardButton
@@ -126,6 +131,7 @@ def test_try_start_recording(
     user_confirms: bool,
     sendmsg_mock: MagicMock,
     data_file: DataFileControl,
+    qtbot,
 ) -> None:
     """Test the _try_start_recording() method."""
     with patch.object(
