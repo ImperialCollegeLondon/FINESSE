@@ -1,4 +1,5 @@
 """Tests for ScriptControl."""
+from itertools import product
 from pathlib import Path
 from typing import cast
 from unittest.mock import MagicMock, Mock, patch
@@ -21,11 +22,15 @@ def script_control(settings_mock: Mock, qtbot: QtBot) -> ScriptControl:
     return ScriptControl()
 
 
+def get_button(widget: QWidget, text: str) -> QPushButton:
+    """Get the button with the specified text label."""
+    buttons = cast(list[QPushButton], widget.findChildren(QPushButton))
+    return next(btn for btn in buttons if btn.text() == text)
+
+
 def click_button(widget: QWidget, text: str) -> None:
     """Click the button with the specified text label."""
-    buttons = cast(list[QPushButton], widget.findChildren(QPushButton))
-    btn = next(btn for btn in buttons if btn.text() == text)
-    btn.click()
+    get_button(widget, text).click()
 
 
 @patch("finesse.gui.measure_script.script_view.settings")
@@ -41,6 +46,8 @@ def test_init(settings_mock: Mock, subscribe_mock: Mock, qtbot: QtBot) -> None:
     subscribe_mock.assert_any_call(
         script_control._hide_run_dialog, "measure_script.end"
     )
+    subscribe_mock.assert_any_call(script_control._on_opus_message, "opus.response")
+    assert not script_control._opus_connected
 
 
 @patch("finesse.gui.measure_script.script_view.settings")
@@ -193,7 +200,9 @@ def test_run_button_success(
         script = MagicMock()
         script_mock.try_load.return_value = script
 
-        click_button(script_control, "Run script")
+        btn = get_button(script_control, "Run script")
+        btn.setEnabled(True)  # Will be disabled unless devices are connected
+        btn.click()
 
         # Check that settings were updated
         settings_mock.setValue.assert_any_call("script/run_path", str(script_path))
@@ -255,3 +264,39 @@ def test_hide_run_dialog_no_abort(
 
     # Check that measure_script.abort message isn't sent
     sendmsg_mock.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "status,already_connected", product(range(2, 6), (True, False))
+)
+def test_on_opus_message_connect(
+    status: int, already_connected: bool, script_control: ScriptControl, qtbot: QtBot
+) -> None:
+    """Test the _on_opus_message() method when connecting."""
+    script_control._opus_connected = already_connected
+
+    with patch.object(script_control, "_enable_counter") as counter_mock:
+        script_control._on_opus_message(status, "", None)
+        if already_connected:
+            counter_mock.increment.assert_not_called()
+        else:
+            counter_mock.increment.assert_called_once_with()
+
+        assert script_control._opus_connected
+
+
+@pytest.mark.parametrize("status,already_connected", product((1, 6), (True, False)))
+def test_on_opus_message_disconnect(
+    status: int, already_connected: bool, script_control: ScriptControl, qtbot: QtBot
+) -> None:
+    """Test the _on_opus_message() method when disconnecting."""
+    script_control._opus_connected = already_connected
+
+    with patch.object(script_control, "_enable_counter") as counter_mock:
+        script_control._on_opus_message(status, "", None)
+        if not already_connected:
+            counter_mock.decrement.assert_not_called()
+        else:
+            counter_mock.decrement.assert_called_once_with()
+
+        assert not script_control._opus_connected

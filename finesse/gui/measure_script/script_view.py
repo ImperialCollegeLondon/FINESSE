@@ -5,7 +5,8 @@ from typing import Optional, cast
 from pubsub import pub
 from PySide6.QtWidgets import QFileDialog, QGridLayout, QGroupBox, QPushButton
 
-from ...config import DEFAULT_SCRIPT_PATH
+from ...config import DEFAULT_SCRIPT_PATH, STEPPER_MOTOR_TOPIC
+from ...event_counter import EventCounter
 from ...settings import settings
 from ..path_widget import OpenPathWidget
 from .script import Script, ScriptRunner
@@ -41,6 +42,13 @@ class ScriptControl(QGroupBox):
 
         run_btn = QPushButton("Run script")
         run_btn.clicked.connect(self._run_btn_clicked)
+        run_btn.setEnabled(False)
+
+        self._enable_counter = EventCounter(
+            2, lambda: run_btn.setEnabled(True), lambda: run_btn.setEnabled(False)
+        )
+        """A counter to enable/disable the "Run" button."""
+        self._enable_counter.change_on_device_open(STEPPER_MOTOR_TOPIC)
 
         layout = QGridLayout()
         layout.addWidget(create_btn, 0, 0)
@@ -48,6 +56,10 @@ class ScriptControl(QGroupBox):
         layout.addWidget(self.script_path, 1, 0)
         layout.addWidget(run_btn, 1, 1)
         self.setLayout(layout)
+
+        # Monitor OPUS messages to enable/disable run button on connect/disconnect
+        self._opus_connected = False
+        pub.subscribe(self._on_opus_message, "opus.response")
 
         # Show/hide self.run_dialog on measure script begin/end
         pub.subscribe(self._show_run_dialog, "measure_script.begin")
@@ -111,3 +123,22 @@ class ScriptControl(QGroupBox):
         """Hide and destroy the ScriptRunDialog."""
         self.run_dialog.hide()
         del self.run_dialog
+
+    def _on_opus_message(
+        self, status: int, text: str, error: Optional[tuple[int, str]]
+    ) -> None:
+        """Increase/descrease the enable counter when the EM27 connects/disconnects."""
+        # According to the manual, these are the possible states the EM27 can be in
+        # while connected
+        connected = 2 <= status <= 5
+
+        if connected == self._opus_connected:
+            # The connection status hasn't changed
+            return
+
+        if connected:
+            self._enable_counter.increment()
+        else:
+            self._enable_counter.decrement()
+
+        self._opus_connected = connected
