@@ -49,12 +49,27 @@ class DataFileControl(QGroupBox):
         self.save_path_widget.setEnabled(True)
         self.record_btn.setText("Start recording")
 
+    def _user_confirms_overwrite(self, path: Path) -> bool:
+        """Confirm with the user whether to overwrite file via a dialog."""
+        response = QMessageBox.question(
+            self,
+            "Overwrite file?",
+            f"The file {path.name} already exists. Would you like to overwrite it?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+        )
+        return response == QMessageBox.StandardButton.Yes
+
+    def _try_start_recording(self, path: Path) -> None:
+        """Start recording if path doesn't exist or user accepts overwriting it."""
+        if not path.exists() or self._user_confirms_overwrite(path):
+            pub.sendMessage("data_file.open", path=path)
+
     def _toggle_recording(self) -> None:
         """Starts or stops recording as needed."""
         if self.record_btn.text() == "Stop recording":
             pub.sendMessage("data_file.close")
-        elif file_path := self.save_path_widget.try_get_path():
-            pub.sendMessage("data_file.open", path=file_path)
+        elif path := self.save_path_widget.try_get_path():
+            self._try_start_recording(path)
 
     def _show_error_message(self, error: BaseException) -> None:
         """Show an error dialog."""
