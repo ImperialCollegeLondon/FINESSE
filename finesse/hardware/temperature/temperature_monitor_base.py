@@ -33,8 +33,8 @@ class TemperatureMonitorBase(DeviceBase):
         "temperatures",
         "time",
     )
-    def send_temperatures(self) -> tuple[list[Decimal], float]:
+    def send_temperatures(self) -> tuple[list[Decimal], datetime]:
         """Requests that temperatures are sent over pubsub."""
         temperatures = self.get_temperatures()
-        time = datetime.now().timestamp()
+        time = datetime.utcnow()
         return temperatures, time

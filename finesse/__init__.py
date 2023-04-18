@@ -1,5 +1,7 @@
 """The main module for the FINESSE program."""
-__version__ = "0.1.0"
+from .config import APP_VERSION
+
+__version__ = APP_VERSION
 
 
 def run() -> None:

@@ -1,5 +1,6 @@
 """This module contains interfaces for temperature-related hardware."""
 from functools import partial
+from typing import cast
 
 from ...config import TEMPERATURE_CONTROLLER_TOPIC, TEMPERATURE_MONITOR_TOPIC
 from ..serial_manager import SerialManager, make_device_factory
@@ -7,6 +8,7 @@ from .dp9800 import DP9800
 from .dummy_temperature_controller import DummyTemperatureController
 from .dummy_temperature_monitor import DummyTemperatureMonitor
 from .tc4820 import TC4820
+from .temperature_controller_base import TemperatureControllerBase
 
 _serial_manager_hot_bb: SerialManager
 _serial_manager_cold_bb: SerialManager
@@ -36,3 +38,9 @@ def create_temperature_monitor_serial_manager() -> None:
         TEMPERATURE_MONITOR_TOPIC,
         make_device_factory(DP9800, DummyTemperatureMonitor),
     )
+
+
+def get_hot_bb_temperature_controller_instance() -> TemperatureControllerBase:
+    """Get the instance of the hot blackbody's temperature controller."""
+    global _serial_manager_hot_bb
+    return cast(TemperatureControllerBase, _serial_manager_hot_bb.device)
