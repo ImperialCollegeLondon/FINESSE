@@ -12,7 +12,7 @@ def _error_occurred(error_topic: str, error: BaseException) -> None:
     traceback_str = "".join(traceback.format_tb(error.__traceback__))
 
     # Write details including stack trace to program log
-    logging.error(f"Caught error ({error_topic}): {traceback_str}")
+    logging.error(f"Caught error ({error_topic}): {str(error)}\n\n{traceback_str}")
 
     # Notify listeners
     pub.sendMessage(error_topic, error=error)
