@@ -36,6 +36,7 @@ class ScriptEditDialog(QDialog):
         """
         super().__init__(parent)
         self.setWindowTitle("Edit measurement script")
+        self.setModal(True)
 
         initial_save_path: Optional[Path] = None
         if script:
