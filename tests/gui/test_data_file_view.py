@@ -26,9 +26,6 @@ def test_init(subscribe_mock: Mock, qtbot) -> None:
     subscribe_mock.assert_any_call(data_file._show_error_message, "data_file.error")
 
 
-# TODO: file open,close
-
-
 def test_start_recording(
     data_file: DataFileControl, sendmsg_mock: MagicMock, qtbot
 ) -> None:
