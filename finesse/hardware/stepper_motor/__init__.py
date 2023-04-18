@@ -14,5 +14,8 @@ def create_stepper_motor_serial_manager() -> None:
     global _serial_manager
     _serial_manager = SerialManager(
         STEPPER_MOTOR_TOPIC,
-        make_device_factory(ST10Controller, partial(DummyStepperMotor, 3600)),
+        make_device_factory(
+            ST10Controller,
+            partial(DummyStepperMotor, steps_per_rotation=3600, move_duration=1.0),
+        ),
     )
