@@ -40,7 +40,7 @@ types-decorator = "^5.1.8.3"
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = "^1.4.2"
-mkdocstrings = "^0.20.0"
+mkdocstrings = "^0.21.2"
 mkdocstrings-python = "^0.9.0"
 mkdocs-material = "^9.1.6"
 mkdocs-gen-files = "^0.4.0"
