@@ -10,6 +10,7 @@ from csvy import Writer
 from pubsub import pub
 
 from .. import config
+from ..event_counter import EventCounter
 from .pubsub_decorators import pubsub_errors
 from .stepper_motor import get_stepper_motor_instance
 from .temperature import get_hot_bb_temperature_controller_instance
@@ -54,12 +55,29 @@ class DataFileWriter:
         self._writer: Writer
         """The CSV writer."""
 
+        self._enable_counter = EventCounter(3, self.enable, self.disable)
+        self._enable_counter.change_on_device_open(
+            config.STEPPER_MOTOR_TOPIC,
+            config.TEMPERATURE_MONITOR_TOPIC,
+            f"{config.TEMPERATURE_CONTROLLER_TOPIC}.hot_bb",
+        )
+
         # Listen to open/close messages
         pub.subscribe(self.open, "data_file.open")
         pub.subscribe(self.close, "data_file.close")
 
         # Listen for error messages
         pub.subscribe(_on_error_occurred, "data_file.error")
+
+    def enable(self) -> None:
+        """Send enable message."""
+        pub.sendMessage("data_file.enable")
+
+    def disable(self) -> None:
+        """Send disable message and close file if open."""
+        pub.sendMessage("data_file.disable")
+        if hasattr(self, "_writer"):
+            pub.sendMessage("data_file.close")
 
     @pubsub_errors("data_file.error")
     def open(self, path: Path) -> None:
@@ -93,6 +111,7 @@ class DataFileWriter:
             self.write, f"serial.{config.TEMPERATURE_MONITOR_TOPIC}.data.response"
         )
         self._writer.close()
+        del self._writer
 
     @pubsub_errors("data_file.error")
     def write(self, time: datetime, temperatures: list[Decimal]) -> None:
