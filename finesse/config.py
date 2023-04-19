@@ -56,6 +56,9 @@ OPUS_IP = "10.10.0.2"
 ALLOW_DUMMY_DEVICES = True
 """Whether to allow the user to choose dummy serial devices."""
 
+TEMPERATURE_CONTROLLER_POLL_INTERVAL = 2
+"""Number of seconds between temperature controller device reads."""
+
 TEMPERATURE_MONITOR_POLL_INTERVAL = 2
 """Number of seconds between temperature monitoring device reads."""
 
