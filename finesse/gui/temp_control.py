@@ -377,7 +377,7 @@ class TC4820Controls(SerialDevicePanel):
         if isDown:
             self._set_sbox.setEnabled(True)
             self._end_polling()
-        elif not isDown:
+        else:
             self._set_new_set_point()
             self._set_sbox.setEnabled(False)
             self._begin_polling()
@@ -414,9 +414,8 @@ class TC4820Controls(SerialDevicePanel):
         self._set_sbox.setValue(int(properties["set_point"]))
         if properties["alarm_status"] != 0:
             self._alarm_light._turn_on()
-        else:
-            if self._alarm_light._is_on:
-                self._alarm_light._turn_off()
+        elif self._alarm_light._is_on:
+            self._alarm_light._turn_off()
 
     def _update_pt100(self, temperatures: list[Decimal], time: float):
         """Show the latest blackbody temperature.
