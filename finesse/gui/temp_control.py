@@ -299,7 +299,9 @@ class TC4820Controls(SerialDevicePanel):
             self._update_controls,
             f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{name}_bb.response",
         )
-        pub.subscribe(self._update_pt100, "temperature_monitor.data.response")
+        pub.subscribe(
+            self._update_pt100, f"serial.{TEMPERATURE_MONITOR_TOPIC}.data.response"
+        )
 
     def _create_controls(self) -> QGridLayout:
         """Creates the overall layout for the panel.
@@ -355,7 +357,7 @@ class TC4820Controls(SerialDevicePanel):
         layout.addWidget(self._power_label, 1, 4)
 
         self._poll_light = LEDIcon.create_poll_icon()
-        self._poll_light.timer.timeout.connect(self._poll_tc4820)  # type: ignore
+        self._poll_light.timer.timeout.connect(self._poll_tc4820)
         self._alarm_light = LEDIcon.create_alarm_icon()
         layout.addWidget(self._poll_light, 0, 5)
         layout.addWidget(self._alarm_light, 2, 5)
@@ -364,14 +366,29 @@ class TC4820Controls(SerialDevicePanel):
         layout.addWidget(self._set_sbox, 2, 1)
 
         self._update_pbtn = QPushButton("UPDATE")
-        self._update_pbtn.clicked.connect(self._set_new_set_point)  # type: ignore
+        self._update_pbtn.setCheckable(True)
+        self._update_pbtn.clicked.connect(self._on_update_clicked)
         layout.addWidget(self._update_pbtn, 2, 3)
+
+        self._updating_set_point = False
 
         return layout
 
+    def _on_update_clicked(self) -> None:
+        isDown = self._update_pbtn.isChecked()
+        if isDown:
+            self._set_sbox.setEnabled(True)
+            self._end_polling()
+        elif not isDown:
+            self._set_new_set_point()
+            self._set_sbox.setEnabled(False)
+            self._begin_polling()
+
     def _begin_polling(self) -> None:
         """Initiate polling the TC4820 device."""
-        self._poll_light.timer.start(2000)
+        self._poll_light.timer.start(
+            2000
+        )  # define TEMPERATURE_CONTROLLER_POLL_INTERVAL?
 
     def _end_polling(self) -> None:
         """Terminate polling the TC4820 device."""
@@ -380,6 +397,8 @@ class TC4820Controls(SerialDevicePanel):
     def _poll_tc4820(self) -> None:
         """Polls the device to obtain the latest info."""
         self._poll_light.flash()
+        if not self._updating_set_point and self._set_sbox.isEnabled():
+            self._set_sbox.setEnabled(False)
         pub.sendMessage(
             f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{self._name}_bb.request"
         )
@@ -415,7 +434,7 @@ class TC4820Controls(SerialDevicePanel):
     def _set_new_set_point(self) -> None:
         """Send new target temperature to temperature controller."""
         pub.sendMessage(
-            f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{self._name}.change_set_point",
+            f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{self._name}_bb.change_set_point",
             temperature=Decimal(self._set_sbox.value()),
         )
 
