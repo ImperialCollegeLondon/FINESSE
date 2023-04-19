@@ -52,8 +52,8 @@ class MainWindow(QMainWindow):
 
         bb_monitor: QGroupBox = TemperaturePlot()
         dp9800: QGroupBox = DP9800Controls()
-        tc4820_hot: QGroupBox = TC4820Controls("hot")
-        tc4820_cold: QGroupBox = TC4820Controls("cold")
+        tc4820_hot: QGroupBox = TC4820Controls("hot", 6)
+        tc4820_cold: QGroupBox = TC4820Controls("cold", 7)
 
         layout_right.addWidget(bb_monitor, 1, 0, 1, 2)
         layout_right.addWidget(dp9800, 2, 0, 1, 2)
