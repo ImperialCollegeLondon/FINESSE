@@ -386,9 +386,11 @@ class TC4820Controls(SerialDevicePanel):
 
     def _begin_polling(self) -> None:
         """Initiate polling the TC4820 device."""
-        # SerialDevicePanel.set_controls_enabled will enable this, but
-        # want it to begin disabled
+        # SerialDevicePanel.set_controls_enabled() will enable these, but
+        # we want them to begin disabled
         self._set_sbox.setEnabled(False)
+        if self._name.count("cold"):
+            self._update_pbtn.setEnabled(False)
         self._poll_light.timer.start(self._poll_interval)
 
     def _end_polling(self) -> None:
