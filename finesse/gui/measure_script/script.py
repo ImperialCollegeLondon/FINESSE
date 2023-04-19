@@ -4,12 +4,11 @@ This includes code for parsing and running the scripts.
 """
 from __future__ import annotations
 
-import itertools
 import logging
 from dataclasses import dataclass
 from io import TextIOBase
 from pathlib import Path
-from typing import Any, Dict, Iterator, Optional, Sequence, Union
+from typing import Any, Dict, Optional, Sequence, Union
 
 import yaml
 from pubsub import pub
@@ -22,11 +21,11 @@ from ...config import ANGLE_PRESETS, STEPPER_MOTOR_TOPIC
 from ..error_message import show_error_message
 
 
-@dataclass
+@dataclass(frozen=True)
 class Measurement:
     """Represents a single step (i.e. angle + number of measurements)."""
 
-    angle: Union[str, float]
+    angle: float | str
     """Either an angle in degrees or the name of a preset angle."""
 
     measurements: int
@@ -51,11 +50,9 @@ class Script:
         self.sequence = [Measurement(**val) for val in sequence]
         self.runner: Optional[ScriptRunner] = None
 
-    def __iter__(self) -> Iterator[Measurement]:
+    def __iter__(self) -> ScriptIterator:
         """Get an iterator for the measurements."""
-        return itertools.chain.from_iterable(
-            itertools.repeat(self.sequence, self.repeats)
-        )
+        return ScriptIterator(self)
 
     def run(self, parent: Optional[QWidget] = None) -> None:
         """Run this measure script."""
@@ -130,6 +127,36 @@ def _poll_em27_status() -> None:
     pub.sendMessage("opus.request", command="status")
 
 
+class ScriptIterator:
+    """Allows for iterating through a Script with the required number of repeats."""
+
+    def __init__(self, script: Script) -> None:
+        """Create a new ScriptIterator.
+
+        Args:
+            script: The Script from which to create this iterator.
+        """
+        self._sequence_iter = iter(script.sequence)
+        self.script = script
+        self.current_repeat = 0
+
+    def __iter__(self) -> ScriptIterator:
+        """Return self."""
+        return self
+
+    def __next__(self) -> Measurement:
+        """Return the next Measurement in the sequence."""
+        try:
+            return next(self._sequence_iter)
+        except StopIteration:
+            self.current_repeat = min(self.script.repeats, self.current_repeat + 1)
+            if self.current_repeat == self.script.repeats:
+                raise
+
+            self._sequence_iter = iter(self.script.sequence)
+            return next(self)
+
+
 class ScriptRunner(StateMachine):
     """A class for running measure scripts.
 
@@ -145,9 +172,7 @@ class ScriptRunner(StateMachine):
     measuring = State("Measuring")
     """State indicating that a measurement is taking place."""
 
-    start_moving = not_running.to(
-        moving, before=lambda: pub.sendMessage("measure_script.begin")
-    )
+    start_moving = not_running.to(moving)
     """Start moving the motor to the required angle for the current measurement."""
     cancel_move = moving.to(
         not_running, after=lambda: pub.sendMessage(f"serial.{STEPPER_MOTOR_TOPIC}.stop")
@@ -206,7 +231,13 @@ class ScriptRunner(StateMachine):
         # Send stop command in case motor is moving
         pub.sendMessage(f"serial.{STEPPER_MOTOR_TOPIC}.stop")
 
+        pub.subscribe(self.abort, "measure_script.abort")
+
         super().__init__()
+
+    def before_start_moving(self) -> None:
+        """Send a pubsub message to indicate that the script is running."""
+        pub.sendMessage("measure_script.begin", script_runner=self)
 
     def on_enter_state(self, target: State, event: str) -> None:
         """Log the state every time it changes."""
@@ -268,6 +299,8 @@ class ScriptRunner(StateMachine):
             self.finish()
             return
 
+        pub.sendMessage("measure_script.start_moving", script_runner=self)
+
         # Start moving the stepper motor
         pub.sendMessage(
             f"serial.{STEPPER_MOTOR_TOPIC}.move.begin",
@@ -282,6 +315,7 @@ class ScriptRunner(StateMachine):
 
         NB: This is also invoked on repeat measurements
         """
+        pub.sendMessage("measure_script.start_measuring", script_runner=self)
         pub.sendMessage("opus.request", command="start")
 
     def on_exit_measuring(self) -> None:
@@ -293,7 +327,6 @@ class ScriptRunner(StateMachine):
         status: int,
         text: str,
         error: Optional[tuple[int, str]],
-        url: str,
     ):
         """Start polling the EM27 so we know when the measurement is finished."""
         if error:
@@ -306,7 +339,6 @@ class ScriptRunner(StateMachine):
         status: int,
         text: str,
         error: Optional[tuple[int, str]],
-        url: str,
     ):
         """Move on to the next measurement if the measurement has finished."""
         if error:
@@ -321,11 +353,12 @@ class ScriptRunner(StateMachine):
 
     def abort(self) -> None:
         """Abort the current measure script run."""
-        state = self.current_state
-        if state == self.moving:
-            self.cancel_move()
-        elif state == self.measuring:
-            self.cancel_measuring()
+        match self.current_state:
+            case self.moving:
+                self.cancel_move()
+            case self.measuring:
+                self.cancel_measuring()
+        logging.info("Aborting measure script")
 
     def _on_stepper_motor_error(self, error: BaseException) -> None:
         """Call abort()."""

@@ -2,15 +2,16 @@
 
 This is used to scrape the PSF27Sensor data table off the server.
 """
-import logging
 from dataclasses import dataclass
 from decimal import Decimal
+from functools import partial
 
 from pubsub import pub
-from requests import get
-from requests.exceptions import ConnectionError, HTTPError, Timeout
+from PySide6.QtCore import Slot
+from PySide6.QtNetwork import QNetworkAccessManager, QNetworkReply, QNetworkRequest
 
 from ..config import EM27_URL
+from .pubsub_decorators import pubsub_broadcast
 
 
 @dataclass
@@ -81,10 +82,20 @@ class EM27Error(Exception):
     """Indicates than an error occurred while parsing the webpage."""
 
 
+@Slot()
+@pubsub_broadcast("em27.error", "em27.data.response", "data")
+def _on_reply_received(reply: QNetworkReply) -> list[EM27Property]:
+    if reply.error() != QNetworkReply.NetworkError.NoError:
+        raise EM27Error(f"Network error: {reply.errorString()}")
+
+    content = reply.readAll().data().decode()
+    return get_em27sensor_data(content)
+
+
 class EM27Scraper:
     """An interface for monitoring EM27 properties."""
 
-    def __init__(self, url: str = f"{EM27_URL}") -> None:
+    def __init__(self, url: str = EM27_URL) -> None:
         """Create a new EM27 property monitor.
 
         Args:
@@ -92,35 +103,16 @@ class EM27Scraper:
         """
         self._url: str = url
         self._timeout: float = 2.0
+        self._manager = QNetworkAccessManager()
 
         pub.subscribe(self.send_data, "em27.data.request")
 
-    def _read(self) -> str:
-        """Read the webpage.
-
-        Returns:
-            content: HTML source read from the webpage
-        """
-        try:
-            request = get(self._url, timeout=self._timeout)
-
-            # Check whether an error occurred
-            request.raise_for_status()
-
-            return request.text
-        except (ConnectionError, HTTPError, Timeout) as e:
-            raise EM27Error(f"Error connecting to {self._url}") from e
-
     def send_data(self) -> None:
-        """Request the EM27 property data from the web server and send to GUI."""
-        try:
-            content = self._read()
-            data_table = get_em27sensor_data(content)
-            pub.sendMessage("em27.data.response", data=data_table)
-        except EM27Error as e:
-            self._error_occurred(e)
+        """Request the EM27 property data from the web server.
 
-    def _error_occurred(self, exception: BaseException) -> None:
-        """Log and communicate that an error occurred."""
-        logging.error(f"Error during EM27 sensor query:\t{exception}")
-        pub.sendMessage("em27.error", message=str(exception))
+        The HTTP request is made on a background thread.
+        """
+        request = QNetworkRequest(self._url)
+        request.setTransferTimeout(round(1000 * self._timeout))
+        reply = self._manager.get(request)
+        reply.finished.connect(partial(_on_reply_received, reply))

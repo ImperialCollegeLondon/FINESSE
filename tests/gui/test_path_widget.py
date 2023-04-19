@@ -5,10 +5,10 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from finesse.gui.measure_script.script_path_widget import ScriptPathWidget
+from finesse.gui.path_widget import PathWidget
 
 
-class DummyWidget(ScriptPathWidget):
+class DummyWidget(PathWidget):
     """Override abstract member functions so we can create an instance."""
 
     def try_get_path_from_dialog(self) -> Optional[Path]:
@@ -17,7 +17,7 @@ class DummyWidget(ScriptPathWidget):
 
 
 @pytest.fixture()
-def widget(qtbot) -> ScriptPathWidget:
+def widget(qtbot) -> PathWidget:
     """Return a ScriptPathWidget for testing."""
     return DummyWidget()
 
@@ -36,17 +36,15 @@ def test_browse_button_connected(qtbot) -> None:
     """Check that the right signals are connected."""
     my_mock = MagicMock()
     with patch.object(DummyWidget, "setLayout"):
-        with patch(
-            "finesse.gui.measure_script.script_path_widget.QPushButton"
-        ) as button_mock:
+        with patch("finesse.gui.path_widget.QPushButton") as button_mock:
             button_mock.return_value = my_mock
-            with patch("finesse.gui.measure_script.script_path_widget.QHBoxLayout"):
+            with patch("finesse.gui.path_widget.QHBoxLayout"):
                 widget = DummyWidget()
                 my_mock.clicked.connect.assert_called_once_with(widget._browse_clicked)
 
 
 @pytest.mark.parametrize("path", (None, Path("/my/path")))
-def test_browse_button_clicked(path: Optional[Path], widget: ScriptPathWidget) -> None:
+def test_browse_button_clicked(path: Optional[Path], widget: PathWidget) -> None:
     """Check that the correct action is performed when the button is clicked."""
     with patch.object(widget, "try_get_path_from_dialog") as dialog_mock:
         with patch.object(widget, "set_path") as set_path_mock:
@@ -59,7 +57,7 @@ def test_browse_button_clicked(path: Optional[Path], widget: ScriptPathWidget) -
                 set_path_mock.assert_not_called()
 
 
-def test_set_path(widget: ScriptPathWidget) -> None:
+def test_set_path(widget: PathWidget) -> None:
     """Test the set_path() method."""
     path = Path("/new/path")
     widget.set_path(path)
@@ -75,7 +73,7 @@ def test_set_path(widget: ScriptPathWidget) -> None:
     ),
 )
 def test_try_get_path(
-    widget_path: Optional[Path], dialog_path: Optional[Path], widget: ScriptPathWidget
+    widget_path: Optional[Path], dialog_path: Optional[Path], widget: PathWidget
 ) -> None:
     """Test the try_get_path() method.
 

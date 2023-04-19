@@ -118,7 +118,7 @@ _MEASUREMENTS = [Measurement(float(i), i) for i in range(1, 4)]
     "num_measurements,repeats",
     (
         (num_measurements, repeats)
-        for num_measurements in range(4)
+        for num_measurements in range(1, 4)
         for repeats in range(1, 4)
     ),
 )
@@ -127,19 +127,23 @@ def test_script_iterator(num_measurements: int, repeats: int) -> None:
     script = Script(Path(), repeats, [])
     script.sequence = _MEASUREMENTS[:num_measurements]
     it = iter(script)
+    assert it.current_repeat == 0
 
     # Check that we get the correct values "repeats" times
     with does_not_raise():
-        for _ in range(repeats):
+        for i in range(repeats):
             assert all(next(it) == m for m in script.sequence)
+            assert it.current_repeat == i
 
     # Check that we get a StopIteration at the end
     with pytest.raises(StopIteration):
         next(it)
+        assert it.current_repeat == repeats
 
     # Check that calling it again still yields an error!
     with pytest.raises(StopIteration):
         next(it)
+        assert it.current_repeat == repeats
 
 
 @patch("finesse.gui.measure_script.script.ScriptRunner")

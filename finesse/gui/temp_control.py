@@ -21,8 +21,10 @@ from PySide6.QtWidgets import (
 )
 
 from ..config import (
+    NUM_TEMPERATURE_MONITOR_CHANNELS,
     TEMPERATURE_CONTROLLER_TOPIC,
     TEMPERATURE_MONITOR_POLL_INTERVAL,
+    TEMPERATURE_MONITOR_TOPIC,
     TEMPERATURE_PLOT_TIME_RANGE,
 )
 from .led_icons import LEDIcon
@@ -39,7 +41,9 @@ class TemperaturePlot(QGroupBox):
         layout = self._create_controls()
         self.setLayout(layout)
 
-        pub.subscribe(self._plot_bb_temps, "temperature_monitor.data.response")
+        pub.subscribe(
+            self._plot_bb_temps, f"serial.{TEMPERATURE_MONITOR_TOPIC}.data.response"
+        )
 
     def _create_controls(self) -> QGridLayout:
         """Creates the overall layout for the panel.
@@ -174,7 +178,7 @@ class TemperaturePlot(QGroupBox):
         if self._ax["hot"].yaxis.get_visible():
             self._ax["cold"].set_ylim([ylim_cold[0] - 1, ylim_cold[1] + 5])
 
-    def _plot_bb_temps(self, time: float, temperatures: list[Decimal]) -> None:
+    def _plot_bb_temps(self, time: datetime, temperatures: list[Decimal]) -> None:
         """Extract blackbody temperatures from DP9800 data and plot them.
 
         Args:
@@ -184,19 +188,19 @@ class TemperaturePlot(QGroupBox):
         hot_bb_temp = temperatures[6]
         cold_bb_temp = temperatures[7]
 
-        self._update_figure(time, hot_bb_temp, cold_bb_temp)
+        self._update_figure(time.timestamp(), hot_bb_temp, cold_bb_temp)
 
 
-class DP9800Controls(QGroupBox):
+class DP9800Controls(SerialDevicePanel):
     """Widgets to view the DP9800 properties."""
 
-    def __init__(self, num_channels: int = 8) -> None:
+    def __init__(self, num_channels: int = NUM_TEMPERATURE_MONITOR_CHANNELS) -> None:
         """Creates the widgets to monitor DP9800.
 
         Args:
             num_channels: Number of Pt 100 channels being monitored
         """
-        super().__init__("DP9800")
+        super().__init__(TEMPERATURE_MONITOR_TOPIC, "DP9800")
 
         self._num_channels = num_channels
         self._poll_interval = 1000 * TEMPERATURE_MONITOR_POLL_INTERVAL
@@ -204,13 +208,11 @@ class DP9800Controls(QGroupBox):
         layout = self._create_controls()
         self.setLayout(layout)
 
-        pub.subscribe(self._begin_polling, "temperature_monitor.open")
-        pub.subscribe(self._end_polling, "temperature_monitor.close")
-        pub.subscribe(self._update_pt100s, "temperature_monitor.data.response")
-
-        pub.sendMessage("temperature_monitor.data.request")
-
-        self._begin_polling()
+        pub.subscribe(self._begin_polling, f"serial.{TEMPERATURE_MONITOR_TOPIC}.opened")
+        pub.subscribe(self._end_polling, f"serial.{TEMPERATURE_MONITOR_TOPIC}.close")
+        pub.subscribe(
+            self._update_pt100s, f"serial.{TEMPERATURE_MONITOR_TOPIC}.data.response"
+        )
 
     def _create_controls(self) -> QGridLayout:
         """Creates the overall layout for the panel.
@@ -257,9 +259,9 @@ class DP9800Controls(QGroupBox):
     def _poll_dp9800(self) -> None:
         """Polls the device to obtain the latest values."""
         self._poll_light.flash()
-        pub.sendMessage("temperature_monitor.data.request")
+        pub.sendMessage(f"serial.{TEMPERATURE_MONITOR_TOPIC}.data.request")
 
-    def _update_pt100s(self, temperatures: list[Decimal], time: float) -> None:
+    def _update_pt100s(self, temperatures: list[Decimal], time: datetime) -> None:
         """Display the latest Pt 100 temperatures.
 
         Args:
