@@ -419,7 +419,7 @@ class TC4820Controls(SerialDevicePanel):
         elif self._alarm_light._is_on:
             self._alarm_light._turn_off()
 
-    def _update_pt100(self, temperatures: list[Decimal], time: float):
+    def _update_pt100(self, temperatures: list[Decimal], time: datetime):
         """Show the latest blackbody temperature.
 
         Args:
