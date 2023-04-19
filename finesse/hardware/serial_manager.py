@@ -36,7 +36,7 @@ class SerialManager:
 
     When the object receives the "serial.{name}.open" message, a new instance of the
     device will be created, using the serial argument. If the argument is None, a dummy
-    device will be called instead. When the "serial.{name}.open" message is received,
+    device will be called instead. When the "serial.{name}.close" message is received,
     the device will be closed.
     """
 

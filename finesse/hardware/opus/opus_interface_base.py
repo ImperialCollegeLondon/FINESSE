@@ -14,16 +14,6 @@ class OPUSInterfaceBase(QObject):
         super().__init__()
         pub.subscribe(self.request_command, "opus.request")
 
-    def error_occurred(self, error: BaseException) -> None:
-        """Signal that an error occurred."""
-        traceback_str = "".join(traceback.format_tb(error.__traceback__))
-
-        # Write details including stack trace to program log
-        logging.error(f"Error during OPUS request: {traceback_str}")
-
-        # Notify listeners
-        pub.sendMessage("opus.error", error=str(error))
-
     def request_command(self, command: str) -> None:
         """Request that OPUS run the specified command.
 
@@ -34,3 +24,14 @@ class OPUSInterfaceBase(QObject):
             command: Name of command to run
         """
         raise NotImplementedError("request_command() must be overridden by subclass")
+
+    @staticmethod
+    def error_occurred(error: BaseException) -> None:
+        """Signal that an error occurred."""
+        traceback_str = "".join(traceback.format_tb(error.__traceback__))
+
+        # Write details including stack trace to program log
+        logging.error(f"Error during OPUS request: {traceback_str}")
+
+        # Notify listeners
+        pub.sendMessage("opus.error", error=error)

@@ -1,4 +1,5 @@
 """Common constants used throughout the app."""
+from importlib.metadata import version
 from pathlib import Path
 
 APP_NAME = "FINESSE"
@@ -6,6 +7,9 @@ APP_NAME = "FINESSE"
 
 APP_AUTHOR = "Imperial College London"
 """The name of the app's author (used for program data path)."""
+
+APP_VERSION = version("finesse")
+"""The current version of the app."""
 
 ANGLE_PRESETS = {
     "zenith": 180.0,
@@ -20,11 +24,17 @@ ANGLE_PRESETS = {
 BAUDRATES = (4800, 9600, 19200, 38400, 57600, 115200)
 """The valid baud rates for use by the GUI."""
 
+NUM_TEMPERATURE_MONITOR_CHANNELS = 8
+"""The number of temperature channels for temperature monitors."""
+
 DUMMY_DEVICE_PORT = "Dummy"
 """The port name to display for dummy serial devices."""
 
 DEFAULT_SCRIPT_PATH = Path.home()
 """The default path to search for script files in."""
+
+DEFAULT_DATA_FILE_PATH = Path.home()
+"""The default path to save data files."""
 
 EM27_URL = "http://10.10.0.1/diag_autom.htm"
 """The URL of the EM27 monitoring web server."""
@@ -35,8 +45,14 @@ STEPPER_MOTOR_TOPIC = "stepper_motor"
 DEFAULT_ST10_BAUDRATE = 9600
 """The default baudrate to use for the ST10 controller."""
 
+TEMPERATURE_MONITOR_TOPIC = "temperature_monitor"
+"""The topic name to use for temperature monitor-related messages."""
+
+DEFAULT_DP9800_BAUDRATE = 38400
+"""The default baudrate to use for DP9800 temperature monitors."""
+
 TEMPERATURE_CONTROLLER_TOPIC = "temperature_controller"
-"""The topic name to user for temperature controller-related messages."""
+"""The topic name to use for temperature controller-related messages."""
 
 DEFAULT_TC4820_BAUDRATE = 115200
 """The default baudrate to use for TC4820 temperature controllers."""
