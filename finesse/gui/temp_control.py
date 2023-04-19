@@ -370,8 +370,6 @@ class TC4820Controls(SerialDevicePanel):
         self._update_pbtn.clicked.connect(self._on_update_clicked)
         layout.addWidget(self._update_pbtn, 2, 3)
 
-        self._updating_set_point = False
-
         return layout
 
     def _on_update_clicked(self) -> None:
@@ -386,6 +384,9 @@ class TC4820Controls(SerialDevicePanel):
 
     def _begin_polling(self) -> None:
         """Initiate polling the TC4820 device."""
+        # SerialDevicePanel.set_controls_enabled will enable this, but
+        # want it to begin disabled
+        self._set_sbox.setEnabled(False)
         self._poll_light.timer.start(
             2000
         )  # define TEMPERATURE_CONTROLLER_POLL_INTERVAL?
@@ -397,8 +398,6 @@ class TC4820Controls(SerialDevicePanel):
     def _poll_tc4820(self) -> None:
         """Polls the device to obtain the latest info."""
         self._poll_light.flash()
-        if not self._updating_set_point and self._set_sbox.isEnabled():
-            self._set_sbox.setEnabled(False)
         pub.sendMessage(
             f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{self._name}_bb.request"
         )
