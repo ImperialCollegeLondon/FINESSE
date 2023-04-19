@@ -275,17 +275,19 @@ class DP9800Controls(SerialDevicePanel):
 class TC4820Controls(SerialDevicePanel):
     """Widgets to view the TC4820 properties."""
 
-    def __init__(self, name: str) -> None:
+    def __init__(self, name: str, temperature_idx: int) -> None:
         """Creates the widgets to control and monitor a TC4820.
 
         Args:
             name: Name of the blackbody the TC4820 is controlling
+            temperature_idx: Index of the blackbody on the temperature monitor
         """
         super().__init__(
             f"{TEMPERATURE_CONTROLLER_TOPIC}.{name}_bb", f"TC4820 {name.upper()}"
         )
         self._name = name
         self._poll_interval = 1000 * TEMPERATURE_CONTROLLER_POLL_INTERVAL
+        self._temperature_idx = temperature_idx
 
         layout = self._create_controls()
         self.setLayout(layout)
@@ -426,10 +428,7 @@ class TC4820Controls(SerialDevicePanel):
             temperatures: list of temperatures retrieved from device
             time: the timestamp at which the properties were sent
         """
-        if self._name.count("hot"):
-            self._pt100_val.setText(f"{temperatures[6]: .2f}")
-        elif self._name.count("cold"):
-            self._pt100_val.setText(f"{temperatures[7]: .2f}")
+        self._pt100_val.setText(f"{temperatures[self._temperature_idx]: .2f}")
 
     def _set_new_set_point(self) -> None:
         """Send new target temperature to temperature controller."""
@@ -452,8 +451,8 @@ if __name__ == "__main__":
 
     temperature_plot = TemperaturePlot()
     dp9800 = DP9800Controls()
-    tc4820_hot = TC4820Controls("hot")
-    tc4820_cold = TC4820Controls("cold")
+    tc4820_hot = TC4820Controls("hot", 6)
+    tc4820_cold = TC4820Controls("cold", 7)
 
     layout.addWidget(temperature_plot, 0, 0, 1, 0)
     layout.addWidget(dp9800, 1, 0, 1, 0)
