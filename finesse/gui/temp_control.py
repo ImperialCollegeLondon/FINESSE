@@ -21,6 +21,7 @@ from PySide6.QtWidgets import (
 )
 
 from ..config import (
+    TEMPERATURE_CONTROLLER_POLL_INTERVAL,
     TEMPERATURE_CONTROLLER_TOPIC,
     TEMPERATURE_MONITOR_POLL_INTERVAL,
     TEMPERATURE_MONITOR_TOPIC,
@@ -284,6 +285,7 @@ class TC4820Controls(SerialDevicePanel):
             f"{TEMPERATURE_CONTROLLER_TOPIC}.{name}_bb", f"TC4820 {name.upper()}"
         )
         self._name = name
+        self._poll_interval = 1000 * TEMPERATURE_CONTROLLER_POLL_INTERVAL
 
         layout = self._create_controls()
         self.setLayout(layout)
@@ -387,9 +389,7 @@ class TC4820Controls(SerialDevicePanel):
         # SerialDevicePanel.set_controls_enabled will enable this, but
         # want it to begin disabled
         self._set_sbox.setEnabled(False)
-        self._poll_light.timer.start(
-            2000
-        )  # define TEMPERATURE_CONTROLLER_POLL_INTERVAL?
+        self._poll_light.timer.start(self._poll_interval)
 
     def _end_polling(self) -> None:
         """Terminate polling the TC4820 device."""
