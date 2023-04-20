@@ -310,8 +310,6 @@ class TC4820Controls(SerialDevicePanel):
             self._update_pt100, f"serial.{TEMPERATURE_MONITOR_TOPIC}.data.response"
         )
 
-        self._poll_tc4820()
-
     def _create_controls(self) -> QGridLayout:
         """Creates the overall layout for the panel.
 
@@ -398,6 +396,7 @@ class TC4820Controls(SerialDevicePanel):
         self._set_sbox.setEnabled(False)
         if self._name.count("cold"):
             self._update_pbtn.setEnabled(False)
+        self._poll_tc4820()
         self._poll_light.timer.start(self._poll_interval)
 
     def _end_polling(self) -> None:
