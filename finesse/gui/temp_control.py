@@ -53,6 +53,10 @@ class TemperaturePlot(QGroupBox):
         """
         layout = QGridLayout()
         self._btns = {"hot": QPushButton("Hot BB"), "cold": QPushButton("Cold BB")}
+        self._btns["hot"].setCheckable(True)
+        self._btns["cold"].setCheckable(True)
+        self._btns["hot"].setChecked(True)
+        self._btns["cold"].setChecked(True)
         self._btns["hot"].clicked.connect(
             partial(self._toggle_axis_visibility, name="hot")
         )
@@ -108,10 +112,9 @@ class TemperaturePlot(QGroupBox):
         Args:
             name: the name of the blackbody whose data visibility is toggled
         """
-        state = self._ax[name].yaxis.get_visible()
-        self._btns[name].setFlat(state)
-        self._ax[name].yaxis.set_visible(not state)
-        self._ax[name].lines[0].set_visible(not state)
+        state = self._btns[name].isChecked()
+        self._ax[name].yaxis.set_visible(state)
+        self._ax[name].lines[0].set_visible(state)
 
         self._make_axes_sensible()
         self._canvas.draw()
