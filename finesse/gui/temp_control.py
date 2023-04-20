@@ -23,6 +23,8 @@ from PySide6.QtWidgets import (
 from ..config import (
     TEMPERATURE_CONTROLLER_POLL_INTERVAL,
     TEMPERATURE_CONTROLLER_TOPIC,
+    TEMPERATURE_MONITOR_COLD_BB_IDX,
+    TEMPERATURE_MONITOR_HOT_BB_IDX,
     TEMPERATURE_MONITOR_POLL_INTERVAL,
     TEMPERATURE_MONITOR_TOPIC,
     TEMPERATURE_PLOT_TIME_RANGE,
@@ -185,8 +187,8 @@ class TemperaturePlot(QGroupBox):
             time: the time that the temperatures were read
             temperatures: the list of temperatures measured by the DP9800
         """
-        hot_bb_temp = temperatures[6]
-        cold_bb_temp = temperatures[7]
+        hot_bb_temp = temperatures[TEMPERATURE_MONITOR_HOT_BB_IDX]
+        cold_bb_temp = temperatures[TEMPERATURE_MONITOR_COLD_BB_IDX]
 
         self._update_figure(time, hot_bb_temp, cold_bb_temp)
 
@@ -451,8 +453,8 @@ if __name__ == "__main__":
 
     temperature_plot = TemperaturePlot()
     dp9800 = DP9800Controls()
-    tc4820_hot = TC4820Controls("hot", 6)
-    tc4820_cold = TC4820Controls("cold", 7)
+    tc4820_hot = TC4820Controls("hot", TEMPERATURE_MONITOR_HOT_BB_IDX)
+    tc4820_cold = TC4820Controls("cold", TEMPERATURE_MONITOR_COLD_BB_IDX)
 
     layout.addWidget(temperature_plot, 0, 0, 1, 0)
     layout.addWidget(dp9800, 1, 0, 1, 0)
