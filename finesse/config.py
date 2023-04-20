@@ -64,3 +64,9 @@ TEMPERATURE_MONITOR_POLL_INTERVAL = 2
 
 TEMPERATURE_PLOT_TIME_RANGE = 900
 """Range of time axis on blackbody temperature plot, in seconds."""
+
+TEMPERATURE_MONITOR_HOT_BB_IDX = 6
+"""Position of the hot blackbody on the temperature monitoring device."""
+
+TEMPERATURE_MONITOR_COLD_BB_IDX = 7
+"""Position of the cold blackbody on the temperature monitoring device."""
