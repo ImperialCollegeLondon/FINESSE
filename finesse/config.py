@@ -39,6 +39,9 @@ DEFAULT_DATA_FILE_PATH = Path.home()
 EM27_URL = "http://10.10.0.1/diag_autom.htm"
 """The URL of the EM27 monitoring web server."""
 
+EM27_PROPERTY_POLL_INTERVAL = 2.0
+"""Poll rate for EM27 properties."""
+
 STEPPER_MOTOR_TOPIC = "stepper_motor"
 """The topic name to use for stepper motor-related messages."""
 
@@ -63,8 +66,17 @@ OPUS_IP = "10.10.0.2"
 ALLOW_DUMMY_DEVICES = True
 """Whether to allow the user to choose dummy serial devices."""
 
+TEMPERATURE_CONTROLLER_POLL_INTERVAL = 2
+"""Number of seconds between temperature controller device reads."""
+
 TEMPERATURE_MONITOR_POLL_INTERVAL = 2
 """Number of seconds between temperature monitoring device reads."""
 
 TEMPERATURE_PLOT_TIME_RANGE = 900
 """Range of time axis on blackbody temperature plot, in seconds."""
+
+TEMPERATURE_MONITOR_HOT_BB_IDX = 6
+"""Position of the hot blackbody on the temperature monitoring device."""
+
+TEMPERATURE_MONITOR_COLD_BB_IDX = 7
+"""Position of the cold blackbody on the temperature monitoring device."""

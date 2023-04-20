@@ -12,6 +12,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from ..config import EM27_PROPERTY_POLL_INTERVAL
 from ..hardware.em27_scraper import EM27Property
 from .led_icons import LEDIcon
 
@@ -24,7 +25,6 @@ class EM27Monitor(QGroupBox):
         super().__init__("EM27 SOH Monitor")
 
         self._val_lineedits: dict[str, QLineEdit] = {}
-        self._data_table: list[EM27Property] = []
 
         self._poll_light = LEDIcon.create_poll_icon()
         self._poll_light.timer.timeout.connect(self._poll_server)
@@ -39,11 +39,10 @@ class EM27Monitor(QGroupBox):
 
         self.setLayout(self._layout)
 
-        pub.subscribe(self._set_data_table, "em27.data.response")
+        # Listen for properties sent by EM27Scraper backend
+        pub.subscribe(self._on_properties_received, "em27.data.response")
 
-        pub.sendMessage("em27.data.request")
-        self._display_props()
-
+        # Start polling the backend
         self._begin_polling()
 
     def _create_layouts(self) -> None:
@@ -87,26 +86,20 @@ class EM27Monitor(QGroupBox):
 
         return self._val_lineedits[prop.name]
 
-    def _display_props(self) -> None:
-        """Creates and populates the widgets to view the EM27 properties."""
-        # TODO: remove/hide row from table if it is no longer in _data_table
-        for prop in self._data_table:
+    def _on_properties_received(self, data: list[EM27Property]):
+        """Receive the data table from the server and update the GUI.
+
+        Args:
+            data: the properties received from the server
+        """
+        for prop in data:
             lineedit = self._get_prop_lineedit(prop)
             lineedit.setText(prop.val_str())
 
-    def _set_data_table(self, data: list[EM27Property]):
-        """Receive the data table from the server.
-
-        This requires its own method in order to be called by pubsub.
-
-        Args:
-            data: the data received from the server
-        """
-        self._data_table = data
-
     def _begin_polling(self) -> None:
         """Initiate polling the server."""
-        self._poll_light.timer.start(2000)
+        self._poll_server()
+        self._poll_light.timer.start(round(EM27_PROPERTY_POLL_INTERVAL * 1000))
 
     def _end_polling(self) -> None:
         """Terminate polling the server."""
@@ -116,7 +109,6 @@ class EM27Monitor(QGroupBox):
         """Polls the server to obtain the latest values."""
         self._poll_light.flash()
         pub.sendMessage("em27.data.request")
-        self._display_props()
 
 
 if __name__ == "__main__":
