@@ -18,6 +18,7 @@ from schema import And, Or, Schema, SchemaError
 from statemachine import State, StateMachine
 
 from ...config import ANGLE_PRESETS, STEPPER_MOTOR_TOPIC
+from ...em27_status import EM27Status
 from ..error_message import show_error_message
 
 
@@ -351,7 +352,7 @@ class ScriptRunner(StateMachine):
 
     def _measuring_started(
         self,
-        status: int,
+        status: EM27Status,
         text: str,
         error: Optional[tuple[int, str]],
     ):
@@ -363,7 +364,7 @@ class ScriptRunner(StateMachine):
 
     def _status_received(
         self,
-        status: int,
+        status: EM27Status,
         text: str,
         error: Optional[tuple[int, str]],
     ):
@@ -372,7 +373,7 @@ class ScriptRunner(StateMachine):
             self._on_em27_error_message(*error)
             return
 
-        if status == 2:  # "connected" state, indicating measurement is finished
+        if status == EM27Status.CONNECTED:  # indicates measurement is finished
             self._measuring_end()
         else:
             # Poll again later

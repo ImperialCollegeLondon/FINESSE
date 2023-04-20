@@ -7,6 +7,7 @@ import pytest
 from PySide6.QtNetwork import QNetworkReply
 
 from finesse.config import OPUS_IP
+from finesse.em27_status import EM27Status
 from finesse.hardware.opus.em27 import OPUSError, OPUSInterface, parse_response
 
 
@@ -84,10 +85,13 @@ def _get_opus_html(
     """
 
 
-@pytest.mark.parametrize("status,text", product(range(2), ("", "status text")))
-def test_parse_response_no_error(status: int, text: str) -> None:
+@pytest.mark.parametrize(
+    "status,text",
+    product((EM27Status.IDLE, EM27Status.CONNECTING), ("", "status text")),
+)
+def test_parse_response_no_error(status: EM27Status, text: str) -> None:
     """Test parse_response() works when no error has occurred."""
-    response = _get_opus_html(status, text)
+    response = _get_opus_html(status.value, text)
     parsed_status, parsed_text, parsed_error = parse_response(response)
     assert parsed_status == status
     assert parsed_text == text
@@ -97,9 +101,11 @@ def test_parse_response_no_error(status: int, text: str) -> None:
 @pytest.mark.parametrize("errcode,errtext", product(range(2), ("", "error text")))
 def test_parse_response_error(errcode: int, errtext: str) -> None:
     """Test parse_response() works when an error has occurred."""
-    response = _get_opus_html(1, "status text", errcode, errtext)
+    response = _get_opus_html(
+        EM27Status.CONNECTING.value, "status text", errcode, errtext
+    )
     parsed_status, parsed_text, parsed_error = parse_response(response)
-    assert parsed_status == 1
+    assert parsed_status == EM27Status.CONNECTING
     assert parsed_text == "status text"
     assert parsed_error == (errcode, errtext)
 
@@ -116,9 +122,11 @@ def test_parse_response_missing_fields(
 
 def test_parse_response_no_id(opus: OPUSInterface) -> None:
     """Test that parse_response() can handle <td> tags without an id."""
-    response = _get_opus_html(1, "text", 1, "errtext", "<td>something</td>")
+    response = _get_opus_html(
+        EM27Status.CONNECTING.value, "text", 1, "errtext", "<td>something</td>"
+    )
     parsed_status, parsed_text, parsed_error = parse_response(response)
-    assert parsed_status == 1
+    assert parsed_status == EM27Status.CONNECTING
     assert parsed_text == "text"
     assert parsed_error == (1, "errtext")
 
@@ -127,10 +135,14 @@ def test_parse_response_no_id(opus: OPUSInterface) -> None:
 def test_parse_response_bad_id(warning_mock: Mock) -> None:
     """Test that parse_response() can handle <td> tags with unexpected id values."""
     response = _get_opus_html(
-        1, "text", 1, "errtext", '<td id="MADE_UP">something</td>'
+        EM27Status.CONNECTING.value,
+        "text",
+        1,
+        "errtext",
+        '<td id="MADE_UP">something</td>',
     )
     parsed_status, parsed_text, parsed_error = parse_response(response)
-    assert parsed_status == 1
+    assert parsed_status == EM27Status.CONNECTING
     assert parsed_text == "text"
     assert parsed_error == (1, "errtext")
     warning_mock.assert_called()
