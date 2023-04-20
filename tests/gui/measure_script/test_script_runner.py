@@ -10,28 +10,10 @@ from finesse.config import STEPPER_MOTOR_TOPIC
 from finesse.gui.measure_script.script import Script, ScriptRunner, _poll_em27_status
 
 
-@pytest.fixture
-def runner():
-    """Fixture for a ScriptRunner in its initial state."""
-    script = Script(Path(), 1, ({"angle": 0.0, "measurements": 3},))
-    runner = ScriptRunner(script)
-    runner._check_status_timer = MagicMock()
-    return runner
-
-
-@pytest.fixture
-def runner_measuring(
-    runner: ScriptRunner, subscribe_mock: MagicMock, sendmsg_mock: MagicMock
-) -> ScriptRunner:
-    """Fixture for a ScriptRunner in a measuring state."""
-    runner.start_moving()
-    runner.start_measuring()
-    sendmsg_mock.reset_mock()
-    return runner
-
-
 @patch("finesse.gui.measure_script.script.QTimer")
-def test_init(timer_mock: Mock, sendmsg_mock: MagicMock) -> None:
+def test_init(
+    timer_mock: Mock, subscribe_mock: MagicMock, sendmsg_mock: MagicMock
+) -> None:
     """Test ScriptRunner's constructor."""
     timer = MagicMock()
     timer_mock.return_value = timer
@@ -49,6 +31,9 @@ def test_init(timer_mock: Mock, sendmsg_mock: MagicMock) -> None:
 
     # Check we're stopping the motor
     sendmsg_mock.assert_any_call(f"serial.{STEPPER_MOTOR_TOPIC}.stop")
+
+    # Check we're subscribed to abort messages
+    subscribe_mock.assert_any_call(script_runner.abort, "measure_script.abort")
 
     # Initial state
     assert script_runner.current_state == ScriptRunner.not_running
@@ -74,7 +59,8 @@ def test_start_moving(
     # Check that we have signalled start of script and that command has been sent to
     # stepper motor
     calls = (
-        call("measure_script.begin"),
+        call("measure_script.begin", script_runner=runner),
+        call("measure_script.start_moving", script_runner=runner),
         call(
             f"serial.{STEPPER_MOTOR_TOPIC}.move.begin",
             target=runner.script.sequence[0].angle,
@@ -145,7 +131,9 @@ def test_start_measuring(runner: ScriptRunner, sendmsg_mock: MagicMock) -> None:
     assert runner.current_state == ScriptRunner.measuring
 
     # Check that measuring has been triggered
-    sendmsg_mock.assert_called_once_with("opus.request", command="start")
+    sendmsg_mock.assert_any_call("opus.request", command="start")
+
+    sendmsg_mock.assert_any_call("measure_script.start_measuring", script_runner=runner)
 
 
 def test_repeat_measuring(
@@ -156,7 +144,11 @@ def test_repeat_measuring(
     assert runner_measuring.current_state == ScriptRunner.measuring
 
     # Check that measuring has been triggered again
-    sendmsg_mock.assert_called_once_with("opus.request", command="start")
+    sendmsg_mock.assert_any_call("opus.request", command="start")
+
+    sendmsg_mock.assert_any_call(
+        "measure_script.start_measuring", script_runner=runner_measuring
+    )
 
 
 def test_cancel_measuring(
