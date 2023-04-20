@@ -10,9 +10,13 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from ..config import APP_NAME
+from ..config import (
+    APP_NAME,
+    TEMPERATURE_MONITOR_COLD_BB_IDX,
+    TEMPERATURE_MONITOR_HOT_BB_IDX,
+)
 from .data_file_view import DataFileControl
-from .interferometer_monitor import EM27Monitor
+from .em27_monitor import EM27Monitor
 from .measure_script.script_view import ScriptControl
 from .opus_view import OPUSControl
 from .serial_view import SerialPortControl
@@ -59,8 +63,8 @@ class MainWindow(QMainWindow):
 
         bb_monitor: QGroupBox = TemperaturePlot()
         dp9800: QGroupBox = DP9800Controls()
-        tc4820_hot: QGroupBox = TC4820Controls("hot")
-        tc4820_cold: QGroupBox = TC4820Controls("cold")
+        tc4820_hot: QGroupBox = TC4820Controls("hot", TEMPERATURE_MONITOR_HOT_BB_IDX)
+        tc4820_cold: QGroupBox = TC4820Controls("cold", TEMPERATURE_MONITOR_COLD_BB_IDX)
 
         layout_right.addWidget(bb_monitor, 1, 0, 1, 2)
         layout_right.addWidget(dp9800, 2, 0, 1, 2)
