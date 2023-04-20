@@ -74,7 +74,7 @@ class MainWindow(QMainWindow):
                 QSizePolicy.Policy.Preferred,
                 QSizePolicy.Policy.MinimumExpanding,
             )
-        for panel in [dp9800, tc4820_hot, tc4820_cold]:
+        for panel in [dp9800, tc4820_hot, tc4820_cold, data_file]:
             panel.setSizePolicy(
                 QSizePolicy.Policy.Preferred,
                 QSizePolicy.Policy.Fixed,
