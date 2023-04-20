@@ -22,7 +22,10 @@ from PySide6.QtWidgets import (
 
 from ..config import (
     NUM_TEMPERATURE_MONITOR_CHANNELS,
+    TEMPERATURE_CONTROLLER_POLL_INTERVAL,
     TEMPERATURE_CONTROLLER_TOPIC,
+    TEMPERATURE_MONITOR_COLD_BB_IDX,
+    TEMPERATURE_MONITOR_HOT_BB_IDX,
     TEMPERATURE_MONITOR_POLL_INTERVAL,
     TEMPERATURE_MONITOR_TOPIC,
     TEMPERATURE_PLOT_TIME_RANGE,
@@ -185,8 +188,8 @@ class TemperaturePlot(QGroupBox):
             time: the time that the temperatures were read
             temperatures: the list of temperatures measured by the DP9800
         """
-        hot_bb_temp = temperatures[6]
-        cold_bb_temp = temperatures[7]
+        hot_bb_temp = temperatures[TEMPERATURE_MONITOR_HOT_BB_IDX]
+        cold_bb_temp = temperatures[TEMPERATURE_MONITOR_COLD_BB_IDX]
 
         self._update_figure(time.timestamp(), hot_bb_temp, cold_bb_temp)
 
@@ -275,18 +278,37 @@ class DP9800Controls(SerialDevicePanel):
 class TC4820Controls(SerialDevicePanel):
     """Widgets to view the TC4820 properties."""
 
-    def __init__(self, name: str) -> None:
+    def __init__(self, name: str, temperature_idx: int) -> None:
         """Creates the widgets to control and monitor a TC4820.
 
         Args:
             name: Name of the blackbody the TC4820 is controlling
+            temperature_idx: Index of the blackbody on the temperature monitor
         """
         super().__init__(
             f"{TEMPERATURE_CONTROLLER_TOPIC}.{name}_bb", f"TC4820 {name.upper()}"
         )
+        self._name = name
+        self._poll_interval = 1000 * TEMPERATURE_CONTROLLER_POLL_INTERVAL
+        self._temperature_idx = temperature_idx
 
         layout = self._create_controls()
         self.setLayout(layout)
+
+        pub.subscribe(
+            self._begin_polling,
+            f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{name}_bb.opened",
+        )
+        pub.subscribe(
+            self._end_polling, f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{name}_bb.close"
+        )
+        pub.subscribe(
+            self._update_controls,
+            f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{name}_bb.response",
+        )
+        pub.subscribe(
+            self._update_pt100, f"serial.{TEMPERATURE_MONITOR_TOPIC}.data.response"
+        )
 
     def _create_controls(self) -> QGridLayout:
         """Creates the overall layout for the panel.
@@ -336,9 +358,13 @@ class TC4820Controls(SerialDevicePanel):
         self._power_bar.setTextVisible(False)
         self._power_bar.setOrientation(Qt.Orientation.Horizontal)
         layout.addWidget(self._power_bar, 1, 1, 1, 3)
-        layout.addWidget(QLineEdit(), 1, 4)
+
+        self._power_label = QLineEdit()
+        self._power_label.setReadOnly(True)
+        layout.addWidget(self._power_label, 1, 4)
 
         self._poll_light = LEDIcon.create_poll_icon()
+        self._poll_light.timer.timeout.connect(self._poll_tc4820)
         self._alarm_light = LEDIcon.create_alarm_icon()
         layout.addWidget(self._poll_light, 0, 5)
         layout.addWidget(self._alarm_light, 2, 5)
@@ -347,9 +373,73 @@ class TC4820Controls(SerialDevicePanel):
         layout.addWidget(self._set_sbox, 2, 1)
 
         self._update_pbtn = QPushButton("UPDATE")
+        self._update_pbtn.setCheckable(True)
+        self._update_pbtn.clicked.connect(self._on_update_clicked)
         layout.addWidget(self._update_pbtn, 2, 3)
 
         return layout
+
+    def _on_update_clicked(self) -> None:
+        isDown = self._update_pbtn.isChecked()
+        if isDown:
+            self._set_sbox.setEnabled(True)
+            self._end_polling()
+        else:
+            self._set_new_set_point()
+            self._set_sbox.setEnabled(False)
+            self._begin_polling()
+
+    def _begin_polling(self) -> None:
+        """Initiate polling the TC4820 device."""
+        # SerialDevicePanel.set_controls_enabled() will enable these, but
+        # we want them to begin disabled
+        self._set_sbox.setEnabled(False)
+        if self._name.count("cold"):
+            self._update_pbtn.setEnabled(False)
+        self._poll_tc4820()
+        self._poll_light.timer.start(self._poll_interval)
+
+    def _end_polling(self) -> None:
+        """Terminate polling the TC4820 device."""
+        self._poll_light.timer.stop()
+
+    def _poll_tc4820(self) -> None:
+        """Polls the device to obtain the latest info."""
+        self._poll_light.flash()
+        pub.sendMessage(
+            f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{self._name}_bb.request"
+        )
+
+    def _update_controls(self, properties: dict):
+        """Update panel with latest info from temperature controller.
+
+        Args:
+            properties: dictionary containing the retrieved properties
+        """
+        self._control_val.setText(f"{properties['temperature']: .2f}")
+        self._power_bar.setValue(properties["power"])
+        self._power_label.setText(f"{properties['power']}")
+        self._set_sbox.setValue(int(properties["set_point"]))
+        if properties["alarm_status"] != 0:
+            self._alarm_light._turn_on()
+        elif self._alarm_light._is_on:
+            self._alarm_light._turn_off()
+
+    def _update_pt100(self, temperatures: list[Decimal], time: datetime):
+        """Show the latest blackbody temperature.
+
+        Args:
+            temperatures: list of temperatures retrieved from device
+            time: the timestamp at which the properties were sent
+        """
+        self._pt100_val.setText(f"{temperatures[self._temperature_idx]: .2f}")
+
+    def _set_new_set_point(self) -> None:
+        """Send new target temperature to temperature controller."""
+        pub.sendMessage(
+            f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{self._name}_bb.change_set_point",
+            temperature=Decimal(self._set_sbox.value()),
+        )
 
 
 if __name__ == "__main__":
@@ -365,8 +455,8 @@ if __name__ == "__main__":
 
     temperature_plot = TemperaturePlot()
     dp9800 = DP9800Controls()
-    tc4820_hot = TC4820Controls("hot")
-    tc4820_cold = TC4820Controls("cold")
+    tc4820_hot = TC4820Controls("hot", TEMPERATURE_MONITOR_HOT_BB_IDX)
+    tc4820_cold = TC4820Controls("cold", TEMPERATURE_MONITOR_COLD_BB_IDX)
 
     layout.addWidget(temperature_plot, 0, 0, 1, 0)
     layout.addWidget(dp9800, 1, 0, 1, 0)
