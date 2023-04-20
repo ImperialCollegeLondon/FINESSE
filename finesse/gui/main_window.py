@@ -9,7 +9,7 @@ from ..config import (
     TEMPERATURE_MONITOR_HOT_BB_IDX,
 )
 from .data_file_view import DataFileControl
-from .interferometer_monitor import EM27Monitor
+from .em27_monitor import EM27Monitor
 from .measure_script.script_view import ScriptControl
 from .opus_view import OPUSControl
 from .serial_view import SerialPortControl

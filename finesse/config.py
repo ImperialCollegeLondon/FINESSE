@@ -1,4 +1,5 @@
 """Common constants used throughout the app."""
+from importlib.metadata import version
 from pathlib import Path
 
 APP_NAME = "FINESSE"
@@ -6,6 +7,9 @@ APP_NAME = "FINESSE"
 
 APP_AUTHOR = "Imperial College London"
 """The name of the app's author (used for program data path)."""
+
+APP_VERSION = version("finesse")
+"""The current version of the app."""
 
 ANGLE_PRESETS = {
     "zenith": 180.0,
@@ -20,6 +24,9 @@ ANGLE_PRESETS = {
 BAUDRATES = (4800, 9600, 19200, 38400, 57600, 115200)
 """The valid baud rates for use by the GUI."""
 
+NUM_TEMPERATURE_MONITOR_CHANNELS = 8
+"""The number of temperature channels for temperature monitors."""
+
 DUMMY_DEVICE_PORT = "Dummy"
 """The port name to display for dummy serial devices."""
 
@@ -31,6 +38,9 @@ DEFAULT_DATA_FILE_PATH = Path.home()
 
 EM27_URL = "http://10.10.0.1/diag_autom.htm"
 """The URL of the EM27 monitoring web server."""
+
+EM27_PROPERTY_POLL_INTERVAL = 2.0
+"""Poll rate for EM27 properties."""
 
 STEPPER_MOTOR_TOPIC = "stepper_motor"
 """The topic name to use for stepper motor-related messages."""

@@ -1,13 +1,21 @@
 """Contains a panel for loading and editing measure scripts."""
 from pathlib import Path
-from typing import Optional
+from typing import Optional, cast
 
+from pubsub import pub
 from PySide6.QtWidgets import QFileDialog, QGridLayout, QGroupBox, QPushButton
 
 from ...config import DEFAULT_SCRIPT_PATH
+from ...settings import settings
 from ..path_widget import OpenPathWidget
-from .script import Script
+from .script import Script, ScriptRunner
 from .script_edit_dialog import ScriptEditDialog
+from .script_run_dialog import ScriptRunDialog
+
+
+def _get_previous_script_path() -> Optional[Path]:
+    path = cast(str, settings.value("script/run_path", ""))
+    return Path(path) if path else None
 
 
 class ScriptControl(QGroupBox):
@@ -24,6 +32,7 @@ class ScriptControl(QGroupBox):
         edit_btn.clicked.connect(self._edit_btn_clicked)
 
         self.script_path = OpenPathWidget(
+            initial_file_path=_get_previous_script_path(),
             extension="yaml",
             parent=self,
             caption="Choose measure script to load",
@@ -40,19 +49,21 @@ class ScriptControl(QGroupBox):
         layout.addWidget(run_btn, 1, 1)
         self.setLayout(layout)
 
-        self.dialog: Optional[ScriptEditDialog] = None
+        # Show/hide self.run_dialog on measure script begin/end
+        pub.subscribe(self._show_run_dialog, "measure_script.begin")
+        pub.subscribe(self._hide_run_dialog, "measure_script.end")
+
+        self.edit_dialog: ScriptEditDialog
+        """A dialog for editing the contents of a measure script."""
+
+        self.run_dialog: ScriptRunDialog
+        """A dialog showing the progress of a running measure script."""
 
     def _create_btn_clicked(self) -> None:
-        # If there is no open dialog, then create a new one
-        if not self.dialog or self.dialog.isHidden():
-            self.dialog = ScriptEditDialog(self.window())
-            self.dialog.show()
+        self.edit_dialog = ScriptEditDialog(self.window())
+        self.edit_dialog.show()
 
     def _edit_btn_clicked(self) -> None:
-        # If there's already a dialog open, try to close it first to save data etc.
-        if self.dialog and not self.dialog.close():
-            return
-
         # Ask user to choose script file to edit
         file_path, _ = QFileDialog.getOpenFileName(
             self,
@@ -70,10 +81,11 @@ class ScriptControl(QGroupBox):
             return
 
         # Create new dialog showing contents of script
-        self.dialog = ScriptEditDialog(self.window(), script)
-        self.dialog.show()
+        self.edit_dialog = ScriptEditDialog(self.window(), script)
+        self.edit_dialog.show()
 
     def _run_btn_clicked(self) -> None:
+        """Try to run a measure script."""
         file_path = self.script_path.try_get_path()
         if not file_path:
             # User cancelled
@@ -84,5 +96,18 @@ class ScriptControl(QGroupBox):
             # Failed to load script
             return
 
+        # Save to settings
+        settings.setValue("script/run_path", str(file_path))
+
         # Run the script!
         script.run(self)
+
+    def _show_run_dialog(self, script_runner: ScriptRunner) -> None:
+        """Create a new ScriptRunDialog and show it."""
+        self.run_dialog = ScriptRunDialog(self.window(), script_runner)
+        self.run_dialog.show()
+
+    def _hide_run_dialog(self) -> None:
+        """Hide and destroy the ScriptRunDialog."""
+        self.run_dialog.hide()
+        del self.run_dialog
