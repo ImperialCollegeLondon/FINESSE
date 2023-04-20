@@ -9,6 +9,7 @@ from PySide6.QtCore import QTimer
 from statemachine import State, StateMachine
 from statemachine.exceptions import TransitionNotAllowed
 
+from ...em27_status import EM27Status
 from .opus_interface_base import OPUSInterfaceBase
 
 
@@ -40,12 +41,12 @@ class OPUSError(Enum):
 class OPUSStateMachine(StateMachine):
     """An FSM for keeping track of the internal state of the mock device."""
 
-    idle = State("Idle", 0, initial=True)
-    connecting = State("Connecting", 1)
-    connected = State("Connected", 2)
-    measuring = State("Measuring", 3)
-    finishing = State("Finishing current measurement", 4)
-    cancelling = State("Cancelling", 5)
+    idle = State("Idle", EM27Status.IDLE, initial=True)
+    connecting = State("Connecting", EM27Status.CONNECTING)
+    connected = State("Connected", EM27Status.CONNECTED)
+    measuring = State("Measuring", EM27Status.MEASURING)
+    finishing = State("Finishing current measurement", EM27Status.FINISHING)
+    cancelling = State("Cancelling", EM27Status.CANCELLING)
     # The manual also describes an "Undefined" state, which we aren't using
 
     _start_connecting = idle.to(connecting)

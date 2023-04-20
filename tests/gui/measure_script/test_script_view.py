@@ -9,6 +9,7 @@ from PySide6.QtWidgets import QPushButton, QWidget
 from pytestqt.qtbot import QtBot
 
 from finesse.config import DEFAULT_SCRIPT_PATH
+from finesse.em27_status import EM27Status
 from finesse.gui.measure_script.script_run_dialog import ScriptRunDialog
 from finesse.gui.measure_script.script_view import ScriptControl
 
@@ -267,10 +268,14 @@ def test_hide_run_dialog_no_abort(
 
 
 @pytest.mark.parametrize(
-    "status,already_connected", product(range(2, 6), (True, False))
+    "status,already_connected",
+    product((EM27Status(i) for i in range(2, 6)), (True, False)),
 )
 def test_on_opus_message_connect(
-    status: int, already_connected: bool, script_control: ScriptControl, qtbot: QtBot
+    status: EM27Status,
+    already_connected: bool,
+    script_control: ScriptControl,
+    qtbot: QtBot,
 ) -> None:
     """Test the _on_opus_message() method when connecting."""
     script_control._opus_connected = already_connected
@@ -285,9 +290,15 @@ def test_on_opus_message_connect(
         assert script_control._opus_connected
 
 
-@pytest.mark.parametrize("status,already_connected", product((1, 6), (True, False)))
+@pytest.mark.parametrize(
+    "status,already_connected",
+    product((EM27Status.CONNECTING, EM27Status.UNDEFINED), (True, False)),
+)
 def test_on_opus_message_disconnect(
-    status: int, already_connected: bool, script_control: ScriptControl, qtbot: QtBot
+    status: EM27Status,
+    already_connected: bool,
+    script_control: ScriptControl,
+    qtbot: QtBot,
 ) -> None:
     """Test the _on_opus_message() method when disconnecting."""
     script_control._opus_connected = already_connected

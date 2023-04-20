@@ -14,6 +14,8 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
 )
 
+from ..em27_status import EM27Status
+
 
 class OPUSControl(QGroupBox):
     """Class that monitors and controls the OPUS interferometer."""
@@ -88,11 +90,11 @@ class OPUSControl(QGroupBox):
 
     def _log_response(
         self,
-        status: int,
+        status: EM27Status,
         text: str,
         error: Optional[tuple[int, str]],
     ) -> None:
-        self.logger.info(f"Response ({status}): {text}")
+        self.logger.info(f"Response ({status.value}): {text}")
         if error:
             self.logger.error(f"Error ({error[0]}): {error[1]}")
 
