@@ -55,11 +55,14 @@ class DataFileWriter:
         self._writer: Writer
         """The CSV writer."""
 
-        self._enable_counter = EventCounter(3, self.enable, self.disable)
-        self._enable_counter.change_on_device_open(
-            config.STEPPER_MOTOR_TOPIC,
-            config.TEMPERATURE_MONITOR_TOPIC,
-            f"{config.TEMPERATURE_CONTROLLER_TOPIC}.hot_bb",
+        self._enable_counter = EventCounter(
+            self.enable,
+            self.disable,
+            device_names=(
+                config.STEPPER_MOTOR_TOPIC,
+                config.TEMPERATURE_MONITOR_TOPIC,
+                f"{config.TEMPERATURE_CONTROLLER_TOPIC}.hot_bb",
+            ),
         )
 
         # Listen to open/close messages

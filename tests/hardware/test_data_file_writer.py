@@ -24,16 +24,19 @@ def writer() -> DataFileWriter:
 @patch("finesse.hardware.data_file_writer.EventCounter")
 def test_init(counter_mock: Mock, subscribe_mock: MagicMock) -> None:
     """Test DataFileWriter's constructor."""
-    counter_mock.return_value = counter = MagicMock()
+    counter_mock.return_value = MagicMock()
     writer = DataFileWriter()
     subscribe_mock.assert_any_call(writer.open, "data_file.open")
     subscribe_mock.assert_any_call(writer.close, "data_file.close")
 
-    counter_mock.assert_called_once_with(3, writer.enable, writer.disable)
-    counter.change_on_device_open(
-        STEPPER_MOTOR_TOPIC,
-        TEMPERATURE_MONITOR_TOPIC,
-        f"{TEMPERATURE_CONTROLLER_TOPIC}.hot_bb",
+    counter_mock.assert_called_once_with(
+        writer.enable,
+        writer.disable,
+        device_names=(
+            STEPPER_MOTOR_TOPIC,
+            TEMPERATURE_MONITOR_TOPIC,
+            f"{TEMPERATURE_CONTROLLER_TOPIC}.hot_bb",
+        ),
     )
 
 
