@@ -2,7 +2,13 @@
 from pathlib import Path
 
 from pubsub import pub
-from PySide6.QtWidgets import QGroupBox, QHBoxLayout, QMessageBox, QPushButton
+from PySide6.QtWidgets import (
+    QGroupBox,
+    QHBoxLayout,
+    QMessageBox,
+    QPushButton,
+    QSizePolicy,
+)
 
 from ..config import DEFAULT_DATA_FILE_PATH
 from .path_widget import SavePathWidget
@@ -33,6 +39,11 @@ class DataFileControl(QGroupBox):
         layout.addWidget(self.record_btn)
 
         self.setLayout(layout)
+
+        self.setSizePolicy(
+            QSizePolicy.Policy.Preferred,
+            QSizePolicy.Policy.Fixed,
+        )
 
         # Update GUI on file open/close
         pub.subscribe(self._on_file_open, "data_file.open")

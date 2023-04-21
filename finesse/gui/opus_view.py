@@ -10,6 +10,7 @@ from PySide6.QtWidgets import (
     QGroupBox,
     QHBoxLayout,
     QPushButton,
+    QSizePolicy,
     QTextBrowser,
     QVBoxLayout,
 )
@@ -34,6 +35,11 @@ class OPUSControl(QGroupBox):
 
         layout = self._create_controls()
         self.setLayout(layout)
+
+        self.setSizePolicy(
+            QSizePolicy.Policy.Preferred,
+            QSizePolicy.Policy.MinimumExpanding,
+        )
 
         pub.subscribe(self._log_response, "opus.response")
         pub.subscribe(self._log_error, "opus.error")
