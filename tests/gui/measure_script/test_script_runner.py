@@ -1,4 +1,5 @@
 """Tests for the ScriptRunner class."""
+from itertools import chain
 from pathlib import Path
 from typing import cast
 from unittest.mock import MagicMock, Mock, call, patch
@@ -37,6 +38,9 @@ def test_init(
 
     # Initial state
     assert script_runner.current_state == ScriptRunner.not_running
+
+    # Should start unpaused
+    assert not script_runner.paused
 
 
 def test_poll_em27_status(sendmsg_mock: Mock) -> None:
@@ -136,6 +140,15 @@ def test_start_measuring(runner: ScriptRunner, sendmsg_mock: MagicMock) -> None:
     sendmsg_mock.assert_any_call("measure_script.start_measuring", script_runner=runner)
 
 
+def test_start_measuring_paused(runner: ScriptRunner) -> None:
+    """Test that start_measuring() waits if paused."""
+    runner.current_state = ScriptRunner.moving
+    runner.pause()
+
+    runner.start_measuring()
+    assert runner.current_state == ScriptRunner.waiting_to_measure
+
+
 def test_repeat_measuring(
     runner_measuring: ScriptRunner, sendmsg_mock: MagicMock
 ) -> None:
@@ -149,6 +162,13 @@ def test_repeat_measuring(
     sendmsg_mock.assert_any_call(
         "measure_script.start_measuring", script_runner=runner_measuring
     )
+
+
+def test_repeat_measuring_paused(runner_measuring: ScriptRunner) -> None:
+    """Test that repeat_measuring() waits if paused."""
+    runner_measuring.pause()
+    runner_measuring.repeat_measuring()
+    assert runner_measuring.current_state == ScriptRunner.waiting_to_measure
 
 
 def test_cancel_measuring(
@@ -244,6 +264,13 @@ def test_measuring_end(
                 repeat_measuring_mock.assert_called_once()
 
 
+def test_start_next_move_paused(runner_measuring: ScriptRunner) -> None:
+    """Test that start_next_move() waits if paused."""
+    runner_measuring.pause()
+    runner_measuring.start_next_move()
+    assert runner_measuring.current_state == ScriptRunner.waiting_to_move
+
+
 @pytest.mark.parametrize("state", ScriptRunner.states)
 def test_abort(
     state: State,
@@ -290,3 +317,39 @@ def test_measuring_error(runner: ScriptRunner) -> None:
         error = RuntimeError("hello")
         runner._measuring_error(error)
         em27_error_mock.assert_called_once_with(str(error))
+
+
+def test_pause(runner: ScriptRunner) -> None:
+    """Test the pause() method."""
+    runner.pause()
+    assert runner.paused
+
+
+@pytest.mark.parametrize(
+    "begin_state,end_state",
+    chain(
+        (
+            (val, val)
+            for val in (
+                ScriptRunner.not_running,
+                ScriptRunner.moving,
+                ScriptRunner.measuring,
+            )
+        ),
+        (
+            (ScriptRunner.waiting_to_move, ScriptRunner.moving),
+            (ScriptRunner.waiting_to_measure, ScriptRunner.measuring),
+        ),
+    ),
+)
+def test_unpause(begin_state: State, end_state: State, runner: ScriptRunner) -> None:
+    """Test the unpause() method.
+
+    For the special states waiting_to_move and waiting_to_measure, unpausing the script
+    should trigger a transition to moving and measuring, respectively.
+    """
+    runner.current_state = begin_state
+    runner.pause()
+    runner.unpause()
+    assert not runner.paused
+    assert runner.current_state == end_state
