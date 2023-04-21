@@ -7,7 +7,11 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 import yaml
 
-from finesse.config import TEMPERATURE_MONITOR_TOPIC
+from finesse.config import (
+    STEPPER_MOTOR_TOPIC,
+    TEMPERATURE_CONTROLLER_TOPIC,
+    TEMPERATURE_MONITOR_TOPIC,
+)
 from finesse.hardware.data_file_writer import DataFileWriter, _get_metadata
 
 
@@ -17,11 +21,23 @@ def writer() -> DataFileWriter:
     return DataFileWriter()
 
 
-def test_init(subscribe_mock: MagicMock) -> None:
+@patch("finesse.hardware.data_file_writer.EventCounter")
+def test_init(counter_mock: Mock, subscribe_mock: MagicMock) -> None:
     """Test DataFileWriter's constructor."""
+    counter_mock.return_value = MagicMock()
     writer = DataFileWriter()
     subscribe_mock.assert_any_call(writer.open, "data_file.open")
     subscribe_mock.assert_any_call(writer.close, "data_file.close")
+
+    counter_mock.assert_called_once_with(
+        writer.enable,
+        writer.disable,
+        device_names=(
+            STEPPER_MOTOR_TOPIC,
+            TEMPERATURE_MONITOR_TOPIC,
+            f"{TEMPERATURE_CONTROLLER_TOPIC}.hot_bb",
+        ),
+    )
 
 
 @patch("finesse.hardware.data_file_writer.config.NUM_TEMPERATURE_MONITOR_CHANNELS", 2)
@@ -76,9 +92,10 @@ def test_open_error(
 
 def test_close(writer: DataFileWriter, unsubscribe_mock: MagicMock) -> None:
     """Test the close() method."""
-    writer._writer = MagicMock()
+    writer._writer = csv_writer = MagicMock()
     writer.close()
-    writer._writer.close.assert_called_once_with()
+    assert not hasattr(writer, "_writer")  # Should have been deleted
+    csv_writer.close.assert_called_once_with()
     unsubscribe_mock.assert_called_once_with(
         writer.write, f"serial.{TEMPERATURE_MONITOR_TOPIC}.data.response"
     )
@@ -138,3 +155,23 @@ def test_write_error(
     writer._writer.writerow.side_effect = error
     writer.write(time, data)
     sendmsg_mock.assert_called_once_with("data_file.error", error=error)
+
+
+def test_enable(writer: DataFileWriter, sendmsg_mock: MagicMock) -> None:
+    """Test the enable() method."""
+    writer.enable()
+    sendmsg_mock.assert_called_once_with("data_file.enable")
+
+
+def test_disable_close(writer: DataFileWriter, sendmsg_mock: MagicMock) -> None:
+    """Test the disable() method while writing."""
+    writer._writer = MagicMock()
+    writer.disable()
+    sendmsg_mock.assert_any_call("data_file.disable")
+    sendmsg_mock.assert_any_call("data_file.close")
+
+
+def test_disable_no_close(writer: DataFileWriter, sendmsg_mock: MagicMock) -> None:
+    """Test the disable() method while not writing."""
+    writer.disable()
+    sendmsg_mock.assert_called_once_with("data_file.disable")
