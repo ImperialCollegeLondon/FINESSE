@@ -6,6 +6,7 @@ from PySide6.QtWidgets import (
     QDialogButtonBox,
     QLabel,
     QProgressBar,
+    QPushButton,
     QVBoxLayout,
     QWidget,
 )
@@ -46,7 +47,12 @@ class ScriptRunDialog(QDialog):
         """A text label describing what the measure script is currently doing."""
         layout.addWidget(self._label)
 
+        self._pause_btn = QPushButton("Pause")
+        self._pause_btn.setCheckable(True)
+        self._pause_btn.clicked.connect(self._toggle_paused)
+
         buttonbox = QDialogButtonBox(QDialogButtonBox.StandardButton.Cancel)
+        buttonbox.addButton(self._pause_btn, QDialogButtonBox.ButtonRole.ActionRole)
         buttonbox.rejected.connect(self.reject)
         self.rejected.connect(lambda: pub.sendMessage("measure_script.abort"))
         layout.addWidget(buttonbox)
@@ -77,6 +83,15 @@ class ScriptRunDialog(QDialog):
             f"Carrying out measurement {script_runner.current_measurement_count + 1}"
             f" of {script_runner.current_measurement.measurements}",
         )
+
+    def _toggle_paused(self) -> None:
+        """Toggle the pause state of the script."""
+        if self._pause_btn.text() == "Pause":
+            pub.sendMessage("measure_script.pause")
+            self._pause_btn.setText("Unpause")
+        else:
+            pub.sendMessage("measure_script.unpause")
+            self._pause_btn.setText("Pause")
 
     def closeEvent(self, event: QCloseEvent) -> None:
         """Abort the measure script."""

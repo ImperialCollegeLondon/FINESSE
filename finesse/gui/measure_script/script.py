@@ -163,30 +163,42 @@ class ScriptRunner(StateMachine):
     The ScriptRunner is a finite state machine. Besides the one initial state, the
     runner can either be in a "moving" state (i.e. the motor is moving) or a "measuring"
     state (i.e. the motor is stationary and the EM27 is recording a measurement).
+
+    The state diagram looks like this:
+
+    ![](../../../../script_runner_graph.png)
     """
 
     not_running = State("Not running", initial=True)
     """State indicating that the script is not yet running or has finished."""
+    waiting_to_move = State("Waiting to move")
+    """State indicating that the motor will move when the script is unpaused."""
     moving = State("Moving")
     """State indicating that the motor is moving."""
+    waiting_to_measure = State("Waiting to measure")
+    """State indicating that measurement will start when the script is unpaused."""
     measuring = State("Measuring")
     """State indicating that a measurement is taking place."""
 
     start_moving = not_running.to(moving)
     """Start moving the motor to the required angle for the current measurement."""
+    finish_waiting_for_move = waiting_to_move.to(moving)
+    """Stop waiting and start the next move."""
     cancel_move = moving.to(
         not_running, after=lambda: pub.sendMessage(f"serial.{STEPPER_MOTOR_TOPIC}.stop")
     )
     """Cancel the current movement."""
-    start_measuring = moving.to(measuring)
+    start_measuring = moving.to(waiting_to_measure)
     """Start recording the current measurement."""
-    repeat_measuring = measuring.to(measuring)
+    repeat_measuring = measuring.to(waiting_to_measure)
     """Record another measurement at the same angle."""
+    finish_waiting_for_measure = waiting_to_measure.to(measuring)
+    """Stop waiting and start the next measurement."""
     cancel_measuring = measuring.to(
         not_running, after=lambda: pub.sendMessage("opus.request", command="cancel")
     )
     """Cancel the current measurement."""
-    start_next_move = measuring.to(moving)
+    start_next_move = measuring.to(waiting_to_move)
     """Trigger a move to the angle for the next measurement."""
     finish = moving.to(not_running)
     """To be called when all measurements are complete."""
@@ -216,6 +228,8 @@ class ScriptRunner(StateMachine):
         """An iterator yielding the required sequence of measurements."""
         self.parent = parent
         """The parent widget."""
+        self.paused = False
+        """Whether the script is paused."""
 
         self.current_measurement: Measurement
         """The current measurement to acquire."""
@@ -231,7 +245,10 @@ class ScriptRunner(StateMachine):
         # Send stop command in case motor is moving
         pub.sendMessage(f"serial.{STEPPER_MOTOR_TOPIC}.stop")
 
+        # Actions to control the script
         pub.subscribe(self.abort, "measure_script.abort")
+        pub.subscribe(self.pause, "measure_script.pause")
+        pub.subscribe(self.unpause, "measure_script.unpause")
 
         super().__init__()
 
@@ -322,6 +339,16 @@ class ScriptRunner(StateMachine):
         """Ensure that the polling timer is stopped."""
         self._check_status_timer.stop()
 
+    def on_enter_waiting_to_move(self) -> None:
+        """Move onto the next move unless the script is paused."""
+        if not self.paused:
+            self.finish_waiting_for_move()
+
+    def on_enter_waiting_to_measure(self) -> None:
+        """Move onto the next measurement unless the script is paused."""
+        if not self.paused:
+            self.finish_waiting_for_measure()
+
     def _measuring_started(
         self,
         status: int,
@@ -353,12 +380,32 @@ class ScriptRunner(StateMachine):
 
     def abort(self) -> None:
         """Abort the current measure script run."""
-        match self.current_state:
+        # For some reason mypy seems not to be able to deduce the type of current_state
+        match self.current_state:  # type: ignore[has-type]
             case self.moving:
                 self.cancel_move()
             case self.measuring:
                 self.cancel_measuring()
+            case self.waiting_to_measure | self.waiting_to_move:
+                # These states don't need any special handling
+                self.current_state = self.not_running
+
         logging.info("Aborting measure script")
+
+    def pause(self) -> None:
+        """Pause the current measure script run."""
+        self.paused = True
+
+    def unpause(self) -> None:
+        """Unpause the current measure script run."""
+        self.paused = False
+
+        # Move onto the next step if needed
+        match self.current_state:
+            case self.waiting_to_move:
+                self.finish_waiting_for_move()
+            case self.waiting_to_measure:
+                self.finish_waiting_for_measure()
 
     def _on_stepper_motor_error(self, error: BaseException) -> None:
         """Call abort()."""
@@ -388,3 +435,15 @@ class ScriptRunner(StateMachine):
             self.start_next_move()
         else:
             self.repeat_measuring()
+
+
+if __name__ == "__main__":
+    # Generate state diagram for ScriptRunner
+    from statemachine.contrib.diagram import DotGraphMachine
+
+    import finesse
+
+    graph = DotGraphMachine(ScriptRunner)
+
+    doc_dir = Path(finesse.__file__).parent.parent / "docs"
+    graph().write_png(str(doc_dir / "script_runner_graph.png"))
