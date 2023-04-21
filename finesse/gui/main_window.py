@@ -1,14 +1,7 @@
 """Code for FINESSE's main GUI window."""
 from pubsub import pub
 from PySide6.QtGui import QHideEvent, QShowEvent
-from PySide6.QtWidgets import (
-    QGridLayout,
-    QGroupBox,
-    QHBoxLayout,
-    QMainWindow,
-    QSizePolicy,
-    QWidget,
-)
+from PySide6.QtWidgets import QGridLayout, QGroupBox, QHBoxLayout, QMainWindow, QWidget
 
 from ..config import (
     APP_NAME,
@@ -71,18 +64,6 @@ class MainWindow(QMainWindow):
         layout_right.addWidget(tc4820_hot, 3, 0, 1, 1)
         layout_right.addWidget(tc4820_cold, 3, 1, 1, 1)
         layout_right.addWidget(data_file, 4, 0, 1, 2)
-
-        # Let OPUS and temperature plot panels expand vertically
-        for panel in [opus, bb_monitor]:
-            panel.setSizePolicy(
-                QSizePolicy.Policy.Preferred,
-                QSizePolicy.Policy.MinimumExpanding,
-            )
-        for panel in [dp9800, tc4820_hot, tc4820_cold, data_file]:
-            panel.setSizePolicy(
-                QSizePolicy.Policy.Preferred,
-                QSizePolicy.Policy.Fixed,
-            )
 
         # Display widgets in two columns
         left = QWidget()

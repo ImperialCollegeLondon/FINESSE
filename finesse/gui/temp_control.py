@@ -44,6 +44,11 @@ class TemperaturePlot(QGroupBox):
         layout = self._create_controls()
         self.setLayout(layout)
 
+        self.setSizePolicy(
+            QSizePolicy.Policy.Preferred,
+            QSizePolicy.Policy.MinimumExpanding,
+        )
+
         pub.subscribe(
             self._plot_bb_temps, f"serial.{TEMPERATURE_MONITOR_TOPIC}.data.response"
         )
@@ -202,8 +207,6 @@ class TemperaturePlot(QGroupBox):
         self._canvas.figure.set_figwidth(new_width / self._canvas.figure.get_dpi())
         self._canvas.figure.set_figheight(new_height / self._canvas.figure.get_dpi())
 
-        self._canvas.draw()
-
     def _plot_bb_temps(self, time: datetime, temperatures: list[Decimal]) -> None:
         """Extract blackbody temperatures from DP9800 data and plot them.
 
@@ -233,6 +236,11 @@ class DP9800Controls(SerialDevicePanel):
 
         layout = self._create_controls()
         self.setLayout(layout)
+
+        self.setSizePolicy(
+            QSizePolicy.Policy.Preferred,
+            QSizePolicy.Policy.Fixed,
+        )
 
         pub.subscribe(self._begin_polling, f"serial.{TEMPERATURE_MONITOR_TOPIC}.opened")
         pub.subscribe(self._end_polling, f"serial.{TEMPERATURE_MONITOR_TOPIC}.close")
@@ -317,6 +325,11 @@ class TC4820Controls(SerialDevicePanel):
 
         layout = self._create_controls()
         self.setLayout(layout)
+
+        self.setSizePolicy(
+            QSizePolicy.Policy.Preferred,
+            QSizePolicy.Policy.Fixed,
+        )
 
         pub.subscribe(
             self._begin_polling,
