@@ -163,6 +163,10 @@ class ScriptRunner(StateMachine):
     The ScriptRunner is a finite state machine. Besides the one initial state, the
     runner can either be in a "moving" state (i.e. the motor is moving) or a "measuring"
     state (i.e. the motor is stationary and the EM27 is recording a measurement).
+
+    The state diagram looks like this:
+
+    ![](../../../../script_runner_graph.png)
     """
 
     not_running = State("Not running", initial=True)
@@ -431,3 +435,15 @@ class ScriptRunner(StateMachine):
             self.start_next_move()
         else:
             self.repeat_measuring()
+
+
+if __name__ == "__main__":
+    # Generate state diagram for ScriptRunner
+    from statemachine.contrib.diagram import DotGraphMachine
+
+    import finesse
+
+    graph = DotGraphMachine(ScriptRunner)
+
+    doc_dir = Path(finesse.__file__).parent.parent / "docs"
+    graph().write_png(str(doc_dir / "script_runner_graph.png"))
