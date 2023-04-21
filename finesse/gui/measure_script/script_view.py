@@ -127,7 +127,7 @@ class ScriptControl(QGroupBox):
     def _on_opus_message(
         self, status: int, text: str, error: Optional[tuple[int, str]]
     ) -> None:
-        """Increase/descrease the enable counter when the EM27 connects/disconnects."""
+        """Increase/decrease the enable counter when the EM27 connects/disconnects."""
         # According to the manual, these are the possible states the EM27 can be in
         # while connected
         connected = 2 <= status <= 5
