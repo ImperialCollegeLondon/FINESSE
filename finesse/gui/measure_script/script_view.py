@@ -45,10 +45,12 @@ class ScriptControl(QGroupBox):
         run_btn.setEnabled(False)
 
         self._enable_counter = EventCounter(
-            2, lambda: run_btn.setEnabled(True), lambda: run_btn.setEnabled(False)
+            lambda: run_btn.setEnabled(True),
+            lambda: run_btn.setEnabled(False),
+            target_count=2,
+            device_names=(STEPPER_MOTOR_TOPIC,),
         )
         """A counter to enable/disable the "Run" button."""
-        self._enable_counter.change_on_device_open(STEPPER_MOTOR_TOPIC)
 
         layout = QGridLayout()
         layout.addWidget(create_btn, 0, 0)
