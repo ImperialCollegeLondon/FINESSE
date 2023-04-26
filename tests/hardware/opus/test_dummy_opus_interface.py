@@ -5,7 +5,6 @@ from typing import Optional, cast
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
-from pubsub import pub
 from statemachine import State
 
 from finesse.hardware.opus.dummy import DummyOPUSInterface, OPUSError, OPUSStateMachine
@@ -18,14 +17,6 @@ def dev(timer_mock: Mock) -> DummyOPUSInterface:
     timer_mock.return_value = MagicMock()
 
     return DummyOPUSInterface()
-
-
-@pytest.fixture()
-def send_message_mock(monkeypatch) -> MagicMock:
-    """Magic Mock patched over pubsub.pub.sendMessage."""
-    mock = MagicMock()
-    monkeypatch.setattr(pub, "sendMessage", mock)
-    return mock
 
 
 def test_init(dev: DummyOPUSInterface) -> None:
@@ -48,14 +39,14 @@ def test_request_status(
     state: State,
     error: OPUSError,
     dev: DummyOPUSInterface,
-    send_message_mock: MagicMock,
+    sendmsg_mock: MagicMock,
 ) -> None:
     """Test the request_status() method."""
     dev.last_error = error
     dev.state_machine.current_state = state
 
     dev.request_command("status")
-    send_message_mock.assert_called_once_with(
+    sendmsg_mock.assert_called_once_with(
         "opus.response.status",
         status=state.value,
         text=state.name,
@@ -91,7 +82,7 @@ def test_request_command(
     timer_command: Optional[str],
     initial_state: State,
     dev: DummyOPUSInterface,
-    send_message_mock: MagicMock,
+    sendmsg_mock: MagicMock,
 ) -> None:
     """Test the request_command() method."""
     with patch.object(dev.state_machine, "measure_timer") as timer_mock:
@@ -111,7 +102,7 @@ def test_request_command(
 
         # Check that the right response message was sent
         state = dev.state_machine.current_state
-        send_message_mock.assert_called_once_with(
+        sendmsg_mock.assert_called_once_with(
             f"opus.response.{command}",
             status=state.value,
             text=state.name,
@@ -120,13 +111,13 @@ def test_request_command(
 
 
 def test_request_command_bad_command(
-    dev: DummyOPUSInterface, send_message_mock: MagicMock
+    dev: DummyOPUSInterface, sendmsg_mock: MagicMock
 ) -> None:
     """Check that request_command() handles non-existent commands correctly."""
     dev.request_command("non_existent_command")
 
     state = dev.state_machine.current_state
-    send_message_mock.assert_called_once_with(
+    sendmsg_mock.assert_called_once_with(
         "opus.response.non_existent_command",
         status=state.value,
         text=state.name,
