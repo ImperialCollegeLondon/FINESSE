@@ -44,11 +44,6 @@ class TemperaturePlot(QGroupBox):
         layout = self._create_controls()
         self.setLayout(layout)
 
-        self.setSizePolicy(
-            QSizePolicy.Policy.Preferred,
-            QSizePolicy.Policy.MinimumExpanding,
-        )
-
         pub.subscribe(
             self._plot_bb_temps, f"serial.{TEMPERATURE_MONITOR_TOPIC}.data.response"
         )
@@ -71,15 +66,15 @@ class TemperaturePlot(QGroupBox):
         self._btns["cold"].clicked.connect(
             partial(self._toggle_axis_visibility, name="cold")
         )
+        self._btns["hot"].setMaximumWidth(80)
+        self._btns["cold"].setMaximumWidth(80)
+
         self._create_figure()
         self._canvas.setMinimumSize(QSize(640, 120))
-        self._canvas.setSizePolicy(
-            QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.MinimumExpanding
-        )
 
         layout.addWidget(self._btns["hot"], 0, 0)
         layout.addWidget(self._btns["cold"], 1, 0)
-        layout.addWidget(self._canvas, 0, 1, 2, 1)
+        layout.addWidget(self._canvas, 0, 1, 3, 1)
 
         return layout
 
@@ -88,7 +83,7 @@ class TemperaturePlot(QGroupBox):
         self._figure, ax = plt.subplots(constrained_layout=True)
         self._ax = {"hot": ax}
         self._canvas = FigureCanvasQTAgg(self._figure)
-        self._canvas.mpl_connect("resize_event", self._resize_plot)
+        # self._canvas.mpl_connect("resize_event", self._resize_plot)
 
         self._figure_num_pts = int(
             TEMPERATURE_PLOT_TIME_RANGE / TEMPERATURE_MONITOR_POLL_INTERVAL
