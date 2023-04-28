@@ -17,6 +17,6 @@ class EM27Status(Enum):
     UNDEFINED = 6
 
     @property
-    def connected(self) -> bool:
+    def is_connected(self) -> bool:
         """Whether the state represents a connected status."""
         return 2 <= self.value <= 5
