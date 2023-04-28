@@ -131,14 +131,13 @@ class ScriptControl(QGroupBox):
         self, status: EM27Status, text: str, error: Optional[tuple[int, str]]
     ) -> None:
         """Increase/decrease the enable counter when the EM27 connects/disconnects."""
-        connected = status.connected
-        if connected == self._opus_connected:
+        if status.is_connected == self._opus_connected:
             # The connection status hasn't changed
             return
 
-        if connected:
+        if status.is_connected:
             self._enable_counter.increment()
         else:
             self._enable_counter.decrement()
 
-        self._opus_connected = connected
+        self._opus_connected = status.is_connected
