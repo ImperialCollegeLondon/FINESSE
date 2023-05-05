@@ -2,7 +2,7 @@
 from datetime import datetime
 from decimal import Decimal
 from functools import partial
-from typing import Optional  # noqa
+from typing import Optional
 
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
@@ -84,9 +84,9 @@ class TemperaturePlot(QGroupBox):
         self._figure_num_pts = int(
             TEMPERATURE_PLOT_TIME_RANGE / TEMPERATURE_MONITOR_POLL_INTERVAL
         )
-        t = [None] * self._figure_num_pts  # type: list[Optional[float]]
-        hot_bb_temp = [None] * self._figure_num_pts  # type: list[Optional[float]]
-        cold_bb_temp = [None] * self._figure_num_pts  # type: list[Optional[float]]
+        t: list[Optional[float]] = [None] * self._figure_num_pts
+        hot_bb_temp: list[Optional[float]] = [None] * self._figure_num_pts
+        cold_bb_temp: list[Optional[float]] = [None] * self._figure_num_pts
 
         t[0] = datetime.now().timestamp()
         hot_bb_temp[0] = 25.0
