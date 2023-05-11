@@ -57,7 +57,7 @@ def get_em27sensor_data(content: str) -> list[EM27Property]:
     """
     table_header = (
         "<TR><TH>No</TH><TH>Name</TH><TH>Description</TH>"
-        + "<TH>Status</TH><TH>Value</TH><TH>Meas. Unit</TH></TR>\n"
+        + "<TH>Status</TH><TH>Value</TH><TH>Meas. Unit</TH></TR>"
     )
     table_start = content.find(table_header)
     if table_start == -1:
