@@ -8,6 +8,7 @@ import pytest
 from statemachine import State
 
 from finesse.config import STEPPER_MOTOR_TOPIC
+from finesse.em27_status import EM27Status
 from finesse.gui.measure_script.script import Script, ScriptRunner, _poll_em27_status
 
 
@@ -188,7 +189,7 @@ def test_measuring_started_success(poll_em27_mock: Mock, runner: ScriptRunner) -
     runner.current_state = ScriptRunner.measuring
 
     # Simulate response from EM27
-    runner._measuring_started(0, "", None)
+    runner._measuring_started(EM27Status.IDLE, "", None)
 
     # Check the request is sent to the EM27
     poll_em27_mock.assert_called_once()
@@ -200,19 +201,18 @@ def test_measuring_started_fail(runner: ScriptRunner) -> None:
 
     with patch.object(runner, "_on_em27_error_message") as em27_error_mock:
         # Simulate response from EM27
-        runner._measuring_started(0, "", (1, "ERROR MESSAGE"))
+        runner._measuring_started(EM27Status.IDLE, "", (1, "ERROR MESSAGE"))
 
         em27_error_mock.assert_called_once_with(1, "ERROR MESSAGE")
 
 
-@pytest.mark.parametrize("status", range(7))
-def test_status_received(status: int, runner_measuring: ScriptRunner) -> None:
+@pytest.mark.parametrize("status", EM27Status)
+def test_status_received(status: EM27Status, runner_measuring: ScriptRunner) -> None:
     """Test that polling the EM27's status works."""
     with patch.object(runner_measuring, "_measuring_end") as measuring_end_mock:
         runner_measuring._status_received(status, "", None)
 
-        # Status code 2 indicates success
-        if status == 2:
+        if status == EM27Status.CONNECTED:  # indicates success
             measuring_end_mock.assert_called_once()
         else:
             measuring_end_mock.assert_not_called()
@@ -221,7 +221,7 @@ def test_status_received(status: int, runner_measuring: ScriptRunner) -> None:
 def test_status_received_error(runner_measuring: ScriptRunner) -> None:
     """Test that _on_em27_error_message is called if the status indicates an error."""
     with patch.object(runner_measuring, "_on_em27_error_message") as em27_error_mock:
-        runner_measuring._status_received(1, "", (1, "ERROR MESSAGE"))
+        runner_measuring._status_received(EM27Status.IDLE, "", (1, "ERROR MESSAGE"))
         em27_error_mock.assert_called_once_with(1, "ERROR MESSAGE")
 
 

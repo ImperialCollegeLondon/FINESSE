@@ -6,6 +6,7 @@ from pubsub import pub
 from PySide6.QtWidgets import QFileDialog, QGridLayout, QGroupBox, QPushButton
 
 from ...config import DEFAULT_SCRIPT_PATH, STEPPER_MOTOR_TOPIC
+from ...em27_status import EM27Status
 from ...event_counter import EventCounter
 from ...settings import settings
 from ..path_widget import OpenPathWidget
@@ -127,20 +128,16 @@ class ScriptControl(QGroupBox):
         del self.run_dialog
 
     def _on_opus_message(
-        self, status: int, text: str, error: Optional[tuple[int, str]]
+        self, status: EM27Status, text: str, error: Optional[tuple[int, str]]
     ) -> None:
         """Increase/decrease the enable counter when the EM27 connects/disconnects."""
-        # According to the manual, these are the possible states the EM27 can be in
-        # while connected
-        connected = 2 <= status <= 5
-
-        if connected == self._opus_connected:
+        if status.is_connected == self._opus_connected:
             # The connection status hasn't changed
             return
 
-        if connected:
+        if status.is_connected:
             self._enable_counter.increment()
         else:
             self._enable_counter.decrement()
 
-        self._opus_connected = connected
+        self._opus_connected = status.is_connected
