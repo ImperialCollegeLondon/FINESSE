@@ -15,6 +15,7 @@ from PySide6.QtCore import Slot
 from PySide6.QtNetwork import QNetworkAccessManager, QNetworkReply, QNetworkRequest
 
 from ...config import OPUS_IP
+from ...em27_status import EM27Status
 from .opus_interface_base import OPUSInterfaceBase
 
 STATUS_FILENAME = "stat.htm"
@@ -25,9 +26,9 @@ class OPUSError(Exception):
     """Indicates that an error occurred while communicating with the OPUS program."""
 
 
-def parse_response(response: str) -> tuple[int, str, Optional[tuple[int, str]]]:
+def parse_response(response: str) -> tuple[EM27Status, str, Optional[tuple[int, str]]]:
     """Parse EM27's HTML response."""
-    status: Optional[int] = None
+    status: Optional[EM27Status] = None
     text: Optional[str] = None
     errcode: Optional[int] = None
     errtext: str = ""
@@ -39,7 +40,7 @@ def parse_response(response: str) -> tuple[int, str, Optional[tuple[int, str]]]:
         id = td.attrs["id"]
         data = td.contents[0] if td.contents else ""
         if id == "STATUS":
-            status = int(data)
+            status = EM27Status(int(data))
         elif id == "TEXT":
             text = data
         elif id == "ERRCODE":

@@ -1,12 +1,12 @@
 """Provides a base class for interfacing with the OPUS program."""
 import logging
 import traceback
+from abc import ABC, abstractmethod
 
 from pubsub import pub
-from PySide6.QtCore import QObject
 
 
-class OPUSInterfaceBase(QObject):
+class OPUSInterfaceBase(ABC):
     """Base class providing an interface to the OPUS program."""
 
     def __init__(self) -> None:
@@ -14,6 +14,7 @@ class OPUSInterfaceBase(QObject):
         super().__init__()
         pub.subscribe(self.request_command, "opus.request")
 
+    @abstractmethod
     def request_command(self, command: str) -> None:
         """Request that OPUS run the specified command.
 
@@ -23,7 +24,6 @@ class OPUSInterfaceBase(QObject):
         Args:
             command: Name of command to run
         """
-        raise NotImplementedError("request_command() must be overridden by subclass")
 
     @staticmethod
     def error_occurred(error: BaseException) -> None:
