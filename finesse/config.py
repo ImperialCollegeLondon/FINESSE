@@ -80,3 +80,6 @@ TEMPERATURE_MONITOR_HOT_BB_IDX = 6
 
 TEMPERATURE_MONITOR_COLD_BB_IDX = 7
 """Position of the cold blackbody on the temperature monitoring device."""
+
+TC4820_MAX_POWER = 511
+"""The maximum value for the power property."""
