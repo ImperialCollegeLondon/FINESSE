@@ -27,9 +27,6 @@ class MalformedMessageError(Exception):
 class TC4820(TemperatureControllerBase):
     """An interface for TC4820 temperature controllers."""
 
-    MAX_POWER = 511
-    """The maximum value for the power property."""
-
     def __init__(self, name: str, serial: Serial, max_attempts: int = 3) -> None:
         """Create a new TC4820 from an existing serial device.
 

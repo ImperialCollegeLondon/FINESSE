@@ -23,6 +23,7 @@ from PySide6.QtWidgets import (
 
 from ..config import (
     NUM_TEMPERATURE_MONITOR_CHANNELS,
+    TC4820_MAX_POWER,
     TEMPERATURE_CONTROLLER_POLL_INTERVAL,
     TEMPERATURE_CONTROLLER_TOPIC,
     TEMPERATURE_MONITOR_COLD_BB_IDX,
@@ -360,6 +361,7 @@ class TC4820Controls(SerialDevicePanel):
         layout.addWidget(self._pt100_val, 0, 3)
 
         self._power_bar = QProgressBar()
+        self._power_bar.setMaximum(TC4820_MAX_POWER)
         self._power_bar.setTextVisible(False)
         self._power_bar.setOrientation(Qt.Orientation.Horizontal)
         layout.addWidget(self._power_bar, 1, 1, 1, 3)
