@@ -39,7 +39,7 @@ DEFAULT_DATA_FILE_PATH = Path.home()
 EM27_URL = "http://10.10.0.1/diag_autom.htm"
 """The URL of the EM27 monitoring web server."""
 
-EM27_PROPERTY_POLL_INTERVAL = 2.0
+EM27_PROPERTY_POLL_INTERVAL = 60.0
 """Poll rate for EM27 properties."""
 
 STEPPER_MOTOR_TOPIC = "stepper_motor"
