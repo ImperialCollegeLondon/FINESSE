@@ -259,6 +259,7 @@ class DP9800Controls(SerialDevicePanel):
 
     def _begin_polling(self) -> None:
         """Initiate polling the DP9800 device."""
+        self._poll_dp9800()
         self._poll_light.timer.start()
 
     def _end_polling(self) -> None:
