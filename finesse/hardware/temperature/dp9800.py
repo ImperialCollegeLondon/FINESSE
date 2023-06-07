@@ -161,13 +161,13 @@ class DP9800(TemperatureMonitorBase):
         Raises:
             DP9800Error: Malformed message received from device
         """
-        # require at least 4 bytes else checks will fail
-        min_length = 4
         try:
-            data = self.serial.read_until(b"\x00", size=min_length)
+            data = self.serial.read_until(b"\x00")
         except SerialException as e:
             raise DP9800Error(e)
 
+        # require at least 4 bytes else checks will fail
+        min_length = 4
         if len(data) < min_length:
             raise DP9800Error("Insufficient data read from device")
 
