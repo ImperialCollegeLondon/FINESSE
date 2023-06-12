@@ -130,7 +130,8 @@ class DataFileWriter:
                 *temperatures,
                 secs_since_midnight,
                 get_stepper_motor_instance().angle,
-                get_hot_bb_temperature_controller_instance().power,
+                get_hot_bb_temperature_controller_instance().power
+                / (config.TC4820_MAX_POWER / 100),
             )
         )
 
