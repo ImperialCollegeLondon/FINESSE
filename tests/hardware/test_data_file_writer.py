@@ -9,6 +9,7 @@ import yaml
 
 from finesse.config import (
     STEPPER_MOTOR_TOPIC,
+    TC4820_MAX_POWER,
     TEMPERATURE_CONTROLLER_TOPIC,
     TEMPERATURE_MONITOR_TOPIC,
 )
@@ -129,7 +130,7 @@ def test_write(
     writer._writer = MagicMock()
     writer.write(time, data)
     writer._writer.writerow.assert_called_once_with(
-        ("20230414", "00:01:00", *data, 60, 90.0, 10)
+        ("20230414", "00:01:00", *data, 60, 90.0, 10 / (TC4820_MAX_POWER / 100))
     )
 
 
