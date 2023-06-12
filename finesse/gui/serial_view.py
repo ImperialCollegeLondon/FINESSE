@@ -125,6 +125,7 @@ class DeviceControls:
     def _on_device_closed(self):
         """Change the button to say Open."""
         self.open_close_btn.setText("Open")
+        self.open_close_btn.setChecked(False)
 
     def _on_device_opened(self):
         # Remember these settings for the next time program is run
