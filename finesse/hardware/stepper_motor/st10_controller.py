@@ -275,8 +275,10 @@ class ST10Controller(StepperMotorBase):
         # Tell the controller that this is step 0 ("set variable SP to 0")
         self._write_check("SP0")
 
-        # Make sure the motor has stopped
-        self.wait_until_stopped(3.0)
+        # Make sure the motor has stopped. Note that the move commands are not run
+        # synchronously, so this time is the time taken for all of these commands to
+        # finish.
+        self.wait_until_stopped(10.0)
 
     def _relative_move(self, steps: int) -> None:
         """Move the stepper motor to the specified relative position.
