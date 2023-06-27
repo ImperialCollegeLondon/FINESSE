@@ -41,7 +41,7 @@ types-decorator = "^5.1.8.3"
 pydot = "^1.4.2"
 
 [tool.poetry.group.docs.dependencies]
-mkdocs = "^1.4.2"
+mkdocs = "^1.4.3"
 mkdocstrings = "^0.22.0"
 mkdocstrings-python = "^1.1.2"
 mkdocs-material = "^9.1.15"
