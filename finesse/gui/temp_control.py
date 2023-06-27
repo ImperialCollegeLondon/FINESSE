@@ -83,7 +83,6 @@ class TemperaturePlot(QGroupBox):
         self._figure, ax = plt.subplots(constrained_layout=True)
         self._ax = {"hot": ax}
         self._canvas = FigureCanvasQTAgg(self._figure)
-        # self._canvas.mpl_connect("resize_event", self._resize_plot)
 
         self._figure_num_pts = int(
             TEMPERATURE_PLOT_TIME_RANGE / TEMPERATURE_MONITOR_POLL_INTERVAL
@@ -184,23 +183,6 @@ class TemperaturePlot(QGroupBox):
         # Confine "cold" line to lower region of plot if "hot" line also visible
         if self._ax["hot"].yaxis.get_visible():
             self._ax["cold"].set_ylim([ylim_cold[0] - 1, ylim_cold[1] + 5])
-
-    def _resize_plot(self, event) -> None:
-        """Custom resize function for matplotlib figurecanvas."""
-        if not self._canvas.isVisible():
-            self._canvas_pos_offset = [self._canvas.x(), self._canvas.y()]
-            self._canvas_size_diff = [
-                self.geometry().width() - self._canvas.width(),
-                self.geometry().height() - self._canvas.height(),
-            ]
-
-        self._canvas.move(self._canvas_pos_offset[0], self._canvas_pos_offset[1])
-
-        new_width = self.width() - self._canvas_size_diff[0]
-        new_height = self.height() - self._canvas_size_diff[1]
-        self._canvas.resize(new_width, new_height)
-        self._canvas.figure.set_figwidth(new_width / self._canvas.figure.get_dpi())
-        self._canvas.figure.set_figheight(new_height / self._canvas.figure.get_dpi())
 
     def _plot_bb_temps(self, time: datetime, temperatures: list[Decimal]) -> None:
         """Extract blackbody temperatures from DP9800 data and plot them.
