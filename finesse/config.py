@@ -39,7 +39,7 @@ DEFAULT_DATA_FILE_PATH = Path.home()
 EM27_URL = "http://10.10.0.1/diag_autom.htm"
 """The URL of the EM27 monitoring web server."""
 
-EM27_PROPERTY_POLL_INTERVAL = 2.0
+EM27_PROPERTY_POLL_INTERVAL = 60.0
 """Poll rate for EM27 properties."""
 
 STEPPER_MOTOR_TOPIC = "stepper_motor"
@@ -80,3 +80,6 @@ TEMPERATURE_MONITOR_HOT_BB_IDX = 6
 
 TEMPERATURE_MONITOR_COLD_BB_IDX = 7
 """Position of the cold blackbody on the temperature monitoring device."""
+
+TC4820_MAX_POWER = 511
+"""The maximum value for the power property."""
