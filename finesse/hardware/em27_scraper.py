@@ -82,16 +82,6 @@ class EM27Error(Exception):
     """Indicates than an error occurred while parsing the webpage."""
 
 
-@Slot()
-@pubsub_broadcast("em27.error", "em27.data.response", "data")
-def _on_reply_received(reply: QNetworkReply) -> list[EM27Property]:
-    if reply.error() != QNetworkReply.NetworkError.NoError:
-        raise EM27Error(f"Network error: {reply.errorString()}")
-
-    content = reply.readAll().data().decode()
-    return get_em27sensor_data(content)
-
-
 class EM27Scraper:
     """An interface for monitoring EM27 properties."""
 
@@ -107,6 +97,15 @@ class EM27Scraper:
 
         pub.subscribe(self.send_data, "em27.data.request")
 
+    @Slot()
+    @pubsub_broadcast("em27.error", "em27.data.response", "data")
+    def _on_reply_received(self, reply: QNetworkReply) -> list[EM27Property]:
+        if reply.error() != QNetworkReply.NetworkError.NoError:
+            raise EM27Error(f"Network error: {reply.errorString()}")
+
+        content = reply.readAll().data().decode()
+        return get_em27sensor_data(content)
+
     def send_data(self) -> None:
         """Request the EM27 property data from the web server.
 
@@ -115,4 +114,4 @@ class EM27Scraper:
         request = QNetworkRequest(self._url)
         request.setTransferTimeout(round(1000 * self._timeout))
         reply = self._manager.get(request)
-        reply.finished.connect(partial(_on_reply_received, reply))
+        reply.finished.connect(partial(self._on_reply_received, reply))
