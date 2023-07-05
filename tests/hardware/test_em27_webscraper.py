@@ -1,12 +1,35 @@
 """Tests for the EM27Scraper class."""
+from decimal import Decimal
 from importlib import resources
 from pathlib import Path
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
+from PySide6.QtNetwork import QNetworkReply
 
 from finesse.config import EM27_URL
-from finesse.hardware.em27_scraper import EM27Property, EM27Scraper, get_em27sensor_data
+from finesse.hardware.em27_scraper import (
+    EM27Error,
+    EM27Property,
+    EM27Scraper,
+    get_em27sensor_data,
+)
+
+
+@pytest.fixture
+def em27_property():
+    """Fixture for EM27Property."""
+    return EM27Property("Voltage", Decimal(1.23), "V")
+
+
+def test_str(em27_property: EM27Property):
+    """Test EM27Property's __str__() method."""
+    assert em27_property.__str__() == "Voltage = 1.230000 V"
+
+
+def test_val_str(em27_property: EM27Property):
+    """Test EM27Property's val_str() method."""
+    assert em27_property.val_str() == "1.230000 V"
 
 
 @pytest.fixture
@@ -21,6 +44,32 @@ def test_init(
     """Test EM27Scraper's constructor."""
     scraper = EM27Scraper()
     subscribe_mock.assert_any_call(scraper.send_data, "em27.data.request")
+
+
+@patch("finesse.hardware.em27_scraper.get_em27sensor_data")
+def test_on_reply_received_no_error(
+    get_em27sensor_data_mock: Mock, em27_scraper: EM27Scraper, sendmsg_mock: Mock, qtbot
+) -> None:  # adapted from test_opus_interface's test_on_reply_received_no_error()
+    """Test the _on_reply_received() method works when no error occurs."""
+    reply = MagicMock()
+    reply.error.return_value = QNetworkReply.NetworkError.NoError
+
+    # NB: This value is of the wrong type, but it doesn't matter here
+    get_em27sensor_data_mock.return_value = "EM27Properties"
+
+    # Check the correct pubsub message is sent
+    em27_scraper._on_reply_received(reply)
+    sendmsg_mock.assert_called_once_with("em27.data.response", data="EM27Properties")
+
+
+def test_on_reply_received_network_error() -> None:
+    """Test the _on_reply_received() method works when a network error occurs."""
+    pass
+
+
+def test_on_reply_received_exception() -> None:
+    """Test the _on_reply_received() method works when an exception is raised."""
+    pass
 
 
 @patch("finesse.hardware.em27_scraper.QNetworkRequest")
@@ -62,3 +111,14 @@ def test_get_em27sensor_data() -> None:
     assert len(data_table) == 7
     for entry in data_table:
         assert type(entry) == EM27Property
+
+
+def test_get_em27sensor_data_no_table_found() -> None:
+    """Test em27_scraper's get_em27sensor_data() function.
+
+    Read in HTML content which does not contain a valid sensor data table
+    to verify that an exception is raised.
+    """
+    content = "<HTML>No EM27 sensor data here</HTML>\n"
+    with pytest.raises(EM27Error):
+        get_em27sensor_data(content)
