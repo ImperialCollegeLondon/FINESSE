@@ -58,21 +58,25 @@ class TemperaturePlot(QGroupBox):
         """
         layout = QGridLayout()
         self._btns = {"hot": QPushButton("Hot BB"), "cold": QPushButton("Cold BB")}
+        self._btns["hot"].setCheckable(True)
+        self._btns["cold"].setCheckable(True)
+        self._btns["hot"].setChecked(True)
+        self._btns["cold"].setChecked(True)
         self._btns["hot"].clicked.connect(
             partial(self._toggle_axis_visibility, name="hot")
         )
         self._btns["cold"].clicked.connect(
             partial(self._toggle_axis_visibility, name="cold")
         )
+        self._btns["hot"].setMaximumWidth(80)
+        self._btns["cold"].setMaximumWidth(80)
+
         self._create_figure()
         self._canvas.setMinimumSize(QSize(640, 120))
-        self._canvas.setSizePolicy(
-            QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.MinimumExpanding
-        )
 
         layout.addWidget(self._btns["hot"], 0, 0)
         layout.addWidget(self._btns["cold"], 1, 0)
-        layout.addWidget(self._canvas, 0, 1, 2, 1)
+        layout.addWidget(self._canvas, 0, 1, 3, 1)
 
         return layout
 
@@ -117,10 +121,9 @@ class TemperaturePlot(QGroupBox):
         Args:
             name: the name of the blackbody whose data visibility is toggled
         """
-        state = self._ax[name].yaxis.get_visible()
-        self._btns[name].setFlat(state)
-        self._ax[name].yaxis.set_visible(not state)
-        self._ax[name].lines[0].set_visible(not state)
+        state = self._btns[name].isChecked()
+        self._ax[name].yaxis.set_visible(state)
+        self._ax[name].lines[0].set_visible(state)
 
         self._make_axes_sensible()
         self._canvas.draw()
@@ -217,6 +220,11 @@ class DP9800Controls(SerialDevicePanel):
         layout = self._create_controls()
         self.setLayout(layout)
 
+        self.setSizePolicy(
+            QSizePolicy.Policy.Preferred,
+            QSizePolicy.Policy.Fixed,
+        )
+
         pub.subscribe(self._begin_polling, f"serial.{TEMPERATURE_MONITOR_TOPIC}.opened")
         pub.subscribe(self._end_polling, f"serial.{TEMPERATURE_MONITOR_TOPIC}.close")
         pub.subscribe(
@@ -301,6 +309,11 @@ class TC4820Controls(SerialDevicePanel):
 
         layout = self._create_controls()
         self.setLayout(layout)
+
+        self.setSizePolicy(
+            QSizePolicy.Policy.Preferred,
+            QSizePolicy.Policy.Fixed,
+        )
 
         pub.subscribe(
             self._begin_polling,

@@ -2,6 +2,7 @@
     "python.formatting.provider": "black",
     "[python]": {
         "editor.formatOnSave": true,
+        "editor.defaultFormatter": "ms-python.black-formatter",
     },
     "editor.rulers": [88],
 
