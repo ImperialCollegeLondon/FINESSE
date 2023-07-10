@@ -2,7 +2,13 @@
 from pathlib import Path
 
 from pubsub import pub
-from PySide6.QtWidgets import QGroupBox, QHBoxLayout, QMessageBox, QPushButton
+from PySide6.QtWidgets import (
+    QGroupBox,
+    QHBoxLayout,
+    QMessageBox,
+    QPushButton,
+    QSizePolicy,
+)
 
 from ..config import DEFAULT_DATA_FILE_PATH
 from .path_widget import SavePathWidget
@@ -33,6 +39,11 @@ class DataFileControl(QGroupBox):
         layout.addWidget(self.record_btn)
 
         self.setLayout(layout)
+
+        self.setSizePolicy(
+            QSizePolicy.Policy.Preferred,
+            QSizePolicy.Policy.Fixed,
+        )
 
         # Backend indicates when necessary devices are all connected/disconnected
         pub.subscribe(self._on_data_file_enable, "data_file.enable")
