@@ -15,8 +15,7 @@ def initialise_logging() -> None:
     filename = log_path / f"{datetime.now().strftime('%Y%m%d_%H-%M-%S')}.log"
 
     # Allow user to set log level with environment variable
-    log_level = os.environ.get("FINESSE_LOG_LEVEL") or "INFO"
-    log_level = log_level.upper()
+    log_level = (os.environ.get("FINESSE_LOG_LEVEL") or "INFO").upper()
     if not hasattr(logging, log_level):
         raise ValueError(f"Invalid log level: {log_level}")
 
