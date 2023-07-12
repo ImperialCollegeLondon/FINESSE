@@ -37,6 +37,9 @@ class ScriptRunDialog(QDialog):
         self.setWindowTitle("Running measure script")
         self.setModal(True)
 
+        # Keep a reference to prevent it being GC'd mid-run
+        self._script_runner = script_runner
+
         layout = QVBoxLayout()
         self._progress_bar = QProgressBar()
         """Shows the progress of the measure script."""
