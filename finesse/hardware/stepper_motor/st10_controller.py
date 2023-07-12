@@ -296,14 +296,37 @@ class ST10Controller(StepperMotorBase):
         self._write_check(f"FL{steps}")
 
     @property
-    def step(self) -> int:
+    def status_code(self) -> int:
+        """The status code of the device.
+
+        For a complete list of status codes and their meanings, consult the manual.
+        """
+        # SC is formatted as a hexadecimal string
+        return int(self._request_value("SC"), 16)
+
+    @property
+    def is_moving(self) -> bool:
+        """Whether the motor is moving.
+
+        This is done by checking whether the status code has the moving bit set.
+        """
+        return self.status_code & 0x0010 == 0x0010
+
+    @property
+    def step(self) -> int | None:
         """The current state of the device's step counter.
+
+        As this can only be requested when the motor is stationary, if the motor is
+        moving then None will be returned.
 
         Raises:
             SerialException: Error communicating with device
             SerialTimeoutException: Timed out waiting for response from device
             ST10ControllerError: Malformed message received from device
         """
+        if self.is_moving:
+            return None
+
         step = self._request_value("SP")
         try:
             return int(step)

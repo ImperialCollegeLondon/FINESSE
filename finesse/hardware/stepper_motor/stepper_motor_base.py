@@ -64,7 +64,7 @@ class StepperMotorBase(DeviceBase):
 
     @property
     @abstractmethod
-    def step(self) -> int:
+    def step(self) -> int | None:
         """The current state of the device's step counter."""
 
     @step.setter
@@ -96,9 +96,22 @@ class StepperMotorBase(DeviceBase):
         """
 
     @property
+    @abstractmethod
+    def is_moving(self) -> bool:
+        """Whether the motor is currently moving."""
+
+    @property
     def angle(self) -> float:
-        """The current angle of the motor in degrees."""
-        return self.step * 360.0 / self.steps_per_rotation
+        """The current angle of the motor in degrees.
+
+        Returns:
+            The current angle or NaN if the stepper motor is moving
+        """
+        step = self.step
+        if step is None:
+            return float("nan")
+
+        return step * 360.0 / self.steps_per_rotation
 
     def move_to(self, target: Union[float, str]) -> None:
         """Move the motor to a specified rotation and send message when complete.
