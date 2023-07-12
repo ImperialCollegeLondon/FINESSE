@@ -19,7 +19,11 @@ class _MockStepperMotor(StepperMotorBase):
         return self._steps_per_rotation
 
     @property
-    def step(self) -> int:
+    def is_moving(self) -> bool:
+        return False
+
+    @property
+    def step(self) -> int | None:
         return self._step
 
     @step.setter

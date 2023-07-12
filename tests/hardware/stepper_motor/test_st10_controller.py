@@ -2,7 +2,7 @@
 from contextlib import nullcontext as does_not_raise
 from itertools import chain
 from typing import Any, cast
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, PropertyMock, patch
 
 import pytest
 from serial import SerialException, SerialTimeoutException
@@ -208,8 +208,18 @@ def test_check_device_id(dev: ST10Controller) -> None:
         [(4, "SP=hello", pytest.raises(ST10ControllerError))],
     ),
 )
-def test_get_step(step: int, response: str, raises: Any, dev: ST10Controller) -> None:
+@patch(
+    "finesse.hardware.stepper_motor.ST10Controller.is_moving", new_callable=PropertyMock
+)
+def test_get_step(
+    is_moving_mock: PropertyMock,
+    step: int,
+    response: str,
+    raises: Any,
+    dev: ST10Controller,
+) -> None:
     """Test getting the step property."""
+    is_moving_mock.return_value = False
     with read_mock(dev, response):
         with raises:
             assert dev.step == step
