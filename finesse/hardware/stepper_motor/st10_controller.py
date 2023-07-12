@@ -67,7 +67,7 @@ class _SerialReader(QThread):
 
         self.serial = serial
         self.sync_timeout = sync_timeout
-        self.out_queue: Queue = Queue()
+        self.out_queue: Queue[Union[str, BaseException]] = Queue()
         self.stopping = False
 
     def __del__(self) -> None:
@@ -89,10 +89,6 @@ class _SerialReader(QThread):
             ST10ControllerError: Malformed message received from device
         """
         raw = self.serial.read_until(b"\r")
-
-        # Check that it hasn't timed out
-        if not raw:
-            raise SerialTimeoutException()
 
         logging.debug(f"(ST10) <<< {repr(raw)}")
 
@@ -136,12 +132,17 @@ class _SerialReader(QThread):
         while self._process_read():
             pass
 
-    def read_sync(self) -> str:
-        """Read synchronously from the serial device."""
+    def read_sync(self, timeout: Optional[float] = None) -> str:
+        """Read synchronously from the serial device.
+
+        Args:
+            timeout: Amount of time to wait for a response (None==default)
+        """
+        if timeout is None:
+            timeout = self.sync_timeout
+
         try:
-            response: Union[str, BaseException] = self.out_queue.get(
-                timeout=self.sync_timeout
-            )
+            response = self.out_queue.get(timeout=timeout)
         except Exception:
             raise SerialTimeoutException()
 
@@ -275,8 +276,10 @@ class ST10Controller(StepperMotorBase):
         # Tell the controller that this is step 0 ("set variable SP to 0")
         self._write_check("SP0")
 
-        # Make sure the motor has stopped
-        self.wait_until_stopped(3.0)
+        # Make sure the motor has stopped. Note that the move commands are not run
+        # synchronously, so this time is the time taken for all of these commands to
+        # finish.
+        self.wait_until_stopped(10.0)
 
     def _relative_move(self, steps: int) -> None:
         """Move the stepper motor to the specified relative position.
@@ -334,15 +337,18 @@ class ST10Controller(StepperMotorBase):
         # "Send string"
         self._write_check(f"SS{string}")
 
-    def _read_sync(self) -> str:
+    def _read_sync(self, timeout: Optional[float] = None) -> str:
         """Read the next message from the device synchronously.
+
+        Args:
+            timeout: Amount of time to wait for a response (None==default)
 
         Raises:
             SerialException: Error communicating with device
             SerialTimeoutException: Timed out waiting for response from device
             ST10ControllerError: Malformed message received from device
         """
-        return self._reader.read_sync()
+        return self._reader.read_sync(timeout)
 
     def _write(self, message: str) -> None:
         """Send the specified message to the device.
@@ -446,16 +452,9 @@ class ST10Controller(StepperMotorBase):
         # Tell device to send "X" when current operations are complete
         self._send_string("X")
 
-        # Set temporary timeout
-        old_timeout, self.serial.timeout = self.serial.timeout, timeout
-        try:
-            if self._read_sync() != "X":
-                raise ST10ControllerError(
-                    "Invalid response received when waiting for X"
-                )
-        finally:
-            # Restore previous timeout setting
-            self.serial.timeout = old_timeout
+        # Wait for expected response
+        if self._read_sync(timeout) != "X":
+            raise ST10ControllerError("Invalid response received when waiting for X")
 
     def notify_on_stopped(self) -> None:
         """Wait until the motor has stopped moving and send a message when done."""

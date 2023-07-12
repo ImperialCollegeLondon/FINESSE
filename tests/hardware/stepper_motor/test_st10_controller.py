@@ -27,10 +27,10 @@ class MockSerialReader(_SerialReader):
     def run(self) -> None:
         """Override the run method to make the thread do nothing."""
 
-    def read_sync(self) -> str:
+    def read_sync(self, timeout: float | None = None) -> str:
         """Read synchronously (mocked)."""
         self._process_read()
-        return super().read_sync()
+        return super().read_sync(timeout)
 
 
 @pytest.fixture
@@ -94,7 +94,7 @@ def test_write(dev: ST10Controller) -> None:
 
 
 def test_read_normal(dev: ST10Controller) -> None:
-    """Test the _read() method with a valid message."""
+    """Test the _read_sync() method with a valid message."""
     dev.serial.read_until.return_value = b"hello\r"
     ret = dev._read_sync()
     dev.serial.read_until.assert_called_with(b"\r")
@@ -102,7 +102,7 @@ def test_read_normal(dev: ST10Controller) -> None:
 
 
 def test_read_error(dev: ST10Controller) -> None:
-    """Test the _read() method with an I/O error."""
+    """Test the _read_sync() method with an I/O error."""
     dev.serial.read_until.return_value = b"hello\r"
     dev.serial.read_until.side_effect = SerialException()
 
@@ -116,18 +116,15 @@ def test_read_error(dev: ST10Controller) -> None:
 
 
 def test_read_timed_out(dev: ST10Controller) -> None:
-    """Test the _read() method with a timed-out response."""
-    dev.serial.read_until.return_value = b""
-    with pytest.raises(SerialTimeoutException):
-        dev._read_sync()
-
-    # Check that the error signal was triggered
-    reader = cast(MagicMock, dev._reader.read_error)
-    reader.emit.assert_called_once()
+    """Test the _read_sync() method with a timed-out response."""
+    with patch.object(dev._reader, "out_queue") as queue_mock:
+        queue_mock.get.side_effect = Exception
+        with pytest.raises(SerialTimeoutException):
+            dev._read_sync()
 
 
 def test_read_non_ascii(dev: ST10Controller) -> None:
-    """Test the _read() method with a non-ASCII response."""
+    """Test the _read_sync() method with a non-ASCII response."""
     dev.serial.read_until.return_value = b"\xff\r"
     with pytest.raises(ST10ControllerError):
         dev._read_sync()
