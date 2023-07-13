@@ -76,6 +76,9 @@ class SerialManager:
             # Listen for close events for this device
             pub.subscribe(self._close, f"serial.{self.name}.close")
 
+            # Also close the device if the window closes unexpectedly
+            pub.subscribe(self._close, "window.closed")
+
             # For now, assume all errors are fatal so close the port
             pub.subscribe(self._send_close_message, f"serial.{self.name}.error")
 
