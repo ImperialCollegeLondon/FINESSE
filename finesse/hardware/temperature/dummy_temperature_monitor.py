@@ -3,7 +3,7 @@ from decimal import Decimal
 from typing import Sequence
 
 from ...config import NUM_TEMPERATURE_MONITOR_CHANNELS
-from ..noise_producer import NoiseParameters
+from ..noise_producer import NoiseParameters, NoiseProducer
 from .temperature_monitor_base import TemperatureMonitorBase
 
 _BASE_TEMPS = (19, 17, 26, 22, 24, 68, 69, 24)
@@ -32,7 +32,8 @@ class DummyTemperatureMonitor(TemperatureMonitorBase):
 
         super().__init__("dummy")
         self._temperature_producers = [
-            params.create_producer(type=Decimal) for params in temperature_params
+            NoiseProducer.from_parameters(params, type=Decimal)
+            for params in temperature_params
         ]
 
     def close(self) -> None:

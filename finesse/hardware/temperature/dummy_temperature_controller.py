@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from decimal import Decimal
 
-from ..noise_producer import NoiseParameters
+from ..noise_producer import NoiseParameters, NoiseProducer
 from .temperature_controller_base import TemperatureControllerBase
 
 
@@ -27,8 +27,10 @@ class DummyTemperatureController(TemperatureControllerBase):
             alarm_status: The value of the alarm status used forever (0 is no error)
             initial_set_point: What the temperature set point is initially
         """
-        self._temperature_producer = temperature_params.create_producer(type=Decimal)
-        self._power_producer = power_params.create_producer(type=int)
+        self._temperature_producer = NoiseProducer.from_parameters(
+            temperature_params, type=Decimal
+        )
+        self._power_producer = NoiseProducer.from_parameters(power_params, type=int)
         self._alarm_status = alarm_status
         self._set_point = initial_set_point
 
