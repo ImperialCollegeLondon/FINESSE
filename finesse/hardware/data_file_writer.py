@@ -1,4 +1,5 @@
 """Provides a class for writing sensor data to a CSV file."""
+import logging
 import platform
 from datetime import datetime
 from decimal import Decimal
@@ -89,6 +90,7 @@ class DataFileWriter:
         Args:
             path: The path of the file to write to
         """
+        logging.info(f"Opening data file at {path}")
         self._writer = Writer(path, _get_metadata(path.name))
 
         # Write column headers
@@ -113,6 +115,8 @@ class DataFileWriter:
         pub.unsubscribe(
             self.write, f"serial.{config.TEMPERATURE_MONITOR_TOPIC}.data.response"
         )
+
+        logging.info("Closing data file")
         self._writer.close()
         del self._writer
 
