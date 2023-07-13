@@ -122,6 +122,9 @@ class DataFileWriter:
         # Also include timestamp as seconds since midnight
         midnight = datetime(time.year, time.month, time.day)
         secs_since_midnight = floor((time - midnight).total_seconds())
+        angle = get_stepper_motor_instance().angle
+        if angle is None:  # Occurs when the motor is moving
+            angle = float("nan")
 
         self._writer.writerow(
             (
@@ -129,7 +132,7 @@ class DataFileWriter:
                 time.strftime("%H:%M:%S"),
                 *temperatures,
                 secs_since_midnight,
-                get_stepper_motor_instance().angle,
+                angle,
                 get_hot_bb_temperature_controller_instance().power
                 / (config.TC4820_MAX_POWER / 100),
             )

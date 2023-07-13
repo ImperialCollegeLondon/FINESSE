@@ -102,15 +102,18 @@ class StepperMotorBase(DeviceBase):
         """Whether the motor is currently moving."""
 
     @property
-    def angle(self) -> float:
+    def angle(self) -> float | None:
         """The current angle of the motor in degrees.
 
+        As this can only be requested when the motor is stationary, if the motor is
+        moving then None will be returned.
+
         Returns:
-            The current angle or NaN if the stepper motor is moving
+            The current angle or None if the stepper motor is moving
         """
         step = self.step
         if step is None:
-            return float("nan")
+            return None
 
         return step * 360.0 / self.steps_per_rotation
 
