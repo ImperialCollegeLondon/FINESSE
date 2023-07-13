@@ -1,21 +1,10 @@
 """Provides a dummy TC4820 device."""
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
 from decimal import Decimal
-from typing import Optional
 
-from ..noise_producer import NoiseProducer
+from ..noise_producer import NoiseParameters, NoiseProducer
 from .temperature_controller_base import TemperatureControllerBase
-
-
-@dataclass
-class NoiseParameters:
-    """A compact way of expressing arguments to NoiseProducer."""
-
-    mean: float = 0.0
-    standard_deviation: float = 1.0
-    seed: Optional[int] = 42
 
 
 class DummyTemperatureController(TemperatureControllerBase):
@@ -24,7 +13,7 @@ class DummyTemperatureController(TemperatureControllerBase):
     def __init__(
         self,
         name: str,
-        temperature_params: NoiseParameters = NoiseParameters(35.0, 2.0),
+        temperature_params: NoiseParameters = NoiseParameters(35.0, 0.1),
         power_params: NoiseParameters = NoiseParameters(40.0, 2.0),
         alarm_status: int = 0,
         initial_set_point: Decimal = Decimal(70),
@@ -38,10 +27,10 @@ class DummyTemperatureController(TemperatureControllerBase):
             alarm_status: The value of the alarm status used forever (0 is no error)
             initial_set_point: What the temperature set point is initially
         """
-        self._temperature_producer = NoiseProducer(
-            **asdict(temperature_params), type=Decimal
+        self._temperature_producer = NoiseProducer.from_parameters(
+            temperature_params, type=Decimal
         )
-        self._power_producer = NoiseProducer(**asdict(power_params), type=int)
+        self._power_producer = NoiseProducer.from_parameters(power_params, type=int)
         self._alarm_status = alarm_status
         self._set_point = initial_set_point
 

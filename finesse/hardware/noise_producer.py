@@ -1,4 +1,7 @@
 """Provides a class for producing random noise."""
+from __future__ import annotations
+
+from dataclasses import asdict, dataclass
 from typing import Any, Optional
 
 import numpy as np
@@ -34,3 +37,19 @@ class NoiseProducer:
             A random number of the specified type.
         """
         return self.type(self.rng.normal(self.mean, self.standard_deviation))
+
+    @classmethod
+    def from_parameters(
+        cls, parameters: NoiseParameters, type: type = float
+    ) -> NoiseProducer:
+        """Create a NoiseProducer from a NoiseParameters object."""
+        return cls(**asdict(parameters), type=type)
+
+
+@dataclass
+class NoiseParameters:
+    """A compact way of expressing arguments to NoiseProducer."""
+
+    mean: float = 0.0
+    standard_deviation: float = 1.0
+    seed: Optional[int] = 42

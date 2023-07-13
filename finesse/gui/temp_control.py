@@ -179,17 +179,6 @@ class TemperaturePlot(QGroupBox):
         self._ax["hot"].autoscale()
         self._ax["cold"].autoscale()
 
-        ylim_hot = self._ax["hot"].get_ylim()
-        ylim_cold = self._ax["cold"].get_ylim()
-
-        # Confine "hot" line to upper region of plot if "cold" line also visible
-        if self._ax["cold"].yaxis.get_visible():
-            self._ax["hot"].set_ylim([ylim_hot[0] - 5, ylim_hot[1] + 1])
-
-        # Confine "cold" line to lower region of plot if "hot" line also visible
-        if self._ax["hot"].yaxis.get_visible():
-            self._ax["cold"].set_ylim([ylim_cold[0] - 1, ylim_cold[1] + 5])
-
     def _plot_bb_temps(self, time: datetime, temperatures: list[Decimal]) -> None:
         """Extract blackbody temperatures from DP9800 data and plot them.
 

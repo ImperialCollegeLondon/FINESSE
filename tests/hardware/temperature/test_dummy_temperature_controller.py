@@ -1,7 +1,5 @@
 """Tests for the DummyTemperatureController class."""
-from dataclasses import asdict
 from decimal import Decimal
-from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
@@ -11,26 +9,22 @@ from finesse.hardware.temperature.dummy_temperature_controller import (
 )
 
 
-@patch("finesse.hardware.temperature.dummy_temperature_controller.NoiseProducer")
-def test_temperature(noise_mock: Mock) -> None:
+def test_temperature() -> None:
     """Test that the temperature property works."""
-    temperature_mock = MagicMock(return_value=Decimal(10))
-    noise_mock.return_value = temperature_mock
     params = NoiseParameters(mean=1.0, standard_deviation=2.0, seed=100)
     dev = DummyTemperatureController("device", temperature_params=params)
-    noise_mock.assert_any_call(**asdict(params), type=Decimal)
-    assert dev.temperature == Decimal(10)
+    assert dev._temperature_producer.mean == params.mean
+    assert dev._temperature_producer.standard_deviation == params.standard_deviation
+    assert dev._temperature_producer.type == Decimal
 
 
-@patch("finesse.hardware.temperature.dummy_temperature_controller.NoiseProducer")
-def test_power(noise_mock: Mock) -> None:
+def test_power() -> None:
     """Test that the power property works."""
-    power_mock = MagicMock(return_value=Decimal(10))
-    noise_mock.return_value = power_mock
     params = NoiseParameters(mean=1.0, standard_deviation=2.0, seed=100)
     dev = DummyTemperatureController("device", power_params=params)
-    noise_mock.assert_any_call(**asdict(params), type=int)
-    assert dev.power == Decimal(10)
+    assert dev._power_producer.mean == params.mean
+    assert dev._power_producer.standard_deviation == params.standard_deviation
+    assert dev._power_producer.type == int
 
 
 @pytest.mark.parametrize("alarm_status", range(2))
