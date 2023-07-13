@@ -65,7 +65,11 @@ class StepperMotorBase(DeviceBase):
     @property
     @abstractmethod
     def step(self) -> int | None:
-        """The current state of the device's step counter."""
+        """The current state of the device's step counter.
+
+        As this can only be requested when the motor is stationary, if the motor is
+        moving then None will be returned.
+        """
 
     @step.setter
     @abstractmethod
