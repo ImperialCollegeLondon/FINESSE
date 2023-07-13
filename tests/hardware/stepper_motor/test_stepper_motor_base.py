@@ -62,9 +62,6 @@ def test_init(subscribe_mock: MagicMock) -> None:
     subscribe_mock.assert_any_call(
         stepper._notify_on_stopped, f"serial.{STEPPER_MOTOR_TOPIC}.notify_on_stopped"
     )
-    subscribe_mock.assert_any_call(
-        stepper._request_angle, f"serial.{STEPPER_MOTOR_TOPIC}.request.angle"
-    )
 
 
 def test_angle(stepper: _MockStepperMotor) -> None:
@@ -86,14 +83,4 @@ def test_send_error_message(
     stepper.send_error_message(error)
     sendmsg_mock.assert_called_once_with(
         f"serial.{STEPPER_MOTOR_TOPIC}.error", error=error
-    )
-
-
-def test_request_angle(stepper: _MockStepperMotor, sendmsg_mock: MagicMock) -> None:
-    """Test the _request_angle() method."""
-    stepper.step = 1
-    stepper._steps_per_rotation = 1
-    stepper._request_angle()
-    sendmsg_mock.assert_called_once_with(
-        f"serial.{STEPPER_MOTOR_TOPIC}.response.angle", angle=360.0
     )
