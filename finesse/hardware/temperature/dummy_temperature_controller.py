@@ -13,7 +13,7 @@ class DummyTemperatureController(TemperatureControllerBase):
     def __init__(
         self,
         name: str,
-        temperature_params: NoiseParameters = NoiseParameters(35.0, 2.0),
+        temperature_params: NoiseParameters = NoiseParameters(35.0, 0.1),
         power_params: NoiseParameters = NoiseParameters(40.0, 2.0),
         alarm_status: int = 0,
         initial_set_point: Decimal = Decimal(70),
