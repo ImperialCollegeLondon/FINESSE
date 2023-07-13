@@ -53,7 +53,11 @@ class DummyStepperMotor(StepperMotorBase):
 
     @property
     def step(self) -> int | None:
-        """The number of steps that correspond to a full rotation."""
+        """The number of steps that correspond to a full rotation.
+
+        As this can only be requested when the motor is stationary, if the motor is
+        moving then None will be returned.
+        """
         if self.is_moving:
             return None
 
