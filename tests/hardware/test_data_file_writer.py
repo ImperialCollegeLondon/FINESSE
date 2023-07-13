@@ -164,15 +164,9 @@ def test_enable(writer: DataFileWriter, sendmsg_mock: MagicMock) -> None:
     sendmsg_mock.assert_called_once_with("data_file.enable")
 
 
-def test_disable_close(writer: DataFileWriter, sendmsg_mock: MagicMock) -> None:
+def test_disable(writer: DataFileWriter, sendmsg_mock: MagicMock) -> None:
     """Test the disable() method while writing."""
     writer._writer = MagicMock()
     writer.disable()
     sendmsg_mock.assert_any_call("data_file.disable")
     sendmsg_mock.assert_any_call("data_file.close")
-
-
-def test_disable_no_close(writer: DataFileWriter, sendmsg_mock: MagicMock) -> None:
-    """Test the disable() method while not writing."""
-    writer.disable()
-    sendmsg_mock.assert_called_once_with("data_file.disable")

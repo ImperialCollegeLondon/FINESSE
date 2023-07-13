@@ -80,8 +80,7 @@ class DataFileWriter:
     def disable(self) -> None:
         """Send disable message and close file if open."""
         pub.sendMessage("data_file.disable")
-        if hasattr(self, "_writer"):
-            pub.sendMessage("data_file.close")
+        pub.sendMessage("data_file.close")
 
     @pubsub_errors("data_file.error")
     def open(self, path: Path) -> None:
@@ -116,9 +115,10 @@ class DataFileWriter:
             self.write, f"serial.{config.TEMPERATURE_MONITOR_TOPIC}.data.response"
         )
 
-        logging.info("Closing data file")
-        self._writer.close()
-        del self._writer
+        if hasattr(self, "_writer"):
+            logging.info("Closing data file")
+            self._writer.close()
+            del self._writer
 
     @pubsub_errors("data_file.error")
     def write(self, time: datetime, temperatures: list[Decimal]) -> None:
