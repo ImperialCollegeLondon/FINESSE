@@ -70,6 +70,9 @@ class DataFileWriter:
         pub.subscribe(self.open, "data_file.open")
         pub.subscribe(self.close, "data_file.close")
 
+        # Close data file if GUI closes unexpectedly
+        pub.subscribe(self.close, "window.closed")
+
         # Listen for error messages
         pub.subscribe(_on_error_occurred, "data_file.error")
 
