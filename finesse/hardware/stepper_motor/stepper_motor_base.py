@@ -6,7 +6,7 @@ from pubsub import pub
 
 from ...config import ANGLE_PRESETS, STEPPER_MOTOR_TOPIC
 from ..device_base import DeviceBase
-from ..pubsub_decorators import pubsub_broadcast, pubsub_errors
+from ..pubsub_decorators import pubsub_errors
 
 error_wrap = pubsub_errors(f"serial.{STEPPER_MOTOR_TOPIC}.error")
 """Broadcast exceptions via pubsub."""
@@ -32,9 +32,6 @@ class StepperMotorBase(DeviceBase):
         pub.subscribe(self._stop_moving, f"serial.{STEPPER_MOTOR_TOPIC}.stop")
         pub.subscribe(
             self._notify_on_stopped, f"serial.{STEPPER_MOTOR_TOPIC}.notify_on_stopped"
-        )
-        pub.subscribe(
-            self._request_angle, f"serial.{STEPPER_MOTOR_TOPIC}.request.angle"
         )
 
     @staticmethod
@@ -132,12 +129,3 @@ class StepperMotorBase(DeviceBase):
             raise ValueError("Angle must be between 0° and 270°")
 
         self.step = round(self.steps_per_rotation * target / 360.0)
-
-    @pubsub_broadcast(
-        f"serial.{STEPPER_MOTOR_TOPIC}.error",
-        f"serial.{STEPPER_MOTOR_TOPIC}.response.angle",
-        "angle",
-    )
-    def _request_angle(self) -> float:
-        """Request the current angle from the device and return via pubsub."""
-        return self.angle
