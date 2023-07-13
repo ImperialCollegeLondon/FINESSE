@@ -91,11 +91,18 @@ def test_open_error(
     sendmsg_mock.assert_called_once_with("data_file.error", error=error)
 
 
-def test_close(writer: DataFileWriter, unsubscribe_mock: MagicMock) -> None:
+@patch("finesse.hardware.data_file_writer.os.fsync")
+def test_close(
+    fsync_mock: Mock, writer: DataFileWriter, unsubscribe_mock: MagicMock
+) -> None:
     """Test the close() method."""
     writer._writer = csv_writer = MagicMock()
+    csv_writer._file.fileno.return_value = 42
     writer.close()
     assert not hasattr(writer, "_writer")  # Should have been deleted
+
+    csv_writer._file.flush.assert_called_once_with()
+    fsync_mock.assert_called_once_with(42)
     csv_writer.close.assert_called_once_with()
     unsubscribe_mock.assert_called_once_with(
         writer.write, f"serial.{TEMPERATURE_MONITOR_TOPIC}.data.response"

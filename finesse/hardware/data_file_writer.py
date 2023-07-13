@@ -1,5 +1,6 @@
 """Provides a class for writing sensor data to a CSV file."""
 import logging
+import os
 import platform
 from datetime import datetime
 from decimal import Decimal
@@ -120,6 +121,11 @@ class DataFileWriter:
 
         if hasattr(self, "_writer"):
             logging.info("Closing data file")
+
+            # Ensure data is written to disk
+            self._writer._file.flush()
+            os.fsync(self._writer._file.fileno())
+
             self._writer.close()
             del self._writer
 
