@@ -141,6 +141,7 @@ class DataFileWriter:
                 / (config.TC4820_MAX_POWER / 100),
             )
         )
+        self._writer._file.flush()
 
 
 _data_file_writer = DataFileWriter()
