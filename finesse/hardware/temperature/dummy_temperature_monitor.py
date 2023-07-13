@@ -9,7 +9,10 @@ from .temperature_monitor_base import TemperatureMonitorBase
 _BASE_TEMPS = (19, 17, 26, 22, 24, 68, 69, 24)
 """The mean temperatures for each of the channels."""
 
-_DEFAULT_TEMP_PARAMS = [NoiseParameters(mean=temp, seed=None) for temp in _BASE_TEMPS]
+_DEFAULT_TEMP_PARAMS = [
+    NoiseParameters(mean=temp, standard_deviation=0.1, seed=None)
+    for temp in _BASE_TEMPS
+]
 """The default random parameters.
 
 A random seed is used."""
