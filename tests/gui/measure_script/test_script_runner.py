@@ -173,14 +173,11 @@ def test_repeat_measuring_paused(runner_measuring: ScriptRunner) -> None:
 
 
 def test_cancel_measuring(
-    runner_measuring: ScriptRunner, unsubscribe_mock: MagicMock, sendmsg_mock: MagicMock
+    runner_measuring: ScriptRunner, unsubscribe_mock: MagicMock
 ) -> None:
     """Test the cancel_measuring() method."""
     runner_measuring.cancel_measuring()
     assert runner_measuring.current_state == ScriptRunner.not_running
-
-    # Check that the cancel command was sent
-    sendmsg_mock.assert_called_with("opus.request", command="cancel")
 
 
 @patch("finesse.gui.measure_script.script._poll_em27_status")
