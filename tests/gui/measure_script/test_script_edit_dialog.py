@@ -1,7 +1,8 @@
 """Tests for the ScriptEditDialog class and associated code."""
+from collections.abc import Sequence
 from contextlib import nullcontext
 from pathlib import Path
-from typing import Any, List, Optional, Sequence
+from typing import Any
 from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
@@ -36,7 +37,7 @@ _TEST_SCRIPT = Script(Path("/my/path"), 2, ({"angle": "nadir", "measurements": 3
 )
 def test_init(
     qtbot: QtBot,
-    script: Optional[Script],
+    script: Script | None,
     count: int,
     sequence: Sequence[Measurement],
     script_path: str,
@@ -53,7 +54,7 @@ _MEASUREMENTS = [Measurement(float(i), i) for i in range(1, 4)]
 
 
 def _check_return(
-    seq: List[Measurement], selected_path: bool, read_succeeds: bool
+    seq: list[Measurement], selected_path: bool, read_succeeds: bool
 ) -> Any:
     returns = not seq or (selected_path and read_succeeds)
     return seq, selected_path, read_succeeds, returns
@@ -69,7 +70,7 @@ def _check_return(
     ],
 )
 def test_try_save(
-    seq: List[Measurement],
+    seq: list[Measurement],
     selected_path: bool,
     read_succeeds: bool,
     returns: bool,

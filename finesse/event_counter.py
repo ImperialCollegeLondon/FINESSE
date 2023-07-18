@@ -1,6 +1,6 @@
 """Provides a class for monitoring events such as device opening/closing."""
-from collections.abc import Callable
-from typing import Any, Optional, Sequence
+from collections.abc import Callable, Sequence
+from typing import Any
 
 from pubsub import pub
 
@@ -16,7 +16,7 @@ class EventCounter:
         self,
         on_target_reached: Callable[[], Any],
         on_below_target: Callable[[], Any],
-        target_count: Optional[int] = None,
+        target_count: int | None = None,
         device_names: Sequence[str] = (),
     ) -> None:
         """Create a new EventCounter.

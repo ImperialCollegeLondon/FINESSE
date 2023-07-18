@@ -7,7 +7,6 @@ Note that this is a separate machine from the EM27!
 """
 import logging
 from functools import partial
-from typing import Optional
 
 from bs4 import BeautifulSoup
 from pubsub import pub
@@ -26,11 +25,11 @@ class OPUSError(Exception):
     """Indicates that an error occurred while communicating with the OPUS program."""
 
 
-def parse_response(response: str) -> tuple[EM27Status, str, Optional[tuple[int, str]]]:
+def parse_response(response: str) -> tuple[EM27Status, str, tuple[int, str] | None]:
     """Parse EM27's HTML response."""
-    status: Optional[EM27Status] = None
-    text: Optional[str] = None
-    errcode: Optional[int] = None
+    status: EM27Status | None = None
+    text: str | None = None
+    errcode: int | None = None
     errtext: str = ""
     soup = BeautifulSoup(response, "html.parser")
     for td in soup.find_all("td"):

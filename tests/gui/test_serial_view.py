@@ -1,6 +1,7 @@
 """Tests for SerialControl and associated code."""
 from collections import namedtuple
-from typing import Any, Sequence
+from collections.abc import Sequence
+from typing import Any
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest

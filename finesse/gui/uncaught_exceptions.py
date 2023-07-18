@@ -3,7 +3,7 @@ import logging
 import sys
 import traceback
 from functools import partial
-from typing import Any, Type
+from typing import Any
 
 from PySide6.QtWidgets import (
     QDialog,
@@ -30,7 +30,7 @@ def set_uncaught_exception_handler(parent: QWidget) -> None:
 
 def _handle_exception(
     parent: QWidget,
-    exc_type: Type[BaseException],
+    exc_type: type[BaseException],
     exc_value: BaseException,
     exc_traceback: Any,
 ) -> None:
