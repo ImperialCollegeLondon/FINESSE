@@ -39,6 +39,7 @@ class OPUSControl(QGroupBox):
             QSizePolicy.Policy.MinimumExpanding,
         )
 
+        pub.subscribe(self._log_request, "opus.request")
         pub.subscribe(self._log_response, "opus.response")
         pub.subscribe(self._log_error, "opus.error")
 
@@ -94,6 +95,10 @@ class OPUSControl(QGroupBox):
         layout.addWidget(log_box)
         return layout
 
+    def _log_request(self, command: str) -> None:
+        """Log when a command request is sent."""
+        self.logger.info(f'Executing command "{command}"')
+
     def _log_response(
         self,
         status: EM27Status,
@@ -113,7 +118,6 @@ class OPUSControl(QGroupBox):
         Args:
             command: OPUS command to be executed
         """
-        self.logger.info(f'Executing command "{command}"')
         pub.sendMessage("opus.request", command=command)
 
     def _request_status(self) -> None:
