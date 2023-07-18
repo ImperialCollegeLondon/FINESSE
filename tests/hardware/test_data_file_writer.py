@@ -91,11 +91,18 @@ def test_open_error(
     sendmsg_mock.assert_called_once_with("data_file.error", error=error)
 
 
-def test_close(writer: DataFileWriter, unsubscribe_mock: MagicMock) -> None:
+@patch("finesse.hardware.data_file_writer.os.fsync")
+def test_close(
+    fsync_mock: Mock, writer: DataFileWriter, unsubscribe_mock: MagicMock
+) -> None:
     """Test the close() method."""
     writer._writer = csv_writer = MagicMock()
+    csv_writer._file.fileno.return_value = 42
     writer.close()
     assert not hasattr(writer, "_writer")  # Should have been deleted
+
+    csv_writer._file.flush.assert_called_once_with()
+    fsync_mock.assert_called_once_with(42)
     csv_writer.close.assert_called_once_with()
     unsubscribe_mock.assert_called_once_with(
         writer.write, f"serial.{TEMPERATURE_MONITOR_TOPIC}.data.response"
@@ -164,15 +171,9 @@ def test_enable(writer: DataFileWriter, sendmsg_mock: MagicMock) -> None:
     sendmsg_mock.assert_called_once_with("data_file.enable")
 
 
-def test_disable_close(writer: DataFileWriter, sendmsg_mock: MagicMock) -> None:
+def test_disable(writer: DataFileWriter, sendmsg_mock: MagicMock) -> None:
     """Test the disable() method while writing."""
     writer._writer = MagicMock()
     writer.disable()
     sendmsg_mock.assert_any_call("data_file.disable")
     sendmsg_mock.assert_any_call("data_file.close")
-
-
-def test_disable_no_close(writer: DataFileWriter, sendmsg_mock: MagicMock) -> None:
-    """Test the disable() method while not writing."""
-    writer.disable()
-    sendmsg_mock.assert_called_once_with("data_file.disable")

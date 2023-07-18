@@ -1,4 +1,6 @@
 """Provides a class for writing sensor data to a CSV file."""
+import logging
+import os
 import platform
 from datetime import datetime
 from decimal import Decimal
@@ -69,6 +71,9 @@ class DataFileWriter:
         pub.subscribe(self.open, "data_file.open")
         pub.subscribe(self.close, "data_file.close")
 
+        # Close data file if GUI closes unexpectedly
+        pub.subscribe(self.close, "window.closed")
+
         # Listen for error messages
         pub.subscribe(_on_error_occurred, "data_file.error")
 
@@ -79,8 +84,7 @@ class DataFileWriter:
     def disable(self) -> None:
         """Send disable message and close file if open."""
         pub.sendMessage("data_file.disable")
-        if hasattr(self, "_writer"):
-            pub.sendMessage("data_file.close")
+        pub.sendMessage("data_file.close")
 
     @pubsub_errors("data_file.error")
     def open(self, path: Path) -> None:
@@ -89,6 +93,7 @@ class DataFileWriter:
         Args:
             path: The path of the file to write to
         """
+        logging.info(f"Opening data file at {path}")
         self._writer = Writer(path, _get_metadata(path.name))
 
         # Write column headers
@@ -113,8 +118,16 @@ class DataFileWriter:
         pub.unsubscribe(
             self.write, f"serial.{config.TEMPERATURE_MONITOR_TOPIC}.data.response"
         )
-        self._writer.close()
-        del self._writer
+
+        if hasattr(self, "_writer"):
+            logging.info("Closing data file")
+
+            # Ensure data is written to disk
+            self._writer._file.flush()
+            os.fsync(self._writer._file.fileno())
+
+            self._writer.close()
+            del self._writer
 
     @pubsub_errors("data_file.error")
     def write(self, time: datetime, temperatures: list[Decimal]) -> None:
@@ -134,6 +147,7 @@ class DataFileWriter:
                 / (config.TC4820_MAX_POWER / 100),
             )
         )
+        self._writer._file.flush()
 
 
 _data_file_writer = DataFileWriter()
