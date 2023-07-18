@@ -1,4 +1,6 @@
 """Panel and widgets related to monitoring the interferometer."""
+import logging
+
 from pubsub import pub
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
@@ -107,6 +109,7 @@ class EM27Monitor(QGroupBox):
 
     def _poll_server(self) -> None:
         """Polls the server to obtain the latest values."""
+        logging.info("Polling EM27 sensors")
         self._poll_light.flash()
         pub.sendMessage("em27.data.request")
 
