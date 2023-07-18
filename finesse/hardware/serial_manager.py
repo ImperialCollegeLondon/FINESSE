@@ -96,6 +96,8 @@ class SerialManager:
         It is ensured that devices will only be closed once.
         """
         pub.unsubscribe(self._close, f"serial.{self.name}.close")
+        pub.unsubscribe(self._close, "window.closed")
+
         self.device.close()
         del self.device
 
