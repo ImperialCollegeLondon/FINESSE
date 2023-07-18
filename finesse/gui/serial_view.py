@@ -1,6 +1,7 @@
 """Panel and widgets related to the control of the serial ports."""
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Sequence, cast
+from typing import cast
 
 from pubsub import pub
 from PySide6.QtWidgets import (

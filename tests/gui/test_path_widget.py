@@ -1,6 +1,5 @@
 """Tests for the ScriptPathWidget."""
 from pathlib import Path
-from typing import Optional
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -11,7 +10,7 @@ from finesse.gui.path_widget import PathWidget
 class DummyWidget(PathWidget):
     """Override abstract member functions so we can create an instance."""
 
-    def try_get_path_from_dialog(self) -> Optional[Path]:
+    def try_get_path_from_dialog(self) -> Path | None:
         """Try to get the file name by raising a dialog."""
         return super().try_get_path_from_dialog()
 
@@ -44,7 +43,7 @@ def test_browse_button_connected(qtbot) -> None:
 
 
 @pytest.mark.parametrize("path", (None, Path("/my/path")))
-def test_browse_button_clicked(path: Optional[Path], widget: PathWidget) -> None:
+def test_browse_button_clicked(path: Path | None, widget: PathWidget) -> None:
     """Check that the correct action is performed when the button is clicked."""
     with patch.object(widget, "try_get_path_from_dialog") as dialog_mock:
         with patch.object(widget, "set_path") as set_path_mock:
@@ -73,7 +72,7 @@ def test_set_path(widget: PathWidget) -> None:
     ),
 )
 def test_try_get_path(
-    widget_path: Optional[Path], dialog_path: Optional[Path], widget: PathWidget
+    widget_path: Path | None, dialog_path: Path | None, widget: PathWidget
 ) -> None:
     """Test the try_get_path() method.
 

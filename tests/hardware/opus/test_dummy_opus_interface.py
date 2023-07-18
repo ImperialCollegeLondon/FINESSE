@@ -1,7 +1,7 @@
 """Tests for DummyOPUSInterface."""
 
 from itertools import product
-from typing import Optional, cast
+from typing import cast
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
@@ -79,7 +79,7 @@ def test_request_command(
     command: str,
     required_state: State,
     error: OPUSError,
-    timer_command: Optional[str],
+    timer_command: str | None,
     initial_state: State,
     dev: DummyOPUSInterface,
     sendmsg_mock: MagicMock,

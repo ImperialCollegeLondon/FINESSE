@@ -1,6 +1,6 @@
 """This module provides an interface to dummy DP9800 temperature readers."""
+from collections.abc import Sequence
 from decimal import Decimal
-from typing import Sequence
 
 from ...config import NUM_TEMPERATURE_MONITOR_CHANNELS
 from ..noise_producer import NoiseParameters, NoiseProducer

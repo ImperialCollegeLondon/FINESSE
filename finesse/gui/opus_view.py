@@ -2,7 +2,6 @@
 import logging
 import weakref
 from functools import partial
-from typing import Optional
 
 from pubsub import pub
 from PySide6.QtGui import QTextCursor
@@ -103,7 +102,7 @@ class OPUSControl(QGroupBox):
         self,
         status: EM27Status,
         text: str,
-        error: Optional[tuple[int, str]],
+        error: tuple[int, str] | None,
     ) -> None:
         self.logger.info(f"Response ({status.value}): {text}")
         if error:

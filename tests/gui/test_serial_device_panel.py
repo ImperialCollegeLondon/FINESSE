@@ -1,5 +1,5 @@
 """Tests for the SerialDevicePanel."""
-from typing import Sequence
+from collections.abc import Sequence
 from unittest.mock import MagicMock, patch
 
 import pytest

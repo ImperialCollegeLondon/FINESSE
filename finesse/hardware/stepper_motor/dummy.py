@@ -1,6 +1,5 @@
 """Code for a fake stepper motor device."""
 import logging
-from typing import Optional
 
 from pubsub import pub
 from PySide6.QtCore import QTimer
@@ -80,7 +79,7 @@ class DummyStepperMotor(StepperMotorBase):
         self._move_end_timer.stop()
         self._on_move_end()
 
-    def wait_until_stopped(self, timeout: Optional[float] = None) -> None:
+    def wait_until_stopped(self, timeout: float | None = None) -> None:
         """Wait until the motor has stopped moving.
 
         For this dummy class, this is a no-op.

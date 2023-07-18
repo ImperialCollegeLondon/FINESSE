@@ -5,10 +5,11 @@ This includes code for parsing and running the scripts.
 from __future__ import annotations
 
 import logging
+from collections.abc import Sequence
 from dataclasses import dataclass
 from io import TextIOBase
 from pathlib import Path
-from typing import Any, Dict, Optional, Sequence, Union
+from typing import Any
 
 import yaml
 from pubsub import pub
@@ -37,7 +38,7 @@ class Script:
     """Represents a measure script, including its file path and data."""
 
     def __init__(
-        self, path: Path, repeats: int, sequence: Sequence[Dict[str, Any]]
+        self, path: Path, repeats: int, sequence: Sequence[dict[str, Any]]
     ) -> None:
         """Create a new Script.
 
@@ -49,20 +50,20 @@ class Script:
         self.path = path
         self.repeats = repeats
         self.sequence = [Measurement(**val) for val in sequence]
-        self.runner: Optional[ScriptRunner] = None
+        self.runner: ScriptRunner | None = None
 
     def __iter__(self) -> ScriptIterator:
         """Get an iterator for the measurements."""
         return ScriptIterator(self)
 
-    def run(self, parent: Optional[QWidget] = None) -> None:
+    def run(self, parent: QWidget | None = None) -> None:
         """Run this measure script."""
         logging.info(f"Running {self.path}")
         self.runner = ScriptRunner(self, parent=parent)
         self.runner.start_moving()
 
     @classmethod
-    def try_load(cls, parent: QWidget, file_path: Path) -> Optional[Script]:
+    def try_load(cls, parent: QWidget, file_path: Path) -> Script | None:
         """Try to load a measure script at the specified path.
 
         Args:
@@ -72,7 +73,7 @@ class Script:
             A Script if successful, else None
         """
         try:
-            with open(file_path, "r") as f:
+            with open(file_path) as f:
                 return cls(file_path, **parse_script(f))
         except OSError as e:
             show_error_message(parent, f"Error: Could not read {file_path}: {str(e)}")
@@ -89,7 +90,7 @@ class ParseError(Exception):
         super().__init__("Error parsing measure script")
 
 
-def parse_script(script: Union[str, TextIOBase]) -> Dict[str, Any]:
+def parse_script(script: str | TextIOBase) -> dict[str, Any]:
     """Parse a measure script.
 
     Args:
@@ -208,7 +209,7 @@ class ScriptRunner(StateMachine):
         self,
         script: Script,
         min_poll_interval: float = 1.0,
-        parent: Optional[QWidget] = None,
+        parent: QWidget | None = None,
     ) -> None:
         """Create a new ScriptRunner.
 
@@ -354,7 +355,7 @@ class ScriptRunner(StateMachine):
         self,
         status: EM27Status,
         text: str,
-        error: Optional[tuple[int, str]],
+        error: tuple[int, str] | None,
     ):
         """Start polling the EM27 so we know when the measurement is finished."""
         if error:
@@ -366,7 +367,7 @@ class ScriptRunner(StateMachine):
         self,
         status: EM27Status,
         text: str,
-        error: Optional[tuple[int, str]],
+        error: tuple[int, str] | None,
     ):
         """Move on to the next measurement if the measurement has finished."""
         if error:
