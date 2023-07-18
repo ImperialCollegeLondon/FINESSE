@@ -6,7 +6,7 @@ from pubsub import pub
 
 from ...config import ANGLE_PRESETS, STEPPER_MOTOR_TOPIC
 from ..device_base import DeviceBase
-from ..pubsub_decorators import pubsub_broadcast, pubsub_errors
+from ..pubsub_decorators import pubsub_errors
 
 error_wrap = pubsub_errors(f"serial.{STEPPER_MOTOR_TOPIC}.error")
 """Broadcast exceptions via pubsub."""
@@ -32,9 +32,6 @@ class StepperMotorBase(DeviceBase):
         pub.subscribe(self._stop_moving, f"serial.{STEPPER_MOTOR_TOPIC}.stop")
         pub.subscribe(
             self._notify_on_stopped, f"serial.{STEPPER_MOTOR_TOPIC}.notify_on_stopped"
-        )
-        pub.subscribe(
-            self._request_angle, f"serial.{STEPPER_MOTOR_TOPIC}.request.angle"
         )
 
     @staticmethod
@@ -64,8 +61,12 @@ class StepperMotorBase(DeviceBase):
 
     @property
     @abstractmethod
-    def step(self) -> int:
-        """The current state of the device's step counter."""
+    def step(self) -> int | None:
+        """The current state of the device's step counter.
+
+        As this can only be requested when the motor is stationary, if the motor is
+        moving then None will be returned.
+        """
 
     @step.setter
     @abstractmethod
@@ -96,9 +97,25 @@ class StepperMotorBase(DeviceBase):
         """
 
     @property
-    def angle(self) -> float:
-        """The current angle of the motor in degrees."""
-        return self.step * 360.0 / self.steps_per_rotation
+    @abstractmethod
+    def is_moving(self) -> bool:
+        """Whether the motor is currently moving."""
+
+    @property
+    def angle(self) -> float | None:
+        """The current angle of the motor in degrees.
+
+        As this can only be requested when the motor is stationary, if the motor is
+        moving then None will be returned.
+
+        Returns:
+            The current angle or None if the stepper motor is moving
+        """
+        step = self.step
+        if step is None:
+            return None
+
+        return step * 360.0 / self.steps_per_rotation
 
     def move_to(self, target: Union[float, str]) -> None:
         """Move the motor to a specified rotation and send message when complete.
@@ -115,12 +132,3 @@ class StepperMotorBase(DeviceBase):
             raise ValueError("Angle must be between 0° and 270°")
 
         self.step = round(self.steps_per_rotation * target / 360.0)
-
-    @pubsub_broadcast(
-        f"serial.{STEPPER_MOTOR_TOPIC}.error",
-        f"serial.{STEPPER_MOTOR_TOPIC}.response.angle",
-        "angle",
-    )
-    def _request_angle(self) -> float:
-        """Request the current angle from the device and return via pubsub."""
-        return self.angle

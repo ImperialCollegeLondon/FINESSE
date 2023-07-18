@@ -47,8 +47,20 @@ class DummyStepperMotor(StepperMotorBase):
         return self._steps_per_rotation
 
     @property
-    def step(self) -> int:
-        """The number of steps that correspond to a full rotation."""
+    def is_moving(self) -> bool:
+        """Whether the motor is currently moving."""
+        return self._move_end_timer.isActive()
+
+    @property
+    def step(self) -> int | None:
+        """The number of steps that correspond to a full rotation.
+
+        As this can only be requested when the motor is stationary, if the motor is
+        moving then None will be returned.
+        """
+        if self.is_moving:
+            return None
+
         return self._step
 
     @step.setter
