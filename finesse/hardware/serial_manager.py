@@ -59,6 +59,11 @@ class SerialManager:
         # Listen for open events for this device
         pub.subscribe(self._open, f"serial.{name}.open")
 
+    @property
+    def is_open(self) -> bool:
+        """Return whether the device is open."""
+        return hasattr(self, "device")
+
     def _open(self, port: str, baudrate: int) -> None:
         """Open the device.
 

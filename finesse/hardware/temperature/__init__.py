@@ -40,7 +40,9 @@ def create_temperature_monitor_serial_manager() -> None:
     )
 
 
-def get_hot_bb_temperature_controller_instance() -> TemperatureControllerBase:
+def get_hot_bb_temperature_controller_instance() -> TemperatureControllerBase | None:
     """Get the instance of the hot blackbody's temperature controller."""
     global _serial_manager_hot_bb
+    if not _serial_manager_hot_bb.is_open:
+        return None
     return cast(TemperatureControllerBase, _serial_manager_hot_bb.device)
