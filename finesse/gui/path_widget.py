@@ -103,6 +103,30 @@ class OpenPathWidget(PathWidget):
         return Path(filename) if filename else None
 
 
+class OpenDirectoryWidget(PathWidget):
+    """A widget that lets the user choose the path to an existing directory."""
+
+    def __init__(
+        self,
+        initial_dir_path: Path | None = None,
+        **file_dialog_kwargs: Any,
+    ) -> None:
+        """Create a new OpenDirectoryWidget.
+
+        Args:
+            initial_dir_path: The initial file path to display
+            file_dialog_kwargs: Arguments to pass to QFileDialog.getOpenFileName
+        """
+        super().__init__(initial_dir_path)
+        self.file_dialog_kwargs = file_dialog_kwargs
+
+    def try_get_path_from_dialog(self) -> Path | None:
+        """Try to get the path of the dir to open by raising a dialog."""
+        dir_path = QFileDialog.getExistingDirectory(**self.file_dialog_kwargs)
+
+        return Path(dir_path) if dir_path else None
+
+
 class SavePathWidget(PathWidget):
     """A widget that lets the user choose the path to save a file."""
 
