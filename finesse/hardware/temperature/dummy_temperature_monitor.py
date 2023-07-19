@@ -30,11 +30,12 @@ class DummyTemperatureMonitor(TemperatureMonitorBase):
                 f"Must provide {NUM_TEMPERATURE_MONITOR_CHANNELS} parameters"
             )
 
-        super().__init__("dummy")
         self._temperature_producers = [
             NoiseProducer.from_parameters(params, type=Decimal)
             for params in temperature_params
         ]
+
+        super().__init__()
 
     def close(self) -> None:
         """Close the connection to the device."""
