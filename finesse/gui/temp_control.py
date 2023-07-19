@@ -213,11 +213,11 @@ class DP9800Controls(SerialDevicePanel):
             QSizePolicy.Policy.Fixed,
         )
 
-        pub.subscribe(self._begin_polling, f"serial.{TEMPERATURE_MONITOR_TOPIC}.opened")
-        pub.subscribe(self._end_polling, f"serial.{TEMPERATURE_MONITOR_TOPIC}.close")
         pub.subscribe(
             self._update_pt100s, f"serial.{TEMPERATURE_MONITOR_TOPIC}.data.response"
         )
+
+        self._begin_polling()
 
     def _create_controls(self) -> QGridLayout:
         """Creates the overall layout for the panel.
@@ -257,10 +257,6 @@ class DP9800Controls(SerialDevicePanel):
         """Initiate polling the DP9800 device."""
         self._poll_dp9800()
         self._poll_light.timer.start()
-
-    def _end_polling(self) -> None:
-        """Terminate polling the DP9800 device."""
-        self._poll_light.timer.stop()
 
     def _poll_dp9800(self) -> None:
         """Polls the device to obtain the latest values."""

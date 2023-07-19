@@ -94,8 +94,8 @@ class DP9800(TemperatureMonitorBase):
         Args:
             serial: Serial device
         """
-        super().__init__("DP9800")
         self.serial = serial
+        super().__init__()
 
     def close(self) -> None:
         """Close the connection to the device."""
