@@ -36,6 +36,7 @@ class ScriptRunDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("Running measure script")
         self.setModal(True)
+        self.setMinimumSize(400, 100)
 
         # Keep a reference to prevent it being GC'd mid-run
         self._script_runner = script_runner
