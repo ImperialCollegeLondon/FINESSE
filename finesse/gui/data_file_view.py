@@ -1,6 +1,7 @@
 """Provides a panel which lets the user start and stop recording of data files."""
 from datetime import datetime
 from pathlib import Path
+from typing import cast
 
 from pubsub import pub
 from PySide6.QtWidgets import (
@@ -14,7 +15,17 @@ from PySide6.QtWidgets import (
 )
 
 from ..config import DEFAULT_DATA_FILE_PATH
+from ..settings import settings
 from .path_widget import OpenDirectoryWidget
+
+
+def _get_previous_destination_dir() -> Path:
+    path = cast(str, settings.value("data/destination_dir", ""))
+    return Path(path) if path else DEFAULT_DATA_FILE_PATH
+
+
+def _get_previous_filename_prefix() -> str:
+    return cast(str, settings.value("data/filename_prefix", "data"))
 
 
 class DataFileControl(QGroupBox):
@@ -32,10 +43,12 @@ class DataFileControl(QGroupBox):
             dir=str(DEFAULT_DATA_FILE_PATH),
         )
         """Lets the user choose the destination for data files."""
+        self.open_dir_widget.set_path(_get_previous_destination_dir())
         layout.addWidget(QLabel("Destination directory:"))
         layout.addWidget(self.open_dir_widget)
 
         self.filename_prefix_widget = QLineEdit()
+        self.filename_prefix_widget.setText(_get_previous_filename_prefix())
         layout.addWidget(QLabel("Filename prefix:"))
         layout.addWidget(self.filename_prefix_widget)
 
@@ -62,6 +75,12 @@ class DataFileControl(QGroupBox):
         self.open_dir_widget.setEnabled(False)
         self.filename_prefix_widget.setEnabled(False)
         self.record_btn.setText("Stop recording")
+        self._save_file_path_settings()
+
+    def _save_file_path_settings(self) -> None:
+        """Save the current destination dir and filename prefix to program settings."""
+        settings.setValue("data/destination_dir", self.open_dir_widget.line_edit.text())
+        settings.setValue("data/filename_prefix", self.filename_prefix_widget.text())
 
     def _on_file_close(self) -> None:
         self.open_dir_widget.setEnabled(True)

@@ -43,7 +43,6 @@ def test_start_recording_path_dialog_cancelled(
     data_file: DataFileControl, sendmsg_mock: MagicMock, qtbot
 ) -> None:
     """Check that recording isn't started if the user closes the file dialog."""
-    assert data_file.open_dir_widget.line_edit.text() == ""
     with patch.object(data_file.open_dir_widget, "try_get_path") as path_mock:
         path_mock.return_value = None
         data_file.record_btn.click()
