@@ -9,7 +9,6 @@ The specification is available online:
 
 import logging
 from queue import Queue
-from typing import Optional, Union
 
 from pubsub import pub
 from PySide6.QtCore import QThread, Signal, Slot
@@ -67,7 +66,7 @@ class _SerialReader(QThread):
 
         self.serial = serial
         self.sync_timeout = sync_timeout
-        self.out_queue: Queue[Union[str, BaseException]] = Queue()
+        self.out_queue: Queue[str | BaseException] = Queue()
         self.stopping = False
 
     def __del__(self) -> None:
@@ -132,7 +131,7 @@ class _SerialReader(QThread):
         while self._process_read():
             pass
 
-    def read_sync(self, timeout: Optional[float] = None) -> str:
+    def read_sync(self, timeout: float | None = None) -> str:
         """Read synchronously from the serial device.
 
         Args:
@@ -360,7 +359,7 @@ class ST10Controller(StepperMotorBase):
         # "Send string"
         self._write_check(f"SS{string}")
 
-    def _read_sync(self, timeout: Optional[float] = None) -> str:
+    def _read_sync(self, timeout: float | None = None) -> str:
         """Read the next message from the device synchronously.
 
         Args:
@@ -461,7 +460,7 @@ class ST10Controller(StepperMotorBase):
         """Immediately stop moving the motor."""
         self._write_check("ST")
 
-    def wait_until_stopped(self, timeout: Optional[float] = None) -> None:
+    def wait_until_stopped(self, timeout: float | None = None) -> None:
         """Wait until the motor has stopped moving.
 
         Args:

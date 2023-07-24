@@ -1,5 +1,5 @@
 """Provides a collection of controls for editing a measure script."""
-from typing import Any, List, Optional, Union
+from typing import Any
 
 from PySide6.QtCore import QAbstractTableModel, QModelIndex, QPersistentModelIndex, Qt
 from PySide6.QtWidgets import (
@@ -24,7 +24,7 @@ from .count_widget import CountWidget
 class SequenceWidget(QWidget):
     """A widget with a table of measure instructions and controls to modify them."""
 
-    def __init__(self, sequence: Optional[List[Measurement]] = None) -> None:
+    def __init__(self, sequence: list[Measurement] | None = None) -> None:
         """Create a new SequenceWidget."""
         super().__init__()
 
@@ -46,7 +46,7 @@ class SequenceWidget(QWidget):
         layout.addWidget(self.buttons)
         self.setLayout(layout)
 
-    def add_instruction(self, angle: Union[str, float], measurements: int) -> None:
+    def add_instruction(self, angle: str | float, measurements: int) -> None:
         """Add a new measure instruction to the sequence.
 
         Args:
@@ -57,7 +57,7 @@ class SequenceWidget(QWidget):
         self.model.layoutChanged.emit()
         self.table.scrollToBottom()
 
-    def _get_selected_rows(self, reverse: bool = False) -> List[int]:
+    def _get_selected_rows(self, reverse: bool = False) -> list[int]:
         """Get the indices of the currently selected rows in the table.
 
         Args:
@@ -133,7 +133,7 @@ class SequenceModel(QAbstractTableModel):
     _COLUMNS = ("angle", "measurements")
     """The names of the data columns."""
 
-    def __init__(self, sequence: List[Measurement]) -> None:
+    def __init__(self, sequence: list[Measurement]) -> None:
         """Create a new SequenceModel.
 
         Args:
@@ -144,7 +144,7 @@ class SequenceModel(QAbstractTableModel):
 
     def data(
         self,
-        index: Union[QModelIndex, QPersistentModelIndex],
+        index: QModelIndex | QPersistentModelIndex,
         role: int = Qt.ItemDataRole.DisplayRole,
     ) -> Any:
         """Provides the model's data."""

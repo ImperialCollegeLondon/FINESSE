@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 
@@ -15,7 +15,7 @@ class NoiseProducer:
         mean: float = 0.0,
         standard_deviation: float = 1.0,
         type: type = float,
-        seed: Optional[int] = 42,
+        seed: int | None = 42,
     ) -> None:
         """Create a new NoiseProducer.
 
@@ -52,4 +52,4 @@ class NoiseParameters:
 
     mean: float = 0.0
     standard_deviation: float = 1.0
-    seed: Optional[int] = 42
+    seed: int | None = 42

@@ -1,6 +1,6 @@
 """Tests for the SequenceWidget class and other associated classes."""
+from collections.abc import Sequence
 from itertools import chain
-from typing import Sequence
 from unittest.mock import patch
 
 import pytest

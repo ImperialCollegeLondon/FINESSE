@@ -1,6 +1,5 @@
 """Provides the base class for stepper motor implementations."""
 from abc import abstractmethod
-from typing import Optional, Union
 
 from pubsub import pub
 
@@ -82,7 +81,7 @@ class StepperMotorBase(DeviceBase):
         """Immediately stop moving the motor."""
 
     @abstractmethod
-    def wait_until_stopped(self, timeout: Optional[float] = None) -> None:
+    def wait_until_stopped(self, timeout: float | None = None) -> None:
         """Wait until the motor has stopped moving.
 
         Args:
@@ -117,7 +116,7 @@ class StepperMotorBase(DeviceBase):
 
         return step * 360.0 / self.steps_per_rotation
 
-    def move_to(self, target: Union[float, str]) -> None:
+    def move_to(self, target: float | str) -> None:
         """Move the motor to a specified rotation and send message when complete.
 
         Sends a stepper.move.end message when finished.

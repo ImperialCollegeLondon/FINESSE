@@ -2,7 +2,7 @@
 from contextlib import nullcontext as does_not_raise
 from itertools import chain
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
@@ -29,7 +29,7 @@ def is_valid_angle(angle: Any) -> bool:
     return False
 
 
-def get_data(repeats: int, angle: Any, num_attributes: int) -> Dict[str, Any]:
+def get_data(repeats: int, angle: Any, num_attributes: int) -> dict[str, Any]:
     """Get all or part of data script.
 
     Passing angle==() allows for testing with an empty sequence.
@@ -67,7 +67,7 @@ def get_data(repeats: int, angle: Any, num_attributes: int) -> Dict[str, Any]:
         for num_attributes in range(3)
     ],
 )
-def test_parse_script(data: Dict[str, Any], raises: Any) -> None:
+def test_parse_script(data: dict[str, Any], raises: Any) -> None:
     """Check that errors are thrown for invalid data.
 
     Note that we don't check that serialisation and deserialisation work correctly as it
