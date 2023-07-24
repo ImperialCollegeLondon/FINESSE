@@ -2,7 +2,7 @@
 from contextlib import nullcontext as does_not_raise
 from decimal import Decimal
 from itertools import chain
-from typing import Any, Tuple
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -62,7 +62,7 @@ def format_message(message: int, checksum: int, eol: str = "^") -> bytes:
 _MESSAGE = "012345678"
 
 
-def _get_message(len: int) -> Tuple[int, bytes, Any]:
+def _get_message(len: int) -> tuple[int, bytes, Any]:
     substr = _MESSAGE[:len]
     value = int(substr, base=16)
     return (

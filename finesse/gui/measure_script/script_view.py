@@ -1,6 +1,6 @@
 """Contains a panel for loading and editing measure scripts."""
 from pathlib import Path
-from typing import Optional, cast
+from typing import cast
 
 from pubsub import pub
 from PySide6.QtWidgets import QFileDialog, QGridLayout, QGroupBox, QPushButton
@@ -15,7 +15,7 @@ from .script_edit_dialog import ScriptEditDialog
 from .script_run_dialog import ScriptRunDialog
 
 
-def _get_previous_script_path() -> Optional[Path]:
+def _get_previous_script_path() -> Path | None:
     path = cast(str, settings.value("script/run_path", ""))
     return Path(path) if path else None
 
@@ -128,7 +128,7 @@ class ScriptControl(QGroupBox):
         del self.run_dialog
 
     def _on_opus_message(
-        self, status: EM27Status, text: str, error: Optional[tuple[int, str]]
+        self, status: EM27Status, text: str, error: tuple[int, str] | None
     ) -> None:
         """Increase/decrease the enable counter when the EM27 connects/disconnects."""
         if status.is_connected == self._opus_connected:

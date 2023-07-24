@@ -1,7 +1,7 @@
 """Provides a widget for choosing the path to a measure script."""
 from abc import abstractmethod
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from PySide6.QtWidgets import (
     QFileDialog,
@@ -16,7 +16,7 @@ from PySide6.QtWidgets import (
 class PathWidget(QWidget):
     """A widget containing a text box with a file path and a browse button."""
 
-    def __init__(self, initial_file_path: Optional[Path] = None) -> None:
+    def __init__(self, initial_file_path: Path | None = None) -> None:
         """Create a new PathWidget.
 
         Args:
@@ -45,10 +45,10 @@ class PathWidget(QWidget):
             self.set_path(filename)
 
     @abstractmethod
-    def try_get_path_from_dialog(self) -> Optional[Path]:
+    def try_get_path_from_dialog(self) -> Path | None:
         """Try to get the file name by raising a dialog."""
 
-    def try_get_path(self) -> Optional[Path]:
+    def try_get_path(self) -> Path | None:
         """Try to get the path of the chosen file for this widget.
 
         If the path hasn't yet been set, a QFileDialog is opened to let the user choose
@@ -80,8 +80,8 @@ class OpenPathWidget(PathWidget):
 
     def __init__(
         self,
-        initial_file_path: Optional[Path] = None,
-        extension: Optional[str] = None,
+        initial_file_path: Path | None = None,
+        extension: str | None = None,
         **file_dialog_kwargs: Any,
     ) -> None:
         """Create a new OpenPathWidget.
@@ -96,7 +96,7 @@ class OpenPathWidget(PathWidget):
             file_dialog_kwargs["filter"] = f"*.{extension}"
         self.file_dialog_kwargs = file_dialog_kwargs
 
-    def try_get_path_from_dialog(self) -> Optional[Path]:
+    def try_get_path_from_dialog(self) -> Path | None:
         """Try to get the path of the file to open by raising a dialog."""
         filename, _ = QFileDialog.getOpenFileName(**self.file_dialog_kwargs)
 
@@ -108,8 +108,8 @@ class SavePathWidget(PathWidget):
 
     def __init__(
         self,
-        initial_file_path: Optional[Path] = None,
-        extension: Optional[str] = None,
+        initial_file_path: Path | None = None,
+        extension: str | None = None,
         **file_dialog_kwargs: Any,
     ) -> None:
         """Create a new SavePathWidget.
@@ -125,7 +125,7 @@ class SavePathWidget(PathWidget):
         self.extension = extension
         self.file_dialog_kwargs = file_dialog_kwargs
 
-    def try_get_path_from_dialog(self) -> Optional[Path]:
+    def try_get_path_from_dialog(self) -> Path | None:
         """Try to get the path to save the file to by opening a dialog."""
         filename, _ = QFileDialog.getSaveFileName(**self.file_dialog_kwargs)
 

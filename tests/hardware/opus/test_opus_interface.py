@@ -1,6 +1,6 @@
 """Tests for the interface to the EM27's OPUS control program."""
 from itertools import product
-from typing import Any, Optional
+from typing import Any
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
@@ -62,10 +62,10 @@ def _format_td(name: str, value: Any) -> str:
 
 
 def _get_opus_html(
-    status: Optional[int],
-    text: Optional[str],
-    errcode: Optional[int] = None,
-    errtext: Optional[str] = None,
+    status: int | None,
+    text: str | None,
+    errcode: int | None = None,
+    errtext: str | None = None,
     extra_text: str = "",
 ) -> str:
     return f"""
@@ -111,9 +111,7 @@ def test_parse_response_error(errcode: int, errtext: str) -> None:
 
 
 @pytest.mark.parametrize("status,text", ((None, "text"), (1, None), (None, None)))
-def test_parse_response_missing_fields(
-    status: Optional[int], text: Optional[str]
-) -> None:
+def test_parse_response_missing_fields(status: int | None, text: str | None) -> None:
     """Test parse_response() raises an error if fields are missing."""
     response = _get_opus_html(status, text)
     with pytest.raises(OPUSError):

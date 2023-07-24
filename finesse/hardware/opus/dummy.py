@@ -1,8 +1,8 @@
 """Provides a dummy EM27 device for interfacing with."""
 
 import logging
+from collections.abc import Callable
 from enum import Enum
-from typing import Callable, Optional
 
 from pubsub import pub
 from PySide6.QtCore import QTimer
@@ -31,7 +31,7 @@ class OPUSError(Enum):
     NO_RESULT = (6, "No result available")
     NOT_CONNECTED = (7, "System not connected")
 
-    def to_tuple(self) -> Optional[tuple[int, str]]:
+    def to_tuple(self) -> tuple[int, str] | None:
         """Convert to a (code, message) tuple or None if no error."""
         if self == OPUSError.NO_ERROR:
             return None

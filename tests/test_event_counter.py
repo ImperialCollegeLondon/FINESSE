@@ -1,6 +1,7 @@
 """Tests for the EventCounter class."""
+from collections.abc import Sequence
 from contextlib import nullcontext as does_not_raise
-from typing import Any, Optional, Sequence
+from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
@@ -42,7 +43,7 @@ def test_init_with_devices(subscribe_mock: MagicMock) -> None:
     ),
 )
 def test_init_missing_args(
-    target_count: Optional[int], device_names: Sequence[str], raises: Any
+    target_count: int | None, device_names: Sequence[str], raises: Any
 ) -> None:
     """Test that an error is raised when required arguments are missing."""
     with raises:

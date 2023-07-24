@@ -1,7 +1,6 @@
 """Tests for the NoiseProducer class."""
 from decimal import Decimal
 from itertools import product
-from typing import Optional
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
@@ -11,7 +10,7 @@ from finesse.hardware.noise_producer import NoiseProducer
 
 @pytest.mark.parametrize("seed", (None, 0, 42))
 @patch("finesse.hardware.noise_producer.np.random.default_rng")
-def test_init(rng_mock: Mock, seed: Optional[int]) -> None:
+def test_init(rng_mock: Mock, seed: int | None) -> None:
     """Test providing different seeds to NoiseProducer."""
     NoiseProducer(seed=seed)
     rng_mock.assert_called_once_with(seed)

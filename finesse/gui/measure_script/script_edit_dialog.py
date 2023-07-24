@@ -3,7 +3,6 @@
 import logging
 from dataclasses import asdict
 from pathlib import Path
-from typing import Optional
 
 import yaml
 from PySide6.QtGui import QCloseEvent
@@ -27,7 +26,7 @@ from .sequence_widget import SequenceWidget
 class ScriptEditDialog(QDialog):
     """A dialog to create and edit measure scripts."""
 
-    def __init__(self, parent: QWidget, script: Optional[Script] = None) -> None:
+    def __init__(self, parent: QWidget, script: Script | None = None) -> None:
         """Create a new ScriptEditDialog.
 
         Args:
@@ -38,7 +37,7 @@ class ScriptEditDialog(QDialog):
         self.setWindowTitle("Edit measurement script")
         self.setModal(True)
 
-        initial_save_path: Optional[Path] = None
+        initial_save_path: Path | None = None
         if script:
             self.count = CountWidget("Repeats", script.repeats)
             self.sequence_widget = SequenceWidget(script.sequence)
