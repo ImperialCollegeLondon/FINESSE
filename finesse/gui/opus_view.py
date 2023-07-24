@@ -46,18 +46,18 @@ class OPUSControl(QGroupBox):
         """Creates the controls for communicating with the interferometer.
 
         Returns:
-            QHBoxLayout: The layout with the buttons.
+            The layout with the buttons
         """
         main_layout = QHBoxLayout()
+        main_layout.addWidget(self._create_log_area())
         main_layout.addLayout(self._create_buttons())
-        main_layout.addLayout(self._create_log_area())
         return main_layout
 
     def _create_buttons(self) -> QVBoxLayout:
         """Creates the buttons.
 
         Returns:
-            QHBoxLayout: The layout with the buttons.
+            The layout with the buttons
         """
         btn_layout = QVBoxLayout()
 
@@ -76,23 +76,21 @@ class OPUSControl(QGroupBox):
 
         return btn_layout
 
-    def _create_log_area(self) -> QVBoxLayout:
+    def _create_log_area(self) -> QGroupBox:
         """Creates the log area for OPUS-related communication.
 
         Returns:
-            QVBoxLayout: The layout with the log area.
+            Widget containing the log area
         """
         log_box = QGroupBox("Error log")
         log_area = QTextBrowser()
         OPUSLogHandler.set_handler(self.logger, log_area)
 
-        _layout = QVBoxLayout()
-        _layout.addWidget(log_area)
-        log_box.setLayout(_layout)
+        log_layout = QVBoxLayout()
+        log_layout.addWidget(log_area)
+        log_box.setLayout(log_layout)
 
-        layout = QVBoxLayout()
-        layout.addWidget(log_box)
-        return layout
+        return log_box
 
     def _log_request(self, command: str) -> None:
         """Log when a command request is sent."""
