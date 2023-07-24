@@ -196,9 +196,7 @@ class ScriptRunner(StateMachine):
     """Record another measurement at the same angle."""
     finish_waiting_for_measure = waiting_to_measure.to(measuring)
     """Stop waiting and start the next measurement."""
-    cancel_measuring = measuring.to(
-        not_running, after=lambda: pub.sendMessage("opus.request", command="cancel")
-    )
+    cancel_measuring = measuring.to(not_running)
     """Cancel the current measurement."""
     start_next_move = measuring.to(waiting_to_move)
     """Trigger a move to the angle for the next measurement."""

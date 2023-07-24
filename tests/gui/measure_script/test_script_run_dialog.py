@@ -83,6 +83,7 @@ def test_cancel_button(
     """Check that clicking the cancel button aborts the measure script."""
     buttonbox = cast(QDialogButtonBox, run_dialog.findChild(QDialogButtonBox))
     buttonbox.button(QDialogButtonBox.StandardButton.Cancel).click()
+    run_dialog._stop_dlg.accept()
     sendmsg_mock.assert_any_call("measure_script.abort")
 
 
@@ -91,6 +92,7 @@ def test_close(
 ) -> None:
     """Check that closing the dialog aborts the measure script."""
     run_dialog.close()
+    run_dialog._stop_dlg.accept()
     sendmsg_mock.assert_any_call("measure_script.abort")
 
 

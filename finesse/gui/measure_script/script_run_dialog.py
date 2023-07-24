@@ -1,10 +1,11 @@
 """Provides a dialog to display the progress of a running measure script."""
 from pubsub import pub
-from PySide6.QtGui import QCloseEvent
+from PySide6.QtGui import QCloseEvent, QHideEvent
 from PySide6.QtWidgets import (
     QDialog,
     QDialogButtonBox,
     QLabel,
+    QMessageBox,
     QProgressBar,
     QPushButton,
     QVBoxLayout,
@@ -36,9 +37,20 @@ class ScriptRunDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("Running measure script")
         self.setModal(True)
+        self.setMinimumSize(400, 100)
 
         # Keep a reference to prevent it being GC'd mid-run
         self._script_runner = script_runner
+
+        self._stop_dlg = QMessageBox(
+            QMessageBox.Icon.Warning,
+            "Stop measure script?",
+            "Do you want to cancel the currently running measure script?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            self,
+        )
+        """A dialog to let the user confirm whether they want to cancel the script."""
+        self._stop_dlg.accepted.connect(self.reject)
 
         layout = QVBoxLayout()
         self._progress_bar = QProgressBar()
@@ -56,7 +68,7 @@ class ScriptRunDialog(QDialog):
 
         buttonbox = QDialogButtonBox(QDialogButtonBox.StandardButton.Cancel)
         buttonbox.addButton(self._pause_btn, QDialogButtonBox.ButtonRole.ActionRole)
-        buttonbox.rejected.connect(self.reject)
+        buttonbox.rejected.connect(self._stop_dlg.show)
         self.rejected.connect(lambda: pub.sendMessage("measure_script.abort"))
         layout.addWidget(buttonbox)
 
@@ -98,4 +110,12 @@ class ScriptRunDialog(QDialog):
 
     def closeEvent(self, event: QCloseEvent) -> None:
         """Abort the measure script."""
-        self.reject()
+        if self.isVisible():
+            # Make the user confirm before cancelling measure script
+            event.ignore()
+            self._stop_dlg.show()
+
+    def hideEvent(self, event: QHideEvent) -> None:
+        """Hide the dialog."""
+        super().hideEvent(event)
+        self._stop_dlg.hide()
