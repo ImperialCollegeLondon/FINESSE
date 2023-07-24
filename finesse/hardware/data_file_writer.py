@@ -12,7 +12,6 @@ from csvy import Writer
 from pubsub import pub
 
 from .. import config
-from ..event_counter import EventCounter
 from .pubsub_decorators import pubsub_errors
 from .stepper_motor import get_stepper_motor_instance
 from .temperature import get_hot_bb_temperature_controller_instance
@@ -45,6 +44,50 @@ def _get_metadata(filename: str) -> dict[str, Any]:
     }
 
 
+def _get_stepper_motor_angle() -> tuple[float, bool]:
+    """Get the current angle of the stepper motor.
+
+    This function returns a float indicating the angle in degrees and a boolean
+    indicating whether the motor is currently moving. If an error occurs or the motor is
+    moving, the angle returned will be nan.
+    """
+    stepper = get_stepper_motor_instance()
+
+    # Stepper motor not connected
+    if not stepper:
+        return (float("nan"), False)
+
+    try:
+        if angle := stepper.angle:
+            return (angle, False)
+        else:
+            return (float("nan"), True)
+    except Exception as error:
+        pub.sendMessage(f"serial.{config.STEPPER_MOTOR_TOPIC}.error", error=error)
+        return (float("nan"), False)
+
+
+def _get_hot_bb_power() -> float:
+    """Get the current power of the hot BB temperature controller as a percentage.
+
+    If an error occurs, nan will be returned.
+    """
+    hot_bb = get_hot_bb_temperature_controller_instance()
+
+    # Hot BB temperature controller not connected
+    if not hot_bb:
+        return float("nan")
+
+    try:
+        return hot_bb.power * 100 / config.TC4820_MAX_POWER
+    except Exception as error:
+        pub.sendMessage(
+            f"serial.{config.TEMPERATURE_CONTROLLER_TOPIC}.{hot_bb.name}.error",
+            error=error,
+        )
+        return float("nan")
+
+
 class DataFileWriter:
     """A class for writing sensor data to a CSV file.
 
@@ -57,16 +100,6 @@ class DataFileWriter:
         self._writer: Writer
         """The CSV writer."""
 
-        self._enable_counter = EventCounter(
-            self.enable,
-            self.disable,
-            device_names=(
-                config.STEPPER_MOTOR_TOPIC,
-                config.TEMPERATURE_MONITOR_TOPIC,
-                f"{config.TEMPERATURE_CONTROLLER_TOPIC}.hot_bb",
-            ),
-        )
-
         # Listen to open/close messages
         pub.subscribe(self.open, "data_file.open")
         pub.subscribe(self.close, "data_file.close")
@@ -76,15 +109,6 @@ class DataFileWriter:
 
         # Listen for error messages
         pub.subscribe(_on_error_occurred, "data_file.error")
-
-    def enable(self) -> None:
-        """Send enable message."""
-        pub.sendMessage("data_file.enable")
-
-    def disable(self) -> None:
-        """Send disable message and close file if open."""
-        pub.sendMessage("data_file.disable")
-        pub.sendMessage("data_file.close")
 
     @pubsub_errors("data_file.error")
     def open(self, path: Path) -> None:
@@ -104,6 +128,7 @@ class DataFileWriter:
                 *(f"Temp{i+1}" for i in range(config.NUM_TEMPERATURE_MONITOR_CHANNELS)),
                 "TimeAsSeconds",
                 "Angle",
+                "IsMoving",
                 "TemperatureControllerPower",
             )
         )
@@ -135,10 +160,8 @@ class DataFileWriter:
         # Also include timestamp as seconds since midnight
         midnight = datetime(time.year, time.month, time.day)
         secs_since_midnight = floor((time - midnight).total_seconds())
-        angle = get_stepper_motor_instance().angle
-        if angle is None:  # Occurs when the motor is moving
-            angle = float("nan")
 
+        angle, is_moving = _get_stepper_motor_angle()
         self._writer.writerow(
             (
                 time.strftime("%Y%m%d"),
@@ -146,8 +169,8 @@ class DataFileWriter:
                 *temperatures,
                 secs_since_midnight,
                 angle,
-                get_hot_bb_temperature_controller_instance().power
-                / (config.TC4820_MAX_POWER / 100),
+                int(is_moving),
+                _get_hot_bb_power(),
             )
         )
         self._writer._file.flush()

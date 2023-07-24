@@ -23,7 +23,9 @@ def create_stepper_motor_serial_manager() -> None:
     )
 
 
-def get_stepper_motor_instance() -> StepperMotorBase:
+def get_stepper_motor_instance() -> StepperMotorBase | None:
     """Get the global instance of the stepper motor object."""
     global _serial_manager
+    if not _serial_manager.is_open:
+        return None
     return cast(StepperMotorBase, _serial_manager.device)
