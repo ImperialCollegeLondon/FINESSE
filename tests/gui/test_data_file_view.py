@@ -1,10 +1,8 @@
 """Tests for DataFileControl."""
-from itertools import product
 from pathlib import Path
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
-from PySide6.QtWidgets import QMessageBox
 
 from finesse.gui.data_file_view import DataFileControl
 
@@ -14,20 +12,17 @@ FILE_PATH = Path("/path/to/file.csv")
 @pytest.fixture
 def data_file(subscribe_mock: MagicMock, qtbot) -> DataFileControl:
     """Provides a DataFileControl."""
-    control = DataFileControl()
-    control._on_data_file_enable()
-    return control
+    return DataFileControl()
 
 
 def test_init(subscribe_mock: MagicMock, qtbot) -> None:
     """Test DataFileControl's constructor."""
     data_file = DataFileControl()
     assert data_file.record_btn.text() == "Start recording"
-    assert not data_file.record_btn.isEnabled()
-    assert data_file.save_path_widget.isEnabled()
+    assert data_file.record_btn.isEnabled()
+    assert data_file.open_dir_widget.isEnabled()
+    assert data_file.filename_prefix_widget.isEnabled()
 
-    subscribe_mock.assert_any_call(data_file._on_data_file_enable, "data_file.enable")
-    subscribe_mock.assert_any_call(data_file._on_data_file_disable, "data_file.disable")
     subscribe_mock.assert_any_call(data_file._on_file_open, "data_file.open")
     subscribe_mock.assert_any_call(data_file._on_file_close, "data_file.close")
     subscribe_mock.assert_any_call(data_file._show_error_message, "data_file.error")
@@ -37,25 +32,23 @@ def test_start_recording(
     data_file: DataFileControl, sendmsg_mock: MagicMock, qtbot
 ) -> None:
     """Test that recording starts correctly."""
-    data_file._on_data_file_enable()
-    with patch.object(data_file, "_try_start_recording") as try_start_mock:
+    with patch.object(data_file, "_try_get_data_file_path") as get_path_mock:
+        get_path_mock.return_value = FILE_PATH
         assert data_file.record_btn.text() == "Start recording"
-        data_file.save_path_widget.set_path(FILE_PATH)
         data_file.record_btn.click()
-        try_start_mock.assert_called_once_with(FILE_PATH)
+        sendmsg_mock.assert_called_once_with("data_file.open", path=FILE_PATH)
 
 
 def test_start_recording_path_dialog_cancelled(
     data_file: DataFileControl, sendmsg_mock: MagicMock, qtbot
 ) -> None:
     """Check that recording isn't started if the user closes the file dialog."""
-    assert data_file.save_path_widget.line_edit.text() == ""
-    with patch.object(data_file.save_path_widget, "try_get_path") as path_mock:
+    with patch.object(data_file.open_dir_widget, "try_get_path") as path_mock:
         path_mock.return_value = None
         data_file.record_btn.click()
         path_mock.assert_called_once()
         assert data_file.record_btn.text() == "Start recording"
-        assert data_file.save_path_widget.isEnabled()
+        assert data_file.open_dir_widget.isEnabled()
         sendmsg_mock.assert_not_called()
 
 
@@ -74,7 +67,7 @@ def test_on_file_open(data_file: DataFileControl, qtbot) -> None:
     """Test the _on_file_open() method."""
     data_file._on_file_open(FILE_PATH)
     assert data_file.record_btn.text() == "Stop recording"
-    assert not data_file.save_path_widget.isEnabled()
+    assert not data_file.open_dir_widget.isEnabled()
 
 
 def test_on_file_close(data_file: DataFileControl, qtbot) -> None:
@@ -86,7 +79,7 @@ def test_on_file_close(data_file: DataFileControl, qtbot) -> None:
     data_file._on_file_close()
 
     assert data_file.record_btn.text() == "Start recording"
-    assert data_file.save_path_widget.isEnabled()
+    assert data_file.open_dir_widget.isEnabled()
 
 
 @patch("finesse.gui.data_file_view.QMessageBox")
@@ -105,80 +98,3 @@ def test_show_error_message(
         data_file,
     )
     msgbox.exec.assert_called_once_with()
-
-
-@pytest.mark.parametrize(
-    "response", (QMessageBox.StandardButton.Yes, QMessageBox.StandardButton.No)
-)
-@patch("finesse.gui.data_file_view.QMessageBox")
-def test_user_confirms_overwrite(
-    msgbox_mock: Mock,
-    response: QMessageBox.StandardButton,
-    data_file: DataFileControl,
-    qtbot,
-) -> None:
-    """Test the _user_confirms_overwrite() method."""
-    msgbox_mock.StandardButton = QMessageBox.StandardButton
-    msgbox_mock.question.return_value = response
-    assert data_file._user_confirms_overwrite(FILE_PATH) == (
-        response == QMessageBox.StandardButton.Yes
-    )
-    msgbox_mock.question.assert_called_once_with(
-        data_file,
-        "Overwrite file?",
-        f"The file {FILE_PATH.name} already exists. Would you like to overwrite it?",
-        QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-    )
-
-
-@pytest.mark.parametrize("exists,user_confirms", product((True, False), repeat=2))
-def test_try_start_recording(
-    exists: bool,
-    user_confirms: bool,
-    sendmsg_mock: MagicMock,
-    data_file: DataFileControl,
-    qtbot,
-) -> None:
-    """Test the _try_start_recording() method."""
-    with patch.object(
-        data_file, "_user_confirms_overwrite", MagicMock(return_value=user_confirms)
-    ) as confirm_mock:
-        confirm_mock.return_value = user_confirms
-        path = MagicMock()
-        path.exists.return_value = exists
-        data_file._try_start_recording(path)
-
-        if not exists or user_confirms:
-            sendmsg_mock.assert_called_once_with("data_file.open", path=path)
-        else:
-            sendmsg_mock.assert_not_called()
-
-
-def test_on_data_file_enable(data_file: DataFileControl, qtbot) -> None:
-    """Test the _on_data_file_enable() method."""
-    with patch.object(data_file, "record_btn") as btn_mock:
-        data_file._on_data_file_enable()
-        btn_mock.setEnabled.assert_called_once_with(True)
-
-
-@patch("finesse.gui.data_file_view.QMessageBox")
-def test_on_data_file_disable_recording(
-    msgbox_mock: Mock, data_file: DataFileControl, qtbot
-) -> None:
-    """Test the _on_data_file_disable() method when recording."""
-    # Simulate start of file recording
-    data_file._on_file_open(FILE_PATH)
-
-    data_file._on_data_file_disable()
-    assert not data_file.record_btn.isEnabled()
-    msgbox_mock.warning.assert_called()
-
-
-@patch("finesse.gui.data_file_view.QMessageBox")
-def test_on_data_file_disable_not_recording(
-    msgbox_mock: Mock, data_file: DataFileControl, qtbot
-) -> None:
-    """Test the _on_data_file_disable() method when not recording."""
-    data_file._on_data_file_disable()
-    assert not data_file.record_btn.isEnabled()
-    msgbox_mock.warning.assert_not_called()
