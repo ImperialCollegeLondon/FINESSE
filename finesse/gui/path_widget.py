@@ -75,7 +75,7 @@ class PathWidget(QWidget):
         self.line_edit.setText(str(path))
 
 
-class OpenPathWidget(PathWidget):
+class OpenFileWidget(PathWidget):
     """A widget that lets the user choose the path to an existing file."""
 
     def __init__(
@@ -84,7 +84,7 @@ class OpenPathWidget(PathWidget):
         extension: str | None = None,
         **file_dialog_kwargs: Any,
     ) -> None:
-        """Create a new OpenPathWidget.
+        """Create a new OpenFileWidget.
 
         Args:
             initial_file_path: The initial file path to display
@@ -127,7 +127,7 @@ class OpenDirectoryWidget(PathWidget):
         return Path(dir_path) if dir_path else None
 
 
-class SavePathWidget(PathWidget):
+class SaveFileWidget(PathWidget):
     """A widget that lets the user choose the path to save a file."""
 
     def __init__(
@@ -136,7 +136,7 @@ class SavePathWidget(PathWidget):
         extension: str | None = None,
         **file_dialog_kwargs: Any,
     ) -> None:
-        """Create a new SavePathWidget.
+        """Create a new SaveFileWidget.
 
         Args:
             initial_file_path: The initial file path to display
