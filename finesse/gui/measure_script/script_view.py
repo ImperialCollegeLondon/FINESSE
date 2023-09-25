@@ -9,7 +9,7 @@ from ...config import DEFAULT_SCRIPT_PATH, STEPPER_MOTOR_TOPIC
 from ...em27_status import EM27Status
 from ...event_counter import EventCounter
 from ...settings import settings
-from ..path_widget import OpenDirectoryWidget
+from ..path_widget import OpenPathWidget
 from .script import Script, ScriptRunner
 from .script_edit_dialog import ScriptEditDialog
 from .script_run_dialog import ScriptRunDialog
@@ -33,8 +33,8 @@ class ScriptControl(QGroupBox):
         edit_btn = QPushButton("Edit script")
         edit_btn.clicked.connect(self._edit_btn_clicked)
 
-        self.script_path = OpenDirectoryWidget(
-            initial_dir_path=_get_previous_script_path(),
+        self.script_path = OpenPathWidget(
+            initial_file_path=_get_previous_script_path(),
             extension="yaml",
             parent=self,
             caption="Choose measure script to load",
