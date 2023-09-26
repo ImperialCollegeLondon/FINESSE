@@ -17,7 +17,7 @@ from PySide6.QtWidgets import (
 
 from ...config import DEFAULT_SCRIPT_PATH
 from ..error_message import show_error_message
-from ..path_widget import SavePathWidget
+from ..path_widget import SaveFileWidget
 from .count_widget import CountWidget
 from .script import Script
 from .sequence_widget import SequenceWidget
@@ -45,7 +45,7 @@ class ScriptEditDialog(QDialog):
         else:
             self.count = CountWidget("Repeats")
             self.sequence_widget = SequenceWidget()
-        self.script_path = SavePathWidget(
+        self.script_path = SaveFileWidget(
             initial_save_path,
             extension="yaml",
             parent=self,
