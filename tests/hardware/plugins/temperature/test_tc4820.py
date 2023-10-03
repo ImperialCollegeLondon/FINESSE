@@ -10,7 +10,7 @@ from pytest_mock import MockerFixture
 from serial import SerialException
 
 from finesse.config import TEMPERATURE_CONTROLLER_TOPIC
-from finesse.hardware.temperature.tc4820 import TC4820, MalformedMessageError
+from finesse.hardware.plugins.temperature.tc4820 import TC4820, MalformedMessageError
 
 
 @pytest.fixture
@@ -170,7 +170,7 @@ def test_request_int(
         return 0
 
     mocker.patch.object(dev, "read", my_read)
-    write = mocker.patch("finesse.hardware.temperature.tc4820.TC4820.write")
+    write = mocker.patch("finesse.hardware.plugins.temperature.tc4820.TC4820.write")
     with raises:
         assert dev.request_int("some string") == 0
 
@@ -190,6 +190,8 @@ def test_property_getters(
     name: str, command: str, type: str, dev: TC4820, mocker: MockerFixture
 ) -> None:
     """Check that the getters for properties work."""
-    m = mocker.patch(f"finesse.hardware.temperature.tc4820.TC4820.request_{type}")
+    m = mocker.patch(
+        f"finesse.hardware.plugins.temperature.tc4820.TC4820.request_{type}"
+    )
     getattr(dev, name)
     m.assert_called_once_with(command)

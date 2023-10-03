@@ -11,10 +11,11 @@ from typing import Any
 from csvy import Writer
 from pubsub import pub
 
-from .. import config
+from finesse import config
+
+from .plugins.stepper_motor import get_stepper_motor_instance
+from .plugins.temperature import get_hot_bb_temperature_controller_instance
 from .pubsub_decorators import pubsub_errors
-from .stepper_motor import get_stepper_motor_instance
-from .temperature import get_hot_bb_temperature_controller_instance
 
 
 def _on_error_occurred(error: BaseException) -> None:

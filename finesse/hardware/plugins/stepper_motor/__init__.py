@@ -2,8 +2,9 @@
 from functools import partial
 from typing import cast
 
-from ...config import STEPPER_MOTOR_TOPIC
-from ..serial_manager import SerialManager, make_device_factory
+from finesse.config import STEPPER_MOTOR_TOPIC
+from finesse.hardware.serial_manager import SerialManager, make_device_factory
+
 from .dummy import DummyStepperMotor
 from .st10_controller import ST10Controller
 from .stepper_motor_base import StepperMotorBase

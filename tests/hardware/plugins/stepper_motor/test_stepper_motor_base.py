@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from finesse.config import STEPPER_MOTOR_TOPIC
-from finesse.hardware.stepper_motor.stepper_motor_base import StepperMotorBase
+from finesse.hardware.plugins.stepper_motor.stepper_motor_base import StepperMotorBase
 
 
 class _MockStepperMotor(StepperMotorBase):

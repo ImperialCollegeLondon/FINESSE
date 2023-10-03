@@ -14,7 +14,9 @@ from pubsub import pub
 from PySide6.QtCore import QThread, Signal, Slot
 from serial import Serial, SerialException, SerialTimeoutException
 
-from ...config import STEPPER_MOTOR_TOPIC
+from finesse.config import STEPPER_MOTOR_TOPIC
+from finesse.hardware.plugins import register_device_type
+
 from .stepper_motor_base import StepperMotorBase
 
 
@@ -151,6 +153,7 @@ class _SerialReader(QThread):
         return response
 
 
+@register_device_type("ST10 controller")
 class ST10Controller(StepperMotorBase):
     """An interface for the ST10-Q-NN stepper motor controller.
 
