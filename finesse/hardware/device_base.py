@@ -7,6 +7,8 @@ class DeviceBase(ABC):
 
     _device_base_type: str
     """A string to be used in pubsub topics etc. which describes the base type."""
+    _device_base_description: str
+    """A human-readable description for the base type."""
     _device_description: str
     """A human-readable name."""
     _device_names: set[str] | None
