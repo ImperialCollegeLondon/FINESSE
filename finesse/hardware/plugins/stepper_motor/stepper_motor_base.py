@@ -3,14 +3,16 @@ from abc import abstractmethod
 
 from pubsub import pub
 
-from ...config import ANGLE_PRESETS, STEPPER_MOTOR_TOPIC
-from ..device_base import DeviceBase
-from ..pubsub_decorators import pubsub_errors
+from finesse.config import ANGLE_PRESETS, STEPPER_MOTOR_TOPIC
+from finesse.hardware.device_base import DeviceBase
+from finesse.hardware.plugins import register_base_device_type
+from finesse.hardware.pubsub_decorators import pubsub_errors
 
 error_wrap = pubsub_errors(f"serial.{STEPPER_MOTOR_TOPIC}.error")
 """Broadcast exceptions via pubsub."""
 
 
+@register_base_device_type("stepper_motor", "Stepper motor")
 class StepperMotorBase(DeviceBase):
     """A base class for stepper motor implementations."""
 

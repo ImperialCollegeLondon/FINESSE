@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 import pytest
 from decorator import decorator
 
-from finesse.hardware.stepper_motor import stepper_motor_base
+from finesse.hardware.plugins.stepper_motor import stepper_motor_base
 
 
 def null_decorator(*args, **kwargs):

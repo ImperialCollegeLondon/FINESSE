@@ -4,10 +4,13 @@ import logging
 from pubsub import pub
 from PySide6.QtCore import QTimer
 
-from ...config import STEPPER_MOTOR_TOPIC
+from finesse.config import STEPPER_MOTOR_TOPIC
+from finesse.hardware.plugins import register_device_type
+
 from .stepper_motor_base import StepperMotorBase
 
 
+@register_device_type("Dummy stepper motor")
 class DummyStepperMotor(StepperMotorBase):
     """A fake stepper motor device used for testing the GUI without the hardware.
 

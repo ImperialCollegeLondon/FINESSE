@@ -5,11 +5,13 @@ from typing import Any
 
 from pubsub import pub
 
-from ...config import TEMPERATURE_CONTROLLER_TOPIC
-from ..device_base import DeviceBase
-from ..pubsub_decorators import pubsub_broadcast, pubsub_errors
+from finesse.config import TEMPERATURE_CONTROLLER_TOPIC
+from finesse.hardware.device_base import DeviceBase
+from finesse.hardware.plugins import register_base_device_type
+from finesse.hardware.pubsub_decorators import pubsub_broadcast, pubsub_errors
 
 
+@register_base_device_type("temperature_controller", "Temperature controller")
 class TemperatureControllerBase(DeviceBase):
     """The base class for temperature controller devices or mock devices."""
 

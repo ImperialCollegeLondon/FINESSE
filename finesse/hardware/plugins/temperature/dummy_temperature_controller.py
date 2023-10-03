@@ -3,10 +3,13 @@ from __future__ import annotations
 
 from decimal import Decimal
 
-from ..noise_producer import NoiseParameters, NoiseProducer
+from finesse.hardware.noise_producer import NoiseParameters, NoiseProducer
+from finesse.hardware.plugins import register_device_type
+
 from .temperature_controller_base import TemperatureControllerBase
 
 
+@register_device_type("Dummy temperature controller")
 class DummyTemperatureController(TemperatureControllerBase):
     """A dummy temperature controller device which produces random noise."""
 

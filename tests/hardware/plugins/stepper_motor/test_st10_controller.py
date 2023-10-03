@@ -8,7 +8,7 @@ import pytest
 from serial import SerialException, SerialTimeoutException
 
 from finesse.config import STEPPER_MOTOR_TOPIC
-from finesse.hardware.stepper_motor.st10_controller import (
+from finesse.hardware.plugins.stepper_motor.st10_controller import (
     ST10Controller,
     ST10ControllerError,
     _SerialReader,
@@ -34,7 +34,10 @@ class MockSerialReader(_SerialReader):
 
 
 @pytest.fixture
-@patch("finesse.hardware.stepper_motor.st10_controller._SerialReader", MockSerialReader)
+@patch(
+    "finesse.hardware.plugins.stepper_motor.st10_controller._SerialReader",
+    MockSerialReader,
+)
 def dev(error_wrap_mock: MagicMock) -> ST10Controller:
     """A fixture providing an ST10Controller with a patched Serial object."""
     serial = MagicMock()
@@ -48,7 +51,10 @@ def dev(error_wrap_mock: MagicMock) -> ST10Controller:
                 return ST10Controller(serial)
 
 
-@patch("finesse.hardware.stepper_motor.st10_controller._SerialReader", MockSerialReader)
+@patch(
+    "finesse.hardware.plugins.stepper_motor.st10_controller._SerialReader",
+    MockSerialReader,
+)
 def test_init(error_wrap_mock: MagicMock) -> None:
     """Test __init__()."""
     serial = MagicMock()
@@ -209,7 +215,8 @@ def test_check_device_id(dev: ST10Controller) -> None:
     ),
 )
 @patch(
-    "finesse.hardware.stepper_motor.ST10Controller.is_moving", new_callable=PropertyMock
+    "finesse.hardware.plugins.stepper_motor.ST10Controller.is_moving",
+    new_callable=PropertyMock,
 )
 def test_get_step(
     is_moving_mock: PropertyMock,

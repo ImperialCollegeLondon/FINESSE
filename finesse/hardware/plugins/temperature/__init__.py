@@ -6,12 +6,13 @@ from typing import cast
 
 from pubsub import pub
 
-from ...config import (
+from finesse.config import (
     NUM_TEMPERATURE_MONITOR_CHANNELS,
     TEMPERATURE_CONTROLLER_TOPIC,
     TEMPERATURE_MONITOR_TOPIC,
 )
-from ..serial_manager import SerialManager, make_device_factory
+from finesse.hardware.serial_manager import SerialManager, make_device_factory
+
 from .dp9800 import DP9800
 from .dummy_temperature_controller import DummyTemperatureController
 from .dummy_temperature_monitor import DummyTemperatureMonitor

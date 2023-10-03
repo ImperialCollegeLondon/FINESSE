@@ -4,17 +4,19 @@ from unittest.mock import MagicMock, Mock, patch
 from finesse.config import DUMMY_DEVICE_PORT, STEPPER_MOTOR_TOPIC
 
 
-@patch("finesse.hardware.stepper_motor.DummyStepperMotor")
-@patch("finesse.hardware.stepper_motor.ST10Controller")
+@patch("finesse.hardware.plugins.stepper_motor.DummyStepperMotor")
+@patch("finesse.hardware.plugins.stepper_motor.ST10Controller")
 @patch("finesse.hardware.serial_manager.Serial")
 def test_stepper_motor(
     serial_mock: Mock, st10_mock: Mock, dummy_mock: Mock, subscribe_mock: Mock
 ) -> None:
     """Test for the stepper motor SerialManager."""
-    from finesse.hardware.stepper_motor import create_stepper_motor_serial_manager
+    from finesse.hardware.plugins.stepper_motor import (
+        create_stepper_motor_serial_manager,
+    )
 
     create_stepper_motor_serial_manager()
-    from finesse.hardware.stepper_motor import _serial_manager
+    from finesse.hardware.plugins.stepper_motor import _serial_manager
 
     assert _serial_manager.name == STEPPER_MOTOR_TOPIC
 
@@ -30,8 +32,8 @@ def test_stepper_motor(
     st10_mock.assert_called_once_with(serial)
 
 
-@patch("finesse.hardware.temperature.DummyTemperatureController")
-@patch("finesse.hardware.temperature.TC4820")
+@patch("finesse.hardware.plugins.temperature.DummyTemperatureController")
+@patch("finesse.hardware.plugins.temperature.TC4820")
 @patch("finesse.hardware.serial_manager.Serial")
 def test_tc4820(
     serial_mock: Mock, tc4820_mock: Mock, dummy_mock: Mock, subscribe_mock: Mock
@@ -40,12 +42,12 @@ def test_tc4820(
     serial = MagicMock()
     serial_mock.return_value = serial
 
-    from finesse.hardware.temperature import (
+    from finesse.hardware.plugins.temperature import (
         create_temperature_controller_serial_managers,
     )
 
     create_temperature_controller_serial_managers()
-    from finesse.hardware.temperature import (
+    from finesse.hardware.plugins.temperature import (
         _serial_manager_cold_bb,
         _serial_manager_hot_bb,
     )
