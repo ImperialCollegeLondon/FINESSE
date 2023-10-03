@@ -11,6 +11,7 @@ else:
     from .opus.em27 import OPUSInterface  # type: ignore
 
 from . import data_file_writer  # noqa: F401
+from .plugins import load_device_types
 from .plugins.stepper_motor import create_stepper_motor_serial_manager
 from .plugins.temperature import (
     create_temperature_controller_serial_managers,
@@ -20,10 +21,27 @@ from .plugins.temperature import (
 opus: OPUSInterface
 
 
+def _broadcast_device_types() -> None:
+    """Broadcast the available device types via pubsub."""
+    # Use a dict keyed by the base type, housing the human-readable names of devices
+    device_types: dict[str, list[str]] = {}
+    for names, types in load_device_types().values():
+        key = types[0]._device_base_description
+        descriptions = [t._device_description for t in types]
+        if not names:
+            device_types[key] = descriptions
+        else:
+            for name in names:
+                device_types[f"{key} ({name})"] = descriptions
+
+    pub.sendMessage("serial.list", device_types=device_types)
+
+
 def _init_hardware():
     global opus
 
     opus = OPUSInterface()
+    _broadcast_device_types()
 
 
 def _stop_hardware():

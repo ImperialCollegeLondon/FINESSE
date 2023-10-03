@@ -9,6 +9,7 @@ from ..config import (
     TEMPERATURE_MONITOR_HOT_BB_IDX,
 )
 from .data_file_view import DataFileControl
+from .device_view import DeviceControl
 from .em27_monitor import EM27Monitor
 from .measure_script.script_view import ScriptControl
 from .opus_view import OPUSControl
@@ -39,16 +40,20 @@ class MainWindow(QMainWindow):
         # Setup for serial port control
         serial_port: QGroupBox = SerialPortControl()
 
+        # Setup for device panel
+        device_control = DeviceControl()
+
         # Setup for interferometer monitor
         em27_monitor = EM27Monitor()
 
         opus: QGroupBox = OPUSControl()
 
-        layout_left.addWidget(stepper_motor, 0, 0, 1, 2)
-        layout_left.addWidget(opus, 1, 0, 1, 2)
-        layout_left.addWidget(measure_script, 2, 0, 1, 2)
+        layout_left.addWidget(stepper_motor, 0, 0, 1, 3)
+        layout_left.addWidget(opus, 1, 0, 1, 3)
+        layout_left.addWidget(measure_script, 2, 0, 1, 3)
         layout_left.addWidget(serial_port, 3, 0, 1, 1)
-        layout_left.addWidget(em27_monitor, 3, 1, 1, 1)
+        layout_left.addWidget(device_control, 3, 1, 1, 1)
+        layout_left.addWidget(em27_monitor, 3, 2, 1, 1)
 
         layout_right = QGridLayout()
 
