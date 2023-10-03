@@ -17,7 +17,7 @@ from finesse.hardware.plugins.temperature.tc4820 import TC4820, MalformedMessage
 def dev(mocker: MockerFixture) -> TC4820:
     """Get an instance of a TC4820 object."""
     serial = mocker.patch("serial.Serial")
-    return TC4820("device", serial)
+    return TC4820("hot_bb", serial)
 
 
 @pytest.mark.parametrize("name", ("hot_bb", "cold_bb"))
@@ -156,7 +156,7 @@ def test_request_int(
     Check that the retrying of requests works.
     """
     serial = mocker.patch("serial.Serial")
-    dev = TC4820("device", serial, max_attempts)
+    dev = TC4820("hot_bb", serial, max_attempts)
 
     fail_count = 0
 

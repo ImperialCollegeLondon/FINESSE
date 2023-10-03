@@ -11,7 +11,9 @@ from finesse.hardware.plugins import register_base_device_type
 from finesse.hardware.pubsub_decorators import pubsub_broadcast, pubsub_errors
 
 
-@register_base_device_type("temperature_controller", "Temperature controller")
+@register_base_device_type(
+    TEMPERATURE_CONTROLLER_TOPIC, "Temperature controller", names={"hot_bb", "cold_bb"}
+)
 class TemperatureControllerBase(DeviceBase):
     """The base class for temperature controller devices or mock devices."""
 
@@ -23,25 +25,24 @@ class TemperatureControllerBase(DeviceBase):
         Args:
             name: The name of the device, to distinguish it from others
         """
-        super().__init__()
-        self.name = name
-        topic_base = f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{self.name}"
+        super().__init__(name)
+
         self._request_properties = pubsub_broadcast(
-            f"{topic_base}.error", f"{topic_base}.response", "properties"
+            f"{self.topic}.error", f"{self.topic}.response", "properties"
         )(self.get_properties)
         """Requests that various device properties are sent over pubsub."""
 
         pub.subscribe(
             self._request_properties,
-            f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{name}.request",
+            f"{self.topic}.request",
         )
 
-        self._change_set_point = pubsub_errors(f"{topic_base}.error")(
+        self._change_set_point = pubsub_errors(f"{self.topic}.error")(
             self.change_set_point
         )
         pub.subscribe(
             self._change_set_point,
-            f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{name}.change_set_point",
+            f"{self.topic}.change_set_point",
         )
 
     def get_properties(self) -> dict[str, Any]:

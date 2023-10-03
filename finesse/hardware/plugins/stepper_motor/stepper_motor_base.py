@@ -12,7 +12,7 @@ error_wrap = pubsub_errors(f"serial.{STEPPER_MOTOR_TOPIC}.error")
 """Broadcast exceptions via pubsub."""
 
 
-@register_base_device_type("stepper_motor", "Stepper motor")
+@register_base_device_type(STEPPER_MOTOR_TOPIC, "Stepper motor")
 class StepperMotorBase(DeviceBase):
     """A base class for stepper motor implementations."""
 
@@ -21,6 +21,8 @@ class StepperMotorBase(DeviceBase):
 
         Subscribe to stepper motor pubsub messages.
         """
+        super().__init__()
+
         # Versions of methods which catch and broadcast errors via pubsub
         self._move_to = error_wrap(self.move_to)
         self._stop_moving = error_wrap(self.stop_moving)

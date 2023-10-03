@@ -19,24 +19,31 @@ def register_device_type(description: str):
 
     def wrapped(cls: type[DeviceBase]):
         cls._device_description = description
+        if cls in _device_types:
+            raise RuntimeError(f"{cls.__name__} is already registered as device type")
+
         _device_types.add(cls)
         return cls
 
     return wrapped
 
 
-def register_base_device_type(name: str, description: str):
+def register_base_device_type(
+    name: str, description: str, names: set[str] | None = None
+):
     """A decorator for registering a new device base type.
 
     Args:
         name: Short name to be used in pubsub topics etc.
         description: Human-readable name
+        names: Possible names for devices
     """
 
     def wrapped(cls: type[DeviceBase]):
         global _base_types
         cls._device_base_type = name
         cls._device_description = description
+        cls._device_names = names
         _base_types.add(cls)
         return cls
 
