@@ -42,7 +42,7 @@ def register_base_device_type(
     def wrapped(cls: type[DeviceBase]):
         global _base_types
         cls._device_base_type = name
-        cls._device_description = description
+        cls._device_base_description = description
         cls._device_names = names
         _base_types.add(cls)
         return cls
