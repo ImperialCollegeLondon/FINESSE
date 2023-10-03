@@ -59,7 +59,7 @@ def _import_recursively(module: ModuleType) -> None:
             )
 
 
-def load_device_types() -> dict[str, list[type[DeviceBase]]]:
+def load_device_types() -> dict[str, tuple[set[str] | None, list[type[DeviceBase]]]]:
     """Load all the device types from this module and its submodules.
 
     Returns:
@@ -67,14 +67,14 @@ def load_device_types() -> dict[str, list[type[DeviceBase]]]:
     """
     _import_recursively(sys.modules[__name__])
 
-    out: dict[str, list[type[DeviceBase]]] = {
-        t._device_base_type: [] for t in _base_types
+    out: dict[str, tuple[set[str] | None, list[type[DeviceBase]]]] = {
+        t._device_base_type: (t._device_names, []) for t in _base_types
     }
     for t in _device_types:
         key = t._device_base_type
 
         try:
-            out[key].append(t)
+            out[key][1].append(t)
         except KeyError:
             raise RuntimeError(
                 f"{t.__name__} does not have a recognised device base type"
@@ -82,7 +82,7 @@ def load_device_types() -> dict[str, list[type[DeviceBase]]]:
 
     # Sort values
     for val in out.values():
-        val.sort(key=lambda v: v._device_description)
+        val[1].sort(key=lambda v: v._device_description)
 
     # Sort keys
     return dict(sorted(out.items()))
