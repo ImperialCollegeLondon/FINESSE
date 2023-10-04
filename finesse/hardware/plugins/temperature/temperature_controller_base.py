@@ -12,7 +12,10 @@ from finesse.hardware.pubsub_decorators import pubsub_broadcast, pubsub_errors
 
 
 @register_base_device_type(
-    TEMPERATURE_CONTROLLER_TOPIC, "Temperature controller", names={"hot_bb", "cold_bb"}
+    TEMPERATURE_CONTROLLER_TOPIC,
+    "Temperature controller",
+    names_short=("hot_bb", "cold_bb"),
+    names_long=("hot black body", "cold black body"),
 )
 class TemperatureControllerBase(DeviceBase):
     """The base class for temperature controller devices or mock devices."""
