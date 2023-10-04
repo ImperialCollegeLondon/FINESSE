@@ -31,6 +31,9 @@ class DeviceTypeControl(QGroupBox):
         super().__init__(description)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
+        self._devices = [t.description for t in types]
+        """The names of the devices."""
+
         layout = QHBoxLayout()
         self.setLayout(layout)
 
@@ -39,7 +42,7 @@ class DeviceTypeControl(QGroupBox):
         self._device_combo.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
         )
-        self._device_combo.addItems([t.description for t in types])
+        self._device_combo.addItems(self._devices)
         self._device_combo.currentIndexChanged.connect(self._on_device_selected)
         layout.addWidget(self._device_combo)
 
@@ -77,9 +80,12 @@ class DeviceTypeControl(QGroupBox):
 
         # TODO: Button should be disabled if there are no options for one of the
         # params (e.g. there are no USB serial devices available)
-        btn = QPushButton("Open")
-        btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
-        layout.addWidget(btn)
+        self._open_close_btn = QPushButton("Open")
+        self._open_close_btn.setSizePolicy(
+            QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed
+        )
+        self._open_close_btn.setCheckable(True)
+        layout.addWidget(self._open_close_btn)
 
     def _on_device_selected(self, device_idx: int) -> None:
         """Swap out the parameter combo boxes for the current device.
