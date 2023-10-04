@@ -13,6 +13,11 @@ class DeviceBase(ABC):
     """A human-readable name."""
     _device_names: set[str] | None
     """Possible names for this device (None == any name)."""
+    _device_parameters: dict[str, list[str]] = {}
+    """Possible parameters that this device type accepts.
+
+    The key represents the parameter name and the value is a list of possible values.
+    """
 
     def __init__(self, name: str | None = None) -> None:
         """Create a new DeviceBase.
