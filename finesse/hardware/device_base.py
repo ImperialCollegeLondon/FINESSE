@@ -1,6 +1,8 @@
 """Provides a base class for all serial devices (and mock devices)."""
 from abc import ABC, abstractmethod
 
+from finesse.device_type import DeviceParameter
+
 
 class DeviceBase(ABC):
     """A base class for all devices which mandates that they have a close() method."""
@@ -13,7 +15,7 @@ class DeviceBase(ABC):
     """A human-readable name."""
     _device_names: set[str] | None
     """Possible names for this device (None == any name)."""
-    _device_parameters: dict[str, list[str]] = {}
+    _device_parameters: list[DeviceParameter] = []
     """Possible parameters that this device type accepts.
 
     The key represents the parameter name and the value is a list of possible values.

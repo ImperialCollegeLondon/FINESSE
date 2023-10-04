@@ -31,9 +31,6 @@ class DeviceTypeControl(QGroupBox):
         super().__init__(description)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
-        self._device_params = [t.params for t in types]
-        """The parameters and their possible values for all devices."""
-
         layout = QHBoxLayout()
         self.setLayout(layout)
 
@@ -49,7 +46,8 @@ class DeviceTypeControl(QGroupBox):
         self._device_widgets: list[QWidget | None] = []
         """Widgets containing combo boxes specific to each parameter."""
 
-        for params in self._device_params:
+        device_params = (t.parameters for t in types)
+        for params in device_params:
             # Don't bother making a widget if there are no parameters
             if not params:
                 self._device_widgets.append(None)
@@ -63,10 +61,13 @@ class DeviceTypeControl(QGroupBox):
             self._device_widgets.append(widget)
 
             # Make a combo box for each parameter
-            for param in params.values():
+            for param in params:
                 combo = QComboBox()
                 combo.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
-                combo.addItems(param)
+                combo.addItems(param.possible_values)
+                if param.default_value is not None:
+                    combo.setCurrentText(param.default_value)
+
                 playout.addWidget(combo)
 
         # Show the combo boxes for the device's parameters

@@ -3,6 +3,7 @@ from decimal import Decimal
 
 from serial import Serial, SerialException
 
+from finesse.config import DEFAULT_DP9800_BAUDRATE
 from finesse.hardware.plugins import register_serial_device_type
 
 from .temperature_monitor_base import TemperatureMonitorBase
@@ -83,7 +84,7 @@ class DP9800Error(Exception):
     """Indicates that an error occurred while communicating with the device."""
 
 
-@register_serial_device_type("DP9800")
+@register_serial_device_type("DP9800", DEFAULT_DP9800_BAUDRATE)
 class DP9800(TemperatureMonitorBase):
     """An interface for DP9800 temperature readers.
 
