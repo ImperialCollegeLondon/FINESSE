@@ -7,6 +7,7 @@ from types import ModuleType
 from serial.tools.list_ports import comports
 
 from finesse.config import BAUDRATES
+from finesse.device_type import DeviceParameter
 from finesse.hardware.device_base import DeviceBase
 
 _base_types: set[type[DeviceBase]] = set()
@@ -48,18 +49,19 @@ def register_device_type(description: str):
     return wrapped
 
 
-def register_serial_device_type(description: str):
+def register_serial_device_type(description: str, default_baudrate: int):
     """Register a new serial device type.
 
     Args:
         description: A human-readable name for this device.
+        default_baudrate: The default baudrate for this device.
     """
 
     def wrapped(cls: type[DeviceBase]):
-        cls._device_parameters = {
-            "port": _get_usb_serial_ports(),
-            "baudrate": [str(b) for b in BAUDRATES],
-        }
+        cls._device_parameters = [
+            DeviceParameter("port", _get_usb_serial_ports()),
+            DeviceParameter("baudrate", map(str, BAUDRATES), str(default_baudrate)),
+        ]
         return register_device_type(description)(cls)
 
     return wrapped
