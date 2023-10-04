@@ -9,6 +9,7 @@ from PySide6.QtWidgets import (
     QPushButton,
     QSizePolicy,
     QVBoxLayout,
+    QWidget,
 )
 
 from finesse.device_type import DeviceType
@@ -38,45 +39,65 @@ class DeviceTypeControl(QGroupBox):
 
         self._device_combo = QComboBox()
         """Combo box allowing the user to choose the device."""
+        self._device_combo.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
+        )
         self._device_combo.addItems([t.description for t in types])
-        self._device_combo.currentIndexChanged.connect(self._configure_combo_boxes)
+        self._device_combo.currentIndexChanged.connect(self._on_device_selected)
         layout.addWidget(self._device_combo)
 
-        self._param_combos: list[QComboBox] = []
-        """Combo boxes for each param."""
+        self._device_widgets: list[QWidget | None] = []
+        """Widgets containing combo boxes specific to each parameter."""
 
-        # We need enough combo boxes for the maximum possible number of params
-        for _ in range(max(map(len, self._device_params))):
-            combo = QComboBox()
-            combo.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
-            layout.addWidget(combo)
-            self._param_combos.append(combo)
+        for params in self._device_params:
+            # Don't bother making a widget if there are no parameters
+            if not params:
+                self._device_widgets.append(None)
+                continue
+
+            widget = QWidget()
+            widget.hide()
+            playout = QHBoxLayout()
+            playout.setContentsMargins(0, 0, 0, 0)
+            widget.setLayout(playout)
+            self._device_widgets.append(widget)
+
+            # Make a combo box for each parameter
+            for param in params.values():
+                combo = QComboBox()
+                combo.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+                combo.addItems(param)
+                playout.addWidget(combo)
+
+        # Show the combo boxes for the device's parameters
+        if self._device_widgets and (current := self._device_widgets[0]):
+            current.show()
+            layout.addWidget(current)
 
         # TODO: Button should be disabled if there are no options for one of the
         # params (e.g. there are no USB serial devices available)
         btn = QPushButton("Open")
-        btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
+        btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         layout.addWidget(btn)
 
-        self._configure_combo_boxes(0)
-
-    def _configure_combo_boxes(self, device_idx: int) -> None:
-        """Update combo boxes for different parameter values.
+    def _on_device_selected(self, device_idx: int) -> None:
+        """Swap out the parameter combo boxes for the current device.
 
         Args:
             device_idx: Which device has been selected.
         """
-        # Update combo boxes with the possible values for this device and show
-        params = self._device_params[device_idx]
-        for i, param_values in enumerate(params.values()):
-            combo = self._param_combos[i]
-            combo.clear()
-            combo.addItems(param_values)
-            combo.setVisible(True)
+        layout = cast(QHBoxLayout, self.layout())
 
-        # Hide any leftover combo boxes
-        for combo in self._param_combos[len(params) :]:
-            combo.setVisible(False)
+        # If there's already a widget in place, remove it
+        if layout.count() == 3:
+            # For some reason we also have to hide the widget else it appears over the
+            # others
+            layout.takeAt(1).widget().hide()
+
+        # Add the widget for the newly selected parameter if needed
+        if widget := self._device_widgets[device_idx]:
+            widget.show()
+            layout.insertWidget(1, widget)
 
 
 class DeviceControl(QGroupBox):
@@ -85,7 +106,7 @@ class DeviceControl(QGroupBox):
     def __init__(self) -> None:
         """Create a new DeviceControl."""
         super().__init__("Device control")
-        self.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Minimum)
+        self.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
         self.setLayout(QVBoxLayout())
         pub.subscribe(self._on_device_list, "serial.list")
 
