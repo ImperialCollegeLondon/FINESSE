@@ -17,7 +17,7 @@ from decimal import Decimal
 
 from serial import Serial, SerialException
 
-from finesse.hardware.plugins import register_device_type
+from finesse.hardware.plugins import register_serial_device_type
 
 from .temperature_controller_base import TemperatureControllerBase
 
@@ -28,7 +28,7 @@ class MalformedMessageError(Exception):
     """Raised when a message sent or received was malformed."""
 
 
-@register_device_type("TC4820")
+@register_serial_device_type("TC4820")
 class TC4820(TemperatureControllerBase):
     """An interface for TC4820 temperature controllers."""
 
