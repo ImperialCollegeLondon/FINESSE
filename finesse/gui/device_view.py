@@ -12,13 +12,43 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from finesse.device_type import DeviceType
+from finesse.device_info import DeviceBaseTypeInfo, DeviceTypeInfo
+
+
+def _create_device_widgets(types: list[DeviceTypeInfo]) -> list[QWidget | None]:
+    """Create widgets for the specified device types."""
+    widgets: list[QWidget | None] = []
+    device_params = (t.parameters for t in types)
+    for params in device_params:
+        # Don't bother making a widget if there are no parameters
+        if not params:
+            widgets.append(None)
+            continue
+
+        widget = QWidget()
+        widget.hide()
+        layout = QHBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        widget.setLayout(layout)
+        widgets.append(widget)
+
+        # Make a combo box for each parameter
+        for param in params:
+            combo = QComboBox()
+            combo.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+            combo.addItems(param.possible_values)
+            if param.default_value is not None:
+                combo.setCurrentText(param.default_value)
+
+            layout.addWidget(combo)
+
+    return widgets
 
 
 class DeviceTypeControl(QGroupBox):
     """A set of widgets for choosing a device and its params and connecting to it."""
 
-    def __init__(self, description: str, types: list[DeviceType]) -> None:
+    def __init__(self, description: str, types: list[DeviceTypeInfo]) -> None:
         """Create a new DeviceTypeControl.
 
         Args:
@@ -46,35 +76,11 @@ class DeviceTypeControl(QGroupBox):
         self._device_combo.currentIndexChanged.connect(self._on_device_selected)
         layout.addWidget(self._device_combo)
 
-        self._device_widgets: list[QWidget | None] = []
+        self._device_widgets: list[QWidget | None] = _create_device_widgets(types)
         """Widgets containing combo boxes specific to each parameter."""
 
-        device_params = (t.parameters for t in types)
-        for params in device_params:
-            # Don't bother making a widget if there are no parameters
-            if not params:
-                self._device_widgets.append(None)
-                continue
-
-            widget = QWidget()
-            widget.hide()
-            playout = QHBoxLayout()
-            playout.setContentsMargins(0, 0, 0, 0)
-            widget.setLayout(playout)
-            self._device_widgets.append(widget)
-
-            # Make a combo box for each parameter
-            for param in params:
-                combo = QComboBox()
-                combo.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
-                combo.addItems(param.possible_values)
-                if param.default_value is not None:
-                    combo.setCurrentText(param.default_value)
-
-                playout.addWidget(combo)
-
-        # Show the combo boxes for the device's parameters
         if self._device_widgets and (current := self._device_widgets[0]):
+            # Show the combo boxes for the device's parameters
             current.show()
             layout.addWidget(current)
 
@@ -117,9 +123,17 @@ class DeviceControl(QGroupBox):
         self.setLayout(QVBoxLayout())
         pub.subscribe(self._on_device_list, "serial.list")
 
-    def _on_device_list(self, device_types: dict[str, list[DeviceType]]) -> None:
+    def _on_device_list(
+        self, device_types: dict[DeviceBaseTypeInfo, list[DeviceTypeInfo]]
+    ) -> None:
         layout = cast(QVBoxLayout, self.layout())
 
         # Group together devices based on their base types (e.g. "stepper motor")
-        for description, types in device_types.items():
-            layout.addWidget(DeviceTypeControl(description, types))
+        for base_type, types in device_types.items():
+            if not base_type.names_long:
+                layout.addWidget(DeviceTypeControl(base_type.description, types))
+            else:
+                for name in base_type.names_long:
+                    layout.addWidget(
+                        DeviceTypeControl(f"{base_type.description} ({name})", types)
+                    )

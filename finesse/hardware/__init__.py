@@ -10,7 +10,7 @@ else:
     from .em27_scraper import EM27Scraper  # type: ignore
     from .opus.em27 import OPUSInterface  # type: ignore
 
-from finesse.device_type import DeviceType
+from finesse.device_info import DeviceBaseTypeInfo, DeviceTypeInfo
 
 from . import data_file_writer  # noqa: F401
 from .plugins import load_device_types
@@ -23,28 +23,37 @@ from .plugins.temperature import (
 opus: OPUSInterface
 
 
+def _get_device_type_info() -> dict[DeviceBaseTypeInfo, list[DeviceTypeInfo]]:
+    """Return info about device types grouped according to their base type."""
+    base_types, device_types = load_device_types()
+
+    # Get the base type info and sort it alphabetically by description
+    base_types_info = sorted(
+        (t.get_device_base_type_info() for t in base_types),
+        key=lambda info: info.description,
+    )
+
+    # Preallocate dict with empty lists
+    out: dict[DeviceBaseTypeInfo, list[DeviceTypeInfo]] = {
+        info: [] for info in base_types_info
+    }
+
+    # Get device type info and group by base type
+    for device_type in device_types:
+        out[device_type.get_device_base_type_info()].append(
+            device_type.get_device_type_info()
+        )
+
+    # Sort the device types by name
+    for infos in out.values():
+        infos.sort(key=lambda info: info.description)
+
+    return out
+
+
 def _broadcast_device_types() -> None:
     """Broadcast the available device types via pubsub."""
-    # Use a dict keyed by the base type containing info about each device type
-    device_types: dict[str, list[DeviceType]] = {}
-    for names, types in load_device_types().values():
-        key = types[0]._device_base_description
-        dtypes = [
-            DeviceType(t._device_description, t._device_parameters) for t in types
-        ]
-
-        if not names:
-            device_types[key] = dtypes
-        else:
-            # If there can be multiple uses of a given device (e.g. temperature
-            # controllers for hot and cold black bodies), give the device types
-            # different names.
-            #
-            # TODO: Use human-readable names for this rather than topic names
-            for name in names:
-                device_types[f"{key} ({name})"] = dtypes
-
-    pub.sendMessage("serial.list", device_types=device_types)
+    pub.sendMessage("serial.list", device_types=_get_device_type_info())
 
 
 def _init_hardware():
