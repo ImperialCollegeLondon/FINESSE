@@ -1,5 +1,8 @@
 """Provides a base class for all serial devices (and mock devices)."""
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
+from typing import Any
 
 from finesse.device_info import DeviceBaseTypeInfo, DeviceParameter, DeviceTypeInfo
 
@@ -63,3 +66,11 @@ class DeviceBase(ABC):
             cls.__module__,
             cls.__name__,
         )
+
+    @classmethod
+    def from_params(cls, **kwargs: Any) -> DeviceBase:
+        """Create an instance of this object from the specified keyword args.
+
+        The default implementation of this function just passes kwargs on to __init__().
+        """
+        return cls(**kwargs)

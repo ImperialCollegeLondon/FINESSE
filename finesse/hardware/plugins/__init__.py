@@ -3,8 +3,10 @@ import importlib
 import pkgutil
 import sys
 from collections.abc import Sequence
+from functools import partial
 from types import ModuleType
 
+from serial import Serial
 from serial.tools.list_ports import comports
 
 from finesse.config import BAUDRATES
@@ -50,6 +52,11 @@ def register_device_type(description: str):
     return wrapped
 
 
+def _serial_from_params(cls: type[DeviceBase], port: str, baudrate: str) -> DeviceBase:
+    """Create a new device object from the specified port and baudrate."""
+    return cls(Serial(port, int(baudrate)))
+
+
 def register_serial_device_type(description: str, default_baudrate: int):
     """Register a new serial device type.
 
@@ -65,6 +72,12 @@ def register_serial_device_type(description: str, default_baudrate: int):
                 "baudrate", list(map(str, BAUDRATES)), str(default_baudrate)
             ),
         ]
+
+        # Override the default implementation to provide a factory function which
+        # accepts port and baudrate directly rather than a Serial object
+        cls.from_params = partial(_serial_from_params, cls)  # type: ignore
+
+        # Also apply the register_device_type() decorator
         return register_device_type(description)(cls)
 
     return wrapped

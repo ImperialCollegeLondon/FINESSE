@@ -19,7 +19,9 @@ class DummyStepperMotor(StepperMotorBase):
     the ST10 controller does.
     """
 
-    def __init__(self, steps_per_rotation: int, move_duration: float = 0.0) -> None:
+    def __init__(
+        self, steps_per_rotation: int = 3600, move_duration: float = 0.0
+    ) -> None:
         """Create a new DummyStepperMotor.
 
         Args:
