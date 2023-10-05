@@ -53,3 +53,24 @@ class DeviceBaseTypeInfo:
     """A list of possible names for this type of device."""
     names_long: Sequence[str]
     """A list of names for this type of device (human readable)."""
+
+
+@dataclass(frozen=True)
+class DeviceInstanceRef:
+    """Information uniquely describing an instance of a particular device type."""
+
+    base_type: str
+    """The device base type."""
+    name: str | None = None
+    """The (optional) name of the device.
+
+    Used for disambiguating devices where there can be multiple instances.
+    """
+
+    @property
+    def topic(self) -> str:
+        """Get the partial pubsub topic for this device."""
+        topic = self.base_type
+        if self.name:
+            topic += f".{self.name}"
+        return topic
