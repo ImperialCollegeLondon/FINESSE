@@ -14,17 +14,26 @@ from PySide6.QtWidgets import (
 )
 
 from finesse.device_info import DeviceBaseTypeInfo, DeviceInstanceRef, DeviceTypeInfo
+from finesse.settings import settings
 
 
-def _create_device_widgets(types: list[DeviceTypeInfo]) -> list[QWidget | None]:
+def _create_device_widgets(
+    instance: DeviceInstanceRef, device_types: list[DeviceTypeInfo]
+) -> list[QWidget | None]:
     """Create widgets for the specified device types."""
     widgets: list[QWidget | None] = []
-    device_params = (t.parameters for t in types)
-    for params in device_params:
+    for t in device_types:
+        params = t.parameters
+
         # Don't bother making a widget if there are no parameters
         if not params:
             widgets.append(None)
             continue
+
+        # Previous parameter values are saved if a device opens successfully
+        previous_param_values: dict[str, str] | None = settings.value(
+            f"device/{instance.topic}/{t.description}/params"
+        )
 
         widget = QWidget()
         widget.hide()
@@ -38,7 +47,13 @@ def _create_device_widgets(types: list[DeviceTypeInfo]) -> list[QWidget | None]:
             combo = QComboBox()
             combo.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
             combo.addItems(param.possible_values)
-            if param.default_value is not None:
+
+            if (
+                previous_param_values
+                and previous_param_values[param.name] in param.possible_values
+            ):
+                combo.setCurrentText(previous_param_values[param.name])
+            elif param.default_value is not None:
                 combo.setCurrentText(param.default_value)
 
             layout.addWidget(combo)
@@ -65,6 +80,8 @@ class DeviceTypeControl(QGroupBox):
         if not device_types:
             raise RuntimeError("At least one device type must be specified")
 
+        self._cur_device_params: dict[str, str]
+        """Cache the device params used for opening the device."""
         self._device_instance = instance
 
         super().__init__(description)
@@ -81,16 +98,26 @@ class DeviceTypeControl(QGroupBox):
         self._device_combo.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
         )
-        self._device_combo.addItems([t.description for t in device_types])
+        descriptions = [t.description for t in device_types]
+        self._device_combo.addItems(descriptions)
+
+        # Select the last device that was successfully opened, if there is one
+        topic = instance.topic
+        previous_device: str | None = settings.value(f"device/{instance.topic}/type")
+        if previous_device and previous_device in descriptions:
+            self._device_combo.setCurrentText(previous_device)
+
         self._device_combo.currentIndexChanged.connect(self._on_device_selected)
         layout.addWidget(self._device_combo)
 
         self._device_widgets: list[QWidget | None] = _create_device_widgets(
-            device_types
+            instance, device_types
         )
         """Widgets containing combo boxes specific to each parameter."""
 
-        if self._device_widgets and (current := self._device_widgets[0]):
+        if self._device_widgets and (
+            current := self._device_widgets[self._get_device_idx()]
+        ):
             # Show the combo boxes for the device's parameters
             current.show()
             layout.addWidget(current)
@@ -105,7 +132,6 @@ class DeviceTypeControl(QGroupBox):
         layout.addWidget(self._open_close_btn)
 
         # pubsub subscriptions
-        topic = instance.topic
         pub.subscribe(self._on_device_opened, f"device.opened.{topic}")
         pub.subscribe(self._on_device_closed, f"device.closed.{topic}")
 
@@ -160,17 +186,28 @@ class DeviceTypeControl(QGroupBox):
 
     def _open_device(self) -> None:
         """Open the currently selected device."""
-        device_type, device_params = self._get_current_device_and_params()
+        device_type, self._cur_device_params = self._get_current_device_and_params()
         pub.sendMessage(
             "device.open",
             module=device_type.module,
             class_name=device_type.class_name,
             instance=self._device_instance,
-            params=device_params,
+            params=self._cur_device_params,
         )
 
     def _on_device_opened(self) -> None:
         """Update the GUI for when the device is successfully opened."""
+        settings.setValue(
+            f"device/{self._device_instance.topic}/type",
+            self._device_combo.currentText(),
+        )
+        if self._cur_device_params:
+            settings.setValue(
+                f"device/{self._device_instance.topic}/"
+                f"{self._device_combo.currentText()}/params",
+                self._cur_device_params,
+            )
+
         self._set_combos_enabled(False)
         self._open_close_btn.setText("Close")
 
