@@ -83,7 +83,7 @@ def register_serial_device_type(description: str, default_baudrate: int):
     return wrapped
 
 
-def register_base_device_type(
+def register_device_base_type(
     name: str,
     description: str,
     names_short: Sequence[str] = (),

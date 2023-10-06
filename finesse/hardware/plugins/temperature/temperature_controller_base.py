@@ -7,11 +7,11 @@ from pubsub import pub
 
 from finesse.config import TEMPERATURE_CONTROLLER_TOPIC
 from finesse.hardware.device_base import DeviceBase
-from finesse.hardware.plugins import register_base_device_type
+from finesse.hardware.plugins import register_device_base_type
 from finesse.hardware.pubsub_decorators import pubsub_broadcast, pubsub_errors
 
 
-@register_base_device_type(
+@register_device_base_type(
     TEMPERATURE_CONTROLLER_TOPIC,
     "Temperature controller",
     names_short=("hot_bb", "cold_bb"),
