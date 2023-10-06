@@ -42,7 +42,9 @@ def _open_device(
         devices[instance] = cls.from_params(**params)
     except Exception as error:
         logging.error(f"Failed to open {base_type} device: {str(error)}")
-        pub.sendMessage("device.error", instance=instance, error=error)
+        pub.sendMessage(
+            f"device.error.{instance.topic}", instance=instance, error=error
+        )
     else:
         logging.info("Opened device")
 
