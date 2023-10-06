@@ -31,8 +31,9 @@ def _create_device_widgets(
             continue
 
         # Previous parameter values are saved if a device opens successfully
-        previous_param_values: dict[str, str] | None = settings.value(
-            f"device/{instance.topic}/{t.description}/params"
+        previous_param_values = cast(
+            dict[str, str] | None,
+            settings.value(f"device/{instance.topic}/{t.description}/params"),
         )
 
         widget = QWidget()
@@ -103,7 +104,9 @@ class DeviceTypeControl(QGroupBox):
 
         # Select the last device that was successfully opened, if there is one
         topic = instance.topic
-        previous_device: str | None = settings.value(f"device/{instance.topic}/type")
+        previous_device = cast(
+            str | None, settings.value(f"device/{instance.topic}/type")
+        )
         if previous_device and previous_device in descriptions:
             self._device_combo.setCurrentText(previous_device)
 

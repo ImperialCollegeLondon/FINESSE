@@ -215,7 +215,7 @@ def test_check_device_id(dev: ST10Controller) -> None:
     ),
 )
 @patch(
-    "finesse.hardware.plugins.stepper_motor.ST10Controller.is_moving",
+    "finesse.hardware.plugins.stepper_motor.st10_controller.ST10Controller.is_moving",
     new_callable=PropertyMock,
 )
 def test_get_step(

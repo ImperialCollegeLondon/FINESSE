@@ -4,6 +4,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from finesse.config import STEPPER_MOTOR_TOPIC
+from finesse.device_info import DeviceInstanceRef
 from finesse.hardware.plugins.stepper_motor.stepper_motor_base import StepperMotorBase
 
 
@@ -81,5 +82,7 @@ def test_send_error_message(
     error = Exception()
     stepper.send_error_message(error)
     sendmsg_mock.assert_called_once_with(
-        f"device.error.{STEPPER_MOTOR_TOPIC}", error=error
+        f"device.error.{STEPPER_MOTOR_TOPIC}",
+        instance=DeviceInstanceRef(STEPPER_MOTOR_TOPIC),
+        error=error,
     )
