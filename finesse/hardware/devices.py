@@ -1,6 +1,7 @@
 """This module contains code for interfacing with different hardware devices."""
 import logging
 from importlib import import_module
+from typing import TypeVar, cast
 
 from pubsub import pub
 
@@ -8,7 +9,22 @@ from finesse.device_info import DeviceInstanceRef
 
 from .device_base import DeviceBase
 
-devices: dict[DeviceInstanceRef, DeviceBase] = {}
+_devices: dict[DeviceInstanceRef, DeviceBase] = {}
+
+_T = TypeVar("_T", bound=DeviceBase)
+
+
+def get_device_instance(base_type: type[_T], name: str | None = None) -> _T | None:
+    """Get the instance of the device of type base_type with an optional name.
+
+    If there is no device matching these parameters, None is returned.
+    """
+    key = DeviceInstanceRef(base_type.get_device_base_type_info().name, name)
+
+    try:
+        return cast(_T, _devices[key])
+    except KeyError:
+        return None
 
 
 def _open_device(
@@ -28,7 +44,7 @@ def _open_device(
 
     logging.info(f"Opening device of type {instance.base_type}: {class_name}")
 
-    if instance in devices:
+    if instance in _devices:
         logging.warn(f"Replacing existing instance of device of type {instance.topic}")
 
     # If this instance also has a name (e.g. "hot_bb") then we also need to pass this as
@@ -38,7 +54,7 @@ def _open_device(
         params = params | {"name": instance.name}
 
     try:
-        devices[instance] = cls.from_params(**params)
+        _devices[instance] = cls.from_params(**params)
     except Exception as error:
         logging.error(f"Failed to open {instance.topic} device: {str(error)}")
         pub.sendMessage(
@@ -54,7 +70,7 @@ def _open_device(
 def _close_device(instance: DeviceInstanceRef) -> None:
     """Close the device referred to by instance."""
     try:
-        device = devices.pop(instance)
+        device = _devices.pop(instance)
     except KeyError:
         # There is no instance of this type of device (this can happen if an error
         # occurs during opening)
@@ -72,7 +88,7 @@ def _on_device_error(instance: DeviceInstanceRef, error: Exception) -> None:
 
 def _close_all_devices() -> None:
     """Attempt to close all devices, ignoring errors."""
-    for device in devices.values():
+    for device in _devices.values():
         try:
             device.close()
         except Exception:
