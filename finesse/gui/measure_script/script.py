@@ -18,9 +18,10 @@ from PySide6.QtWidgets import QWidget
 from schema import And, Or, Schema, SchemaError
 from statemachine import State, StateMachine
 
-from ...config import ANGLE_PRESETS, STEPPER_MOTOR_TOPIC
-from ...em27_status import EM27Status
-from ..error_message import show_error_message
+from finesse.config import ANGLE_PRESETS, STEPPER_MOTOR_TOPIC
+from finesse.device_info import DeviceInstanceRef
+from finesse.em27_status import EM27Status
+from finesse.gui.error_message import show_error_message
 
 
 @dataclass(frozen=True)
@@ -407,7 +408,9 @@ class ScriptRunner(StateMachine):
             case self.waiting_to_measure:
                 self.finish_waiting_for_measure()
 
-    def _on_stepper_motor_error(self, error: BaseException) -> None:
+    def _on_stepper_motor_error(
+        self, instance: DeviceInstanceRef, error: BaseException
+    ) -> None:
         """Call abort()."""
         self.abort()
 

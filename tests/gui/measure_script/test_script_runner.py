@@ -8,6 +8,7 @@ import pytest
 from statemachine import State
 
 from finesse.config import STEPPER_MOTOR_TOPIC
+from finesse.device_info import DeviceInstanceRef
 from finesse.em27_status import EM27Status
 from finesse.gui.measure_script.script import Script, ScriptRunner, _poll_em27_status
 
@@ -285,7 +286,9 @@ def test_abort(
 def test_on_stepper_motor_error(runner: ScriptRunner) -> None:
     """Test that the _on_stepper_motor_error() method calls abort()."""
     with patch.object(runner, "abort") as abort_mock:
-        runner._on_stepper_motor_error(RuntimeError("hello"))
+        runner._on_stepper_motor_error(
+            instance=DeviceInstanceRef(STEPPER_MOTOR_TOPIC), error=RuntimeError("hello")
+        )
         abort_mock.assert_called_once_with()
 
 

@@ -134,6 +134,7 @@ class DeviceTypeControl(QGroupBox):
         # pubsub subscriptions
         pub.subscribe(self._on_device_opened, f"device.opened.{topic}")
         pub.subscribe(self._on_device_closed, f"device.closed.{topic}")
+        pub.subscribe(self._show_error_message, f"device.error.{topic}")
 
     def _on_device_selected(self, device_idx: int) -> None:
         """Swap out the parameter combo boxes for the current device.
@@ -220,6 +221,21 @@ class DeviceTypeControl(QGroupBox):
         self._set_combos_enabled(True)
         self._open_close_btn.setText("Open")
 
+    def _show_error_message(
+        self, instance: DeviceInstanceRef, error: BaseException
+    ) -> None:
+        """Show an error message when something has gone wrong with the device.
+
+        Todo:
+            The name of the device isn't currently very human readable.
+        """
+        QMessageBox(
+            QMessageBox.Icon.Critical,
+            "A device error has occurred",
+            "A fatal error has occurred with the "
+            f"{instance.topic} device: {error!s}",
+        ).exec()
+
     def _on_open_close_clicked(self) -> None:
         """Open/close the connection of the chosen device when the button is pushed."""
         if self._open_close_btn.text() == "Open":
@@ -239,21 +255,6 @@ class DeviceControl(QGroupBox):
 
         # pubsub topics
         pub.subscribe(self._on_device_list, "device.list")
-        pub.subscribe(self._show_error_message, "device.error")
-
-    def _show_error_message(
-        self, instance: DeviceInstanceRef, error: BaseException
-    ) -> None:
-        """Show an error message when something has gone wrong with the device.
-
-        Todo:
-            The name of the device isn't currently very human readable.
-        """
-        QMessageBox(
-            QMessageBox.Icon.Critical,
-            "A device error has occurred",
-            f"A fatal error has occurred with the {instance.topic} device: {error!s}",
-        ).exec()
 
     def _on_device_list(
         self, device_types: dict[DeviceBaseTypeInfo, list[DeviceTypeInfo]]

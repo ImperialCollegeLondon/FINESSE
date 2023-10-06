@@ -14,7 +14,7 @@ else:
 from datetime import datetime
 
 from finesse.config import NUM_TEMPERATURE_MONITOR_CHANNELS, TEMPERATURE_MONITOR_TOPIC
-from finesse.device_info import DeviceBaseTypeInfo, DeviceTypeInfo
+from finesse.device_info import DeviceBaseTypeInfo, DeviceInstanceRef, DeviceTypeInfo
 
 from . import data_file_writer  # noqa: F401
 from .plugins import load_device_types
@@ -68,7 +68,11 @@ def _try_get_temperatures() -> list[Decimal] | None:
     try:
         return dev.get_temperatures()
     except Exception as error:
-        pub.sendMessage(f"device.error.{TEMPERATURE_MONITOR_TOPIC}", error=error)
+        pub.sendMessage(
+            f"device.error.{TEMPERATURE_MONITOR_TOPIC}",
+            instance=DeviceInstanceRef(TEMPERATURE_MONITOR_TOPIC),
+            error=error,
+        )
         return None
 
 

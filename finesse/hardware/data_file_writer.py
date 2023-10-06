@@ -12,6 +12,7 @@ from csvy import Writer
 from pubsub import pub
 
 from finesse import config
+from finesse.device_info import DeviceInstanceRef
 
 from .plugins.stepper_motor import get_stepper_motor_instance
 from .plugins.temperature import get_temperature_controller_instance
@@ -64,7 +65,11 @@ def _get_stepper_motor_angle() -> tuple[float, bool]:
         else:
             return (float("nan"), True)
     except Exception as error:
-        pub.sendMessage(f"device.error.{config.STEPPER_MOTOR_TOPIC}", error=error)
+        pub.sendMessage(
+            f"device.error.{config.STEPPER_MOTOR_TOPIC}",
+            instance=DeviceInstanceRef(config.STEPPER_MOTOR_TOPIC),
+            error=error,
+        )
         return (float("nan"), False)
 
 
@@ -82,8 +87,10 @@ def _get_hot_bb_power() -> float:
     try:
         return hot_bb.power
     except Exception as error:
+        instance = DeviceInstanceRef(config.TEMPERATURE_CONTROLLER_TOPIC, hot_bb.name)
         pub.sendMessage(
-            f"device.error.{config.TEMPERATURE_CONTROLLER_TOPIC}.{hot_bb.name}",
+            f"device.error.{instance.topic}",
+            instance=instance,
             error=error,
         )
         return float("nan")
