@@ -26,11 +26,10 @@ def _open_device(
     # the user
     cls: DeviceBase = getattr(import_module(module), class_name)
 
-    base_type = cls.get_device_base_type_info().name
-    logging.info(f"Opening device of type {base_type}: {class_name}")
+    logging.info(f"Opening device of type {instance.base_type}: {class_name}")
 
-    if base_type in devices:
-        logging.warn(f"Replacing existing instance of device of type {base_type}")
+    if instance in devices:
+        logging.warn(f"Replacing existing instance of device of type {instance.topic}")
 
     # If this instance also has a name (e.g. "hot_bb") then we also need to pass this as
     # an argument
@@ -41,7 +40,7 @@ def _open_device(
     try:
         devices[instance] = cls.from_params(**params)
     except Exception as error:
-        logging.error(f"Failed to open {base_type} device: {str(error)}")
+        logging.error(f"Failed to open {instance.topic} device: {str(error)}")
         pub.sendMessage(
             f"device.error.{instance.topic}", instance=instance, error=error
         )
