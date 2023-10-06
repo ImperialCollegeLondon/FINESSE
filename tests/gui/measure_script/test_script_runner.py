@@ -32,7 +32,7 @@ def test_init(
     timer.timeout.connect.assert_called_once_with(_poll_em27_status)
 
     # Check we're stopping the motor
-    sendmsg_mock.assert_any_call(f"serial.{STEPPER_MOTOR_TOPIC}.stop")
+    sendmsg_mock.assert_any_call(f"device.{STEPPER_MOTOR_TOPIC}.stop")
 
     # Check we're subscribed to abort messages
     subscribe_mock.assert_any_call(script_runner.abort, "measure_script.abort")
@@ -67,19 +67,19 @@ def test_start_moving(
         call("measure_script.begin", script_runner=runner),
         call("measure_script.start_moving", script_runner=runner),
         call(
-            f"serial.{STEPPER_MOTOR_TOPIC}.move.begin",
+            f"device.{STEPPER_MOTOR_TOPIC}.move.begin",
             target=runner.script.sequence[0].angle,
         ),
-        call(f"serial.{STEPPER_MOTOR_TOPIC}.notify_on_stopped"),
+        call(f"device.{STEPPER_MOTOR_TOPIC}.notify_on_stopped"),
     )
     sendmsg_mock.assert_has_calls(calls)
 
     # Check subscriptions
     subscribe_mock.assert_any_call(
-        runner.start_measuring, f"serial.{STEPPER_MOTOR_TOPIC}.move.end"
+        runner.start_measuring, f"device.{STEPPER_MOTOR_TOPIC}.move.end"
     )
     subscribe_mock.assert_any_call(
-        runner._on_stepper_motor_error, f"serial.{STEPPER_MOTOR_TOPIC}.error"
+        runner._on_stepper_motor_error, f"device.error.{STEPPER_MOTOR_TOPIC}"
     )
     subscribe_mock.assert_any_call(runner._measuring_error, "opus.error")
     subscribe_mock.assert_any_call(runner._measuring_started, "opus.response.start")
@@ -111,10 +111,10 @@ def test_finish_moving(
 
     # Check we've unsubscribed from device messages
     unsubscribe_mock.assert_any_call(
-        script_runner.start_measuring, f"serial.{STEPPER_MOTOR_TOPIC}.move.end"
+        script_runner.start_measuring, f"device.{STEPPER_MOTOR_TOPIC}.move.end"
     )
     unsubscribe_mock.assert_any_call(
-        script_runner._on_stepper_motor_error, f"serial.{STEPPER_MOTOR_TOPIC}.error"
+        script_runner._on_stepper_motor_error, f"device.error.{STEPPER_MOTOR_TOPIC}"
     )
     unsubscribe_mock.assert_any_call(script_runner._measuring_error, "opus.error")
     unsubscribe_mock.assert_any_call(

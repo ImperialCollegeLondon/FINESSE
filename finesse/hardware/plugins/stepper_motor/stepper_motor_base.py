@@ -8,7 +8,7 @@ from finesse.hardware.device_base import DeviceBase
 from finesse.hardware.plugins import register_base_device_type
 from finesse.hardware.pubsub_decorators import pubsub_errors
 
-error_wrap = pubsub_errors(f"serial.{STEPPER_MOTOR_TOPIC}.error")
+error_wrap = pubsub_errors(f"device.error.{STEPPER_MOTOR_TOPIC}")
 """Broadcast exceptions via pubsub."""
 
 
@@ -30,17 +30,17 @@ class StepperMotorBase(DeviceBase):
 
         pub.subscribe(
             self._move_to,
-            f"serial.{STEPPER_MOTOR_TOPIC}.move.begin",
+            f"device.{STEPPER_MOTOR_TOPIC}.move.begin",
         )
-        pub.subscribe(self._stop_moving, f"serial.{STEPPER_MOTOR_TOPIC}.stop")
+        pub.subscribe(self._stop_moving, f"device.{STEPPER_MOTOR_TOPIC}.stop")
         pub.subscribe(
-            self._notify_on_stopped, f"serial.{STEPPER_MOTOR_TOPIC}.notify_on_stopped"
+            self._notify_on_stopped, f"device.{STEPPER_MOTOR_TOPIC}.notify_on_stopped"
         )
 
     @staticmethod
     def send_error_message(error: BaseException) -> None:
         """Send an error message when a device error has occurred."""
-        pub.sendMessage(f"serial.{STEPPER_MOTOR_TOPIC}.error", error=error)
+        pub.sendMessage(f"device.error.{STEPPER_MOTOR_TOPIC}", error=error)
 
     @staticmethod
     def preset_angle(name: str) -> float:

@@ -26,11 +26,11 @@ def test_init(name: str, subscribe_mock: MagicMock) -> None:
     dev = TC4820(name, MagicMock())
     assert dev.max_attempts == 3
     subscribe_mock.assert_any_call(
-        dev._request_properties, f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{name}.request"
+        dev._request_properties, f"device.{TEMPERATURE_CONTROLLER_TOPIC}.{name}.request"
     )
     subscribe_mock.assert_any_call(
         dev._change_set_point,
-        f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{name}.change_set_point",
+        f"device.{TEMPERATURE_CONTROLLER_TOPIC}.{name}.change_set_point",
     )
 
 

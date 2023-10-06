@@ -85,7 +85,7 @@ def test_close(dev: ST10Controller) -> None:
 def test_send_move_end_message(sendmsg_mock: MagicMock, dev: ST10Controller) -> None:
     """Test the _send_move_end_message() method."""
     dev._send_move_end_message()
-    sendmsg_mock.assert_called_once_with(f"serial.{STEPPER_MOTOR_TOPIC}.move.end")
+    sendmsg_mock.assert_called_once_with(f"device.{STEPPER_MOTOR_TOPIC}.move.end")
 
 
 def read_mock(dev: ST10Controller, return_value: str):
