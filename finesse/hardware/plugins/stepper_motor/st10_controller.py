@@ -14,7 +14,7 @@ from pubsub import pub
 from PySide6.QtCore import QThread, Signal, Slot
 from serial import Serial, SerialException, SerialTimeoutException
 
-from finesse.config import DEFAULT_ST10_BAUDRATE, STEPPER_MOTOR_TOPIC
+from finesse.config import STEPPER_MOTOR_TOPIC
 from finesse.hardware.plugins import register_serial_device_type
 
 from .stepper_motor_base import StepperMotorBase
@@ -153,7 +153,7 @@ class _SerialReader(QThread):
         return response
 
 
-@register_serial_device_type("ST10 controller", DEFAULT_ST10_BAUDRATE)
+@register_serial_device_type("ST10 controller", default_baudrate=9600)
 class ST10Controller(StepperMotorBase):
     """An interface for the ST10-Q-NN stepper motor controller.
 
@@ -221,7 +221,7 @@ class ST10Controller(StepperMotorBase):
 
     @Slot()
     def _send_move_end_message(self) -> None:
-        pub.sendMessage(f"serial.{STEPPER_MOTOR_TOPIC}.move.end")
+        pub.sendMessage(f"device.{STEPPER_MOTOR_TOPIC}.move.end")
 
     def _check_device_id(self) -> None:
         """Check that the ID is the correct one for an ST10.

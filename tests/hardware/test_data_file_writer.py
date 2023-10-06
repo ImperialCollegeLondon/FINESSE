@@ -55,7 +55,7 @@ def test_open(
         )
     )
     subscribe_mock.assert_any_call(
-        writer.write, f"serial.{TEMPERATURE_MONITOR_TOPIC}.data.response"
+        writer.write, f"device.{TEMPERATURE_MONITOR_TOPIC}.data.response"
     )
 
 
@@ -89,7 +89,7 @@ def test_close(
     fsync_mock.assert_called_once_with(42)
     csv_writer.close.assert_called_once_with()
     unsubscribe_mock.assert_called_once_with(
-        writer.write, f"serial.{TEMPERATURE_MONITOR_TOPIC}.data.response"
+        writer.write, f"device.{TEMPERATURE_MONITOR_TOPIC}.data.response"
     )
 
 

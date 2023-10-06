@@ -42,9 +42,9 @@ def test_preset_clicked(preset: str, sendmsg_mock: MagicMock, qtbot: QtBot) -> N
 
     # The motor should be stopped and then moved to this preset
     control._preset_clicked(btn)
-    sendmsg_mock.assert_any_call(f"serial.{STEPPER_MOTOR_TOPIC}.stop")
+    sendmsg_mock.assert_any_call(f"device.{STEPPER_MOTOR_TOPIC}.stop")
     sendmsg_mock.assert_any_call(
-        f"serial.{STEPPER_MOTOR_TOPIC}.move.begin", target=preset
+        f"device.{STEPPER_MOTOR_TOPIC}.move.begin", target=preset
     )
 
 
@@ -57,7 +57,7 @@ def test_goto_clicked(sendmsg_mock: MagicMock, qtbot: QtBot) -> None:
 
         # The motor should be stopped then moved to 123°
         control._preset_clicked(control.goto)
-        sendmsg_mock.assert_any_call(f"serial.{STEPPER_MOTOR_TOPIC}.stop")
+        sendmsg_mock.assert_any_call(f"device.{STEPPER_MOTOR_TOPIC}.stop")
         sendmsg_mock.assert_any_call(
-            f"serial.{STEPPER_MOTOR_TOPIC}.move.begin", target=123.0
+            f"device.{STEPPER_MOTOR_TOPIC}.move.begin", target=123.0
         )

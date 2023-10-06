@@ -105,4 +105,4 @@ class DummyStepperMotor(StepperMotorBase):
         logging.info("Move finished")
         if self._notify_requested:
             self._notify_requested = False
-            pub.sendMessage(f"serial.{STEPPER_MOTOR_TOPIC}.move.end")
+            pub.sendMessage(f"device.{STEPPER_MOTOR_TOPIC}.move.end")

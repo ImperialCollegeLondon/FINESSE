@@ -26,7 +26,7 @@ class DeviceBase(ABC):
         Args:
             name: A name to distinguish devices of the same type.
         """
-        self.topic = f"serial.{self._device_base_type_info.name}"
+        self.topic = f"device.{self._device_base_type_info.name}"
         """The name of the root pubsub topic on which this device will broadcast."""
 
         self.name = name

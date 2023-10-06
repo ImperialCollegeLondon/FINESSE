@@ -134,7 +134,7 @@ def test_on_move_end_notify(
     stepper._move_end_timer.timeout.emit()
 
     assert not stepper._notify_requested
-    sendmsg_mock.assert_called_once_with(f"serial.{STEPPER_MOTOR_TOPIC}.move.end")
+    sendmsg_mock.assert_called_once_with(f"device.{STEPPER_MOTOR_TOPIC}.move.end")
 
 
 def test_on_move_end_no_notify(

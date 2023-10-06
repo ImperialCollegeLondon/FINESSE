@@ -45,26 +45,14 @@ EM27_PROPERTY_POLL_INTERVAL = 60.0
 STEPPER_MOTOR_TOPIC = "stepper_motor"
 """The topic name to use for stepper motor-related messages."""
 
-DEFAULT_ST10_BAUDRATE = 9600
-"""The default baudrate to use for the ST10 controller."""
-
 TEMPERATURE_MONITOR_TOPIC = "temperature_monitor"
 """The topic name to use for temperature monitor-related messages."""
-
-DEFAULT_DP9800_BAUDRATE = 38400
-"""The default baudrate to use for DP9800 temperature monitors."""
 
 TEMPERATURE_CONTROLLER_TOPIC = "temperature_controller"
 """The topic name to use for temperature controller-related messages."""
 
-DEFAULT_TC4820_BAUDRATE = 115200
-"""The default baudrate to use for TC4820 temperature controllers."""
-
 OPUS_IP = "10.10.0.2"
 """The IP address of the machine running the OPUS software."""
-
-ALLOW_DUMMY_DEVICES = True
-"""Whether to allow the user to choose dummy serial devices."""
 
 TEMPERATURE_CONTROLLER_POLL_INTERVAL = 2
 """Number of seconds between temperature controller device reads."""

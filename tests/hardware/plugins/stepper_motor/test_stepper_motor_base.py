@@ -53,13 +53,13 @@ def test_init(subscribe_mock: MagicMock) -> None:
     stepper = _MockStepperMotor()
     subscribe_mock.assert_any_call(
         stepper._move_to,
-        f"serial.{STEPPER_MOTOR_TOPIC}.move.begin",
+        f"device.{STEPPER_MOTOR_TOPIC}.move.begin",
     )
     subscribe_mock.assert_any_call(
-        stepper._stop_moving, f"serial.{STEPPER_MOTOR_TOPIC}.stop"
+        stepper._stop_moving, f"device.{STEPPER_MOTOR_TOPIC}.stop"
     )
     subscribe_mock.assert_any_call(
-        stepper._notify_on_stopped, f"serial.{STEPPER_MOTOR_TOPIC}.notify_on_stopped"
+        stepper._notify_on_stopped, f"device.{STEPPER_MOTOR_TOPIC}.notify_on_stopped"
     )
 
 
@@ -81,5 +81,5 @@ def test_send_error_message(
     error = Exception()
     stepper.send_error_message(error)
     sendmsg_mock.assert_called_once_with(
-        f"serial.{STEPPER_MOTOR_TOPIC}.error", error=error
+        f"device.error.{STEPPER_MOTOR_TOPIC}", error=error
     )

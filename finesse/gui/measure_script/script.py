@@ -187,7 +187,7 @@ class ScriptRunner(StateMachine):
     finish_waiting_for_move = waiting_to_move.to(moving)
     """Stop waiting and start the next move."""
     cancel_move = moving.to(
-        not_running, after=lambda: pub.sendMessage(f"serial.{STEPPER_MOTOR_TOPIC}.stop")
+        not_running, after=lambda: pub.sendMessage(f"device.{STEPPER_MOTOR_TOPIC}.stop")
     )
     """Cancel the current movement."""
     start_measuring = moving.to(waiting_to_measure)
@@ -243,7 +243,7 @@ class ScriptRunner(StateMachine):
         self._check_status_timer.timeout.connect(_poll_em27_status)
 
         # Send stop command in case motor is moving
-        pub.sendMessage(f"serial.{STEPPER_MOTOR_TOPIC}.stop")
+        pub.sendMessage(f"device.{STEPPER_MOTOR_TOPIC}.stop")
 
         # Actions to control the script
         pub.subscribe(self.abort, "measure_script.abort")
@@ -267,9 +267,9 @@ class ScriptRunner(StateMachine):
             return
 
         # Stepper motor messages
-        pub.unsubscribe(self.start_measuring, f"serial.{STEPPER_MOTOR_TOPIC}.move.end")
+        pub.unsubscribe(self.start_measuring, f"device.{STEPPER_MOTOR_TOPIC}.move.end")
         pub.unsubscribe(
-            self._on_stepper_motor_error, f"serial.{STEPPER_MOTOR_TOPIC}.error"
+            self._on_stepper_motor_error, f"device.error.{STEPPER_MOTOR_TOPIC}"
         )
 
         # EM27 messages
@@ -283,9 +283,9 @@ class ScriptRunner(StateMachine):
     def on_exit_not_running(self) -> None:
         """Subscribe to pubsub messages for the stepper motor and OPUS."""
         # Listen for stepper motor messages
-        pub.subscribe(self.start_measuring, f"serial.{STEPPER_MOTOR_TOPIC}.move.end")
+        pub.subscribe(self.start_measuring, f"device.{STEPPER_MOTOR_TOPIC}.move.end")
         pub.subscribe(
-            self._on_stepper_motor_error, f"serial.{STEPPER_MOTOR_TOPIC}.error"
+            self._on_stepper_motor_error, f"device.error.{STEPPER_MOTOR_TOPIC}"
         )
 
         # Listen for EM27 messages
@@ -320,12 +320,12 @@ class ScriptRunner(StateMachine):
 
         # Start moving the stepper motor
         pub.sendMessage(
-            f"serial.{STEPPER_MOTOR_TOPIC}.move.begin",
+            f"device.{STEPPER_MOTOR_TOPIC}.move.begin",
             target=self.current_measurement.angle,
         )
 
         # Flag that we want a message when the movement has stopped
-        pub.sendMessage(f"serial.{STEPPER_MOTOR_TOPIC}.notify_on_stopped")
+        pub.sendMessage(f"device.{STEPPER_MOTOR_TOPIC}.notify_on_stopped")
 
     def on_enter_measuring(self) -> None:
         """Tell the EM27 to start a new measurement.
