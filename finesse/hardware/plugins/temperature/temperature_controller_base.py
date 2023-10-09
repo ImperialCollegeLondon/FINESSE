@@ -6,18 +6,17 @@ from typing import Any
 from pubsub import pub
 
 from finesse.config import TEMPERATURE_CONTROLLER_TOPIC
-from finesse.hardware.device_base import DeviceBase
-from finesse.hardware.plugins import register_device_base_type
+from finesse.hardware.device import DeviceBaseType
 from finesse.hardware.pubsub_decorators import pubsub_broadcast, pubsub_errors
 
 
-@register_device_base_type(
-    TEMPERATURE_CONTROLLER_TOPIC,
-    "Temperature controller",
+class TemperatureControllerBase(
+    DeviceBaseType,
+    name=TEMPERATURE_CONTROLLER_TOPIC,
+    description="Temperature controller",
     names_short=("hot_bb", "cold_bb"),
     names_long=("hot black body", "cold black body"),
-)
-class TemperatureControllerBase(DeviceBase):
+):
     """The base class for temperature controller devices or mock devices."""
 
     def __init__(self, name: str) -> None:

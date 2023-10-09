@@ -5,13 +5,11 @@ from pubsub import pub
 from PySide6.QtCore import QTimer
 
 from finesse.config import STEPPER_MOTOR_TOPIC
-from finesse.hardware.plugins import register_device_type
 
 from .stepper_motor_base import StepperMotorBase
 
 
-@register_device_type("Dummy stepper motor")
-class DummyStepperMotor(StepperMotorBase):
+class DummyStepperMotor(StepperMotorBase, description="Dummy stepper motor"):
     """A fake stepper motor device used for testing the GUI without the hardware.
 
     This class uses a simple timer to notify when the move is complete after a fixed

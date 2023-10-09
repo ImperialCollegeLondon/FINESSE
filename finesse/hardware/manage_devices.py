@@ -7,11 +7,11 @@ from pubsub import pub
 
 from finesse.device_info import DeviceInstanceRef
 
-from .device_base import DeviceBase
+from .device import Device, DeviceBaseType
 
-_devices: dict[DeviceInstanceRef, DeviceBase] = {}
+_devices: dict[DeviceInstanceRef, Device] = {}
 
-_T = TypeVar("_T", bound=DeviceBase)
+_T = TypeVar("_T", bound=DeviceBaseType)
 
 
 def get_device_instance(base_type: type[_T], name: str | None = None) -> _T | None:
@@ -40,7 +40,7 @@ def _open_device(
     """
     # Assume this is safe because module and class_name will not be provided directly by
     # the user
-    cls: DeviceBase = getattr(import_module(module), class_name)
+    cls: Device = getattr(import_module(module), class_name)
 
     logging.info(f"Opening device of type {instance.base_type}: {class_name}")
 

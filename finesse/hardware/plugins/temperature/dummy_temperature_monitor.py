@@ -4,7 +4,6 @@ from decimal import Decimal
 
 from finesse.config import NUM_TEMPERATURE_MONITOR_CHANNELS
 from finesse.hardware.noise_producer import NoiseParameters, NoiseProducer
-from finesse.hardware.plugins import register_device_type
 
 from .temperature_monitor_base import TemperatureMonitorBase
 
@@ -20,8 +19,9 @@ _DEFAULT_TEMP_PARAMS = [
 A random seed is used."""
 
 
-@register_device_type("Dummy temperature monitor")
-class DummyTemperatureMonitor(TemperatureMonitorBase):
+class DummyTemperatureMonitor(
+    TemperatureMonitorBase, description="Dummy temperature monitor"
+):
     """A dummy temperature monitor for GUI testing."""
 
     def __init__(
