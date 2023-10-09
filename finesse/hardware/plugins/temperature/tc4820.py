@@ -32,12 +32,12 @@ class MalformedMessageError(Exception):
 class TC4820(TemperatureControllerBase):
     """An interface for TC4820 temperature controllers."""
 
-    def __init__(self, name: str, serial: Serial, max_attempts: int = 3) -> None:
+    def __init__(self, serial: Serial, name: str, max_attempts: int = 3) -> None:
         """Create a new TC4820 from an existing serial device.
 
         Args:
-            name: The name of the device, to distinguish it from others
             serial: Serial device
+            name: The name of the device, to distinguish it from others
             max_attempts: Maximum number of attempts for requests
         """
         if max_attempts < 1:

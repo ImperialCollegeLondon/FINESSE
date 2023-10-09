@@ -17,13 +17,13 @@ from finesse.hardware.plugins.temperature.tc4820 import TC4820, MalformedMessage
 def dev(mocker: MockerFixture) -> TC4820:
     """Get an instance of a TC4820 object."""
     serial = mocker.patch("serial.Serial")
-    return TC4820("hot_bb", serial)
+    return TC4820(serial, "hot_bb")
 
 
 @pytest.mark.parametrize("name", ("hot_bb", "cold_bb"))
 def test_init(name: str, subscribe_mock: MagicMock) -> None:
     """Test TC4820's constructor."""
-    dev = TC4820(name, MagicMock())
+    dev = TC4820(MagicMock(), name)
     assert dev.max_attempts == 3
     subscribe_mock.assert_any_call(
         dev._request_properties, f"device.{TEMPERATURE_CONTROLLER_TOPIC}.{name}.request"
@@ -156,7 +156,7 @@ def test_request_int(
     Check that the retrying of requests works.
     """
     serial = mocker.patch("serial.Serial")
-    dev = TC4820("hot_bb", serial, max_attempts)
+    dev = TC4820(serial, "hot_bb", max_attempts)
 
     fail_count = 0
 

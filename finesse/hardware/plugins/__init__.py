@@ -3,8 +3,8 @@ import importlib
 import pkgutil
 import sys
 from collections.abc import Sequence
-from functools import partial
 from types import ModuleType
+from typing import Any
 
 from serial import Serial
 from serial.tools.list_ports import comports
@@ -52,9 +52,11 @@ def register_device_type(description: str):
     return wrapped
 
 
-def _serial_from_params(cls: type[DeviceBase], port: str, baudrate: str) -> DeviceBase:
+def _serial_from_params(
+    cls: type[DeviceBase], port: str, baudrate: str, **kwargs: Any
+) -> DeviceBase:
     """Create a new device object from the specified port and baudrate."""
-    return cls(Serial(port, int(baudrate)))
+    return cls(Serial(port, int(baudrate)), **kwargs)
 
 
 def register_serial_device_type(description: str, default_baudrate: int):
@@ -75,7 +77,7 @@ def register_serial_device_type(description: str, default_baudrate: int):
 
         # Override the default implementation to provide a factory function which
         # accepts port and baudrate directly rather than a Serial object
-        cls.from_params = partial(_serial_from_params, cls)  # type: ignore
+        cls.from_params = classmethod(_serial_from_params)  # type: ignore
 
         # Also apply the register_device_type() decorator
         return register_device_type(description)(cls)
