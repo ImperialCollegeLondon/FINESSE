@@ -101,7 +101,6 @@ def register_device_base_type(
         raise RuntimeError("Both short and long names must be provided.")
 
     def wrapped(cls: type[DeviceBase]):
-        global _base_types
         cls._device_base_type_info = DeviceBaseTypeInfo(
             name, description, names_short, names_long
         )
