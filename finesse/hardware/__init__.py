@@ -14,46 +14,18 @@ else:
 from datetime import datetime
 
 from finesse.config import NUM_TEMPERATURE_MONITOR_CHANNELS, TEMPERATURE_MONITOR_TOPIC
-from finesse.device_info import DeviceBaseTypeInfo, DeviceInstanceRef, DeviceTypeInfo
+from finesse.device_info import DeviceInstanceRef
 
 from . import data_file_writer  # noqa: F401
-from .plugins import load_device_types
+from .device import get_device_type_registry
 from .plugins.temperature import get_temperature_monitor_instance
 
 _opus: OPUSInterface
 
 
-def _get_device_type_info() -> dict[DeviceBaseTypeInfo, list[DeviceTypeInfo]]:
-    """Return info about device types grouped according to their base type."""
-    base_types, device_types = load_device_types()
-
-    # Get the base type info and sort it alphabetically by description
-    base_types_info = sorted(
-        (t.get_device_base_type_info() for t in base_types),
-        key=lambda info: info.description,
-    )
-
-    # Preallocate dict with empty lists
-    out: dict[DeviceBaseTypeInfo, list[DeviceTypeInfo]] = {
-        info: [] for info in base_types_info
-    }
-
-    # Get device type info and group by base type
-    for device_type in device_types:
-        out[device_type.get_device_base_type_info()].append(
-            device_type.get_device_type_info()
-        )
-
-    # Sort the device types by name
-    for infos in out.values():
-        infos.sort(key=lambda info: info.description)
-
-    return out
-
-
 def _broadcast_device_types() -> None:
     """Broadcast the available device types via pubsub."""
-    pub.sendMessage("device.list", device_types=_get_device_type_info())
+    pub.sendMessage("device.list", device_types=get_device_type_registry())
 
 
 def _try_get_temperatures() -> list[Decimal] | None:

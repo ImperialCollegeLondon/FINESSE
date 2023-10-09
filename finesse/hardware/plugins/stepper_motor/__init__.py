@@ -1,6 +1,6 @@
 """Code for interfacing with stepper motors."""
 
-from finesse.hardware.devices import get_device_instance
+from finesse.hardware.manage_devices import get_device_instance
 
 from .stepper_motor_base import StepperMotorBase
 

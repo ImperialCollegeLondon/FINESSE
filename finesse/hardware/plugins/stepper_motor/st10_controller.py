@@ -15,7 +15,7 @@ from PySide6.QtCore import QThread, Signal, Slot
 from serial import Serial, SerialException, SerialTimeoutException
 
 from finesse.config import STEPPER_MOTOR_TOPIC
-from finesse.hardware.plugins import register_serial_device_type
+from finesse.hardware.serial_device import SerialDevice
 
 from .stepper_motor_base import StepperMotorBase
 
@@ -153,8 +153,9 @@ class _SerialReader(QThread):
         return response
 
 
-@register_serial_device_type("ST10 controller", default_baudrate=9600)
-class ST10Controller(StepperMotorBase):
+class ST10Controller(
+    StepperMotorBase, SerialDevice, description="ST10 controller", default_baudrate=9600
+):
     """An interface for the ST10-Q-NN stepper motor controller.
 
     This class allows for moving the mirror to arbitrary positions and retrieving its
