@@ -91,8 +91,8 @@ def _close_all_devices() -> None:
     for device in _devices.values():
         try:
             device.close()
-        except Exception:
-            pass
+        except Exception as ex:
+            logging.warn(f"Error while closing {device.__class__}: {ex!s}")
 
 
 pub.subscribe(_open_device, "device.open")
