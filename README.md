@@ -2,6 +2,10 @@
 
 A graphical user interface for controlling and monitoring an interferometer device.
 
+---
+
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
 ## For developers
 
 Technical documentation is available on [FINESSE's GitHub Pages site](https://imperialcollegelondon.github.io/FINESSE/).
