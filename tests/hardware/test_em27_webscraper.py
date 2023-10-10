@@ -38,18 +38,17 @@ def em27_scraper(qtbot) -> EM27Scraper:
     return EM27Scraper()
 
 
-def test_init(
-    subscribe_mock: MagicMock,
-) -> None:  # adapted from test_data_file_writer's test_init()
+def test_init(subscribe_mock: MagicMock) -> None:
     """Test EM27Scraper's constructor."""
     scraper = EM27Scraper()
-    subscribe_mock.assert_any_call(scraper.send_data, "em27.data.request")
+    assert scraper._url == EM27_URL
+    subscribe_mock.assert_called_once_with(scraper.send_data, "em27.data.request")
 
 
 @patch("finesse.hardware.em27_scraper.get_em27sensor_data")
 def test_on_reply_received_no_error(
     get_em27sensor_data_mock: Mock, em27_scraper: EM27Scraper, sendmsg_mock: Mock, qtbot
-) -> None:  # adapted from test_opus_interface's test_on_reply_received_no_error()
+) -> None:
     """Test the _on_reply_received() method works when no error occurs."""
     reply = MagicMock()
     reply.error.return_value = QNetworkReply.NetworkError.NoError
@@ -62,14 +61,36 @@ def test_on_reply_received_no_error(
     sendmsg_mock.assert_called_once_with("em27.data.response", data="EM27Properties")
 
 
-def test_on_reply_received_network_error() -> None:
+def test_on_reply_received_network_error(
+    em27_scraper: EM27Scraper, sendmsg_mock: Mock, qtbot
+) -> None:
     """Test the _on_reply_received() method works when a network error occurs."""
-    pass
+    reply = MagicMock()
+    reply.error.return_value = QNetworkReply.NetworkError.HostNotFoundError
+    reply.errorString.return_value = "Host not found"
+
+    # Check the correct pubsub message is sent
+    em27_scraper._on_reply_received(reply)
+    sendmsg_mock.assert_called_with(
+        "em27.error", error=EM27Error("Network error: Host not found")
+    )
 
 
-def test_on_reply_received_exception() -> None:
+@patch("finesse.hardware.em27_scraper.get_em27sensor_data")
+def test_on_reply_received_exception(
+    get_em27sensor_data_mock: Mock, em27_scraper: EM27Scraper, sendmsg_mock: Mock, qtbot
+) -> None:
     """Test the _on_reply_received() method works when an exception is raised."""
-    pass
+    reply = MagicMock()
+    reply.error.return_value = QNetworkReply.NetworkError.NoError
+
+    # Make get_em27sensor_data() raise an exception
+    error = Exception()
+    get_em27sensor_data_mock.side_effect = error
+
+    # Check the correct pubsub message is sent
+    em27_scraper._on_reply_received(reply)
+    sendmsg_mock.assert_called_with("em27.error", error=error)
 
 
 @patch("finesse.hardware.em27_scraper.QNetworkRequest")
