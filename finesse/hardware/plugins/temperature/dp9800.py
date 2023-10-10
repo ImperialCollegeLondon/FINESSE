@@ -1,7 +1,7 @@
 """This module provides an interface to DP9800 temperature readers."""
 from decimal import Decimal
 
-from serial import Serial, SerialException
+from serial import SerialException
 
 from finesse.hardware.serial_device import SerialDevice
 
@@ -84,26 +84,13 @@ class DP9800Error(Exception):
 
 
 class DP9800(
-    TemperatureMonitorBase, SerialDevice, description="DP9800", default_baudrate=38400
+    SerialDevice, TemperatureMonitorBase, description="DP9800", default_baudrate=38400
 ):
     """An interface for DP9800 temperature readers.
 
     The manual for this device is available at:
     https://assets.omega.com/manuals/M5210.pdf
     """
-
-    def __init__(self, serial: Serial) -> None:
-        """Create a new DP9800 from an existing serial device.
-
-        Args:
-            serial: Serial device
-        """
-        self.serial = serial
-        super().__init__()
-
-    def close(self) -> None:
-        """Close the connection to the device."""
-        self.serial.close()
 
     def get_device_settings(self, sysflag: str) -> dict[str, str]:
         """Provide the settings of the device as stored in the system flag.

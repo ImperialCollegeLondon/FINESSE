@@ -130,11 +130,6 @@ class Device(ABC):
             cls.__name__,
         )
 
-    @classmethod
-    def from_params(cls, **kwargs: Any) -> Device:
-        """Create an instance of this object from the specified keyword args."""
-        return cls(**kwargs)
-
 
 class DeviceBaseType(Device):
     """A class representing a type of device (e.g. a stepper motor)."""

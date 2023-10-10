@@ -1,4 +1,7 @@
 """Provides a base class for USB serial devices."""
+from __future__ import annotations
+
+from collections.abc import Callable
 from typing import Any
 
 from serial import Serial
@@ -32,8 +35,13 @@ class SerialDevice(Device):
     """A base class for USB serial devices.
 
     Note that it is not sufficient for a device type class to inherit from this class
-    alone: it must also inherit from a device base class.
+    alone: it must also inherit from a device base class. When doing so, this class
+    *must* be listed before any other parent classes, otherwise the ABC won't be able to
+    find this class's implementation of close() and will complain about missing
+    functions.
     """
+
+    serial: Serial
 
     def __init_subclass__(cls, default_baudrate: int, **kwargs: Any) -> None:
         """Add serial-specific device parameters to the class."""
@@ -47,9 +55,24 @@ class SerialDevice(Device):
             ),
         ]
 
-    @classmethod
-    def from_params(  # type: ignore[override]
-        cls, port: str, baudrate: str, **kwargs: Any
-    ) -> Device:
-        """Create a new device object from the specified port and baudrate."""
-        return cls(Serial(port, int(baudrate)), **kwargs)
+        def new_init(
+            func: Callable,
+        ):
+            def inner(
+                self: SerialDevice,
+                port: str,
+                baudrate: str,
+                *args: Any,
+                **kwargs: Any,
+            ):
+                self.serial = Serial(port, int(baudrate))
+                func(self, *args, **kwargs)
+
+            return inner
+
+        # Patch __init__ with a version which creates self.serial first
+        cls.__init__ = new_init(cls.__init__)  # type: ignore [method-assign]
+
+    def close(self) -> None:
+        """Close the connection to the device."""
+        self.serial.close()

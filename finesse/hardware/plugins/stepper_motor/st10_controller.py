@@ -154,7 +154,7 @@ class _SerialReader(QThread):
 
 
 class ST10Controller(
-    StepperMotorBase, SerialDevice, description="ST10 controller", default_baudrate=9600
+    SerialDevice, StepperMotorBase, description="ST10 controller", default_baudrate=9600
 ):
     """An interface for the ST10-Q-NN stepper motor controller.
 
@@ -168,22 +168,18 @@ class ST10Controller(
     ST10_MODEL_ID = "107F024"
     """The model and revision number for the ST10 controller we are using."""
 
-    def __init__(self, serial: Serial) -> None:
+    def __init__(self) -> None:
         """Create a new ST10Controller.
-
-        Args:
-            serial: The serial device to communicate with the ST10 controller
 
         Raises:
             SerialException: Error communicating with device
             SerialTimeoutException: Timed out waiting for response from device
             ST10ControllerError: Malformed message received from device
         """
-        self.serial = serial
         timeout = self.serial.timeout
         self.serial.timeout = None
 
-        self._reader = _SerialReader(serial, timeout)
+        self._reader = _SerialReader(self.serial, timeout)
         self._reader.async_read_completed.connect(self._send_move_end_message)
         self._reader.read_error.connect(self.send_error_message)
         self._reader.start()
@@ -218,7 +214,7 @@ class ST10Controller(
 
         # If _reader is blocking on a read (which is likely), we could end up waiting
         # forever, so close the socket so that the read operation will terminate
-        self.serial.close()
+        super().close()
 
     @Slot()
     def _send_move_end_message(self) -> None:

@@ -54,7 +54,7 @@ def _open_device(
         params = params | {"name": instance.name}
 
     try:
-        _devices[instance] = cls.from_params(**params)
+        _devices[instance] = cls(**params)  # type: ignore[operator]
     except Exception as error:
         logging.error(f"Failed to open {instance.topic} device: {str(error)}")
         pub.sendMessage(
