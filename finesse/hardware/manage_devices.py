@@ -7,11 +7,11 @@ from pubsub import pub
 
 from finesse.device_info import DeviceInstanceRef
 
-from .device import Device, DeviceBaseType
+from .device import Device
 
 _devices: dict[DeviceInstanceRef, Device] = {}
 
-_T = TypeVar("_T", bound=DeviceBaseType)
+_T = TypeVar("_T", bound=Device)
 
 
 def get_device_instance(base_type: type[_T], name: str | None = None) -> _T | None:

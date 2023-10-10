@@ -1,8 +1,9 @@
 """Provides base classes for all types of devices.
 
 The Device class is the top-level base class from which all devices ultimately inherit.
-The DeviceBaseType is a base class for *types* of devices (e.g. a stepper motor). All
-concrete classes for devices must inherit from a particular DeviceBaseType.
+Concrete classes for devices must not inherit directly from this class, but instead
+should inherit from a device base class (defined by passing is_base_type to the class
+constructor).
 """
 from __future__ import annotations
 
@@ -14,7 +15,7 @@ from finesse.device_info import DeviceBaseTypeInfo, DeviceParameter, DeviceTypeI
 
 from .plugins import load_all_plugins
 
-_base_types: set[type[DeviceBaseType]] = set()
+_base_types: set[type[Device]] = set()
 """Registry of device base types."""
 
 _device_types: set[type[Device]] = set()
@@ -50,8 +51,8 @@ def get_device_type_registry() -> dict[DeviceBaseTypeInfo, list[DeviceTypeInfo]]
     return out
 
 
-class Device(ABC):
-    """A base class for all devices."""
+class AbstractDevice(ABC):
+    """An abstract base class for devices."""
 
     _device_base_type_info: DeviceBaseTypeInfo
     """Information about the device's base type."""
@@ -63,23 +64,81 @@ class Device(ABC):
     The key represents the parameter name and the value is a list of possible values.
     """
 
-    def __init_subclass__(cls, description: str | None = None, **kwargs: Any) -> None:
+    @abstractmethod
+    def close(self) -> None:
+        """Close the connection to the device."""
+
+    @classmethod
+    def get_device_base_type_info(cls) -> DeviceBaseTypeInfo:
+        """Get information about the base type for this device type."""
+        return cls._device_base_type_info
+
+    @classmethod
+    def get_device_type_info(cls) -> DeviceTypeInfo:
+        """Get information about this device type."""
+        return DeviceTypeInfo(
+            cls._device_description,
+            cls._device_parameters,
+            cls.__module__,
+            cls.__name__,
+        )
+
+
+class Device(AbstractDevice):
+    """A base class for device types.
+
+    This class is the base class for device base types and (indirectly) concrete device
+    type classes. Unlike AbstractDevice, it provides an __init_subclass__ method to
+    initialise the its subclasses differently depending on whether or not they are
+    defined as device base types or not.
+    """
+
+    def __init_subclass__(cls, is_base_type: bool = False, **kwargs: Any) -> None:
         """Initialise a device type class.
 
-        While the description argument has to be optional to allow for non-concrete
-        classes to inherit from Device, it is mandatory to include it, else the device
-        type class will not be added to the registry.
-
         Args:
-            description: Human-readable name for this device type.
+            is_base_type: Whether this class represents a device base type
         """
-        # Forward keyword args to allow for multiple inheritance
+        # If it is a base class, we initialise it as such
+        if is_base_type:
+            cls._init_base_type(**kwargs)
+            return
+
+        # If it is not, it should inherit from one
+        if not set(cls.__bases__).intersection(_base_types):
+            raise ValueError(
+                f"Class {cls.__name__} must be a device base type or inherit from one."
+            )
+
+        # And we initialise it as a concrete device class
+        cls._init_device_type(**kwargs)
+
+    @classmethod
+    def _init_base_type(
+        cls,
+        name: str,
+        description: str,
+        names_short: Sequence[str] = (),
+        names_long: Sequence[str] = (),
+        **kwargs,
+    ) -> None:
         super().__init_subclass__(**kwargs)
 
-        # **HACK**: Allow callers to omit this arg in the case that they are
-        # non-concrete
-        if not description:
-            return
+        # Store metadata about this base class
+        cls._device_base_type_info = DeviceBaseTypeInfo(
+            name, description, names_short, names_long
+        )
+
+        # Add the class to the registry of base types
+        _base_types.add(cls)
+
+    @classmethod
+    def _init_device_type(
+        cls,
+        description: str,
+        **kwargs,
+    ) -> None:
+        super().__init_subclass__(**kwargs)
 
         # Set device description for this class
         cls._device_description = description
@@ -110,59 +169,3 @@ class Device(ABC):
             raise RuntimeError("Invalid name given for device")
 
         self.topic += f".{name}"
-
-    @abstractmethod
-    def close(self) -> None:
-        """Close the connection to the device."""
-
-    @classmethod
-    def get_device_base_type_info(cls) -> DeviceBaseTypeInfo:
-        """Get information about the base type for this device type."""
-        return cls._device_base_type_info
-
-    @classmethod
-    def get_device_type_info(cls) -> DeviceTypeInfo:
-        """Get information about this device type."""
-        return DeviceTypeInfo(
-            cls._device_description,
-            cls._device_parameters,
-            cls.__module__,
-            cls.__name__,
-        )
-
-
-class DeviceBaseType(Device):
-    """A class representing a type of device (e.g. a stepper motor)."""
-
-    def __init_subclass__(
-        cls,
-        **kwargs,
-    ) -> None:
-        """Initialise a class representing a device base type.
-
-        NB: Only classes which inherit from DeviceBaseClass *directly* are counted as
-        base types.
-        """
-        if DeviceBaseType in cls.__bases__:
-            cls._init_base_type(**kwargs)
-        else:
-            # For all other cases, just call the parent's __init_subclass__
-            super().__init_subclass__(**kwargs)
-
-    @classmethod
-    def _init_base_type(
-        cls,
-        name: str,
-        description: str,
-        names_short: Sequence[str] = (),
-        names_long: Sequence[str] = (),
-        **kwargs,
-    ) -> None:
-        super().__init_subclass__(**kwargs)
-        # Store metadata about this base class
-        cls._device_base_type_info = DeviceBaseTypeInfo(
-            name, description, names_short, names_long
-        )
-
-        # Add the class to the registry of base types
-        _base_types.add(cls)

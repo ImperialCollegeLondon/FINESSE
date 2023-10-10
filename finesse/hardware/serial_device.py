@@ -10,7 +10,7 @@ from serial.tools.list_ports import comports
 from finesse.config import BAUDRATES
 from finesse.device_info import DeviceParameter
 
-from .device import Device
+from .device import AbstractDevice
 
 _serial_ports: list[str] | None = None
 
@@ -31,7 +31,7 @@ def _get_usb_serial_ports() -> list[str]:
     return _serial_ports
 
 
-class SerialDevice(Device):
+class SerialDevice(AbstractDevice):
     """A base class for USB serial devices.
 
     Note that it is not sufficient for a device type class to inherit from this class

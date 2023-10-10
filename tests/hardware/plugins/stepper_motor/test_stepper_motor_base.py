@@ -8,7 +8,7 @@ from finesse.device_info import DeviceInstanceRef
 from finesse.hardware.plugins.stepper_motor.stepper_motor_base import StepperMotorBase
 
 
-class _MockStepperMotor(StepperMotorBase):
+class _MockStepperMotor(StepperMotorBase, description="Mock stepper motor"):
     def __init__(self) -> None:
         self._steps_per_rotation = 1
         self._step = 0

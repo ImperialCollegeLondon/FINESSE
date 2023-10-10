@@ -3,11 +3,12 @@ from abc import abstractmethod
 from decimal import Decimal
 
 from finesse.config import TEMPERATURE_MONITOR_TOPIC
-from finesse.hardware.device import DeviceBaseType
+from finesse.hardware.device import Device
 
 
 class TemperatureMonitorBase(
-    DeviceBaseType,
+    Device,
+    is_base_type=True,
     name=TEMPERATURE_MONITOR_TOPIC,
     description="Temperature monitor",
 ):
