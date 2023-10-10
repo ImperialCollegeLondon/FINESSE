@@ -15,7 +15,7 @@ from __future__ import annotations
 import logging
 from decimal import Decimal
 
-from serial import Serial, SerialException
+from serial import SerialException
 
 from finesse.hardware.serial_device import SerialDevice
 
@@ -29,32 +29,26 @@ class MalformedMessageError(Exception):
 
 
 class TC4820(
-    TemperatureControllerBase,
     SerialDevice,
+    TemperatureControllerBase,
     description="TC4820",
     default_baudrate=115200,
 ):
     """An interface for TC4820 temperature controllers."""
 
-    def __init__(self, serial: Serial, name: str, max_attempts: int = 3) -> None:
+    def __init__(self, name: str, max_attempts: int = 3) -> None:
         """Create a new TC4820 from an existing serial device.
 
         Args:
-            serial: Serial device
             name: The name of the device, to distinguish it from others
             max_attempts: Maximum number of attempts for requests
         """
         if max_attempts < 1:
             raise ValueError("max_attempts must be at least 1")
 
-        self.serial = serial
         self.max_attempts = max_attempts
 
         super().__init__(name)
-
-    def close(self) -> None:
-        """Shut down the device."""
-        self.serial.close()
 
     def read(self) -> int:
         """Read a message from the TC4820 and decode the number as a signed integer.
