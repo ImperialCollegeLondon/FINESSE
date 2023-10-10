@@ -5,7 +5,7 @@ from pubsub import pub
 
 from finesse.config import ANGLE_PRESETS, STEPPER_MOTOR_TOPIC
 from finesse.device_info import DeviceInstanceRef
-from finesse.hardware.device import DeviceBaseType
+from finesse.hardware.device import Device
 from finesse.hardware.pubsub_decorators import pubsub_errors
 
 error_wrap = pubsub_errors(
@@ -16,7 +16,7 @@ error_wrap = pubsub_errors(
 
 
 class StepperMotorBase(
-    DeviceBaseType, name=STEPPER_MOTOR_TOPIC, description="Stepper motor"
+    Device, is_base_type=True, name=STEPPER_MOTOR_TOPIC, description="Stepper motor"
 ):
     """A base class for stepper motor implementations."""
 

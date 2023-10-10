@@ -6,12 +6,13 @@ from typing import Any
 from pubsub import pub
 
 from finesse.config import TEMPERATURE_CONTROLLER_TOPIC
-from finesse.hardware.device import DeviceBaseType
+from finesse.hardware.device import Device
 from finesse.hardware.pubsub_decorators import pubsub_broadcast, pubsub_errors
 
 
 class TemperatureControllerBase(
-    DeviceBaseType,
+    Device,
+    is_base_type=True,
     name=TEMPERATURE_CONTROLLER_TOPIC,
     description="Temperature controller",
     names_short=("hot_bb", "cold_bb"),
