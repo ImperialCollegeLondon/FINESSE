@@ -143,9 +143,11 @@ class DeviceBaseType(Device):
         cls,
         **kwargs,
     ) -> None:
-        """Initialise a class representing a device base type."""
-        # Only classes which inherit from DeviceBaseClass *directly* are counted as base
-        # types
+        """Initialise a class representing a device base type.
+
+        NB: Only classes which inherit from DeviceBaseClass *directly* are counted as
+        base types.
+        """
         if DeviceBaseType in cls.__bases__:
             cls._init_base_type(**kwargs)
         else:
