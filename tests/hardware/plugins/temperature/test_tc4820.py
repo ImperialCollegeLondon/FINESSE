@@ -121,7 +121,7 @@ def test_read(
     """Test TC4820.read()."""
     with raises:
         m = mocker.patch("serial.Serial.read_until", return_value=message)
-        assert value == dev.read()
+        assert value == dev.read_int()
         m.assert_called_once_with(b"^", size=8)
 
 
@@ -130,7 +130,7 @@ def test_write(value: int, dev: TC4820, mocker: MockerFixture) -> None:
     """Test TC4820.write()."""
     str_value = f"{value:0{4}x}"
     m = mocker.patch("serial.Serial.write")
-    dev.write(str_value)
+    dev.send_command(str_value)
     m.assert_called_once_with(format_message(value, checksum(value), eol="\r"))
 
 

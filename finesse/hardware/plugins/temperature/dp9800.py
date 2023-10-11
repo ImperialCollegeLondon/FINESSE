@@ -1,5 +1,6 @@
 """This module provides an interface to DP9800 temperature readers."""
 from decimal import Decimal
+from typing import Any
 
 from serial import SerialException
 
@@ -92,6 +93,16 @@ class DP9800(
     https://assets.omega.com/manuals/M5210.pdf
     """
 
+    def __init__(self, *serial_args: Any, **serial_kwargs: Any) -> None:
+        """Create a new DP9800.
+
+        Args:
+            serial_args: Arguments to Serial constructor
+            serial_kwargs: Keyword arguments to Serial constructor
+        """
+        SerialDevice.__init__(self, *serial_args, **serial_kwargs)
+        TemperatureMonitorBase.__init__(self)
+
     def get_device_settings(self, sysflag: str) -> dict[str, str]:
         """Provide the settings of the device as stored in the system flag.
 
@@ -120,7 +131,7 @@ class DP9800(
             "temperature_unit": ["deg C", "deg F"][int(sysflag[7])],
         }
 
-    def read(self) -> bytes:
+    def read_temperature_data(self) -> bytes:
         """Read temperature data from the DP9800.
 
         The DP9800 returns a sequence of bytes containing the
@@ -185,6 +196,6 @@ class DP9800(
     def get_temperatures(self) -> list[Decimal]:
         """Get the current temperatures."""
         self.request_read()
-        data = self.read()
+        data = self.read_temperature_data()
         temperatures, _ = parse_data(data)
         return temperatures

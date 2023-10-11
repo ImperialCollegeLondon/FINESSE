@@ -9,6 +9,7 @@ The specification is available online:
 
 import logging
 from queue import Queue
+from typing import Any
 
 from pubsub import pub
 from PySide6.QtCore import QThread, Signal, Slot
@@ -168,16 +169,22 @@ class ST10Controller(
     ST10_MODEL_ID = "107F024"
     """The model and revision number for the ST10 controller we are using."""
 
-    def __init__(self) -> None:
+    def __init__(
+        self, *serial_args: Any, timeout: float = 5.0, **serial_kwargs: Any
+    ) -> None:
         """Create a new ST10Controller.
+
+        Args:
+            serial_args: Arguments to pass to Serial constructor
+            timeout: Connection timeout
+            serial_kwargs: Keyword arguments to pass to Serial constructor
 
         Raises:
             SerialException: Error communicating with device
             SerialTimeoutException: Timed out waiting for response from device
             ST10ControllerError: Malformed message received from device
         """
-        timeout = self.serial.timeout
-        self.serial.timeout = None
+        SerialDevice.__init__(self, *serial_args, **serial_kwargs)
 
         self._reader = _SerialReader(self.serial, timeout)
         self._reader.async_read_completed.connect(self._send_move_end_message)
@@ -193,7 +200,7 @@ class ST10Controller(
         # Move mirror to home position
         self._home_and_reset()
 
-        super().__init__()
+        StepperMotorBase.__init__(self)
 
     def close(self) -> None:
         """Leave mirror facing downwards when finished.

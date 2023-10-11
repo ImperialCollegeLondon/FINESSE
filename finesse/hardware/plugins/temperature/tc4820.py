@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import logging
 from decimal import Decimal
+from typing import Any
 
 from serial import SerialException
 
@@ -36,21 +37,26 @@ class TC4820(
 ):
     """An interface for TC4820 temperature controllers."""
 
-    def __init__(self, name: str, max_attempts: int = 3) -> None:
+    def __init__(
+        self, name: str, *serial_args: Any, max_attempts: int = 3, **serial_kwargs: Any
+    ) -> None:
         """Create a new TC4820 from an existing serial device.
 
         Args:
             name: The name of the device, to distinguish it from others
+            serial_args: Arguments to pass to Serial constructor
             max_attempts: Maximum number of attempts for requests
+            serial_kwargs: Keyword arguments to pass to Serial constructor
         """
         if max_attempts < 1:
             raise ValueError("max_attempts must be at least 1")
 
         self.max_attempts = max_attempts
 
-        super().__init__(name)
+        SerialDevice.__init__(self, *serial_args, **serial_kwargs)
+        TemperatureControllerBase.__init__(self, name)
 
-    def read(self) -> int:
+    def read_int(self) -> int:
         """Read a message from the TC4820 and decode the number as a signed integer.
 
         Valid messages have the form "*{number}{checksum}^", where {number} is a signed
@@ -97,7 +103,7 @@ class TC4820(
         # ...then convert the raw bytes to a signed int
         return int.from_bytes(int_bytes, byteorder="big", signed=True)
 
-    def write(self, command: str) -> None:
+    def send_command(self, command: str) -> None:
         """Write a message to the TC4820.
 
         The command is usually an integer represented as a zero-padded six-char
@@ -128,10 +134,10 @@ class TC4820(
                              max attempts was exceeded
         """
         for _ in range(self.max_attempts):
-            self.write(command)
+            self.send_command(command)
 
             try:
-                return self.read()
+                return self.read_int()
             except MalformedMessageError as e:
                 logging.warn(f"Malformed message: {str(e)}; retrying")
 
