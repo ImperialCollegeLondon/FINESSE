@@ -12,18 +12,19 @@ from serial import SerialException
 from finesse.config import TEMPERATURE_CONTROLLER_TOPIC
 from finesse.hardware.plugins.temperature.tc4820 import TC4820, MalformedMessageError
 
+_SERIAL_ARGS = ("COM1", 9600)
+
 
 @pytest.fixture
-def dev(mocker: MockerFixture) -> TC4820:
+def dev(serial_mock: MagicMock) -> TC4820:
     """Get an instance of a TC4820 object."""
-    serial = mocker.patch("serial.Serial")
-    return TC4820(serial, "hot_bb")
+    return TC4820("hot_bb", *_SERIAL_ARGS)
 
 
 @pytest.mark.parametrize("name", ("hot_bb", "cold_bb"))
-def test_init(name: str, subscribe_mock: MagicMock) -> None:
+def test_init(name: str, subscribe_mock: MagicMock, serial_mock: MagicMock) -> None:
     """Test TC4820's constructor."""
-    dev = TC4820(MagicMock(), name)
+    dev = TC4820(name, *_SERIAL_ARGS)
     assert dev.max_attempts == 3
     subscribe_mock.assert_any_call(
         dev._request_properties, f"device.{TEMPERATURE_CONTROLLER_TOPIC}.{name}.request"
@@ -115,23 +116,22 @@ for c in range(0, 128, 10):
         ],
     ),
 )
-def test_read(
-    value: int, message: bytes, raises: Any, dev: TC4820, mocker: MockerFixture
-) -> None:
+def test_read(value: int, message: bytes, raises: Any, dev: TC4820) -> None:
     """Test TC4820.read()."""
     with raises:
-        m = mocker.patch("serial.Serial.read_until", return_value=message)
-        assert value == dev.read_int()
-        m.assert_called_once_with(b"^", size=8)
+        with patch.object(dev.serial, "read_until", return_value=message) as mock:
+            assert value == dev.read_int()
+            mock.assert_called_once_with(b"^", size=8)
 
 
 @pytest.mark.parametrize("value", range(0, 0xFFFF, 200))
-def test_write(value: int, dev: TC4820, mocker: MockerFixture) -> None:
+def test_write(value: int, dev: TC4820) -> None:
     """Test TC4820.write()."""
     str_value = f"{value:0{4}x}"
-    m = mocker.patch("serial.Serial.write")
     dev.send_command(str_value)
-    m.assert_called_once_with(format_message(value, checksum(value), eol="\r"))
+    dev.serial.write.assert_called_once_with(
+        format_message(value, checksum(value), eol="\r")
+    )
 
 
 @pytest.mark.parametrize(
@@ -149,14 +149,13 @@ def test_write(value: int, dev: TC4820, mocker: MockerFixture) -> None:
     ],
 )
 def test_request_int(
-    max_attempts: int, fail_max: int, raises: Any, mocker: MockerFixture
+    max_attempts: int, fail_max: int, raises: Any, dev: TC4820
 ) -> None:
     """Test TC4820.request_int().
 
     Check that the retrying of requests works.
     """
-    serial = mocker.patch("serial.Serial")
-    dev = TC4820(serial, "hot_bb", max_attempts)
+    dev.max_attempts = max_attempts
 
     fail_count = 0
 
@@ -169,12 +168,12 @@ def test_request_int(
 
         return 0
 
-    mocker.patch.object(dev, "read", my_read)
-    write = mocker.patch("finesse.hardware.plugins.temperature.tc4820.TC4820.write")
+    send_mock = MagicMock()
     with raises:
-        assert dev.request_int("some string") == 0
-
-    write.assert_called_with("some string")
+        with patch.object(dev, "send_command", send_mock):
+            with patch.object(dev, "read_int", my_read):
+                assert dev.request_int("some string") == 0
+    send_mock.assert_called_with("some string")
 
 
 @pytest.mark.parametrize(
