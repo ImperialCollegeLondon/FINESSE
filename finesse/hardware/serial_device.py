@@ -1,7 +1,6 @@
 """Provides a base class for USB serial devices."""
 from __future__ import annotations
 
-from collections.abc import Callable
 from typing import Any
 
 from serial import Serial
@@ -42,6 +41,7 @@ class SerialDevice(AbstractDevice):
     """
 
     serial: Serial
+    """Underlying serial device."""
 
     def __init_subclass__(cls, default_baudrate: int, **kwargs: Any) -> None:
         """Add serial-specific device parameters to the class."""
@@ -55,23 +55,9 @@ class SerialDevice(AbstractDevice):
             ),
         ]
 
-        def new_init(
-            func: Callable,
-        ):
-            def inner(
-                self: SerialDevice,
-                port: str,
-                baudrate: str,
-                *args: Any,
-                **kwargs: Any,
-            ):
-                self.serial = Serial(port, int(baudrate))
-                func(self, *args, **kwargs)
-
-            return inner
-
-        # Patch __init__ with a version which creates self.serial first
-        cls.__init__ = new_init(cls.__init__)  # type: ignore [method-assign]
+    def __init__(self, *serial_args: Any, **serial_kwargs: Any) -> None:
+        """Create a new serial device."""
+        self.serial = Serial(*serial_args, **serial_kwargs)
 
     def close(self) -> None:
         """Close the connection to the device."""
