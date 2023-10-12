@@ -4,12 +4,14 @@ import logging
 from PySide6.QtWidgets import QMessageBox, QWidget
 
 
-def show_error_message(parent: QWidget | None, msg: str) -> None:
+def show_error_message(
+    parent: QWidget | None, msg: str, title="An error has occurred"
+) -> None:
     """Show an error message in the GUI and write to the program log."""
     # Show popup box in GUI
     msg_box = QMessageBox(
         QMessageBox.Icon.Critical,
-        "An error has occurred",
+        title,
         msg,
         QMessageBox.StandardButton.Ok,
         parent,

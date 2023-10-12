@@ -6,7 +6,6 @@ from PySide6.QtWidgets import (
     QComboBox,
     QGroupBox,
     QHBoxLayout,
-    QMessageBox,
     QPushButton,
     QSizePolicy,
     QVBoxLayout,
@@ -15,6 +14,8 @@ from PySide6.QtWidgets import (
 
 from finesse.device_info import DeviceBaseTypeInfo, DeviceInstanceRef, DeviceTypeInfo
 from finesse.settings import settings
+
+from .error_message import show_error_message
 
 
 def _create_device_widgets(
@@ -232,12 +233,11 @@ class DeviceTypeControl(QGroupBox):
         Todo:
             The name of the device isn't currently very human readable.
         """
-        QMessageBox(
-            QMessageBox.Icon.Critical,
-            "A device error has occurred",
-            "A fatal error has occurred with the "
-            f"{instance.topic} device: {error!s}",
-        ).exec()
+        show_error_message(
+            self,
+            f"A fatal error has occurred with the {instance.topic} device: {error!s}",
+            title="Device error",
+        )
 
     def _on_open_close_clicked(self) -> None:
         """Open/close the connection of the chosen device when the button is pushed."""
