@@ -58,7 +58,7 @@ class AbstractDevice(ABC):
     """Information about the device's base type."""
     _device_description: str
     """A human-readable name."""
-    _device_parameters: list[DeviceParameter] = []
+    _device_parameters: list[DeviceParameter] | None = None
     """Possible parameters that this device type accepts.
 
     The key represents the parameter name and the value is a list of possible values.
@@ -67,6 +67,19 @@ class AbstractDevice(ABC):
     @abstractmethod
     def close(self) -> None:
         """Close the connection to the device."""
+
+    @classmethod
+    def add_device_parameters(cls, *parameters: DeviceParameter) -> None:
+        """Add extra parameters for this device class."""
+        if cls._device_parameters is None:
+            cls._device_parameters = []
+
+        cls._device_parameters.extend(parameters)
+
+    @classmethod
+    def get_device_parameters(cls) -> list[DeviceParameter]:
+        """Get the parameters for this device class."""
+        return cls._device_parameters or []
 
     @classmethod
     def get_device_base_type_info(cls) -> DeviceBaseTypeInfo:
@@ -78,7 +91,7 @@ class AbstractDevice(ABC):
         """Get information about this device type."""
         return DeviceTypeInfo(
             cls._device_description,
-            cls._device_parameters,
+            cls.get_device_parameters(),
             cls.__module__,
             cls.__name__,
         )

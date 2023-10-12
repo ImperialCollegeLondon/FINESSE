@@ -47,13 +47,13 @@ class SerialDevice(AbstractDevice):
         """Add serial-specific device parameters to the class."""
         super().__init_subclass__(**kwargs)
 
-        # TODO: Allow for adding parameters elsewhere rather than clobbering them
-        cls._device_parameters = [
+        # Extra, serial-specific parameters
+        cls.add_device_parameters(
             DeviceParameter("port", _get_usb_serial_ports()),
             DeviceParameter(
                 "baudrate", list(map(str, BAUDRATES)), str(default_baudrate)
             ),
-        ]
+        )
 
     def __init__(self, *serial_args: Any, **serial_kwargs: Any) -> None:
         """Create a new serial device."""
