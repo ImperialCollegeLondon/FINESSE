@@ -100,6 +100,9 @@ class _SerialReader(QThread):
             raise ST10ControllerError(f"Invalid message received: {repr(raw)}")
 
     def _read_error(self, error: BaseException) -> None:
+        if self.stopping:
+            return
+
         # Return the error synchronously to the first waiter
         self.out_queue.put(error)
 
