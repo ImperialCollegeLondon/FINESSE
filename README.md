@@ -8,6 +8,7 @@ A graphical user interface for controlling and monitoring an interferometer devi
 [![codecov](https://codecov.io/gh/ImperialCollegeLondon/FINESSE/graph/badge.svg?token=4UILYHPMJT)](https://codecov.io/gh/ImperialCollegeLondon/FINESSE)
 [![Test and build](https://github.com/ImperialCollegeLondon/FINESSE/actions/workflows/ci.yml/badge.svg)](https://github.com/ImperialCollegeLondon/FINESSE/actions/workflows/ci.yml)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/e7f3a4626b724c1fad00d8b670647a10)](https://app.codacy.com/gh/ImperialCollegeLondon/FINESSE/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/ImperialCollegeLondon/FINESSE/main.svg)](https://results.pre-commit.ci/latest/github/ImperialCollegeLondon/FINESSE/main)
 
 ## For developers
 
