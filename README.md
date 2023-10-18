@@ -10,6 +10,7 @@ A graphical user interface for controlling and monitoring an interferometer devi
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/e7f3a4626b724c1fad00d8b670647a10)](https://app.codacy.com/gh/ImperialCollegeLondon/FINESSE/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/ImperialCollegeLondon/FINESSE/main.svg)](https://results.pre-commit.ci/latest/github/ImperialCollegeLondon/FINESSE/main)
 ![GitHub tag (with filter)](https://img.shields.io/github/v/tag/ImperialCollegeLondon/FINESSE)
+[![GitHub](https://img.shields.io/github/license/ImperialCollegeLondon/FINESSE)](https://raw.githubusercontent.com/ImperialCollegeLondon/FINESSE/main/LICENCE.txt)
 
 ## For developers
 
