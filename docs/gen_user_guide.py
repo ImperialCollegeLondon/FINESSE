@@ -1,7 +1,7 @@
 """Generate the User Guide."""
 import subprocess
 from pathlib import Path
-
+docs_dir = Path(__file__).parent
 subprocess.run(
     [
         "pandoc",
@@ -10,8 +10,8 @@ subprocess.run(
         "-t",
         "html5",
         "-o",
-        "user_guide.html",
-        f"{Path(__file__).parent}/user_guide.md",
+        f"{docs_dir}/user_guide.html",
+        f"{docs_dir}/user_guide.md",
     ],
     check=True,
 )
