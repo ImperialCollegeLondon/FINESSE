@@ -1,6 +1,7 @@
 """Generate the User Guide."""
 import subprocess
 from pathlib import Path
+
 docs_dir = Path(__file__).parent
 subprocess.run(
     [
