@@ -1,11 +1,11 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v4.5.0
     hooks:
       - id: check-merge-conflict
       - id: debug-statements
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.13.0
+    rev: v3.15.0
     hooks:
     -   id: pyupgrade
         args: ["--py311-plus"]
@@ -19,7 +19,7 @@ repos:
       - id: isort
         additional_dependencies: [toml]
   - repo: https://github.com/psf/black
-    rev: "23.9.1"
+    rev: "23.10.0"
     hooks:
       - id: black
   - repo: https://github.com/PyCQA/flake8
@@ -28,7 +28,7 @@ repos:
       - id: flake8
         additional_dependencies: [flake8-docstrings]
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: "v1.5.1"
+    rev: "v1.6.1"
     hooks:
       - id: mypy
         additional_dependencies: [types-beautifulsoup4, types-decorator, types-PyYAML]
