@@ -422,7 +422,7 @@ class TC4820Controls(SerialDevicePanel):
         """
         self._control_val.setText(f"{properties['temperature']: .2f}")
         self._power_bar.setValue(properties["power"])
-        self._power_label.setText(f"{properties['power']}")
+        self._power_label.setText(f"{round(properties['power'])}")
         self._set_sbox.setValue(int(properties["set_point"]))
         if properties["alarm_status"] != 0:
             self._alarm_light._turn_on()

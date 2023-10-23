@@ -17,7 +17,6 @@ from decimal import Decimal
 
 from serial import Serial, SerialException
 
-from ...config import TC4820_MAX_POWER
 from .temperature_controller_base import TemperatureControllerBase
 
 
@@ -41,6 +40,7 @@ class TC4820(TemperatureControllerBase):
 
         self.serial = serial
         self.max_attempts = max_attempts
+        self.max_power = 511
 
         super().__init__(name)
 
@@ -155,9 +155,9 @@ class TC4820(TemperatureControllerBase):
         return self.request_decimal("010000")
 
     @property
-    def power(self) -> int:
+    def power(self) -> float:
         """The current power output of the device, as a percentage of maximum."""
-        return int(self.request_int("020000") * 100 / TC4820_MAX_POWER)
+        return self.request_int("020000") * 100.0 / self.max_power
 
     @property
     def alarm_status(self) -> int:

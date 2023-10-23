@@ -60,7 +60,7 @@ class TemperatureControllerBase(DeviceBase):
 
     @property
     @abstractmethod
-    def power(self) -> int:
+    def power(self) -> float:
         """The current power output of the device."""
 
     @property
