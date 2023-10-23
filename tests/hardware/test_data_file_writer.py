@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 import yaml
 
-from finesse.config import TC4820_MAX_POWER, TEMPERATURE_MONITOR_TOPIC
+from finesse.config import TEMPERATURE_MONITOR_TOPIC
 from finesse.hardware.data_file_writer import DataFileWriter, _get_metadata
 
 
@@ -121,7 +121,7 @@ def test_write(
     writer._writer = MagicMock()
     writer.write(time, data)
     writer._writer.writerow.assert_called_once_with(
-        ("20230414", "00:01:00", *data, 60, 90.0, False, 10 / (TC4820_MAX_POWER / 100))
+        ("20230414", "00:01:00", *data, 60, 90.0, False, 10)
     )
 
 
