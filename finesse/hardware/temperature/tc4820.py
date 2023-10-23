@@ -19,6 +19,8 @@ from serial import Serial, SerialException
 
 from .temperature_controller_base import TemperatureControllerBase
 
+MAX_POWER = 511
+
 
 class MalformedMessageError(Exception):
     """Raised when a message sent or received was malformed."""
@@ -40,7 +42,6 @@ class TC4820(TemperatureControllerBase):
 
         self.serial = serial
         self.max_attempts = max_attempts
-        self.max_power = 511
 
         super().__init__(name)
 
@@ -157,7 +158,7 @@ class TC4820(TemperatureControllerBase):
     @property
     def power(self) -> float:
         """The current power output of the device, as a percentage of maximum."""
-        return self.request_int("020000") * 100.0 / self.max_power
+        return self.request_int("020000") * 100.0 / MAX_POWER
 
     @property
     def alarm_status(self) -> int:
