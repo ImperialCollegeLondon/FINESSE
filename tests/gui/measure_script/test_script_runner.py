@@ -9,7 +9,7 @@ from statemachine import State
 
 from finesse.config import STEPPER_MOTOR_TOPIC
 from finesse.device_info import DeviceInstanceRef
-from finesse.em27_status import EM27Status
+from finesse.em27_info import EM27Status
 from finesse.gui.measure_script.script import Script, ScriptRunner, _poll_em27_status
 
 

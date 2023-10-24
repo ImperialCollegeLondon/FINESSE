@@ -15,8 +15,8 @@ from PySide6.QtWidgets import (
 )
 
 from finesse.config import EM27_PROPERTY_POLL_INTERVAL
+from finesse.em27_info import EM27Property
 from finesse.gui.led_icons import LEDIcon
-from finesse.hardware.plugins.em27.em27_scraper import EM27Property
 
 
 class EM27Monitor(QGroupBox):

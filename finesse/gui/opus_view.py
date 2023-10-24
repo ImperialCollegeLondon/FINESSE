@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
 )
 
-from ..em27_status import EM27Status
+from ..em27_info import EM27Status
 
 
 class OPUSControl(QGroupBox):
