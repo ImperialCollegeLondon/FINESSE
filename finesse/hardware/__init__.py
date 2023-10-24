@@ -5,11 +5,11 @@ from decimal import Decimal
 from pubsub import pub
 
 if "--dummy-em27" in sys.argv:
-    from .dummy_em27_scraper import DummyEM27Scraper as EM27Scraper
-    from .opus.dummy import DummyOPUSInterface as OPUSInterface
+    from .plugins.em27.dummy_em27_scraper import DummyEM27Scraper as EM27Scraper
+    from .plugins.em27.dummy_opus_interface import DummyOPUSInterface as OPUSInterface
 else:
-    from .em27_scraper import EM27Scraper  # type: ignore
-    from .opus.em27 import OPUSInterface  # type: ignore
+    from .plugins.em27.em27_scraper import EM27Scraper  # type: ignore
+    from .plugins.em27.opus_interface import OPUSInterface  # type: ignore
 
 from datetime import datetime
 

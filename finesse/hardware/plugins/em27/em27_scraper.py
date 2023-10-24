@@ -10,8 +10,8 @@ from pubsub import pub
 from PySide6.QtCore import Slot
 from PySide6.QtNetwork import QNetworkAccessManager, QNetworkReply, QNetworkRequest
 
-from ..config import EM27_URL
-from .pubsub_decorators import pubsub_broadcast
+from finesse.config import EM27_URL
+from finesse.hardware.pubsub_decorators import pubsub_broadcast
 
 
 @dataclass
