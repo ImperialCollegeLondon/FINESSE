@@ -73,12 +73,12 @@ def _try_close_device(device: Device) -> None:
 
     If an exception is raised it is logged without being re-raised.
     """
-    logging.info(f"Closing device of type {device.__class__}")
+    logging.info(f"Closing device of type {device.__class__.__name__}")
 
     try:
         device.close()
     except Exception as ex:
-        logging.warn(f"Error while closing {device.__class__}: {ex!s}")
+        logging.warn(f"Error while closing {device.__class__.__name__}: {ex!s}")
     else:
         topic = device.get_device_base_type_info().name
         if device.name:
