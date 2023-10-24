@@ -194,7 +194,6 @@ class DeviceTypeControl(QGroupBox):
         device_type, self._cur_device_params = self._get_current_device_and_params()
         pub.sendMessage(
             "device.open",
-            module=device_type.module,
             class_name=device_type.class_name,
             instance=self._device_instance,
             params=self._cur_device_params,

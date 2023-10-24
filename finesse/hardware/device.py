@@ -92,8 +92,7 @@ class AbstractDevice(ABC):
         return DeviceTypeInfo(
             cls._device_description,
             cls.get_device_parameters(),
-            cls.__module__,
-            cls.__name__,
+            f"{cls.__module__}.{cls.__name__}",
         )
 
 

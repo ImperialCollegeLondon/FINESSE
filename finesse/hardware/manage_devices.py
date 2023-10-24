@@ -28,16 +28,17 @@ def get_device_instance(base_type: type[_T], name: str | None = None) -> _T | No
 
 
 def _open_device(
-    module: str, class_name: str, instance: DeviceInstanceRef, params: dict[str, str]
+    class_name: str, instance: DeviceInstanceRef, params: dict[str, str]
 ) -> None:
     """Open the specified device type.
 
     Args:
-        module: The module the device type's class resides in
         class_name: The name of the device type's class
         instance: The instance that this device will be when opened
         params: Device parameters
     """
+    module, _, class_name = class_name.rpartition(".")
+
     # Assume this is safe because module and class_name will not be provided directly by
     # the user
     cls: Device = getattr(import_module(module), class_name)

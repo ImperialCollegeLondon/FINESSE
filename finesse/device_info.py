@@ -35,10 +35,8 @@ class DeviceTypeInfo:
     """A human-readable name for the device."""
     parameters: list[DeviceParameter]
     """The device parameters."""
-    module: str
-    """The module in which this class resides."""
     class_name: str
-    """The name of the device's class."""
+    """The name of the device's class including the module name."""
 
 
 @dataclass(frozen=True)
