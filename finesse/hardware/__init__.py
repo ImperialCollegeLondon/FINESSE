@@ -17,7 +17,7 @@ from finesse.config import NUM_TEMPERATURE_MONITOR_CHANNELS, TEMPERATURE_MONITOR
 from finesse.device_info import DeviceInstanceRef
 
 from . import data_file_writer  # noqa: F401
-from .device import get_device_type_registry
+from .device import get_device_types
 from .plugins.temperature import get_temperature_monitor_instance
 
 _opus: OPUSInterface
@@ -25,7 +25,7 @@ _opus: OPUSInterface
 
 def _broadcast_device_types() -> None:
     """Broadcast the available device types via pubsub."""
-    pub.sendMessage("device.list", device_types=get_device_type_registry())
+    pub.sendMessage("device.list", device_types=get_device_types())
 
 
 def _try_get_temperatures() -> list[Decimal] | None:

@@ -22,7 +22,7 @@ _device_types: set[type[Device]] = set()
 """Registry of concrete device types."""
 
 
-def get_device_type_registry() -> dict[DeviceBaseTypeInfo, list[DeviceTypeInfo]]:
+def get_device_types() -> dict[DeviceBaseTypeInfo, list[DeviceTypeInfo]]:
     """Return info about device types grouped according to their base type."""
     # Ensure all base types and device types have been registered
     load_all_plugins()
