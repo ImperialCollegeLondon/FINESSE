@@ -7,7 +7,7 @@ import pytest
 from PySide6.QtNetwork import QNetworkReply
 
 from finesse.config import OPUS_IP
-from finesse.em27_status import EM27Status
+from finesse.em27_info import EM27Status
 from finesse.hardware.plugins.em27.opus_interface import (
     OPUSError,
     OPUSInterface,
