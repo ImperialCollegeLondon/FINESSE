@@ -10,5 +10,7 @@ class DummyEM27Scraper(EM27Scraper):
 
     def __init__(self) -> None:
         """Create a new EM27 property monitor."""
-        dummy_em27_fp = resources.files("finesse.hardware").joinpath("diag_autom.htm")
+        dummy_em27_fp = resources.files("finesse.hardware.plugins.em27").joinpath(
+            "diag_autom.htm"
+        )
         super().__init__(Path(str(dummy_em27_fp)).as_uri())

@@ -5,12 +5,17 @@ block_cipher = None
 
 
 a = Analysis(
-    ['stub.py'],
+    ["stub.py"],
     pathex=[],
     binaries=[],
-    datas=[('finesse/gui/images/*.png', 'finesse/gui/images'),
-           ('finesse/hardware/diag_autom.htm', 'finesse/hardware')],
-    hiddenimports=['finesse.gui.images'],
+    datas=[
+        ("finesse/gui/images/*.png", "finesse/gui/images"),
+        (
+            "finesse/hardware/plugins/em27/diag_autom.htm",
+            "finesse/hardware/plugins/em27",
+        ),
+    ],
+    hiddenimports=["finesse.gui.images"],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -29,7 +34,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='FINESSE',
+    name="FINESSE",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
