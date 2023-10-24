@@ -10,7 +10,7 @@ subprocess.run(
         "-t",
         "html5",
         "-o",
-        "user_guide.html",
+        f"{Path(__file__).parent}/user_guide.html",
         f"{Path(__file__).parent}/user_guide.md",
     ],
     check=True,
