@@ -68,18 +68,31 @@ def _open_device(
         pub.sendMessage(f"device.opened.{instance.topic}")
 
 
+def _try_close_device(device: Device) -> None:
+    """Try to close a device and send a message on success.
+
+    If an exception is raised it is logged without being re-raised.
+    """
+    logging.info(f"Closing device of type {device.__class__}")
+
+    try:
+        device.close()
+    except Exception as ex:
+        logging.warn(f"Error while closing {device.__class__}: {ex!s}")
+    else:
+        topic = device.get_device_base_type_info().name
+        if device.name:
+            topic += f".{device.name}"
+        pub.sendMessage(f"device.closed.{topic}")
+
+
 def _close_device(instance: DeviceInstanceRef) -> None:
     """Close the device referred to by instance."""
     try:
-        device = _devices.pop(instance)
+        _try_close_device(_devices.pop(instance))
     except KeyError:
-        # There is no instance of this type of device (this can happen if an error
-        # occurs during opening)
-        return
-
-    logging.info(f"Closing device of type {instance.base_type}")
-    device.close()
-    pub.sendMessage(f"device.closed.{instance.topic}")
+        # There is no instance of this type of device, so do nothing
+        pass
 
 
 def _on_device_error(instance: DeviceInstanceRef, error: Exception) -> None:
@@ -90,10 +103,8 @@ def _on_device_error(instance: DeviceInstanceRef, error: Exception) -> None:
 def _close_all_devices() -> None:
     """Attempt to close all devices, ignoring errors."""
     for device in _devices.values():
-        try:
-            device.close()
-        except Exception as ex:
-            logging.warn(f"Error while closing {device.__class__}: {ex!s}")
+        _try_close_device(device)
+    _devices.clear()
 
 
 pub.subscribe(_open_device, "device.open")
