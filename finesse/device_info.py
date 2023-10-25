@@ -41,7 +41,7 @@ class DeviceTypeInfo:
 
 @dataclass(frozen=True)
 class DeviceBaseTypeInfo:
-    """A base device type (e.g. stepper motor)."""
+    """A generic device type (e.g. stepper motor)."""
 
     name: str
     """Short name for use in pubsub topics etc."""
