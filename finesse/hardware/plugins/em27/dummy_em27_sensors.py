@@ -2,10 +2,10 @@
 from importlib import resources
 from pathlib import Path
 
-from .em27_scraper import EM27Scraper
+from .em27_sensors import EM27Sensors
 
 
-class DummyEM27Scraper(EM27Scraper):
+class DummyEM27Sensors(EM27Sensors):
     """An interface for testing monitoring EM27 properties."""
 
     def __init__(self) -> None:

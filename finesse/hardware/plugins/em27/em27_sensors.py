@@ -60,7 +60,7 @@ def _on_reply_received(reply: QNetworkReply) -> list[EM27Property]:
     return get_em27sensor_data(content)
 
 
-class EM27Scraper:
+class EM27Sensors:
     """An interface for monitoring EM27 properties."""
 
     def __init__(self, url: str = EM27_URL) -> None:
