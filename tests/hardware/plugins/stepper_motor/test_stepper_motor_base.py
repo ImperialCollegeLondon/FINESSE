@@ -44,7 +44,7 @@ class _MockStepperMotor(StepperMotorBase, description="Mock stepper motor"):
 
 
 @pytest.fixture
-def stepper(error_wrap_mock: MagicMock) -> _MockStepperMotor:
+def stepper(subscribe_mock: MagicMock) -> _MockStepperMotor:
     """Provides a basic StepperMotorBase."""
     return _MockStepperMotor()
 

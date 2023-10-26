@@ -197,9 +197,6 @@ class ST10Controller(
         # Check that we are connecting to an ST10
         self._check_device_id()
 
-        # In case the motor is still moving, stop it now
-        self.stop_moving()
-
         # Move mirror to home position
         self._home_and_reset()
 
@@ -271,6 +268,9 @@ class ST10Controller(
             SerialTimeoutException: Timed out waiting for response from device
             ST10ControllerError: Malformed message received from device
         """
+        # In case the motor is still moving, stop it now
+        self.stop_moving()
+
         # If the third (boolean) value of the input status array is set, then move the
         # motor first. I don't know what the input status actually means, but this is
         # how it was done in the old program, so I'm copying it here.

@@ -4,15 +4,7 @@ from abc import abstractmethod
 from pubsub import pub
 
 from finesse.config import ANGLE_PRESETS, STEPPER_MOTOR_TOPIC
-from finesse.device_info import DeviceInstanceRef
 from finesse.hardware.device import Device
-from finesse.hardware.pubsub_decorators import pubsub_errors
-
-error_wrap = pubsub_errors(
-    f"device.error.{STEPPER_MOTOR_TOPIC}",
-    instance=DeviceInstanceRef(STEPPER_MOTOR_TOPIC),
-)
-"""Broadcast exceptions via pubsub."""
 
 
 class StepperMotorBase(
@@ -28,9 +20,9 @@ class StepperMotorBase(
         super().__init__()
 
         # Versions of methods which catch and broadcast errors via pubsub
-        self._move_to = error_wrap(self.move_to)
-        self._stop_moving = error_wrap(self.stop_moving)
-        self._notify_on_stopped = error_wrap(self.notify_on_stopped)
+        self._move_to = self.pubsub_errors(self.move_to)
+        self._stop_moving = self.pubsub_errors(self.stop_moving)
+        self._notify_on_stopped = self.pubsub_errors(self.notify_on_stopped)
 
         pub.subscribe(
             self._move_to,
@@ -50,15 +42,6 @@ class StepperMotorBase(
         pub.unsubscribe(self._stop_moving, f"device.{STEPPER_MOTOR_TOPIC}.stop")
         pub.unsubscribe(
             self._notify_on_stopped, f"device.{STEPPER_MOTOR_TOPIC}.notify_on_stopped"
-        )
-
-    @staticmethod
-    def send_error_message(error: BaseException) -> None:
-        """Send an error message when a device error has occurred."""
-        pub.sendMessage(
-            f"device.error.{STEPPER_MOTOR_TOPIC}",
-            instance=DeviceInstanceRef(STEPPER_MOTOR_TOPIC),
-            error=error,
         )
 
     @staticmethod
@@ -141,8 +124,6 @@ class StepperMotorBase(
 
     def move_to(self, target: float | str) -> None:
         """Move the motor to a specified rotation and send message when complete.
-
-        Sends a stepper.move.end message when finished.
 
         Args:
             target: The target angle (in degrees) or the name of a preset
