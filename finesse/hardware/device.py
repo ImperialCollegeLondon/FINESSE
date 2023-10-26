@@ -159,7 +159,7 @@ class Device(AbstractDevice):
         _device_types.add(cls)
 
     def __init__(self, name: str | None = None) -> None:
-        """Create a new DeviceBase.
+        """Create a new Device.
 
         Args:
             name: A name to distinguish devices of the same type.
