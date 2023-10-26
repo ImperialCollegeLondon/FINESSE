@@ -24,7 +24,7 @@ def em27_property():
 
 def test_str(em27_property: EM27Property):
     """Test EM27Property's __str__() method."""
-    assert em27_property.__str__() == "Voltage = 1.230000 V"
+    assert str(em27_property) == "Voltage = 1.230000 V"
 
 
 def test_val_str(em27_property: EM27Property):
