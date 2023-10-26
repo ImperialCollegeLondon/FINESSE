@@ -102,13 +102,15 @@ def test_open_device_replace_existing(
         assert devices_dict == {instance: device_mock}
 
 
-@pytest.mark.parametrize("success", (True, False))
-def test_try_close_device(success: bool, sendmsg_mock: MagicMock) -> None:
+@pytest.mark.parametrize("success,name", product((True, False), (None, "my_device")))
+def test_try_close_device(
+    success: bool, name: str | None, sendmsg_mock: MagicMock
+) -> None:
     """Check the _try_close_device() function."""
     base_type_info = MagicMock()
     base_type_info.name = "test"
     device_mock = MagicMock()
-    device_mock.name = None
+    device_mock.name = name
 
     if not success:
         device_mock.close.side_effect = RuntimeError("Device close failed")
@@ -116,7 +118,12 @@ def test_try_close_device(success: bool, sendmsg_mock: MagicMock) -> None:
     device_mock.get_device_base_type_info.return_value = base_type_info
     _try_close_device(device_mock)
     device_mock.close.assert_called_once_with()
-    sendmsg_mock.assert_called_once_with("device.closed.test")
+
+    topic = "test"
+    if name:
+        topic += f".{name}"
+
+    sendmsg_mock.assert_called_once_with(f"device.closed.{topic}")
 
 
 def test_close_device() -> None:

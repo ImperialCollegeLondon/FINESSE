@@ -2,7 +2,7 @@
 from contextlib import nullcontext as does_not_raise
 from itertools import chain
 from typing import Any, cast
-from unittest.mock import MagicMock, PropertyMock, patch
+from unittest.mock import MagicMock, Mock, PropertyMock, patch
 
 import pytest
 from serial import SerialException, SerialTimeoutException
@@ -71,10 +71,15 @@ def test_init(subscribe_mock: MagicMock, serial_mock: MagicMock) -> None:
             home_mock.assert_called_once()
 
 
-def test_close(dev: ST10Controller) -> None:
+@patch("finesse.hardware.plugins.stepper_motor.st10_controller.SerialDevice")
+@patch("finesse.hardware.plugins.stepper_motor.st10_controller.StepperMotorBase")
+def test_close(stepper_cls: Mock, serial_dev_cls: Mock, dev: ST10Controller) -> None:
     """Test the close() method."""
     dev.close()
-    dev.serial.close.assert_called_once_with()
+
+    # Check that both parents' close() methods are called
+    stepper_cls.close.assert_called_once_with(dev)
+    serial_dev_cls.close.assert_called_once_with(dev)
 
 
 def test_send_move_end_message(sendmsg_mock: MagicMock, dev: ST10Controller) -> None:
