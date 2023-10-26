@@ -2,14 +2,17 @@
 
 
 block_cipher = None
+import docs.gen_user_guide as gen_guide
 
+gen_guide.generate_html()
 
 a = Analysis(
     ['stub.py'],
     pathex=[],
     binaries=[],
     datas=[('finesse/gui/images/*.png', 'finesse/gui/images'),
-           ('finesse/hardware/diag_autom.htm', 'finesse/hardware')],
+           ('finesse/hardware/diag_autom.htm', 'finesse/hardware'),
+           ('docs/user_guide.html', 'docs')],
     hiddenimports=['finesse.gui.images'],
     hookspath=[],
     hooksconfig={},
