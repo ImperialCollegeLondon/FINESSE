@@ -9,7 +9,6 @@ import pytest
 from pytest_mock import MockerFixture
 from serial import SerialException
 
-from finesse.config import TEMPERATURE_CONTROLLER_TOPIC
 from finesse.hardware.plugins.temperature.tc4820 import TC4820, MalformedMessageError
 
 _SERIAL_ARGS = ("COM1", 9600)
@@ -26,13 +25,6 @@ def test_init(name: str, subscribe_mock: MagicMock, serial_mock: MagicMock) -> N
     """Test TC4820's constructor."""
     dev = TC4820(name, *_SERIAL_ARGS)
     assert dev.max_attempts == 3
-    subscribe_mock.assert_any_call(
-        dev._request_properties, f"device.{TEMPERATURE_CONTROLLER_TOPIC}.{name}.request"
-    )
-    subscribe_mock.assert_any_call(
-        dev._change_set_point,
-        f"device.{TEMPERATURE_CONTROLLER_TOPIC}.{name}.change_set_point",
-    )
 
 
 def test_get_properties(dev: TC4820) -> None:

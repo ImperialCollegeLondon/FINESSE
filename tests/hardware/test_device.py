@@ -12,8 +12,7 @@ from finesse.hardware.device import AbstractDevice, Device, get_device_types
 class _MockBaseClass(
     Device, is_base_type=True, name="mock", description="Mock base class"
 ):
-    def close(self):
-        pass
+    pass
 
 
 class _MockDevice(_MockBaseClass, description="Mock device"):
@@ -195,3 +194,43 @@ def test_device_send_error_message(device: Device, sendmsg_mock: MagicMock) -> N
     sendmsg_mock.assert_called_once_with(
         "device.error.mock", instance=device.get_instance_ref(), error=error
     )
+
+
+def _device_subscribe_test(
+    device: Device, subscribe_mock: MagicMock, wrapper_name: str, *args
+) -> None:
+    assert len(device._subscriptions) == 0
+
+    def noop():
+        pass
+
+    with patch.object(device, wrapper_name) as wrapper_mock:
+        wrapped = MagicMock()
+        wrapper_mock.return_value = wrapped
+        device.subscribe(noop, "message", *args)
+        wrapper_mock.assert_called_once_with(noop, *args)
+        sub_args = (wrapped, "device.mock.message")
+        assert device._subscriptions == [sub_args]
+        subscribe_mock.assert_called_once_with(*sub_args)
+
+
+def test_device_subscribe_errors_only(
+    device: Device, subscribe_mock: MagicMock
+) -> None:
+    """Test the subscribe() method for when a message is only sent in case of error."""
+    _device_subscribe_test(device, subscribe_mock, "pubsub_errors")
+
+
+def test_device_subscribe_broadcast(device: Device, subscribe_mock: MagicMock) -> None:
+    """Test the subscribe() method with a message sent for error and success."""
+    _device_subscribe_test(device, subscribe_mock, "pubsub_broadcast", "suffix", "name")
+
+
+def test_device_close(device: Device, unsubscribe_mock: MagicMock) -> None:
+    """Test the close() method."""
+    func = MagicMock()
+    my_topic = "topic"
+    device._subscriptions.append((func, my_topic))
+    device.close()
+    assert unsubscribe_mock.call_count == 1
+    unsubscribe_mock.assert_called_once_with(func, my_topic)
