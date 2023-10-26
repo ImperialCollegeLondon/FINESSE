@@ -41,6 +41,17 @@ class StepperMotorBase(
             self._notify_on_stopped, f"device.{STEPPER_MOTOR_TOPIC}.notify_on_stopped"
         )
 
+    def close(self) -> None:
+        """Shut down the device."""
+        pub.unsubscribe(
+            self._move_to,
+            f"device.{STEPPER_MOTOR_TOPIC}.move.begin",
+        )
+        pub.unsubscribe(self._stop_moving, f"device.{STEPPER_MOTOR_TOPIC}.stop")
+        pub.unsubscribe(
+            self._notify_on_stopped, f"device.{STEPPER_MOTOR_TOPIC}.notify_on_stopped"
+        )
+
     @staticmethod
     def send_error_message(error: BaseException) -> None:
         """Send an error message when a device error has occurred."""

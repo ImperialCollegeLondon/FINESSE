@@ -48,6 +48,17 @@ class TemperatureControllerBase(
             f"{self.topic}.change_set_point",
         )
 
+    def close(self) -> None:
+        """Close the device."""
+        pub.unsubscribe(
+            self._request_properties,
+            f"{self.topic}.request",
+        )
+        pub.unsubscribe(
+            self._change_set_point,
+            f"{self.topic}.change_set_point",
+        )
+
     def get_properties(self) -> dict[str, Any]:
         """Get device properties."""
         return {

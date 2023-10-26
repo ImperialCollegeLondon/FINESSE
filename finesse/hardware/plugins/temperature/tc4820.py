@@ -56,6 +56,11 @@ class TC4820(
         SerialDevice.__init__(self, *serial_args, **serial_kwargs)
         TemperatureControllerBase.__init__(self, name)
 
+    def close(self) -> None:
+        """Close the device."""
+        TemperatureControllerBase.close(self)
+        SerialDevice.close(self)
+
     def read_int(self) -> int:
         """Read a message from the TC4820 and decode the number as a signed integer.
 
