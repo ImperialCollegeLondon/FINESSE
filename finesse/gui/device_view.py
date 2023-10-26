@@ -136,7 +136,7 @@ class DeviceTypeControl(QGroupBox):
         layout.addWidget(self._open_close_btn)
 
         # pubsub subscriptions
-        pub.subscribe(self._on_device_opened, f"device.opened.{topic}")
+        pub.subscribe(self._on_device_opened, f"device.opening.{topic}")
         pub.subscribe(self._on_device_closed, f"device.closed.{topic}")
         pub.subscribe(self._show_error_message, f"device.error.{topic}")
 

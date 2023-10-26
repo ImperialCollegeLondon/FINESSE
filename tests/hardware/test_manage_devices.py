@@ -63,7 +63,15 @@ def test_open_device(
 
         if not raise_error:
             assert devices_dict == {instance: device_mock}
-            sendmsg_mock.assert_called_once_with(f"device.opened.{instance.topic}")
+
+            # Two separate messages are sent on device open
+            sendmsg_mock.assert_has_calls(
+                [
+                    call(f"device.{name}.{instance.topic}")
+                    for name in ("opening", "opened")
+                ]
+            )
+
             logging_mock.error.assert_not_called()
             logging_mock.warn.assert_not_called()
         else:
