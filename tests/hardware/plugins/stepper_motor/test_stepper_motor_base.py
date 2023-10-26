@@ -30,9 +30,6 @@ class _MockStepperMotor(StepperMotorBase, description="Mock stepper motor"):
     def step(self, step: int) -> None:
         self._step = step
 
-    def close(self) -> None:
-        pass
-
     def stop_moving(self) -> None:
         pass
 
@@ -44,7 +41,7 @@ class _MockStepperMotor(StepperMotorBase, description="Mock stepper motor"):
 
 
 @pytest.fixture
-def stepper(subscribe_mock: MagicMock) -> _MockStepperMotor:
+def stepper(subscribe_mock: MagicMock) -> StepperMotorBase:
     """Provides a basic StepperMotorBase."""
     return _MockStepperMotor()
 
@@ -52,6 +49,7 @@ def stepper(subscribe_mock: MagicMock) -> _MockStepperMotor:
 def test_init(subscribe_mock: MagicMock) -> None:
     """Test that StepperMotorBase's constructor subscribes to the right messages."""
     stepper = _MockStepperMotor()
+    assert subscribe_mock.call_count == 3
     subscribe_mock.assert_any_call(
         stepper._move_to,
         f"device.{STEPPER_MOTOR_TOPIC}.move.begin",
@@ -85,4 +83,20 @@ def test_send_error_message(
         f"device.error.{STEPPER_MOTOR_TOPIC}",
         instance=DeviceInstanceRef(STEPPER_MOTOR_TOPIC),
         error=error,
+    )
+
+
+def test_close(unsubscribe_mock: MagicMock, stepper: _MockStepperMotor) -> None:
+    """Test the close() method."""
+    stepper.close()
+    assert unsubscribe_mock.call_count == 3
+    unsubscribe_mock.assert_any_call(
+        stepper._move_to,
+        f"device.{STEPPER_MOTOR_TOPIC}.move.begin",
+    )
+    unsubscribe_mock.assert_any_call(
+        stepper._stop_moving, f"device.{STEPPER_MOTOR_TOPIC}.stop"
+    )
+    unsubscribe_mock.assert_any_call(
+        stepper._notify_on_stopped, f"device.{STEPPER_MOTOR_TOPIC}.notify_on_stopped"
     )
