@@ -72,7 +72,7 @@ def test_on_reply_received_network_error(
     # Check the correct pubsub message is sent
     em27_scraper._on_reply_received(reply)
     assert sendmsg_mock.call_args.args[0] == "em27.error"
-    assert type(sendmsg_mock.call_args.kwargs["error"]) == EM27Error
+    assert isinstance(sendmsg_mock.call_args.kwargs["error"], EM27Error)
     assert (
         sendmsg_mock.call_args.kwargs["error"].args[0]
         == "Network error: Host not found"
@@ -134,7 +134,7 @@ def test_get_em27sensor_data() -> None:
     data_table = get_em27sensor_data(content)
     assert len(data_table) == 7
     for entry in data_table:
-        assert type(entry) == EM27Property
+        assert isinstance(entry, EM27Property)
 
 
 def test_get_em27sensor_data_no_table_found() -> None:
