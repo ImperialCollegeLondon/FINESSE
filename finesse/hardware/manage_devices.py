@@ -79,11 +79,11 @@ def _try_close_device(device: Device) -> None:
         device.close()
     except Exception as ex:
         logging.warn(f"Error while closing {device.__class__.__name__}: {ex!s}")
-    else:
-        topic = device.get_device_base_type_info().name
-        if device.name:
-            topic += f".{device.name}"
-        pub.sendMessage(f"device.closed.{topic}")
+
+    topic = device.get_device_base_type_info().name
+    if device.name:
+        topic += f".{device.name}"
+    pub.sendMessage(f"device.closed.{topic}")
 
 
 def _close_device(instance: DeviceInstanceRef) -> None:
