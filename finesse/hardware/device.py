@@ -180,6 +180,9 @@ class Device(AbstractDevice):
         self.name = name
         """The (optional) name of this device to use in pubsub messages."""
 
+        self._subscriptions: list[tuple[Callable, str]] = []
+        """Store of wrapped functions which are subscribed to pubsub messages."""
+
         if not self._device_base_type_info.names_short:
             if name:
                 raise RuntimeError(
@@ -191,6 +194,11 @@ class Device(AbstractDevice):
             raise RuntimeError("Invalid name given for device")
 
         self.topic += f".{name}"
+
+    def close(self) -> None:
+        """Close the device and clear any pubsub subscriptions."""
+        for sub in self._subscriptions:
+            pub.unsubscribe(*sub)
 
     def get_instance_ref(self) -> DeviceInstanceRef:
         """Get the DeviceInstanceRef corresponding to this device."""
@@ -261,3 +269,33 @@ class Device(AbstractDevice):
                 )
 
         return decorate(func, wrapped)
+
+    def subscribe(
+        self,
+        func: Callable,
+        topic_name_suffix: str,
+        success_topic_suffix: str | None = None,
+        *kwarg_names: str,
+    ) -> None:
+        """Subscribe to a pubsub topic using the pubsub_* helper functions.
+
+        Errors will be broadcast with the message "device.error.{THIS_INSTANCE}". If
+        success_topic_suffix is provided, a message will also be sent on success (see
+        pubsub_broadcast).
+
+        Args:
+            func: Function to subscribe to
+            topic_name_suffix: The suffix of the topic to subscribe to
+            success_topic_suffix: The topic name on which to broadcast function results
+            kwarg_names: The names of each of the returned values
+        """
+        if success_topic_suffix:
+            wrapped_func = self.pubsub_broadcast(
+                func, success_topic_suffix, *kwarg_names
+            )
+        else:
+            wrapped_func = self.pubsub_errors(func)
+
+        topic_name = f"{self.topic}.{topic_name_suffix}"
+        self._subscriptions.append((wrapped_func, topic_name))
+        pub.subscribe(wrapped_func, topic_name)

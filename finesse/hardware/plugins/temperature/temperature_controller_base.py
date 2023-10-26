@@ -3,8 +3,6 @@ from abc import abstractmethod
 from decimal import Decimal
 from typing import Any
 
-from pubsub import pub
-
 from finesse.config import TEMPERATURE_CONTROLLER_TOPIC
 from finesse.hardware.device import Device
 
@@ -29,32 +27,8 @@ class TemperatureControllerBase(
         """
         super().__init__(name)
 
-        self._request_properties = self.pubsub_broadcast(
-            self.get_properties, "response", "properties"
-        )
-        """Requests that various device properties are sent over pubsub."""
-
-        pub.subscribe(
-            self._request_properties,
-            f"{self.topic}.request",
-        )
-
-        self._change_set_point = self.pubsub_errors(self.change_set_point)
-        pub.subscribe(
-            self._change_set_point,
-            f"{self.topic}.change_set_point",
-        )
-
-    def close(self) -> None:
-        """Close the device."""
-        pub.unsubscribe(
-            self._request_properties,
-            f"{self.topic}.request",
-        )
-        pub.unsubscribe(
-            self._change_set_point,
-            f"{self.topic}.change_set_point",
-        )
+        self.subscribe(self.get_properties, "request", "response", "properties")
+        self.subscribe(self.change_set_point, "change_set_point")
 
     def get_properties(self) -> dict[str, Any]:
         """Get device properties."""

@@ -1,8 +1,6 @@
 """Provides the base class for stepper motor implementations."""
 from abc import abstractmethod
 
-from pubsub import pub
-
 from finesse.config import ANGLE_PRESETS, STEPPER_MOTOR_TOPIC
 from finesse.hardware.device import Device
 
@@ -24,25 +22,9 @@ class StepperMotorBase(
         self._stop_moving = self.pubsub_errors(self.stop_moving)
         self._notify_on_stopped = self.pubsub_errors(self.notify_on_stopped)
 
-        pub.subscribe(
-            self._move_to,
-            f"device.{STEPPER_MOTOR_TOPIC}.move.begin",
-        )
-        pub.subscribe(self._stop_moving, f"device.{STEPPER_MOTOR_TOPIC}.stop")
-        pub.subscribe(
-            self._notify_on_stopped, f"device.{STEPPER_MOTOR_TOPIC}.notify_on_stopped"
-        )
-
-    def close(self) -> None:
-        """Shut down the device."""
-        pub.unsubscribe(
-            self._move_to,
-            f"device.{STEPPER_MOTOR_TOPIC}.move.begin",
-        )
-        pub.unsubscribe(self._stop_moving, f"device.{STEPPER_MOTOR_TOPIC}.stop")
-        pub.unsubscribe(
-            self._notify_on_stopped, f"device.{STEPPER_MOTOR_TOPIC}.notify_on_stopped"
-        )
+        self.subscribe(self.move_to, "move.begin")
+        self.subscribe(self.stop_moving, "stop")
+        self.subscribe(self.notify_on_stopped, "notify_on_stopped")
 
     @staticmethod
     def preset_angle(name: str) -> float:

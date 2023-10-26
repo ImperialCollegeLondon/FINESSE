@@ -1,10 +1,7 @@
 """Tests for the TemperatureControllerBase class."""
 from decimal import Decimal
-from unittest.mock import MagicMock
+from unittest.mock import patch
 
-import pytest
-
-from finesse.config import TEMPERATURE_CONTROLLER_TOPIC
 from finesse.hardware.plugins.temperature.temperature_controller_base import (
     TemperatureControllerBase,
 )
@@ -47,37 +44,13 @@ class _MockTemperatureController(
         pass  # pragma: no cover
 
 
-@pytest.fixture
-def dev() -> TemperatureControllerBase:
-    """A fixture for a TemperatureControllerBase."""
-    return _MockTemperatureController()
-
-
-def test_init(subscribe_mock: MagicMock) -> None:
+def test_init() -> None:
     """Test TemperatureControllerBase's constructor."""
-    dev = _MockTemperatureController()
+    with patch.object(_MockTemperatureController, "subscribe") as subscribe_mock:
+        dev = _MockTemperatureController()
 
-    assert subscribe_mock.call_count == 2
-    subscribe_mock.assert_any_call(
-        dev._change_set_point,
-        f"device.{TEMPERATURE_CONTROLLER_TOPIC}.hot_bb.change_set_point",
-    )
-    subscribe_mock.assert_any_call(
-        dev._request_properties,
-        f"device.{TEMPERATURE_CONTROLLER_TOPIC}.hot_bb.request",
-    )
-
-
-def test_close(dev: TemperatureControllerBase, unsubscribe_mock: MagicMock) -> None:
-    """Test TemperatureControllerBase's close method."""
-    dev.close()
-
-    assert unsubscribe_mock.call_count == 2
-    unsubscribe_mock.assert_any_call(
-        dev._change_set_point,
-        f"device.{TEMPERATURE_CONTROLLER_TOPIC}.hot_bb.change_set_point",
-    )
-    unsubscribe_mock.assert_any_call(
-        dev._request_properties,
-        f"device.{TEMPERATURE_CONTROLLER_TOPIC}.hot_bb.request",
-    )
+        assert subscribe_mock.call_count == 2
+        subscribe_mock.assert_any_call(dev.change_set_point, "change_set_point")
+        subscribe_mock.assert_any_call(
+            dev.get_properties, "request", "response", "properties"
+        )
