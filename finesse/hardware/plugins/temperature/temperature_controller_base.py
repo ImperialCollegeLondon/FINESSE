@@ -7,7 +7,6 @@ from pubsub import pub
 
 from finesse.config import TEMPERATURE_CONTROLLER_TOPIC
 from finesse.hardware.device import Device
-from finesse.hardware.pubsub_decorators import pubsub_broadcast, pubsub_errors
 
 
 class TemperatureControllerBase(
@@ -30,9 +29,9 @@ class TemperatureControllerBase(
         """
         super().__init__(name)
 
-        self._request_properties = pubsub_broadcast(
-            f"{self.topic}.error", f"{self.topic}.response", "properties"
-        )(self.get_properties)
+        self._request_properties = self.pubsub_broadcast(
+            self.get_properties, "response", "properties"
+        )
         """Requests that various device properties are sent over pubsub."""
 
         pub.subscribe(
@@ -40,9 +39,7 @@ class TemperatureControllerBase(
             f"{self.topic}.request",
         )
 
-        self._change_set_point = pubsub_errors(f"{self.topic}.error")(
-            self.change_set_point
-        )
+        self._change_set_point = self.pubsub_errors(self.change_set_point)
         pub.subscribe(
             self._change_set_point,
             f"{self.topic}.change_set_point",
