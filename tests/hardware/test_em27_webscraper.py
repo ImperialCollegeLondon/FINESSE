@@ -71,8 +71,11 @@ def test_on_reply_received_network_error(
 
     # Check the correct pubsub message is sent
     em27_scraper._on_reply_received(reply)
-    sendmsg_mock.assert_called_with(
-        "em27.error", error=EM27Error("Network error: Host not found")
+    assert sendmsg_mock.call_args.args[0] == "em27.error"
+    assert type(sendmsg_mock.call_args.kwargs["error"]) == EM27Error
+    assert (
+        sendmsg_mock.call_args.kwargs["error"].args[0]
+        == "Network error: Host not found"
     )
 
 
