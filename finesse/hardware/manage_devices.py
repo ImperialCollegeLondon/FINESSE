@@ -64,7 +64,10 @@ def _open_device(
     else:
         logging.info("Opened device")
 
-        # Signal that device is now open
+        # Signal that device is now open. The reason for the two different topics is
+        # because we want to ensure that some listeners always run before others, in
+        # case an error occurs and we have to undo the work.
+        pub.sendMessage(f"device.opening.{instance.topic}")
         pub.sendMessage(f"device.opened.{instance.topic}")
 
 
