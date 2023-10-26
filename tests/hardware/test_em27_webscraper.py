@@ -129,7 +129,7 @@ def test_get_em27sensor_data() -> None:
     the sensor data is correctly extracted from it.
     """
     dummy_em27_fp = resources.files("finesse.hardware").joinpath("diag_autom.htm")
-    with open(Path(str(dummy_em27_fp))) as f:
+    with dummy_em27_fp.open() as f:
         content = f.read()
     data_table = get_em27sensor_data(content)
     assert len(data_table) == 7
