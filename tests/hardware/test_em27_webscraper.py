@@ -1,7 +1,6 @@
 """Tests for the EM27Scraper class."""
 from decimal import Decimal
 from importlib import resources
-from pathlib import Path
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
