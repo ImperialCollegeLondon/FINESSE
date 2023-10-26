@@ -100,6 +100,11 @@ class EM27Scraper:
     @Slot()
     @pubsub_broadcast("em27.error", "em27.data.response", "data")
     def _on_reply_received(self, reply: QNetworkReply) -> list[EM27Property]:
+        """Handle received HTTP reply.
+
+        Args:
+            reply: the response from the server
+        """
         if reply.error() != QNetworkReply.NetworkError.NoError:
             raise EM27Error(f"Network error: {reply.errorString()}")
 
