@@ -206,10 +206,12 @@ class ST10Controller(
         StepperMotorBase.__init__(self)
 
     def close(self) -> None:
-        """Leave mirror facing downwards when finished.
+        """Close device and leave mirror facing downwards.
 
         This prevents dust accumulating.
         """
+        StepperMotorBase.close(self)
+
         # Set flag that indicates the thread should quit
         self._reader.quit()
 
@@ -224,7 +226,7 @@ class ST10Controller(
 
         # If _reader is blocking on a read (which is likely), we could end up waiting
         # forever, so close the socket so that the read operation will terminate
-        super().close()
+        SerialDevice.close(self)
 
     @Slot()
     def _send_move_end_message(self) -> None:
