@@ -19,3 +19,7 @@ def generate_html() -> None:
         ],
         check=True,
     )
+
+
+if __name__ == "__main__":
+    generate_html()
