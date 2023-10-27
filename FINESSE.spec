@@ -1,8 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
-
+import docs.gen_user_guide as gen_guide
 
 block_cipher = None
-import docs.gen_user_guide as gen_guide
 
 gen_guide.generate_html()
 
