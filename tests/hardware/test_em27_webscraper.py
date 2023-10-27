@@ -45,10 +45,9 @@ def test_init(subscribe_mock: MagicMock) -> None:
     subscribe_mock.assert_called_once_with(scraper.send_data, "em27.data.request")
 
 
-@patch("finesse.hardware.em27_scraper._on_reply_received")
 @patch("finesse.hardware.em27_scraper.get_em27sensor_data")
 def test_on_reply_received_no_error(
-    get_em27sensor_data_mock: Mock, em27_scraper: EM27Scraper, sendmsg_mock: Mock, qtbot
+    get_em27sensor_data_mock: Mock, sendmsg_mock: Mock, qtbot
 ) -> None:
     """Test the _on_reply_received() method works when no error occurs."""
     reply = MagicMock()
@@ -62,9 +61,7 @@ def test_on_reply_received_no_error(
     sendmsg_mock.assert_called_once_with("em27.data.response", data="EM27Properties")
 
 
-def test_on_reply_received_network_error(
-    em27_scraper: EM27Scraper, sendmsg_mock: Mock, qtbot
-) -> None:
+def test_on_reply_received_network_error(sendmsg_mock: Mock, qtbot) -> None:
     """Test the _on_reply_received() method works when a network error occurs."""
     reply = MagicMock()
     reply.error.return_value = QNetworkReply.NetworkError.HostNotFoundError
@@ -82,7 +79,7 @@ def test_on_reply_received_network_error(
 
 @patch("finesse.hardware.em27_scraper.get_em27sensor_data")
 def test_on_reply_received_exception(
-    get_em27sensor_data_mock: Mock, em27_scraper: EM27Scraper, sendmsg_mock: Mock, qtbot
+    get_em27sensor_data_mock: Mock, sendmsg_mock: Mock, qtbot
 ) -> None:
     """Test the _on_reply_received() method works when an exception is raised."""
     reply = MagicMock()
@@ -100,7 +97,7 @@ def test_on_reply_received_exception(
 @patch("finesse.hardware.em27_scraper.QNetworkRequest")
 def test_send_data(
     network_request_mock: Mock, em27_scraper: EM27Scraper, qtbot
-) -> None:  # adapted from test_opus_interface's test_request_command()
+) -> None:
     """Test EM27Scraper's send_data() method."""
     request = MagicMock()
     network_request_mock.return_value = request
