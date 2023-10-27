@@ -58,10 +58,11 @@ def _get_stepper_motor_angle() -> tuple[float, bool]:
         return (float("nan"), False)
 
     try:
-        if angle := stepper.angle:
-            return (angle, False)
-        else:
+        angle = stepper.angle
+        if angle is None:
             return (float("nan"), True)
+        else:
+            return (angle, False)
     except Exception as error:
         pub.sendMessage(f"serial.{config.STEPPER_MOTOR_TOPIC}.error", error=error)
         return (float("nan"), False)
