@@ -11,6 +11,7 @@ from finesse.hardware.em27_scraper import (
     EM27Error,
     EM27Property,
     EM27Scraper,
+    _on_reply_received,
     get_em27sensor_data,
 )
 
@@ -44,6 +45,7 @@ def test_init(subscribe_mock: MagicMock) -> None:
     subscribe_mock.assert_called_once_with(scraper.send_data, "em27.data.request")
 
 
+@patch("finesse.hardware.em27_scraper._on_reply_received")
 @patch("finesse.hardware.em27_scraper.get_em27sensor_data")
 def test_on_reply_received_no_error(
     get_em27sensor_data_mock: Mock, em27_scraper: EM27Scraper, sendmsg_mock: Mock, qtbot
@@ -56,7 +58,7 @@ def test_on_reply_received_no_error(
     get_em27sensor_data_mock.return_value = "EM27Properties"
 
     # Check the correct pubsub message is sent
-    em27_scraper._on_reply_received(reply)
+    _on_reply_received(reply)
     sendmsg_mock.assert_called_once_with("em27.data.response", data="EM27Properties")
 
 
@@ -69,7 +71,7 @@ def test_on_reply_received_network_error(
     reply.errorString.return_value = "Host not found"
 
     # Check the correct pubsub message is sent
-    em27_scraper._on_reply_received(reply)
+    _on_reply_received(reply)
     assert sendmsg_mock.call_args.args[0] == "em27.error"
     assert isinstance(sendmsg_mock.call_args.kwargs["error"], EM27Error)
     assert (
@@ -91,7 +93,7 @@ def test_on_reply_received_exception(
     get_em27sensor_data_mock.side_effect = error
 
     # Check the correct pubsub message is sent
-    em27_scraper._on_reply_received(reply)
+    _on_reply_received(reply)
     sendmsg_mock.assert_called_with("em27.error", error=error)
 
 
@@ -105,7 +107,9 @@ def test_send_data(
     reply = MagicMock()
 
     with patch.object(em27_scraper, "_manager") as manager_mock:
-        with patch.object(em27_scraper, "_on_reply_received") as reply_received_mock:
+        with patch(
+            "finesse.hardware.em27_scraper._on_reply_received"
+        ) as reply_received_mock:
             manager_mock.get.return_value = reply
             em27_scraper.send_data()
             network_request_mock.assert_called_once_with(EM27_URL)
