@@ -42,6 +42,9 @@ EM27_URL = "http://10.10.0.1/diag_autom.htm"
 EM27_PROPERTY_POLL_INTERVAL = 60.0
 """Poll rate for EM27 properties."""
 
+EM27_SENSORS_TOPIC = "em27"
+"""The topic name to use for EM27 sensor-related messages."""
+
 STEPPER_MOTOR_TOPIC = "stepper_motor"
 """The topic name to use for stepper motor-related messages."""
 
