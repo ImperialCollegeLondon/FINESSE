@@ -57,7 +57,7 @@ jobs:
         run: |
           poetry run mkdocs build -s
 
-      - name: Install Pandocs
+      - name: Install Pandoc
         if: matrix.os == 'windows-latest'
         run: choco install pandoc
 
