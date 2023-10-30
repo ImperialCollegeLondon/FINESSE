@@ -63,15 +63,16 @@ class EM27SensorsBase(
 ):
     """An interface for monitoring EM27 properties."""
 
-    def __init__(self, url: str = EM27_URL) -> None:
+    def __init__(self, url: str = EM27_URL, timeout: float = 2.0) -> None:
         """Create a new EM27 property monitor.
 
         Args:
             url: Web address of the automation units diagnostics page.
+            timeout: How long to wait for a response from the server
         """
         super().__init__()
         self._url: str = url
-        self._timeout: float = 2.0
+        self._timeout: float = timeout
         self._manager = QNetworkAccessManager()
 
         self.subscribe(self.send_data, "data.request")
