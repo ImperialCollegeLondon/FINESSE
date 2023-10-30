@@ -5,10 +5,8 @@ from decimal import Decimal
 from pubsub import pub
 
 if "--dummy-em27" in sys.argv:
-    from .plugins.em27.dummy_em27_sensors import DummyEM27Sensors as EM27Sensors
     from .plugins.em27.dummy_opus_interface import DummyOPUSInterface as OPUSInterface
 else:
-    from .plugins.em27.em27_sensors import EM27Sensors  # type: ignore
     from .plugins.em27.opus_interface import OPUSInterface  # type: ignore
 
 from datetime import datetime
@@ -75,5 +73,3 @@ def _stop_hardware():
 
 pub.subscribe(_init_hardware, "window.opened")
 pub.subscribe(_stop_hardware, "window.closed")
-
-sensors = EM27Sensors()

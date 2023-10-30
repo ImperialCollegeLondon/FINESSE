@@ -5,10 +5,15 @@ This is used to scrape the PSF27Sensor data table off the server.
 from decimal import Decimal
 from functools import partial
 
-from PySide6.QtCore import Slot
+from PySide6.QtCore import QTimer, Slot
 from PySide6.QtNetwork import QNetworkAccessManager, QNetworkReply, QNetworkRequest
 
-from finesse.config import EM27_SENSORS_TIMEOUT, EM27_SENSORS_TOPIC, EM27_URL
+from finesse.config import (
+    EM27_SENSORS_POLL_INTERVAL,
+    EM27_SENSORS_TIMEOUT,
+    EM27_SENSORS_TOPIC,
+    EM27_URL,
+)
 from finesse.em27_info import EM27Property
 from finesse.hardware.device import Device
 
@@ -77,7 +82,10 @@ class EM27SensorsBase(
         self._timeout: float = timeout
         self._manager = QNetworkAccessManager()
 
-        self.subscribe(self.send_data, "data.request")
+        # Poll device once on open.
+        # TODO: Run this synchronously so we can check that things work before the
+        # device.opened message is sent
+        self.send_data()
 
     def send_data(self) -> None:
         """Request the EM27 property data from the web server.
@@ -97,3 +105,18 @@ class EM27SensorsBase(
 
 class EM27Sensors(EM27SensorsBase, description="EM27 sensors"):
     """An interface for EM27 sensors on the real device."""
+
+    def __init__(self, poll_interval: float = EM27_SENSORS_POLL_INTERVAL) -> None:
+        """Create a new EM27Sensors.
+
+        Args:
+            poll_interval: How often to poll the sensors (seconds)
+        """
+        super().__init__()
+        self._poll_timer = QTimer()
+        self._poll_timer.timeout.connect(self.send_data)
+        self._poll_timer.start(int(poll_interval * 1000))
+
+    def close(self) -> None:
+        """Close the device."""
+        self._poll_timer.stop()
