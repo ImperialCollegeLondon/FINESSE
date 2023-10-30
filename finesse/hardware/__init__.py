@@ -1,5 +1,6 @@
 """This module contains code for interfacing with different hardware devices."""
 import sys
+from decimal import Decimal
 
 from pubsub import pub
 
@@ -10,31 +11,69 @@ else:
     from .em27_scraper import EM27Scraper  # type: ignore
     from .opus.em27 import OPUSInterface  # type: ignore
 
-from . import data_file_writer  # noqa
-from .stepper_motor import create_stepper_motor_serial_manager
-from .temperature import (
-    create_temperature_controller_serial_managers,
-    create_temperature_monitor_serial_manager,
-)
+from datetime import datetime
 
-opus: OPUSInterface
+from finesse.config import NUM_TEMPERATURE_MONITOR_CHANNELS, TEMPERATURE_MONITOR_TOPIC
+
+from . import data_file_writer  # noqa: F401
+from .device import get_device_types
+from .plugins.temperature import get_temperature_monitor_instance
+
+_opus: OPUSInterface
+
+
+def _broadcast_device_types() -> None:
+    """Broadcast the available device types via pubsub."""
+    pub.sendMessage("device.list", device_types=get_device_types())
+
+
+def _try_get_temperatures() -> list[Decimal] | None:
+    """Try to read the current temperatures from the temperature monitor.
+
+    If the device is not connected or the operation fails, None is returned.
+    """
+    dev = get_temperature_monitor_instance()
+    if not dev:
+        return None
+
+    try:
+        return dev.get_temperatures()
+    except Exception as error:
+        dev.send_error_message(error)
+        return None
+
+
+_DEFAULT_TEMPS = [Decimal("nan")] * NUM_TEMPERATURE_MONITOR_CHANNELS
+
+
+def _send_temperatures() -> None:
+    """Send the current temperatures (or NaNs) via pubsub."""
+    temperatures = _try_get_temperatures() or _DEFAULT_TEMPS
+    time = datetime.utcnow()
+    pub.sendMessage(
+        f"device.{TEMPERATURE_MONITOR_TOPIC}.data.response",
+        temperatures=temperatures,
+        time=time,
+    )
+
+
+pub.subscribe(_send_temperatures, f"device.{TEMPERATURE_MONITOR_TOPIC}.data.request")
 
 
 def _init_hardware():
-    global opus
+    global _opus
 
-    opus = OPUSInterface()
+    _opus = OPUSInterface()
+
+    _broadcast_device_types()
 
 
 def _stop_hardware():
-    global opus
-    del opus
+    global _opus
+    del _opus
 
 
 pub.subscribe(_init_hardware, "window.opened")
 pub.subscribe(_stop_hardware, "window.closed")
 
 scraper = EM27Scraper()
-create_stepper_motor_serial_manager()
-create_temperature_controller_serial_managers()
-create_temperature_monitor_serial_manager()

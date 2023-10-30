@@ -6,7 +6,7 @@ authors = [
     "Alex Dewar <a.dewar@imperial.ac.uk>",
     "Diego Alonso Álvarez <d.alonso-alvarez@imperial.ac.uk>",
     "Dan Cummins <daniel.cummins17@imperial.ac.uk>",
-    "Imperial College London RSE Team <ict-rse-team@imperial.ac.uk>"
+    "Imperial College London RSE Team <ict-rse-team@imperial.ac.uk>",
 ]
 
 [tool.poetry.dependencies]
@@ -55,6 +55,10 @@ profile = "black"
 
 [tool.mypy]
 ignore_missing_imports = true
+
+# Allows Type[T] to refer to abstract classes, which is not otherwise supported.
+# See https://github.com/python/mypy/issues/4717
+disable_error_code = "type-abstract"
 
 [tool.pytest.ini_options]
 addopts = "-v --mypy -p no:warnings --cov=finesse --cov-report=html:htmlcov/coverage --doctest-modules --ignore=site/ --ignore=docs/"

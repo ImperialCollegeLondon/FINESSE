@@ -9,12 +9,15 @@ The specification is available online:
 
 import logging
 from queue import Queue
+from typing import Any
 
 from pubsub import pub
 from PySide6.QtCore import QThread, Signal, Slot
 from serial import Serial, SerialException, SerialTimeoutException
 
-from ...config import STEPPER_MOTOR_TOPIC
+from finesse.config import STEPPER_MOTOR_TOPIC
+from finesse.hardware.serial_device import SerialDevice
+
 from .stepper_motor_base import StepperMotorBase
 
 
@@ -97,6 +100,9 @@ class _SerialReader(QThread):
             raise ST10ControllerError(f"Invalid message received: {repr(raw)}")
 
     def _read_error(self, error: BaseException) -> None:
+        if self.stopping:
+            return
+
         # Return the error synchronously to the first waiter
         self.out_queue.put(error)
 
@@ -151,7 +157,9 @@ class _SerialReader(QThread):
         return response
 
 
-class ST10Controller(StepperMotorBase):
+class ST10Controller(
+    SerialDevice, StepperMotorBase, description="ST10 controller", default_baudrate=9600
+):
     """An interface for the ST10-Q-NN stepper motor controller.
 
     This class allows for moving the mirror to arbitrary positions and retrieving its
@@ -164,22 +172,24 @@ class ST10Controller(StepperMotorBase):
     ST10_MODEL_ID = "107F024"
     """The model and revision number for the ST10 controller we are using."""
 
-    def __init__(self, serial: Serial) -> None:
+    def __init__(
+        self, *serial_args: Any, timeout: float = 5.0, **serial_kwargs: Any
+    ) -> None:
         """Create a new ST10Controller.
 
         Args:
-            serial: The serial device to communicate with the ST10 controller
+            serial_args: Arguments to pass to Serial constructor
+            timeout: Connection timeout
+            serial_kwargs: Keyword arguments to pass to Serial constructor
 
         Raises:
             SerialException: Error communicating with device
             SerialTimeoutException: Timed out waiting for response from device
             ST10ControllerError: Malformed message received from device
         """
-        self.serial = serial
-        timeout = self.serial.timeout
-        self.serial.timeout = None
+        SerialDevice.__init__(self, *serial_args, **serial_kwargs)
 
-        self._reader = _SerialReader(serial, timeout)
+        self._reader = _SerialReader(self.serial, timeout)
         self._reader.async_read_completed.connect(self._send_move_end_message)
         self._reader.read_error.connect(self.send_error_message)
         self._reader.start()
@@ -187,19 +197,18 @@ class ST10Controller(StepperMotorBase):
         # Check that we are connecting to an ST10
         self._check_device_id()
 
-        # In case the motor is still moving, stop it now
-        self.stop_moving()
-
         # Move mirror to home position
         self._home_and_reset()
 
-        super().__init__()
+        StepperMotorBase.__init__(self)
 
     def close(self) -> None:
-        """Leave mirror facing downwards when finished.
+        """Close device and leave mirror facing downwards.
 
         This prevents dust accumulating.
         """
+        StepperMotorBase.close(self)
+
         # Set flag that indicates the thread should quit
         self._reader.quit()
 
@@ -214,11 +223,11 @@ class ST10Controller(StepperMotorBase):
 
         # If _reader is blocking on a read (which is likely), we could end up waiting
         # forever, so close the socket so that the read operation will terminate
-        self.serial.close()
+        SerialDevice.close(self)
 
     @Slot()
     def _send_move_end_message(self) -> None:
-        pub.sendMessage(f"serial.{STEPPER_MOTOR_TOPIC}.move.end")
+        pub.sendMessage(f"device.{STEPPER_MOTOR_TOPIC}.move.end")
 
     def _check_device_id(self) -> None:
         """Check that the ID is the correct one for an ST10.
@@ -259,6 +268,9 @@ class ST10Controller(StepperMotorBase):
             SerialTimeoutException: Timed out waiting for response from device
             ST10ControllerError: Malformed message received from device
         """
+        # In case the motor is still moving, stop it now
+        self.stop_moving()
+
         # If the third (boolean) value of the input status array is set, then move the
         # motor first. I don't know what the input status actually means, but this is
         # how it was done in the old program, so I'm copying it here.
