@@ -7,11 +7,21 @@ constructor).
 """
 from __future__ import annotations
 
+import logging
+import traceback
 from abc import ABC, abstractmethod
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from typing import Any
 
-from finesse.device_info import DeviceBaseTypeInfo, DeviceParameter, DeviceTypeInfo
+from decorator import decorate
+from pubsub import pub
+
+from finesse.device_info import (
+    DeviceBaseTypeInfo,
+    DeviceInstanceRef,
+    DeviceParameter,
+    DeviceTypeInfo,
+)
 
 from .plugins import load_all_plugins
 
@@ -170,6 +180,9 @@ class Device(AbstractDevice):
         self.name = name
         """The (optional) name of this device to use in pubsub messages."""
 
+        self._subscriptions: list[tuple[Callable, str]] = []
+        """Store of wrapped functions which are subscribed to pubsub messages."""
+
         if not self._device_base_type_info.names_short:
             if name:
                 raise RuntimeError(
@@ -181,3 +194,108 @@ class Device(AbstractDevice):
             raise RuntimeError("Invalid name given for device")
 
         self.topic += f".{name}"
+
+    def close(self) -> None:
+        """Close the device and clear any pubsub subscriptions."""
+        for sub in self._subscriptions:
+            pub.unsubscribe(*sub)
+
+    def get_instance_ref(self) -> DeviceInstanceRef:
+        """Get the DeviceInstanceRef corresponding to this device."""
+        return DeviceInstanceRef(self._device_base_type_info.name, self.name)
+
+    def send_error_message(self, error: Exception) -> None:
+        """Send an error message for this device."""
+        # Write to log
+        traceback_str = "".join(traceback.format_exception(error))
+        logging.error(f"Error with device {self.topic}: {traceback_str}")
+
+        # Send pubsub message
+        instance = self.get_instance_ref()
+        pub.sendMessage(
+            f"device.error.{instance.topic}",
+            instance=instance,
+            error=error,
+        )
+
+    def pubsub_errors(self, func: Callable) -> Callable:
+        """Catch exceptions and broadcast via pubsub.
+
+        Args:
+            func: The function to wrap
+        """
+
+        def wrapped(func, *args, **kwargs):
+            try:
+                func(*args, **kwargs)
+            except Exception as error:
+                self.send_error_message(error)
+
+        return decorate(func, wrapped)
+
+    def pubsub_broadcast(
+        self, func: Callable, success_topic_suffix: str, *kwarg_names: str
+    ) -> Callable:
+        """Broadcast success or failure of function via pubsub.
+
+        If the function returns without error, the returned values are sent as arguments
+        to the success_topic message.
+
+        Args:
+            func: The function to wrap
+            success_topic_suffix: The topic name on which to broadcast function results
+            kwarg_names: The names of each of the returned values
+        """
+
+        def wrapped(func, *args, **kwargs):
+            try:
+                result = func(*args, **kwargs)
+            except Exception as error:
+                self.send_error_message(error)
+            else:
+                # Convert result to a tuple of the right size
+                if result is None:
+                    result = ()
+                elif not isinstance(result, tuple):
+                    result = (result,)
+
+                # Make sure we have the right number of return values
+                assert len(result) == len(kwarg_names)
+
+                # Send message with arguments
+                pub.sendMessage(
+                    f"{self.topic}.{success_topic_suffix}",
+                    **dict(zip(kwarg_names, result)),
+                )
+
+        return decorate(func, wrapped)
+
+    def subscribe(
+        self,
+        func: Callable,
+        topic_name_suffix: str,
+        success_topic_suffix: str | None = None,
+        *kwarg_names: str,
+    ) -> None:
+        """Subscribe to a pubsub topic using the pubsub_* helper functions.
+
+        Errors will be broadcast with the message "device.error.{THIS_INSTANCE}". If
+        success_topic_suffix is provided, a message will also be sent on success (see
+        pubsub_broadcast).
+
+        Args:
+            func: Function to subscribe to
+            topic_name_suffix: The suffix of the topic to subscribe to
+            success_topic_suffix: The topic name on which to broadcast function results
+            kwarg_names: The names of each of the returned values
+        """
+        if success_topic_suffix:
+            wrapped_func = self.pubsub_broadcast(
+                func, success_topic_suffix, *kwarg_names
+            )
+        else:
+            wrapped_func = self.pubsub_errors(func)
+
+        topic_name = f"{self.topic}.{topic_name_suffix}"
+        self._subscriptions.append((wrapped_func, topic_name))
+        pub.subscribe(wrapped_func, topic_name)

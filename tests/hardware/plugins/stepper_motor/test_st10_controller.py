@@ -2,7 +2,7 @@
 from contextlib import nullcontext as does_not_raise
 from itertools import chain
 from typing import Any, cast
-from unittest.mock import MagicMock, PropertyMock, patch
+from unittest.mock import MagicMock, Mock, PropertyMock, patch
 
 import pytest
 from serial import SerialException, SerialTimeoutException
@@ -40,44 +40,46 @@ class MockSerialReader(_SerialReader):
     "finesse.hardware.plugins.stepper_motor.st10_controller._SerialReader",
     MockSerialReader,
 )
-def dev(error_wrap_mock: MagicMock, serial_mock: MagicMock) -> ST10Controller:
+def dev(subscribe_mock: MagicMock, serial_mock: MagicMock) -> ST10Controller:
     """A fixture providing an ST10Controller with a patched Serial object."""
     serial_mock.is_open = True
 
     # These functions should all be called, but patch them for now as we test this
     # elsewhere
     with patch.object(ST10Controller, "_check_device_id"):
-        with patch.object(ST10Controller, "stop_moving"):
-            with patch.object(ST10Controller, "_home_and_reset"):
-                return ST10Controller(*_SERIAL_ARGS)
+        with patch.object(ST10Controller, "_home_and_reset"):
+            return ST10Controller(*_SERIAL_ARGS)
 
 
 @patch(
     "finesse.hardware.plugins.stepper_motor.st10_controller._SerialReader",
     MockSerialReader,
 )
-def test_init(error_wrap_mock: MagicMock, serial_mock: MagicMock) -> None:
+def test_init(subscribe_mock: MagicMock, serial_mock: MagicMock) -> None:
     """Test __init__()."""
     with patch.object(ST10Controller, "_check_device_id") as check_mock:
-        with patch.object(ST10Controller, "stop_moving") as stop_mock:
-            with patch.object(ST10Controller, "_home_and_reset") as home_mock:
-                # We assign to a variable so the destructor isn't invoked until after
-                # our checks
-                st10 = ST10Controller(*_SERIAL_ARGS)
-                r = cast(MagicMock, st10._reader)
-                r.async_read_completed.connect.assert_called_once_with(
-                    st10._send_move_end_message
-                )
-                r.read_error.connect.assert_called_once_with(st10.send_error_message)
-                check_mock.assert_called_once()
-                stop_mock.assert_called_once()
-                home_mock.assert_called_once()
+        with patch.object(ST10Controller, "_home_and_reset") as home_mock:
+            # We assign to a variable so the destructor isn't invoked until after
+            # our checks
+            st10 = ST10Controller(*_SERIAL_ARGS)
+            r = cast(MagicMock, st10._reader)
+            r.async_read_completed.connect.assert_called_once_with(
+                st10._send_move_end_message
+            )
+            r.read_error.connect.assert_called_once_with(st10.send_error_message)
+            check_mock.assert_called_once()
+            home_mock.assert_called_once()
 
 
-def test_close(dev: ST10Controller) -> None:
+@patch("finesse.hardware.plugins.stepper_motor.st10_controller.SerialDevice")
+@patch("finesse.hardware.plugins.stepper_motor.st10_controller.StepperMotorBase")
+def test_close(stepper_cls: Mock, serial_dev_cls: Mock, dev: ST10Controller) -> None:
     """Test the close() method."""
     dev.close()
-    dev.serial.close.assert_called_once_with()
+
+    # Check that both parents' close() methods are called
+    stepper_cls.close.assert_called_once_with(dev)
+    serial_dev_cls.close.assert_called_once_with(dev)
 
 
 def test_send_move_end_message(sendmsg_mock: MagicMock, dev: ST10Controller) -> None:

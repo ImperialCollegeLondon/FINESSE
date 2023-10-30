@@ -1,5 +1,5 @@
 """Tests for the StepperMotorBase class."""
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -30,9 +30,6 @@ class _MockStepperMotor(StepperMotorBase, description="Mock stepper motor"):
     def step(self, step: int) -> None:
         self._step = step
 
-    def close(self) -> None:
-        pass
-
     def stop_moving(self) -> None:
         pass
 
@@ -44,24 +41,22 @@ class _MockStepperMotor(StepperMotorBase, description="Mock stepper motor"):
 
 
 @pytest.fixture
-def stepper(error_wrap_mock: MagicMock) -> _MockStepperMotor:
+def stepper(subscribe_mock: MagicMock) -> StepperMotorBase:
     """Provides a basic StepperMotorBase."""
     return _MockStepperMotor()
 
 
-def test_init(subscribe_mock: MagicMock) -> None:
+def test_init() -> None:
     """Test that StepperMotorBase's constructor subscribes to the right messages."""
-    stepper = _MockStepperMotor()
-    subscribe_mock.assert_any_call(
-        stepper._move_to,
-        f"device.{STEPPER_MOTOR_TOPIC}.move.begin",
-    )
-    subscribe_mock.assert_any_call(
-        stepper._stop_moving, f"device.{STEPPER_MOTOR_TOPIC}.stop"
-    )
-    subscribe_mock.assert_any_call(
-        stepper._notify_on_stopped, f"device.{STEPPER_MOTOR_TOPIC}.notify_on_stopped"
-    )
+    with patch.object(_MockStepperMotor, "subscribe") as subscribe_mock:
+        stepper = _MockStepperMotor()
+        assert subscribe_mock.call_count == 3
+        subscribe_mock.assert_any_call(
+            stepper.move_to,
+            "move.begin",
+        )
+        subscribe_mock.assert_any_call(stepper.stop_moving, "stop")
+        subscribe_mock.assert_any_call(stepper.notify_on_stopped, "notify_on_stopped")
 
 
 def test_angle(stepper: _MockStepperMotor) -> None:
