@@ -30,7 +30,7 @@ from ..config import (
     TEMPERATURE_MONITOR_TOPIC,
     TEMPERATURE_PLOT_TIME_RANGE,
 )
-from .led_icons import LEDIcon
+from .led_icon import LEDIcon
 from .serial_device_panel import SerialDevicePanel
 
 
