@@ -30,8 +30,8 @@ from ..config import (
     TEMPERATURE_MONITOR_TOPIC,
     TEMPERATURE_PLOT_TIME_RANGE,
 )
+from .device_panel import DevicePanel
 from .led_icon import LEDIcon
-from .serial_device_panel import SerialDevicePanel
 
 
 class TemperaturePlot(QGroupBox):
@@ -190,7 +190,7 @@ class TemperaturePlot(QGroupBox):
         self._update_figure(time.timestamp(), hot_bb_temp, cold_bb_temp)
 
 
-class DP9800Controls(SerialDevicePanel):
+class DP9800Controls(DevicePanel):
     """Widgets to view the DP9800 properties."""
 
     def __init__(self, num_channels: int = NUM_TEMPERATURE_MONITOR_CHANNELS) -> None:
@@ -273,7 +273,7 @@ class DP9800Controls(SerialDevicePanel):
             channel.setText(f"{temperature: .2f}")
 
 
-class TC4820Controls(SerialDevicePanel):
+class TC4820Controls(DevicePanel):
     """Widgets to view the TC4820 properties."""
 
     def __init__(self, name: str, temperature_idx: int) -> None:

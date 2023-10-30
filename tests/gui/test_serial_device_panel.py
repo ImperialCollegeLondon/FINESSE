@@ -6,10 +6,10 @@ import pytest
 from PySide6.QtWidgets import QVBoxLayout, QWidget
 from pytestqt.qtbot import QtBot
 
-from finesse.gui.serial_device_panel import SerialDevicePanel
+from finesse.gui.device_panel import DevicePanel
 
 
-class _ChildSerialDevicePanel(SerialDevicePanel):
+class _ChildSerialDevicePanel(DevicePanel):
     """Inherit from SerialDevicePanel in order to test __init_subclass__."""
 
     def __init__(self) -> None:
@@ -23,12 +23,12 @@ class _ChildSerialDevicePanel(SerialDevicePanel):
 
 
 @pytest.fixture
-def panel(qtbot: QtBot) -> SerialDevicePanel:
+def panel(qtbot: QtBot) -> DevicePanel:
     """A fixture providing a SerialDevicePanel."""
     return _ChildSerialDevicePanel()
 
 
-def _check_controls_enabled(panel: SerialDevicePanel, enabled: bool) -> None:
+def _check_controls_enabled(panel: DevicePanel, enabled: bool) -> None:
     widgets: Sequence[QWidget] = panel.findChildren(QWidget)
 
     assert widgets  # no point in doing the test unless there's at least one widget!
@@ -38,13 +38,13 @@ def _check_controls_enabled(panel: SerialDevicePanel, enabled: bool) -> None:
 
 def test_init(subscribe_mock: MagicMock, qtbot: QtBot) -> None:
     """Test SerialDevicePanel's constructor."""
-    panel = SerialDevicePanel("my_device", "My Title")
+    panel = DevicePanel("my_device", "My Title")
 
     subscribe_mock.assert_any_call(panel._on_device_opened, "device.opened.my_device")
     subscribe_mock.assert_any_call(panel._on_device_closed, "device.closed.my_device")
 
 
-def test_set_controls_enabled(panel: SerialDevicePanel) -> None:
+def test_set_controls_enabled(panel: DevicePanel) -> None:
     """Test the set_controls_enabled() method."""
     # The controls should start off disabled
     _check_controls_enabled(panel, False)
@@ -58,14 +58,14 @@ def test_set_controls_enabled(panel: SerialDevicePanel) -> None:
     _check_controls_enabled(panel, False)
 
 
-def test_on_device_opened(panel: SerialDevicePanel) -> None:
+def test_on_device_opened(panel: DevicePanel) -> None:
     """Test the _on_device_opened() method."""
     with patch.object(panel, "set_controls_enabled") as enable_mock:
         panel._on_device_opened()
         enable_mock.assert_called_once_with(True)
 
 
-def test_on_device_closed(panel: SerialDevicePanel) -> None:
+def test_on_device_closed(panel: DevicePanel) -> None:
     """Test the _on_device_closed() method."""
     with patch.object(panel, "set_controls_enabled") as enable_mock:
         panel._on_device_closed()
