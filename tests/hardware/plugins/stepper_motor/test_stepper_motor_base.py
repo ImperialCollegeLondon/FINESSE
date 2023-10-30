@@ -1,13 +1,14 @@
 """Tests for the StepperMotorBase class."""
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 from finesse.config import STEPPER_MOTOR_TOPIC
-from finesse.hardware.stepper_motor.stepper_motor_base import StepperMotorBase
+from finesse.device_info import DeviceInstanceRef
+from finesse.hardware.plugins.stepper_motor.stepper_motor_base import StepperMotorBase
 
 
-class _MockStepperMotor(StepperMotorBase):
+class _MockStepperMotor(StepperMotorBase, description="Mock stepper motor"):
     def __init__(self) -> None:
         self._steps_per_rotation = 1
         self._step = 0
@@ -29,9 +30,6 @@ class _MockStepperMotor(StepperMotorBase):
     def step(self, step: int) -> None:
         self._step = step
 
-    def close(self) -> None:
-        pass
-
     def stop_moving(self) -> None:
         pass
 
@@ -43,24 +41,22 @@ class _MockStepperMotor(StepperMotorBase):
 
 
 @pytest.fixture
-def stepper(error_wrap_mock: MagicMock) -> _MockStepperMotor:
+def stepper(subscribe_mock: MagicMock) -> StepperMotorBase:
     """Provides a basic StepperMotorBase."""
     return _MockStepperMotor()
 
 
-def test_init(subscribe_mock: MagicMock) -> None:
+def test_init() -> None:
     """Test that StepperMotorBase's constructor subscribes to the right messages."""
-    stepper = _MockStepperMotor()
-    subscribe_mock.assert_any_call(
-        stepper._move_to,
-        f"serial.{STEPPER_MOTOR_TOPIC}.move.begin",
-    )
-    subscribe_mock.assert_any_call(
-        stepper._stop_moving, f"serial.{STEPPER_MOTOR_TOPIC}.stop"
-    )
-    subscribe_mock.assert_any_call(
-        stepper._notify_on_stopped, f"serial.{STEPPER_MOTOR_TOPIC}.notify_on_stopped"
-    )
+    with patch.object(_MockStepperMotor, "subscribe") as subscribe_mock:
+        stepper = _MockStepperMotor()
+        assert subscribe_mock.call_count == 3
+        subscribe_mock.assert_any_call(
+            stepper.move_to,
+            "move.begin",
+        )
+        subscribe_mock.assert_any_call(stepper.stop_moving, "stop")
+        subscribe_mock.assert_any_call(stepper.notify_on_stopped, "notify_on_stopped")
 
 
 def test_angle(stepper: _MockStepperMotor) -> None:
@@ -81,5 +77,7 @@ def test_send_error_message(
     error = Exception()
     stepper.send_error_message(error)
     sendmsg_mock.assert_called_once_with(
-        f"serial.{STEPPER_MOTOR_TOPIC}.error", error=error
+        f"device.error.{STEPPER_MOTOR_TOPIC}",
+        instance=DeviceInstanceRef(STEPPER_MOTOR_TOPIC),
+        error=error,
     )

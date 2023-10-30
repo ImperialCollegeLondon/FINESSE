@@ -40,8 +40,8 @@ def test_init(subscribe_mock: MagicMock, qtbot: QtBot) -> None:
     """Test SerialDevicePanel's constructor."""
     panel = SerialDevicePanel("my_device", "My Title")
 
-    subscribe_mock.assert_any_call(panel._on_device_opened, "serial.my_device.opened")
-    subscribe_mock.assert_any_call(panel._on_device_closed, "serial.my_device.close")
+    subscribe_mock.assert_any_call(panel._on_device_opened, "device.opened.my_device")
+    subscribe_mock.assert_any_call(panel._on_device_closed, "device.closed.my_device")
 
 
 def test_set_controls_enabled(panel: SerialDevicePanel) -> None:
