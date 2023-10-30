@@ -197,19 +197,18 @@ class ST10Controller(
         # Check that we are connecting to an ST10
         self._check_device_id()
 
-        # In case the motor is still moving, stop it now
-        self.stop_moving()
-
         # Move mirror to home position
         self._home_and_reset()
 
         StepperMotorBase.__init__(self)
 
     def close(self) -> None:
-        """Leave mirror facing downwards when finished.
+        """Close device and leave mirror facing downwards.
 
         This prevents dust accumulating.
         """
+        StepperMotorBase.close(self)
+
         # Set flag that indicates the thread should quit
         self._reader.quit()
 
@@ -224,7 +223,7 @@ class ST10Controller(
 
         # If _reader is blocking on a read (which is likely), we could end up waiting
         # forever, so close the socket so that the read operation will terminate
-        super().close()
+        SerialDevice.close(self)
 
     @Slot()
     def _send_move_end_message(self) -> None:
@@ -269,6 +268,9 @@ class ST10Controller(
             SerialTimeoutException: Timed out waiting for response from device
             ST10ControllerError: Malformed message received from device
         """
+        # In case the motor is still moving, stop it now
+        self.stop_moving()
+
         # If the third (boolean) value of the input status array is set, then move the
         # motor first. I don't know what the input status actually means, but this is
         # how it was done in the old program, so I'm copying it here.

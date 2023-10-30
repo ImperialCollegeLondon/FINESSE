@@ -35,9 +35,7 @@ def test_init(qtbot) -> None:
         for steps in range(-5, 5)
     ],
 )
-def test_init_raises(
-    steps: int, raises: Any, error_wrap_mock: MagicMock, qtbot
-) -> None:
+def test_init_raises(steps: int, raises: Any, subscribe_mock: MagicMock, qtbot) -> None:
     """Test that constructor raises an error for an invalid step count."""
     with raises:
         stepper = DummyStepperMotor(steps)
@@ -60,7 +58,7 @@ def test_move_to_number(
     target: int,
     raises: Any,
     stepper: DummyStepperMotor,
-    error_wrap_mock: MagicMock,
+    subscribe_mock: MagicMock,
     qtbot,
 ) -> None:
     """Check move_to, when an angle is given."""
@@ -93,7 +91,7 @@ def test_move_to_preset(
     name: str,
     raises: Any,
     stepper: DummyStepperMotor,
-    error_wrap_mock: MagicMock,
+    subscribe_mock: MagicMock,
     qtbot,
 ) -> None:
     """Check move_to, when a preset name is given."""

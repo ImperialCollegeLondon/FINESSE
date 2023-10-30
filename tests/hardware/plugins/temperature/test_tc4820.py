@@ -3,13 +3,12 @@ from contextlib import nullcontext as does_not_raise
 from decimal import Decimal
 from itertools import chain
 from typing import Any
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 from pytest_mock import MockerFixture
 from serial import SerialException
 
-from finesse.config import TEMPERATURE_CONTROLLER_TOPIC
 from finesse.hardware.plugins.temperature.tc4820 import TC4820, MalformedMessageError
 
 _SERIAL_ARGS = ("COM1", 9600)
@@ -26,13 +25,6 @@ def test_init(name: str, subscribe_mock: MagicMock, serial_mock: MagicMock) -> N
     """Test TC4820's constructor."""
     dev = TC4820(name, *_SERIAL_ARGS)
     assert dev.max_attempts == 3
-    subscribe_mock.assert_any_call(
-        dev._request_properties, f"device.{TEMPERATURE_CONTROLLER_TOPIC}.{name}.request"
-    )
-    subscribe_mock.assert_any_call(
-        dev._change_set_point,
-        f"device.{TEMPERATURE_CONTROLLER_TOPIC}.{name}.change_set_point",
-    )
 
 
 def test_get_properties(dev: TC4820) -> None:
@@ -194,3 +186,12 @@ def test_property_getters(
     )
     getattr(dev, name)
     m.assert_called_once_with(command)
+
+
+@patch("finesse.hardware.plugins.temperature.tc4820.SerialDevice")
+@patch("finesse.hardware.plugins.temperature.tc4820.TemperatureControllerBase")
+def test_close(tc_base_cls: Mock, serial_dev_cls: Mock, dev: TC4820) -> None:
+    """Test the close() method."""
+    dev.close()
+    tc_base_cls.close.assert_called_once_with(dev)
+    serial_dev_cls.close.assert_called_once_with(dev)
