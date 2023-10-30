@@ -1578,13 +1578,13 @@ six = ">=1.5"
 
 [[package]]
 name = "python-statemachine"
-version = "2.1.0"
+version = "2.1.2"
 description = "Python Finite State Machines made easy."
 optional = false
-python-versions = ">=3.7,<3.12"
+python-versions = ">=3.7,<3.13"
 files = [
-    {file = "python_statemachine-2.1.0-py3-none-any.whl", hash = "sha256:195d8a1059ea22e94effce35d5fd9352362391e07ed248e04e27fadb49b41726"},
-    {file = "python_statemachine-2.1.0.tar.gz", hash = "sha256:aded5878526f5249465ce5aec3fb8babc9e08261bba4a4e0d147403e73335c34"},
+    {file = "python_statemachine-2.1.2-py3-none-any.whl", hash = "sha256:d7e369d5da5b9007cc7cf5eb7a1b169081e2f4b7d30b6415fc122858fb7696ec"},
+    {file = "python_statemachine-2.1.2.tar.gz", hash = "sha256:0b0dd8b28738b53f14391b06d5072cd5e72259da5ae23574d3d4f5e6dd366663"},
 ]
 
 [[package]]
@@ -1996,4 +1996,4 @@ watchmedo = ["PyYAML (>=3.10)"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.12"
-content-hash = "86598503faf33a0a0a4d5e073d605867ce1ae01d32b32ec747898eed1c8249fc"
+content-hash = "311c4caaa4342ece30def634a0b9710d62097056cfa3732ae5450e6757277e95"
