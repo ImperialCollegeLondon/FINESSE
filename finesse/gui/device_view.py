@@ -1,5 +1,5 @@
 """Provides a control for viewing and connecting to devices."""
-from typing import cast
+from typing import Any, cast
 
 from pubsub import pub
 from PySide6.QtWidgets import (
@@ -33,7 +33,7 @@ def _create_device_widgets(
 
         # Previous parameter values are saved if a device opens successfully
         previous_param_values = cast(
-            dict[str, str] | None,
+            dict[str, Any] | None,
             settings.value(f"device/{instance.topic}/{t.description}/params"),
         )
 
@@ -48,15 +48,27 @@ def _create_device_widgets(
         for param in params:
             combo = QComboBox()
             combo.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
-            combo.addItems(param.possible_values)
 
+            # Keep the "real" value along with its string representation, so that we can
+            # pass it back to the backend on device open
+            for value in param.possible_values:
+                combo.addItem(str(value), value)
+
+            curval = None
             if (
                 previous_param_values
                 and previous_param_values[param.name] in param.possible_values
             ):
-                combo.setCurrentText(previous_param_values[param.name])
+                curval = previous_param_values[param.name]
             elif param.default_value is not None:
-                combo.setCurrentText(param.default_value)
+                curval = param.default_value
+
+            if curval is not None:
+                try:
+                    combo.setCurrentIndex(param.possible_values.index(curval))
+                except ValueError:
+                    # curval is not in param.possible_values (although it should be)
+                    pass
 
             layout.addWidget(combo)
 
@@ -82,7 +94,7 @@ class DeviceTypeControl(QGroupBox):
         if not device_types:
             raise RuntimeError("At least one device type must be specified")
 
-        self._cur_device_params: dict[str, str]
+        self._cur_device_params: dict[str, Any]
         """Cache the device params used for opening the device."""
         self._device_instance = instance
 
@@ -163,7 +175,7 @@ class DeviceTypeControl(QGroupBox):
         """Get the index of the currently selected device type."""
         return self._device_combo.currentIndex()
 
-    def _get_current_device_and_params(self) -> tuple[DeviceTypeInfo, dict[str, str]]:
+    def _get_current_device_and_params(self) -> tuple[DeviceTypeInfo, dict[str, Any]]:
         """Get the current device type and associated parameters."""
         device_idx = self._get_device_idx()
         device_type = self._device_types[device_idx]
@@ -177,7 +189,7 @@ class DeviceTypeControl(QGroupBox):
         # Get the parameter values
         combos: list[QComboBox] = widget.findChildren(QComboBox)
         device_params = {
-            p.name: c.currentText() for p, c in zip(device_type.parameters, combos)
+            p.name: c.currentData() for p, c in zip(device_type.parameters, combos)
         }
 
         return device_type, device_params
