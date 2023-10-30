@@ -45,8 +45,8 @@ EM27_SENSORS_POLL_INTERVAL = 60.0
 EM27_SENSORS_TOPIC = "em27"
 """The topic name to use for EM27 sensor-related messages."""
 
-EM27_SENSORS_TIMEOUT = 2.0
-"""How long to wait for a response from the server for."""
+DEFAULT_HTTP_TIMEOUT = 2.0
+"""How long to wait for a response from a server for."""
 
 STEPPER_MOTOR_TOPIC = "stepper_motor"
 """The topic name to use for stepper motor-related messages."""
