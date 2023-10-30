@@ -5,13 +5,12 @@ This is used to scrape the PSF27Sensor data table off the server.
 from decimal import Decimal
 from functools import partial
 
-from pubsub import pub
 from PySide6.QtCore import Slot
 from PySide6.QtNetwork import QNetworkAccessManager, QNetworkReply, QNetworkRequest
 
-from finesse.config import EM27_URL
+from finesse.config import EM27_SENSORS_TOPIC, EM27_URL
 from finesse.em27_info import EM27Property
-from finesse.hardware.pubsub_decorators import pubsub_broadcast
+from finesse.hardware.device import Device
 
 
 def get_em27sensor_data(content: str) -> list[EM27Property]:
@@ -51,7 +50,6 @@ class EM27Error(Exception):
 
 
 @Slot()
-@pubsub_broadcast("em27.error", "em27.data.response", "data")
 def _on_reply_received(reply: QNetworkReply) -> list[EM27Property]:
     if reply.error() != QNetworkReply.NetworkError.NoError:
         raise EM27Error(f"Network error: {reply.errorString()}")
@@ -60,7 +58,9 @@ def _on_reply_received(reply: QNetworkReply) -> list[EM27Property]:
     return get_em27sensor_data(content)
 
 
-class EM27Sensors:
+class EM27SensorsBase(
+    Device, is_base_type=True, name=EM27_SENSORS_TOPIC, description="EM27 sensors"
+):
     """An interface for monitoring EM27 properties."""
 
     def __init__(self, url: str = EM27_URL) -> None:
@@ -69,11 +69,12 @@ class EM27Sensors:
         Args:
             url: Web address of the automation units diagnostics page.
         """
+        super().__init__()
         self._url: str = url
         self._timeout: float = 2.0
         self._manager = QNetworkAccessManager()
 
-        pub.subscribe(self.send_data, "em27.data.request")
+        self.subscribe(self.send_data, "data.request")
 
     def send_data(self) -> None:
         """Request the EM27 property data from the web server.
@@ -83,4 +84,13 @@ class EM27Sensors:
         request = QNetworkRequest(self._url)
         request.setTransferTimeout(round(1000 * self._timeout))
         reply = self._manager.get(request)
-        reply.finished.connect(partial(_on_reply_received, reply))
+        reply.finished.connect(
+            partial(
+                self.pubsub_broadcast(_on_reply_received, "data.response", "data"),
+                reply,
+            )
+        )
+
+
+class EM27Sensors(EM27SensorsBase, description="EM27 sensors"):
+    """An interface for EM27 sensors on the real device."""

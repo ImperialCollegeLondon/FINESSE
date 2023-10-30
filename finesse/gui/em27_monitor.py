@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from finesse.config import EM27_PROPERTY_POLL_INTERVAL
+from finesse.config import EM27_PROPERTY_POLL_INTERVAL, EM27_SENSORS_TOPIC
 from finesse.em27_info import EM27Property
 from finesse.gui.led_icons import LEDIcon
 
@@ -42,7 +42,9 @@ class EM27Monitor(QGroupBox):
         self.setLayout(self._layout)
 
         # Listen for properties sent by EM27Scraper backend
-        pub.subscribe(self._on_properties_received, "em27.data.response")
+        pub.subscribe(
+            self._on_properties_received, f"device.{EM27_SENSORS_TOPIC}.data.response"
+        )
 
         # Start polling the backend
         self._begin_polling()
@@ -111,7 +113,7 @@ class EM27Monitor(QGroupBox):
         """Polls the server to obtain the latest values."""
         logging.info("Polling EM27 sensors")
         self._poll_light.flash()
-        pub.sendMessage("em27.data.request")
+        pub.sendMessage(f"device.{EM27_SENSORS_TOPIC}.data.request")
 
 
 if __name__ == "__main__":

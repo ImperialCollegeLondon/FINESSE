@@ -2,11 +2,11 @@
 from importlib import resources
 from pathlib import Path
 
-from .em27_sensors import EM27Sensors
+from .em27_sensors import EM27SensorsBase
 
 
-class DummyEM27Sensors(EM27Sensors):
-    """An interface for testing monitoring EM27 properties."""
+class DummyEM27Sensors(EM27SensorsBase, description="Dummy EM27 sensors"):
+    """A dummy device for EM27 sensors."""
 
     def __init__(self) -> None:
         """Create a new EM27 property monitor."""
