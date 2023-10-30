@@ -8,7 +8,7 @@ from functools import partial
 from PySide6.QtCore import Slot
 from PySide6.QtNetwork import QNetworkAccessManager, QNetworkReply, QNetworkRequest
 
-from finesse.config import EM27_SENSORS_TOPIC, EM27_URL
+from finesse.config import EM27_SENSORS_TIMEOUT, EM27_SENSORS_TOPIC, EM27_URL
 from finesse.em27_info import EM27Property
 from finesse.hardware.device import Device
 
@@ -63,7 +63,9 @@ class EM27SensorsBase(
 ):
     """An interface for monitoring EM27 properties."""
 
-    def __init__(self, url: str = EM27_URL, timeout: float = 2.0) -> None:
+    def __init__(
+        self, url: str = EM27_URL, timeout: float = EM27_SENSORS_TIMEOUT
+    ) -> None:
         """Create a new EM27 property monitor.
 
         Args:

@@ -14,9 +14,9 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from finesse.config import EM27_PROPERTY_POLL_INTERVAL, EM27_SENSORS_TOPIC
+from finesse.config import EM27_SENSORS_POLL_INTERVAL, EM27_SENSORS_TOPIC
 from finesse.em27_info import EM27Property
-from finesse.gui.led_icons import LEDIcon
+from finesse.gui.led_icon import LEDIcon
 
 
 class EM27Monitor(QGroupBox):
@@ -103,7 +103,7 @@ class EM27Monitor(QGroupBox):
     def _begin_polling(self) -> None:
         """Initiate polling the server."""
         self._poll_server()
-        self._poll_light.timer.start(round(EM27_PROPERTY_POLL_INTERVAL * 1000))
+        self._poll_light.timer.start(round(EM27_SENSORS_POLL_INTERVAL * 1000))
 
     def _end_polling(self) -> None:
         """Terminate polling the server."""
