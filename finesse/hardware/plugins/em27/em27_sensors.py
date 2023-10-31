@@ -45,17 +45,22 @@ def get_em27sensor_data(content: str) -> list[EM27Property]:
     return data_table
 
 
-class EM27Error(Exception):
-    """Indicates than an error occurred while parsing the webpage."""
-
-
 @Slot()
 def _on_reply_received(reply: QNetworkReply) -> list[EM27Property]:
+    """Handle received HTTP reply.
+
+    Args:
+        reply: the response from the server
+    """
     if reply.error() != QNetworkReply.NetworkError.NoError:
         raise EM27Error(f"Network error: {reply.errorString()}")
 
     content = reply.readAll().data().decode()
     return get_em27sensor_data(content)
+
+
+class EM27Error(Exception):
+    """Indicates than an error occurred while parsing the webpage."""
 
 
 class EM27SensorsBase(
