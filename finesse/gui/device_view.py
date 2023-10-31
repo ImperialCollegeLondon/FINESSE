@@ -138,8 +138,6 @@ class DeviceTypeControl(QGroupBox):
             current.show()
             layout.addWidget(current)
 
-        # TODO: Button should be disabled if there are no options for one of the
-        # params (e.g. there are no USB serial devices available)
         self._open_close_btn = QPushButton("Open")
         self._open_close_btn.setSizePolicy(
             QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed
@@ -147,10 +145,22 @@ class DeviceTypeControl(QGroupBox):
         self._open_close_btn.clicked.connect(self._on_open_close_clicked)
         layout.addWidget(self._open_close_btn)
 
+        # Determine whether the button should be enabled or not
+        self._update_open_btn_enabled_state()
+
         # pubsub subscriptions
         pub.subscribe(self._on_device_opened, f"device.opening.{topic}")
         pub.subscribe(self._on_device_closed, f"device.closed.{topic}")
         pub.subscribe(self._show_error_message, f"device.error.{topic}")
+
+    def _update_open_btn_enabled_state(self) -> None:
+        """Enable button depending on whether there are options for all params.
+
+        The "open" button should be disabled if there are no possible values for any
+        of the params.
+        """
+        all_params = self._device_types[self._get_device_idx()].parameters
+        self._open_close_btn.setEnabled(all(p.possible_values for p in all_params))
 
     def _on_device_selected(self, device_idx: int) -> None:
         """Swap out the parameter combo boxes for the current device.
@@ -170,6 +180,9 @@ class DeviceTypeControl(QGroupBox):
         if widget := self._device_widgets[device_idx]:
             widget.show()
             layout.insertWidget(1, widget)
+
+        # Enable/disable the "open" button
+        self._update_open_btn_enabled_state()
 
     def _get_device_idx(self) -> int:
         """Get the index of the currently selected device type."""
