@@ -59,10 +59,11 @@ def _get_stepper_motor_angle() -> tuple[float, bool]:
         return (float("nan"), False)
 
     try:
-        if angle := stepper.angle:
-            return (angle, False)
-        else:
+        angle = stepper.angle
+        if angle is None:
             return (float("nan"), True)
+        else:
+            return (angle, False)
     except Exception as error:
         stepper.send_error_message(error)
         return (float("nan"), False)

@@ -1,8 +1,9 @@
 # -*- mode: python ; coding: utf-8 -*-
-
+import docs.gen_user_guide as gen_guide
 
 block_cipher = None
 
+gen_guide.generate_html()
 
 a = Analysis(
     ["stub.py"],
@@ -14,6 +15,7 @@ a = Analysis(
             "finesse/hardware/plugins/em27/diag_autom.htm",
             "finesse/hardware/plugins/em27",
         ),
+        ("docs/user_guide.html", "docs"),
     ],
     hiddenimports=["finesse.gui.images"],
     hookspath=[],
