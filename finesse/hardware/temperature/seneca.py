@@ -67,9 +67,9 @@ class Seneca(TemperatureMonitorBase):
         except SerialException as e:
             raise SenecaError(e)
 
-        # require at least 4 bytes else checks will fail
+        # require 21 bytes else checks will fail
         min_length = 21
-        if len(data) < min_length:
+        if len(data) != min_length:
             raise SenecaError("Insufficient data read from device")
 
         return data
@@ -88,8 +88,11 @@ class Seneca(TemperatureMonitorBase):
     def parse_data(self, data: bytes) -> list[Decimal]:
         """Parse temperature data read from the Seneca.
 
-        The sequence of bytes is translated into a list of ASCII strings
-        representing each of the temperatures, and finally into floats.
+        The sequence of bytes is put through the conversion function and translated
+        into floats.
+
+        Args:
+            data: The bytes read from the device.
 
         Returns:
             vals: A list of Decimals containing the temperature values recorded
@@ -98,12 +101,18 @@ class Seneca(TemperatureMonitorBase):
         ints = numpy.frombuffer(data, numpy.uint16, 8, 3)
         print("ints:", ints, type(ints))
 
-        temps = [Decimal(float(self.calc_temp(val))) for val in ints]
-        print("temps:", temps, type(temps))
-        return temps
+        vals = [Decimal(float(self.calc_temp(val))) for val in ints]
+        return vals
 
     def calc_temp(self, val: numpy.float64) -> numpy.float64:
-        """Calculate temp."""
+        """Convert data read from the Seneca device into temperatures.
+
+        Args:
+            val: A value from the array described by the data received from the device.
+
+        Returns:
+            vals: The converted value.
+        """
         temp = (self.range * ((val / 1000) - self.min_volt)) + self.min_temp
         print("temp:", temp, type(temp))
         return temp
