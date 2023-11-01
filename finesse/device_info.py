@@ -1,6 +1,7 @@
 """Provides common dataclasses about devices for using in backend and frontend."""
 from collections.abc import Sequence
 from dataclasses import dataclass
+from typing import Any
 
 
 @dataclass(frozen=True)
@@ -10,11 +11,13 @@ class DeviceParameter:
     name: str
     """Name for the parameter."""
 
-    possible_values: list[str]
+    possible_values: Sequence[Any]
     """Possible values the parameter can take."""
 
-    default_value: str | None = None
-    """The default value for this parameter."""
+    default_value: Any = None
+    """The default value for this parameter.
+
+    A value of None indicates that there is no default value."""
 
     def __post_init__(self) -> None:
         """Check that default value is valid."""
