@@ -1,6 +1,7 @@
 """This module provides an interface to Seneca temperature readers."""
 from decimal import Decimal
 
+import numpy
 from serial import Serial, SerialException
 
 from .temperature_monitor_base import TemperatureMonitorBase
@@ -25,19 +26,6 @@ def calculate_bcc(data: bytes) -> None:
 
     Returns:
         bcc: block check character
-    """
-
-
-def parse_data(data: bytes) -> None:
-    """Parse temperature data read from the Seneca.
-
-    The sequence of bytes is translated into a list of ASCII strings
-    representing each of the temperatures, and finally into floats.
-
-    Returns:
-        vals: A list of Decimals containing the temperature values recorded
-              by the DP9800 device.
-        sysflag: string representation of the system flag bitmask
     """
 
 
@@ -97,9 +85,69 @@ class Seneca(TemperatureMonitorBase):
         except Exception as e:
             raise SenecaError(e)
 
+    def parse_data(self, data: bytes) -> list[Decimal]:
+        """Parse temperature data read from the Seneca.
+
+        The sequence of bytes is translated into a list of ASCII strings
+        representing each of the temperatures, and finally into floats.
+
+        Returns:
+            vals: A list of Decimals containing the temperature values recorded
+                by the Seneca device.
+        """
+        ints = numpy.frombuffer(data, numpy.uint16, 8, 3)
+        print("ints:", ints, type(ints))
+
+        temps = [Decimal(float(self.calc_temp(val))) for val in ints]
+        print("temps:", temps, type(temps))
+        return temps
+
+    def calc_temp(self, val: numpy.float64) -> numpy.float64:
+        """Calculate temp."""
+        temp = (self.range * ((val / 1000) - self.min_volt)) + self.min_temp
+        print("temp:", temp, type(temp))
+        return temp
+
     def get_temperatures(self) -> list[Decimal]:
         """Get the current temperatures."""
         self.request_read()
-        self.read()
-        # temperatures, _ = parse_data(data)
-        return [Decimal(1)]
+        data = self.read()
+        print("range:", self.range)
+        temperatures = self.parse_data(data)
+        return temperatures
+
+    @property
+    def min_temp(self) -> int:
+        """The minimum temperature range of the device."""
+        return -80
+
+    @property
+    def max_temp(self) -> int:
+        """The maximum temperature range of the device."""
+        return 105
+
+    @property
+    def min_volt(self) -> int:
+        """The minimum voltage output of the device."""
+        return 4
+
+    @property
+    def max_volt(self) -> int:
+        """The maximum voltage output of the device."""
+        return 20
+
+    @property
+    def range(self) -> float:
+        """The temperature range divided by the voltage range.
+
+        This figure is used when convering the raw data to temperatures.
+        """
+        return (self.max_temp - self.min_temp) / (self.max_volt - self.min_volt)
+
+
+if __name__ == "__main__":
+    serial = Serial("COM4", 57600)
+    # serial = Serial()
+    device = Seneca(serial)
+
+    data = device.get_temperatures()
