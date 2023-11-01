@@ -14,8 +14,10 @@ class DeviceParameter:
     possible_values: Sequence[Any]
     """Possible values the parameter can take."""
 
-    default_value: Any | None = None
-    """The default value for this parameter."""
+    default_value: Any = None
+    """The default value for this parameter.
+
+    A value of None indicates that there is no default value."""
 
     def __post_init__(self) -> None:
         """Check that default value is valid."""
