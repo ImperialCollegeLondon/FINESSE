@@ -27,9 +27,6 @@ BAUDRATES = (4800, 9600, 19200, 38400, 57600, 115200)
 NUM_TEMPERATURE_MONITOR_CHANNELS = 8
 """The number of temperature channels for temperature monitors."""
 
-DUMMY_DEVICE_PORT = "Dummy"
-"""The port name to display for dummy serial devices."""
-
 DEFAULT_SCRIPT_PATH = Path.home()
 """The default path to search for script files in."""
 
@@ -45,26 +42,14 @@ EM27_PROPERTY_POLL_INTERVAL = 60.0
 STEPPER_MOTOR_TOPIC = "stepper_motor"
 """The topic name to use for stepper motor-related messages."""
 
-DEFAULT_ST10_BAUDRATE = 9600
-"""The default baudrate to use for the ST10 controller."""
-
 TEMPERATURE_MONITOR_TOPIC = "temperature_monitor"
 """The topic name to use for temperature monitor-related messages."""
-
-DEFAULT_DP9800_BAUDRATE = 38400
-"""The default baudrate to use for DP9800 temperature monitors."""
 
 TEMPERATURE_CONTROLLER_TOPIC = "temperature_controller"
 """The topic name to use for temperature controller-related messages."""
 
-DEFAULT_TC4820_BAUDRATE = 115200
-"""The default baudrate to use for TC4820 temperature controllers."""
-
 OPUS_IP = "10.10.0.2"
 """The IP address of the machine running the OPUS software."""
-
-ALLOW_DUMMY_DEVICES = True
-"""Whether to allow the user to choose dummy serial devices."""
 
 TEMPERATURE_CONTROLLER_POLL_INTERVAL = 2
 """Number of seconds between temperature controller device reads."""
@@ -80,6 +65,3 @@ TEMPERATURE_MONITOR_HOT_BB_IDX = 6
 
 TEMPERATURE_MONITOR_COLD_BB_IDX = 7
 """Position of the cold blackbody on the temperature monitoring device."""
-
-TC4820_MAX_POWER = 511
-"""The maximum value for the power property."""

@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 import yaml
 
-from finesse.config import TC4820_MAX_POWER, TEMPERATURE_MONITOR_TOPIC
+from finesse.config import TEMPERATURE_MONITOR_TOPIC
 from finesse.hardware.data_file_writer import DataFileWriter, _get_metadata
 
 
@@ -55,7 +55,7 @@ def test_open(
         )
     )
     subscribe_mock.assert_any_call(
-        writer.write, f"serial.{TEMPERATURE_MONITOR_TOPIC}.data.response"
+        writer.write, f"device.{TEMPERATURE_MONITOR_TOPIC}.data.response"
     )
 
 
@@ -89,7 +89,7 @@ def test_close(
     fsync_mock.assert_called_once_with(42)
     csv_writer.close.assert_called_once_with()
     unsubscribe_mock.assert_called_once_with(
-        writer.write, f"serial.{TEMPERATURE_MONITOR_TOPIC}.data.response"
+        writer.write, f"device.{TEMPERATURE_MONITOR_TOPIC}.data.response"
     )
 
 
@@ -104,15 +104,15 @@ def test_get_metadata() -> None:
     assert serialised.count("\n") == 12
 
 
-@patch("finesse.hardware.data_file_writer.get_hot_bb_temperature_controller_instance")
+@patch("finesse.hardware.data_file_writer.get_temperature_controller_instance")
 @patch("finesse.hardware.data_file_writer.get_stepper_motor_instance")
 def test_write(
-    get_stepper_mock: Mock, get_hot_bb_mock: Mock, writer: DataFileWriter
+    get_stepper_mock: Mock, get_tc_mock: Mock, writer: DataFileWriter
 ) -> None:
     """Test the write() method."""
     get_stepper_mock.return_value = stepper = MagicMock()
     stepper.angle = 90.0
-    get_hot_bb_mock.return_value = hot_bb = MagicMock()
+    get_tc_mock.return_value = hot_bb = MagicMock()
     hot_bb.power = 10
 
     time = datetime(2023, 4, 14, 0, 1, 0)  # one minute past midnight
@@ -121,22 +121,22 @@ def test_write(
     writer._writer = MagicMock()
     writer.write(time, data)
     writer._writer.writerow.assert_called_once_with(
-        ("20230414", "00:01:00", *data, 60, 90.0, False, 10 / (TC4820_MAX_POWER / 100))
+        ("20230414", "00:01:00", *data, 60, 90.0, False, 10)
     )
 
 
-@patch("finesse.hardware.data_file_writer.get_hot_bb_temperature_controller_instance")
+@patch("finesse.hardware.data_file_writer.get_temperature_controller_instance")
 @patch("finesse.hardware.data_file_writer.get_stepper_motor_instance")
 def test_write_error(
     get_stepper_mock: Mock,
-    get_hot_bb_mock: Mock,
+    get_tc_mock: Mock,
     writer: DataFileWriter,
     sendmsg_mock: MagicMock,
 ) -> None:
     """Test the write() method when an error occurs."""
     get_stepper_mock.return_value = stepper = MagicMock()
     stepper.angle = 90.0
-    get_hot_bb_mock.return_value = hot_bb = MagicMock()
+    get_tc_mock.return_value = hot_bb = MagicMock()
     hot_bb.power = 10
 
     time = datetime(2023, 4, 14, 0, 1, 0)  # one minute past midnight

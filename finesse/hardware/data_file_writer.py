@@ -11,10 +11,11 @@ from typing import Any
 from csvy import Writer
 from pubsub import pub
 
-from .. import config
+from finesse import config
+
+from .plugins.stepper_motor import get_stepper_motor_instance
+from .plugins.temperature import get_temperature_controller_instance
 from .pubsub_decorators import pubsub_errors
-from .stepper_motor import get_stepper_motor_instance
-from .temperature import get_hot_bb_temperature_controller_instance
 
 
 def _on_error_occurred(error: BaseException) -> None:
@@ -58,12 +59,13 @@ def _get_stepper_motor_angle() -> tuple[float, bool]:
         return (float("nan"), False)
 
     try:
-        if angle := stepper.angle:
-            return (angle, False)
-        else:
+        angle = stepper.angle
+        if angle is None:
             return (float("nan"), True)
+        else:
+            return (angle, False)
     except Exception as error:
-        pub.sendMessage(f"serial.{config.STEPPER_MOTOR_TOPIC}.error", error=error)
+        stepper.send_error_message(error)
         return (float("nan"), False)
 
 
@@ -72,19 +74,16 @@ def _get_hot_bb_power() -> float:
 
     If an error occurs, nan will be returned.
     """
-    hot_bb = get_hot_bb_temperature_controller_instance()
+    hot_bb = get_temperature_controller_instance("hot_bb")
 
     # Hot BB temperature controller not connected
     if not hot_bb:
         return float("nan")
 
     try:
-        return hot_bb.power * 100 / config.TC4820_MAX_POWER
+        return hot_bb.power
     except Exception as error:
-        pub.sendMessage(
-            f"serial.{config.TEMPERATURE_CONTROLLER_TOPIC}.{hot_bb.name}.error",
-            error=error,
-        )
+        hot_bb.send_error_message(error)
         return float("nan")
 
 
@@ -135,13 +134,13 @@ class DataFileWriter:
 
         # Listen to temperature monitor messages
         pub.subscribe(
-            self.write, f"serial.{config.TEMPERATURE_MONITOR_TOPIC}.data.response"
+            self.write, f"device.{config.TEMPERATURE_MONITOR_TOPIC}.data.response"
         )
 
     def close(self) -> None:
         """Close the current file handle."""
         pub.unsubscribe(
-            self.write, f"serial.{config.TEMPERATURE_MONITOR_TOPIC}.data.response"
+            self.write, f"device.{config.TEMPERATURE_MONITOR_TOPIC}.data.response"
         )
 
         if hasattr(self, "_writer"):

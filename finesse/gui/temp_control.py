@@ -22,7 +22,6 @@ from PySide6.QtWidgets import (
 
 from ..config import (
     NUM_TEMPERATURE_MONITOR_CHANNELS,
-    TC4820_MAX_POWER,
     TEMPERATURE_CONTROLLER_POLL_INTERVAL,
     TEMPERATURE_CONTROLLER_TOPIC,
     TEMPERATURE_MONITOR_COLD_BB_IDX,
@@ -46,7 +45,7 @@ class TemperaturePlot(QGroupBox):
         self.setLayout(layout)
 
         pub.subscribe(
-            self._plot_bb_temps, f"serial.{TEMPERATURE_MONITOR_TOPIC}.data.response"
+            self._plot_bb_temps, f"device.{TEMPERATURE_MONITOR_TOPIC}.data.response"
         )
 
     def _create_controls(self) -> QGridLayout:
@@ -214,7 +213,7 @@ class DP9800Controls(SerialDevicePanel):
         )
 
         pub.subscribe(
-            self._update_pt100s, f"serial.{TEMPERATURE_MONITOR_TOPIC}.data.response"
+            self._update_pt100s, f"device.{TEMPERATURE_MONITOR_TOPIC}.data.response"
         )
 
         self._begin_polling()
@@ -261,7 +260,7 @@ class DP9800Controls(SerialDevicePanel):
     def _poll_dp9800(self) -> None:
         """Polls the device to obtain the latest values."""
         self._poll_light.flash()
-        pub.sendMessage(f"serial.{TEMPERATURE_MONITOR_TOPIC}.data.request")
+        pub.sendMessage(f"device.{TEMPERATURE_MONITOR_TOPIC}.data.request")
 
     def _update_pt100s(self, temperatures: list[Decimal], time: datetime) -> None:
         """Display the latest Pt 100 temperatures.
@@ -301,17 +300,17 @@ class TC4820Controls(SerialDevicePanel):
 
         pub.subscribe(
             self._begin_polling,
-            f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{name}_bb.opened",
+            f"device.opened.{TEMPERATURE_CONTROLLER_TOPIC}.{name}_bb",
         )
         pub.subscribe(
-            self._end_polling, f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{name}_bb.close"
+            self._end_polling, f"device.closed.{TEMPERATURE_CONTROLLER_TOPIC}.{name}_bb"
         )
         pub.subscribe(
             self._update_controls,
-            f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{name}_bb.response",
+            f"device.{TEMPERATURE_CONTROLLER_TOPIC}.{name}_bb.response",
         )
         pub.subscribe(
-            self._update_pt100, f"serial.{TEMPERATURE_MONITOR_TOPIC}.data.response"
+            self._update_pt100, f"device.{TEMPERATURE_MONITOR_TOPIC}.data.response"
         )
 
     def _create_controls(self) -> QGridLayout:
@@ -359,7 +358,7 @@ class TC4820Controls(SerialDevicePanel):
         layout.addWidget(self._pt100_val, 0, 3)
 
         self._power_bar = QProgressBar()
-        self._power_bar.setMaximum(TC4820_MAX_POWER)
+        self._power_bar.setRange(0, 100)
         self._power_bar.setTextVisible(False)
         self._power_bar.setOrientation(Qt.Orientation.Horizontal)
         layout.addWidget(self._power_bar, 1, 1, 1, 3)
@@ -412,7 +411,7 @@ class TC4820Controls(SerialDevicePanel):
         """Polls the device to obtain the latest info."""
         self._poll_light.flash()
         pub.sendMessage(
-            f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{self._name}_bb.request"
+            f"device.{TEMPERATURE_CONTROLLER_TOPIC}.{self._name}_bb.request"
         )
 
     def _update_controls(self, properties: dict):
@@ -423,7 +422,7 @@ class TC4820Controls(SerialDevicePanel):
         """
         self._control_val.setText(f"{properties['temperature']: .2f}")
         self._power_bar.setValue(properties["power"])
-        self._power_label.setText(f"{properties['power']}")
+        self._power_label.setText(f"{round(properties['power'])}")
         self._set_sbox.setValue(int(properties["set_point"]))
         if properties["alarm_status"] != 0:
             self._alarm_light._turn_on()
@@ -442,7 +441,7 @@ class TC4820Controls(SerialDevicePanel):
     def _set_new_set_point(self) -> None:
         """Send new target temperature to temperature controller."""
         pub.sendMessage(
-            f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{self._name}_bb.change_set_point",
+            f"device.{TEMPERATURE_CONTROLLER_TOPIC}.{self._name}_bb.change_set_point",
             temperature=Decimal(self._set_sbox.value()),
         )
 
