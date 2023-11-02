@@ -152,11 +152,3 @@ class Seneca(TemperatureMonitorBase):
         This figure is used when convering the raw data to temperatures.
         """
         return (self.max_temp - self.min_temp) / (self.max_volt - self.min_volt)
-
-
-if __name__ == "__main__":
-    serial = Serial("COM4", 57600)
-    # serial = Serial()
-    device = Seneca(serial)
-
-    data = device.get_temperatures()
