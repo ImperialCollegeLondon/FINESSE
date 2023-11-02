@@ -67,8 +67,8 @@ def test_open_device(
             # Two separate messages are sent on device open
             sendmsg_mock.assert_has_calls(
                 [
-                    call(f"device.{name}.{instance.topic}")
-                    for name in ("opening", "opened")
+                    call(f"device.opening.{instance.topic}", params=params),
+                    call(f"device.opened.{instance.topic}"),
                 ]
             )
 
