@@ -51,6 +51,7 @@ def _open_device(
 
     # If this instance also has a name (e.g. "hot_bb") then we also need to pass this as
     # an argument
+    params_orig = params
     if instance.name:
         # Note that we create a new dict here so we're not modifying the original one
         params = params | {"name": instance.name}
@@ -68,7 +69,7 @@ def _open_device(
         # Signal that device is now open. The reason for the two different topics is
         # because we want to ensure that some listeners always run before others, in
         # case an error occurs and we have to undo the work.
-        pub.sendMessage(f"device.opening.{instance.topic}")
+        pub.sendMessage(f"device.opening.{instance.topic}", params=params_orig)
         pub.sendMessage(f"device.opened.{instance.topic}")
 
 

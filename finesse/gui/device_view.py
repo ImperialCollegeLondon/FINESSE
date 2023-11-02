@@ -102,8 +102,6 @@ class DeviceTypeControl(QGroupBox):
         if not device_types:
             raise RuntimeError("At least one device type must be specified")
 
-        self._cur_device_params: dict[str, Any]
-        """Cache the device params used for opening the device."""
         self._device_instance = instance
 
         super().__init__(description)
@@ -214,25 +212,25 @@ class DeviceTypeControl(QGroupBox):
 
     def _open_device(self) -> None:
         """Open the currently selected device."""
-        device_type, self._cur_device_params = self._get_current_device_and_params()
+        device_type, device_params = self._get_current_device_and_params()
         pub.sendMessage(
             "device.open",
             class_name=device_type.class_name,
             instance=self._device_instance,
-            params=self._cur_device_params,
+            params=device_params,
         )
 
-    def _on_device_opened(self) -> None:
+    def _on_device_opened(self, params: dict[str, Any]) -> None:
         """Update the GUI for when the device is successfully opened."""
         settings.setValue(
             f"device/{self._device_instance.topic}/type",
             self._device_combo.currentText(),
         )
-        if self._cur_device_params:
+        if params:
             settings.setValue(
                 f"device/{self._device_instance.topic}/"
                 f"{self._device_combo.currentText()}/params",
-                self._cur_device_params,
+                params,
             )
 
         self._set_combos_enabled(False)
