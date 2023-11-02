@@ -4,7 +4,7 @@ from decimal import Decimal
 import numpy
 from serial import Serial, SerialException
 
-from .temperature_monitor_base import TemperatureMonitorBase
+from finesse.hardware.temperature.temperature_monitor_base import TemperatureMonitorBase
 
 
 def check_data(data: bytes) -> None:
