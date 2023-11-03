@@ -11,6 +11,7 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=[
+        ("finesse/gui/hardware_set/*.yaml", "finesse/gui/hardware_set"),
         ("finesse/gui/images/*.png", "finesse/gui/images"),
         ("finesse/hardware/plugins/em27/diag_autom.htm", "finesse/hardware/plugins/em27"),
         ("docs/user_guide.html", "docs"),

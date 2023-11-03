@@ -1,4 +1,6 @@
 """Provides common dataclasses about devices for using in backend and frontend."""
+from __future__ import annotations
+
 from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Any
@@ -67,6 +69,12 @@ class DeviceInstanceRef:
 
     Used for disambiguating devices where there can be multiple instances.
     """
+
+    @staticmethod
+    def from_str(s: str) -> DeviceInstanceRef:
+        """Convert from a string in the format base_type.name."""
+        base_type, _, name = s.partition(".")
+        return DeviceInstanceRef(base_type, name if name else None)
 
     @property
     def topic(self) -> str:
