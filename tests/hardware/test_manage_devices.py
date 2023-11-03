@@ -4,6 +4,7 @@ from itertools import product
 from unittest.mock import MagicMock, Mock, call, patch
 
 import pytest
+from frozendict import frozendict
 from pubsub import pub
 
 from finesse.device_info import DeviceInstanceRef
@@ -49,7 +50,7 @@ def test_open_device(
     module_mock.MyDevice = device_cls_mock
     import_mock.return_value = module_mock
     instance = DeviceInstanceRef("test_type", name)
-    params = {"param1": "value1", "param2": "value2"}
+    params = frozendict(param1="value1", param2="value2")
     devices_dict: dict[DeviceInstanceRef, Device] = {}
 
     with patch("finesse.hardware.manage_devices._devices", devices_dict):
@@ -105,7 +106,9 @@ def test_open_device_replace_existing(
     old_device = MagicMock()
     devices_dict: dict[DeviceInstanceRef, Device] = {instance: old_device}
     with patch("finesse.hardware.manage_devices._devices", devices_dict):
-        _open_device(instance=instance, class_name="some.module.MyDevice", params={})
+        _open_device(
+            instance=instance, class_name="some.module.MyDevice", params=frozendict()
+        )
         logging_mock.warn.assert_called()
         close_mock.assert_called_once_with(old_device)
         assert devices_dict == {instance: new_device}

@@ -2,6 +2,7 @@
 from dataclasses import dataclass
 from typing import Any, cast
 
+from frozendict import frozendict
 from pubsub import pub
 from PySide6.QtWidgets import (
     QComboBox,
@@ -14,9 +15,9 @@ from PySide6.QtWidgets import (
 )
 
 from finesse.device_info import DeviceBaseTypeInfo, DeviceInstanceRef, DeviceTypeInfo
+from finesse.gui.device_connection import close_device, open_device
+from finesse.gui.error_message import show_error_message
 from finesse.settings import settings
-
-from .error_message import show_error_message
 
 
 @dataclass
@@ -186,14 +187,16 @@ class DeviceTypeControl(QGroupBox):
     def _get_current_device_type_item(self) -> DeviceTypeItem:
         return self._device_combo.currentData()
 
-    def _get_current_device_and_params(self) -> tuple[DeviceTypeInfo, dict[str, Any]]:
+    def _get_current_device_and_params(
+        self,
+    ) -> tuple[DeviceTypeInfo, frozendict[str, Any]]:
         """Get the current device type and associated parameters."""
         item = self._get_current_device_type_item()
 
         # The current device widget contains combo boxes with the values
         if not item.widget:
             # No parameters needed for this device type
-            return item.device_type, {}
+            return item.device_type, frozendict()
 
         # Get the parameter values
         combos: list[QComboBox] = item.widget.findChildren(QComboBox)
@@ -201,7 +204,7 @@ class DeviceTypeControl(QGroupBox):
             p.name: c.currentData() for p, c in zip(item.device_type.parameters, combos)
         }
 
-        return item.device_type, device_params
+        return item.device_type, frozendict(device_params)
 
     def _set_combos_enabled(self, enabled: bool) -> None:
         """Set the enabled state of the combo boxes."""
@@ -213,15 +216,10 @@ class DeviceTypeControl(QGroupBox):
     def _open_device(self) -> None:
         """Open the currently selected device."""
         device_type, device_params = self._get_current_device_and_params()
-        pub.sendMessage(
-            "device.open",
-            class_name=device_type.class_name,
-            instance=self._device_instance,
-            params=device_params,
-        )
+        open_device(device_type.class_name, self._device_instance, device_params)
 
     def _on_device_opened(
-        self, instance: DeviceInstanceRef, class_name: str, params: dict[str, Any]
+        self, instance: DeviceInstanceRef, class_name: str, params: frozendict[str, Any]
     ) -> None:
         """Update the GUI for when the device is successfully opened."""
         settings.setValue(f"device/{instance.topic}/type", class_name)
@@ -236,7 +234,7 @@ class DeviceTypeControl(QGroupBox):
 
     def _close_device(self) -> None:
         """Close the device."""
-        pub.sendMessage("device.close", instance=self._device_instance)
+        close_device(self._device_instance)
 
     def _on_device_closed(self, instance: DeviceInstanceRef) -> None:
         """Update the GUI for when the device is closed."""
