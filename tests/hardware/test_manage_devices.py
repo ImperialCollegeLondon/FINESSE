@@ -82,24 +82,27 @@ def test_open_device(
             logging_mock.error.assert_called()
 
 
+@patch("finesse.hardware.manage_devices._try_close_device")
 @patch("finesse.hardware.manage_devices.logging")
 @patch("finesse.hardware.manage_devices.import_module")
 def test_open_device_replace_existing(
-    import_mock: Mock, logging_mock: Mock, sendmsg_mock: MagicMock
+    import_mock: Mock, logging_mock: Mock, close_mock: Mock, sendmsg_mock: MagicMock
 ) -> None:
     """Check that a warning is produced if replacing an existing device instance."""
-    device_mock = MagicMock()
+    new_device = MagicMock()
     device_cls_mock = MagicMock()
-    device_cls_mock.return_value = device_mock
+    device_cls_mock.return_value = new_device
     module_mock = MagicMock()
     module_mock.MyDevice = device_cls_mock
     import_mock.return_value = module_mock
     instance = DeviceInstanceRef("test_type")
-    devices_dict: dict[DeviceInstanceRef, Device] = {instance: MagicMock()}
+    old_device = MagicMock()
+    devices_dict: dict[DeviceInstanceRef, Device] = {instance: old_device}
     with patch("finesse.hardware.manage_devices._devices", devices_dict):
         _open_device("some.module.MyDevice", instance, {})
         logging_mock.warn.assert_called()
-        assert devices_dict == {instance: device_mock}
+        close_mock.assert_called_once_with(old_device)
+        assert devices_dict == {instance: new_device}
 
 
 @pytest.mark.parametrize("success,name", product((True, False), (None, "my_device")))
