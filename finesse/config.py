@@ -39,7 +39,7 @@ EM27_URL = "http://10.10.0.1/diag_autom.htm"
 EM27_SENSORS_POLL_INTERVAL = 60.0
 """Poll rate for EM27 properties."""
 
-EM27_SENSORS_TOPIC = "em27"
+EM27_SENSORS_TOPIC = "em27_sensors"
 """The topic name to use for EM27 sensor-related messages."""
 
 DEFAULT_HTTP_TIMEOUT = 2.0
