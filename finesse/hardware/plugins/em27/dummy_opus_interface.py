@@ -9,7 +9,8 @@ from PySide6.QtCore import QTimer
 from statemachine import State, StateMachine
 from statemachine.exceptions import TransitionNotAllowed
 
-from ...em27_status import EM27Status
+from finesse.em27_info import EM27Status
+
 from .opus_interface_base import OPUSInterfaceBase
 
 

@@ -9,7 +9,7 @@ from PySide6.QtWidgets import QPushButton, QWidget
 from pytestqt.qtbot import QtBot
 
 from finesse.config import DEFAULT_SCRIPT_PATH
-from finesse.em27_status import EM27Status
+from finesse.em27_info import EM27Status
 from finesse.gui.measure_script.script_run_dialog import ScriptRunDialog
 from finesse.gui.measure_script.script_view import ScriptControl
 

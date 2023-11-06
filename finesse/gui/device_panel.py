@@ -6,7 +6,7 @@ from pubsub import pub
 from PySide6.QtWidgets import QGroupBox, QWidget
 
 
-class SerialDevicePanel(QGroupBox):
+class DevicePanel(QGroupBox):
     """A QGroupBox which enables/disables child controls when device opens/closes."""
 
     def __init_subclass__(cls, **kwargs):

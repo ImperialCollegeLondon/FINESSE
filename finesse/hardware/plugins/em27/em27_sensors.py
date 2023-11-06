@@ -2,48 +2,15 @@
 
 This is used to scrape the PSF27Sensor data table off the server.
 """
-from dataclasses import dataclass
 from decimal import Decimal
-from functools import partial
 
-from pubsub import pub
-from PySide6.QtCore import Slot
-from PySide6.QtNetwork import QNetworkAccessManager, QNetworkReply, QNetworkRequest
+from PySide6.QtCore import QTimer, Slot
+from PySide6.QtNetwork import QNetworkReply
 
-from ..config import EM27_URL
-from .pubsub_decorators import pubsub_broadcast
-
-
-@dataclass
-class EM27Property:
-    """Class for representing EM27 monitored properties.
-
-    Args:
-        name: name of the physical quantity
-        value: value of the physical quantity
-        unit: unit in which the value is presented
-    """
-
-    name: str
-    value: Decimal
-    unit: str
-
-    def __str__(self) -> str:
-        """Print a property's name, value and unit in a readable format.
-
-        Returns:
-            str: The name, value and unit of a property.
-        """
-        return f"{self.name} = {self.value:.6f} {self.unit}"
-
-    def val_str(self) -> str:
-        """Print a property's value and unit in required format.
-
-        Returns:
-            str: The value and unit of a property in the format consistent with
-                 the previous FINESSE GUI.
-        """
-        return f"{self.value:.6f} {self.unit}"
+from finesse.config import EM27_SENSORS_POLL_INTERVAL, EM27_SENSORS_TOPIC, EM27_URL
+from finesse.em27_info import EM27Property
+from finesse.hardware.device import Device
+from finesse.hardware.http_requester import HTTPRequester
 
 
 def get_em27sensor_data(content: str) -> list[EM27Property]:
@@ -79,7 +46,6 @@ def get_em27sensor_data(content: str) -> list[EM27Property]:
 
 
 @Slot()
-@pubsub_broadcast("em27.error", "em27.data.response", "data")
 def _on_reply_received(reply: QNetworkReply) -> list[EM27Property]:
     """Handle received HTTP reply.
 
@@ -97,7 +63,12 @@ class EM27Error(Exception):
     """Indicates than an error occurred while parsing the webpage."""
 
 
-class EM27Scraper:
+class EM27SensorsBase(
+    Device,
+    is_base_type=True,
+    name=EM27_SENSORS_TOPIC,
+    description="EM27 sensors",
+):
     """An interface for monitoring EM27 properties."""
 
     def __init__(self, url: str = EM27_URL) -> None:
@@ -106,18 +77,40 @@ class EM27Scraper:
         Args:
             url: Web address of the automation units diagnostics page.
         """
+        super().__init__()
         self._url: str = url
-        self._timeout: float = 2.0
-        self._manager = QNetworkAccessManager()
+        self._requester = HTTPRequester()
 
-        pub.subscribe(self.send_data, "em27.data.request")
+        # Poll device once on open.
+        # TODO: Run this synchronously so we can check that things work before the
+        # device.opened message is sent
+        self.send_data()
 
     def send_data(self) -> None:
         """Request the EM27 property data from the web server.
 
         The HTTP request is made on a background thread.
         """
-        request = QNetworkRequest(self._url)
-        request.setTransferTimeout(round(1000 * self._timeout))
-        reply = self._manager.get(request)
-        reply.finished.connect(partial(_on_reply_received, reply))
+        self._requester.make_request(
+            self._url,
+            self.pubsub_broadcast(_on_reply_received, "data.response", "data"),
+        )
+
+
+class EM27Sensors(EM27SensorsBase, description="EM27 sensors"):
+    """An interface for EM27 sensors on the real device."""
+
+    def __init__(self, poll_interval: float = EM27_SENSORS_POLL_INTERVAL) -> None:
+        """Create a new EM27Sensors.
+
+        Args:
+            poll_interval: How often to poll the sensors (seconds)
+        """
+        super().__init__()
+        self._poll_timer = QTimer()
+        self._poll_timer.timeout.connect(self.send_data)
+        self._poll_timer.start(int(poll_interval * 1000))
+
+    def close(self) -> None:
+        """Close the device."""
+        self._poll_timer.stop()

@@ -12,7 +12,7 @@ a = Analysis(
     binaries=[],
     datas=[
         ("finesse/gui/images/*.png", "finesse/gui/images"),
-        ("finesse/hardware/diag_autom.htm", "finesse/hardware"),
+        ("finesse/hardware/plugins/em27/diag_autom.htm", "finesse/hardware/plugins/em27"),
         ("docs/user_guide.html", "docs"),
     ],
     hiddenimports=["finesse.gui.images", *load_all_plugins()],
