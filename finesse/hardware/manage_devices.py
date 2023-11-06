@@ -45,8 +45,9 @@ def _open_device(
 
     logging.info(f"Opening device of type {instance.base_type}: {class_name}")
 
-    if instance in _devices:
+    if device := _devices.get(instance):
         logging.warn(f"Replacing existing instance of device of type {instance.topic}")
+        _try_close_device(device)
 
     # If this instance also has a name (e.g. "hot_bb") then we also need to pass this as
     # an argument
