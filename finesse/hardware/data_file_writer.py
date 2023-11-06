@@ -79,7 +79,7 @@ def _get_hot_bb_power() -> float:
         return float("nan")
 
     try:
-        return hot_bb.power * 100 / config.TC4820_MAX_POWER
+        return hot_bb.power
     except Exception as error:
         pub.sendMessage(
             f"serial.{config.TEMPERATURE_CONTROLLER_TOPIC}.{hot_bb.name}.error",
