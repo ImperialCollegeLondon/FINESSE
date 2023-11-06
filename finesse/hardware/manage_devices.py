@@ -1,7 +1,7 @@
 """This module contains code for interfacing with different hardware devices."""
 import logging
 from importlib import import_module
-from typing import TypeVar, cast
+from typing import Any, TypeVar, cast
 
 from pubsub import pub
 
@@ -28,7 +28,7 @@ def get_device_instance(base_type: type[_T], name: str | None = None) -> _T | No
 
 
 def _open_device(
-    class_name: str, instance: DeviceInstanceRef, params: dict[str, str]
+    class_name: str, instance: DeviceInstanceRef, params: dict[str, Any]
 ) -> None:
     """Open the specified device type.
 

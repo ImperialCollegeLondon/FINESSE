@@ -1,5 +1,6 @@
 """Provides a control for viewing and connecting to devices."""
-from typing import cast
+from dataclasses import dataclass
+from typing import Any, cast
 
 from pubsub import pub
 from PySide6.QtWidgets import (
@@ -18,49 +19,68 @@ from finesse.settings import settings
 from .error_message import show_error_message
 
 
-def _create_device_widgets(
-    instance: DeviceInstanceRef, device_types: list[DeviceTypeInfo]
-) -> list[QWidget | None]:
-    """Create widgets for the specified device types."""
-    widgets: list[QWidget | None] = []
-    for t in device_types:
-        params = t.parameters
+@dataclass
+class DeviceTypeItem:
+    """User data associated with a given device type."""
 
-        # Don't bother making a widget if there are no parameters
-        if not params:
-            widgets.append(None)
-            continue
+    device_type: DeviceTypeInfo
+    widget: QWidget | None
 
-        # Previous parameter values are saved if a device opens successfully
-        previous_param_values = cast(
-            dict[str, str] | None,
-            settings.value(f"device/{instance.topic}/{t.description}/params"),
-        )
 
-        widget = QWidget()
-        widget.hide()
-        layout = QHBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
-        widget.setLayout(layout)
-        widgets.append(widget)
+def _create_device_widget(
+    instance: DeviceInstanceRef, device_type: DeviceTypeInfo
+) -> QWidget | None:
+    """Create a widget for the specified device type.
 
-        # Make a combo box for each parameter
-        for param in params:
-            combo = QComboBox()
-            combo.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
-            combo.addItems(param.possible_values)
+    If there are no parameters, return None.
+    """
+    params = device_type.parameters
 
-            if (
-                previous_param_values
-                and previous_param_values[param.name] in param.possible_values
-            ):
-                combo.setCurrentText(previous_param_values[param.name])
-            elif param.default_value is not None:
-                combo.setCurrentText(param.default_value)
+    # Don't bother making a widget if there are no parameters
+    if not params:
+        return None
 
-            layout.addWidget(combo)
+    # Previous parameter values are saved if a device opens successfully
+    previous_param_values = cast(
+        dict[str, Any] | None,
+        settings.value(f"device/{instance.topic}/{device_type.description}/params"),
+    )
 
-    return widgets
+    widget = QWidget()
+    widget.hide()
+    layout = QHBoxLayout()
+    layout.setContentsMargins(0, 0, 0, 0)
+    widget.setLayout(layout)
+
+    # Make a combo box for each parameter
+    for param in params:
+        combo = QComboBox()
+        combo.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+
+        # Keep the "real" value along with its string representation, so that we can
+        # pass it back to the backend on device open
+        for value in param.possible_values:
+            combo.addItem(str(value), value)
+
+        curval = None
+        if (
+            previous_param_values
+            and previous_param_values[param.name] in param.possible_values
+        ):
+            curval = previous_param_values[param.name]
+        elif param.default_value is not None:
+            curval = param.default_value
+
+        if curval is not None:
+            try:
+                combo.setCurrentIndex(param.possible_values.index(curval))
+            except ValueError:
+                # curval is not in param.possible_values (although it should be)
+                pass
+
+        layout.addWidget(combo)
+
+    return widget
 
 
 class DeviceTypeControl(QGroupBox):
@@ -82,7 +102,7 @@ class DeviceTypeControl(QGroupBox):
         if not device_types:
             raise RuntimeError("At least one device type must be specified")
 
-        self._cur_device_params: dict[str, str]
+        self._cur_device_params: dict[str, Any]
         """Cache the device params used for opening the device."""
         self._device_instance = instance
 
@@ -100,34 +120,29 @@ class DeviceTypeControl(QGroupBox):
         self._device_combo.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
         )
-        descriptions = [t.description for t in device_types]
-        self._device_combo.addItems(descriptions)
+
+        # Add names for devices to combo box along with relevant user data
+        for t in device_types:
+            user_data = DeviceTypeItem(t, _create_device_widget(instance, t))
+            self._device_combo.addItem(t.description, user_data)
 
         # Select the last device that was successfully opened, if there is one
         topic = instance.topic
         previous_device = cast(
             str | None, settings.value(f"device/{instance.topic}/type")
         )
+        descriptions = (t.description for t in device_types)
         if previous_device and previous_device in descriptions:
             self._device_combo.setCurrentText(previous_device)
 
         self._device_combo.currentIndexChanged.connect(self._on_device_selected)
         layout.addWidget(self._device_combo)
 
-        self._device_widgets: list[QWidget | None] = _create_device_widgets(
-            instance, device_types
-        )
-        """Widgets containing combo boxes specific to each parameter."""
-
-        if self._device_widgets and (
-            current := self._device_widgets[self._get_device_idx()]
-        ):
+        if (cur_item := self._get_current_device_type_item()) and cur_item.widget:
             # Show the combo boxes for the device's parameters
-            current.show()
-            layout.addWidget(current)
+            cur_item.widget.show()
+            layout.addWidget(cur_item.widget)
 
-        # TODO: Button should be disabled if there are no options for one of the
-        # params (e.g. there are no USB serial devices available)
         self._open_close_btn = QPushButton("Open")
         self._open_close_btn.setSizePolicy(
             QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed
@@ -135,17 +150,25 @@ class DeviceTypeControl(QGroupBox):
         self._open_close_btn.clicked.connect(self._on_open_close_clicked)
         layout.addWidget(self._open_close_btn)
 
+        # Determine whether the button should be enabled or not
+        self._update_open_btn_enabled_state()
+
         # pubsub subscriptions
         pub.subscribe(self._on_device_opened, f"device.opening.{topic}")
         pub.subscribe(self._on_device_closed, f"device.closed.{topic}")
         pub.subscribe(self._show_error_message, f"device.error.{topic}")
 
-    def _on_device_selected(self, device_idx: int) -> None:
-        """Swap out the parameter combo boxes for the current device.
+    def _update_open_btn_enabled_state(self) -> None:
+        """Enable button depending on whether there are options for all params.
 
-        Args:
-            device_idx: Which device has been selected.
+        The "open" button should be disabled if there are no possible values for any
+        of the params.
         """
+        all_params = self._get_current_device_type_item().device_type.parameters
+        self._open_close_btn.setEnabled(all(p.possible_values for p in all_params))
+
+    def _on_device_selected(self) -> None:
+        """Swap out the parameter combo boxes for the current device."""
         layout = cast(QHBoxLayout, self.layout())
 
         # If there's already a widget in place, remove it
@@ -155,38 +178,38 @@ class DeviceTypeControl(QGroupBox):
             layout.takeAt(1).widget().hide()
 
         # Add the widget for the newly selected parameter if needed
-        if widget := self._device_widgets[device_idx]:
+        if widget := self._get_current_device_type_item().widget:
             widget.show()
             layout.insertWidget(1, widget)
 
-    def _get_device_idx(self) -> int:
-        """Get the index of the currently selected device type."""
-        return self._device_combo.currentIndex()
+        # Enable/disable the "open" button
+        self._update_open_btn_enabled_state()
 
-    def _get_current_device_and_params(self) -> tuple[DeviceTypeInfo, dict[str, str]]:
+    def _get_current_device_type_item(self) -> DeviceTypeItem:
+        return self._device_combo.currentData()
+
+    def _get_current_device_and_params(self) -> tuple[DeviceTypeInfo, dict[str, Any]]:
         """Get the current device type and associated parameters."""
-        device_idx = self._get_device_idx()
-        device_type = self._device_types[device_idx]
+        item = self._get_current_device_type_item()
 
         # The current device widget contains combo boxes with the values
-        widget = self._device_widgets[device_idx]
-        if not widget:
+        if not item.widget:
             # No parameters needed for this device type
-            return device_type, {}
+            return item.device_type, {}
 
         # Get the parameter values
-        combos: list[QComboBox] = widget.findChildren(QComboBox)
+        combos: list[QComboBox] = item.widget.findChildren(QComboBox)
         device_params = {
-            p.name: c.currentText() for p, c in zip(device_type.parameters, combos)
+            p.name: c.currentData() for p, c in zip(item.device_type.parameters, combos)
         }
 
-        return device_type, device_params
+        return item.device_type, device_params
 
     def _set_combos_enabled(self, enabled: bool) -> None:
         """Set the enabled state of the combo boxes."""
         self._device_combo.setEnabled(enabled)
 
-        if widget := self._device_widgets[self._get_device_idx()]:
+        if widget := self._get_current_device_type_item().widget:
             widget.setEnabled(enabled)
 
     def _open_device(self) -> None:
