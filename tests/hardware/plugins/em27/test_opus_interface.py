@@ -7,8 +7,12 @@ import pytest
 from PySide6.QtNetwork import QNetworkReply
 
 from finesse.config import OPUS_IP
-from finesse.em27_status import EM27Status
-from finesse.hardware.opus.em27 import OPUSError, OPUSInterface, parse_response
+from finesse.em27_info import EM27Status
+from finesse.hardware.plugins.em27.opus_interface import (
+    OPUSError,
+    OPUSInterface,
+    parse_response,
+)
 
 
 @pytest.fixture
@@ -17,7 +21,7 @@ def opus(qtbot) -> OPUSInterface:
     return OPUSInterface()
 
 
-@patch("finesse.hardware.opus.em27.QNetworkRequest")
+@patch("finesse.hardware.plugins.em27.opus_interface.QNetworkRequest")
 def test_request_status(network_request_mock: Mock, opus: OPUSInterface, qtbot) -> None:
     """Test OPUSInterface's request_status() method."""
     with patch.object(opus, "_manager"):
@@ -27,7 +31,7 @@ def test_request_status(network_request_mock: Mock, opus: OPUSInterface, qtbot) 
         )
 
 
-@patch("finesse.hardware.opus.em27.QNetworkRequest")
+@patch("finesse.hardware.plugins.em27.opus_interface.QNetworkRequest")
 def test_request_command(
     network_request_mock: Mock, opus: OPUSInterface, qtbot
 ) -> None:
@@ -129,7 +133,7 @@ def test_parse_response_no_id(opus: OPUSInterface) -> None:
     assert parsed_error == (1, "errtext")
 
 
-@patch("finesse.hardware.opus.em27.logging.warning")
+@patch("finesse.hardware.plugins.em27.opus_interface.logging.warning")
 def test_parse_response_bad_id(warning_mock: Mock) -> None:
     """Test that parse_response() can handle <td> tags with unexpected id values."""
     response = _get_opus_html(
@@ -146,7 +150,7 @@ def test_parse_response_bad_id(warning_mock: Mock) -> None:
     warning_mock.assert_called()
 
 
-@patch("finesse.hardware.opus.em27.parse_response")
+@patch("finesse.hardware.plugins.em27.opus_interface.parse_response")
 def test_on_reply_received_no_error(
     parse_response_mock: Mock, opus: OPUSInterface, sendmsg_mock: Mock, qtbot
 ) -> None:
@@ -164,7 +168,7 @@ def test_on_reply_received_no_error(
     )
 
 
-@patch("finesse.hardware.opus.em27.parse_response")
+@patch("finesse.hardware.plugins.em27.opus_interface.parse_response")
 def test_on_reply_received_network_error(
     parse_response_mock: Mock, opus: OPUSInterface, qtbot
 ) -> None:
@@ -178,7 +182,7 @@ def test_on_reply_received_network_error(
         error_occurred_mock.assert_called_once()
 
 
-@patch("finesse.hardware.opus.em27.parse_response")
+@patch("finesse.hardware.plugins.em27.opus_interface.parse_response")
 def test_on_reply_received_exception(
     parse_response_mock: Mock, opus: OPUSInterface, qtbot
 ) -> None:

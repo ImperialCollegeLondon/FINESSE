@@ -20,7 +20,7 @@ from statemachine import State, StateMachine
 
 from finesse.config import ANGLE_PRESETS, STEPPER_MOTOR_TOPIC
 from finesse.device_info import DeviceInstanceRef
-from finesse.em27_status import EM27Status
+from finesse.em27_info import EM27Status
 from finesse.gui.error_message import show_error_message
 
 

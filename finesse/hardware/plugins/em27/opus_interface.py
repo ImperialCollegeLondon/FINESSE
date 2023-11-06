@@ -13,8 +13,9 @@ from pubsub import pub
 from PySide6.QtCore import Slot
 from PySide6.QtNetwork import QNetworkAccessManager, QNetworkReply, QNetworkRequest
 
-from ...config import OPUS_IP
-from ...em27_status import EM27Status
+from finesse.config import OPUS_IP
+from finesse.em27_info import EM27Status
+
 from .opus_interface_base import OPUSInterfaceBase
 
 STATUS_FILENAME = "stat.htm"

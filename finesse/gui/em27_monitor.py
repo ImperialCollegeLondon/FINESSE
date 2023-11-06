@@ -1,11 +1,9 @@
 """Panel and widgets related to monitoring the interferometer."""
-import logging
 
 from pubsub import pub
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QGridLayout,
-    QGroupBox,
     QHBoxLayout,
     QLabel,
     QLineEdit,
@@ -14,22 +12,22 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from ..config import EM27_PROPERTY_POLL_INTERVAL
-from ..hardware.em27_scraper import EM27Property
-from .led_icons import LEDIcon
+from finesse.config import EM27_SENSORS_TOPIC
+from finesse.em27_info import EM27Property
+from finesse.gui.device_panel import DevicePanel
+from finesse.gui.led_icon import LEDIcon
 
 
-class EM27Monitor(QGroupBox):
+class EM27Monitor(DevicePanel):
     """Panel containing widgets to view the EM27 properties."""
 
     def __init__(self) -> None:
         """Creates the attributes required to view properties monitored by the EM27."""
-        super().__init__("EM27 SOH Monitor")
+        super().__init__(EM27_SENSORS_TOPIC, "EM27 SOH Monitor")
 
         self._val_lineedits: dict[str, QLineEdit] = {}
 
         self._poll_light = LEDIcon.create_poll_icon()
-        self._poll_light.timer.timeout.connect(self._poll_server)
 
         self._create_layouts()
 
@@ -42,10 +40,9 @@ class EM27Monitor(QGroupBox):
         self.setLayout(self._layout)
 
         # Listen for properties sent by EM27Scraper backend
-        pub.subscribe(self._on_properties_received, "em27.data.response")
-
-        # Start polling the backend
-        self._begin_polling()
+        pub.subscribe(
+            self._on_properties_received, f"device.{EM27_SENSORS_TOPIC}.data.response"
+        )
 
     def _create_layouts(self) -> None:
         """Creates layouts to house the widgets."""
@@ -94,24 +91,10 @@ class EM27Monitor(QGroupBox):
         Args:
             data: the properties received from the server
         """
+        self._poll_light.flash()
         for prop in data:
             lineedit = self._get_prop_lineedit(prop)
             lineedit.setText(prop.val_str())
-
-    def _begin_polling(self) -> None:
-        """Initiate polling the server."""
-        self._poll_server()
-        self._poll_light.timer.start(round(EM27_PROPERTY_POLL_INTERVAL * 1000))
-
-    def _end_polling(self) -> None:
-        """Terminate polling the server."""
-        self._poll_light.timer.stop()
-
-    def _poll_server(self) -> None:
-        """Polls the server to obtain the latest values."""
-        logging.info("Polling EM27 sensors")
-        self._poll_light.flash()
-        pub.sendMessage("em27.data.request")
 
 
 if __name__ == "__main__":

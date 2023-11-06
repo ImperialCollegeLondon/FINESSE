@@ -6,7 +6,7 @@ from pubsub import pub
 from PySide6.QtWidgets import QFileDialog, QGridLayout, QGroupBox, QPushButton
 
 from ...config import DEFAULT_SCRIPT_PATH, STEPPER_MOTOR_TOPIC
-from ...em27_status import EM27Status
+from ...em27_info import EM27Status
 from ...event_counter import EventCounter
 from ...settings import settings
 from ..path_widget import OpenFileWidget
