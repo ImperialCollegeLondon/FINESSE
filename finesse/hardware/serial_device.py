@@ -1,7 +1,6 @@
 """Provides a base class for USB serial devices."""
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import Any
 
 from serial import Serial, SerialException
@@ -12,32 +11,29 @@ from finesse.device_info import DeviceParameter
 
 from .device import AbstractDevice
 
-_serial_ports: dict[_USBSerialPortInfo, str] | None = None
+_serial_ports: dict[str, str] | None = None
 
 
-@dataclass(frozen=True)
-class _USBSerialPortInfo:
-    """Info to distinguish between USB serial ports."""
+def _port_info_to_str(
+    vendor_id: int, product_id: int, serial_number: str | None = None, count: int = 0
+) -> str:
+    """Convert USB port information to a formatted string.
 
-    vendor_id: int
-    """USB vendor ID."""
-    product_id: int
-    """USB product ID."""
-    serial_number: str | None
-    """USB serial number."""
-    count: int
-    """How many previous devices match the above parameters."""
-
-    def __str__(self) -> str:
-        out = f"{self.vendor_id:04x}:{self.product_id:04x}"
-        if self.serial_number:
-            out += f" {self.serial_number}"
-        if self.count > 0:
-            out += f" ({self.count+1})"
-        return out
+    Args:
+        vendor_id: USB vendor ID
+        product_id: USB product ID
+        serial_number: USB serial number (not always present)
+        count: Extra field to distinguish devices
+    """
+    out = f"{vendor_id:04x}:{product_id:04x}"
+    if serial_number:
+        out += f" {serial_number}"
+    if count > 0:
+        out += f" ({count+1})"
+    return out
 
 
-def _get_usb_serial_ports() -> dict[_USBSerialPortInfo, str]:
+def _get_usb_serial_ports() -> dict[str, str]:
     """Get the ports for connected USB serial devices.
 
     The list of ports is only requested from the OS once and the result is cached.
@@ -59,11 +55,12 @@ def _get_usb_serial_ports() -> dict[_USBSerialPortInfo, str]:
         key = (port.vid, port.pid, port.serial_number)
         if key not in counter:
             counter[key] = 0
-        _serial_ports[_USBSerialPortInfo(*key, count=counter[key])] = port.device
+
+        _serial_ports[_port_info_to_str(*key, counter[key])] = port.device
         counter[key] += 1
 
     # Sort by the string representation of the key
-    _serial_ports = dict(sorted(_serial_ports.items(), key=lambda item: str(item[0])))
+    _serial_ports = dict(sorted(_serial_ports.items(), key=lambda item: item[0]))
 
     return _serial_ports
 
@@ -91,7 +88,7 @@ class SerialDevice(AbstractDevice):
             DeviceParameter("baudrate", BAUDRATES, default_baudrate),
         )
 
-    def __init__(self, port: _USBSerialPortInfo, baudrate: int) -> None:
+    def __init__(self, port: str, baudrate: int) -> None:
         """Create a new serial device."""
         try:
             device = _serial_ports[port]  # type: ignore[index]
