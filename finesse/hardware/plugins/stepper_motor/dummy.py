@@ -4,11 +4,12 @@ import logging
 from pubsub import pub
 from PySide6.QtCore import QTimer
 
-from ...config import STEPPER_MOTOR_TOPIC
+from finesse.config import STEPPER_MOTOR_TOPIC
+
 from .stepper_motor_base import StepperMotorBase
 
 
-class DummyStepperMotor(StepperMotorBase):
+class DummyStepperMotor(StepperMotorBase, description="Dummy stepper motor"):
     """A fake stepper motor device used for testing the GUI without the hardware.
 
     This class uses a simple timer to notify when the move is complete after a fixed
@@ -16,7 +17,9 @@ class DummyStepperMotor(StepperMotorBase):
     the ST10 controller does.
     """
 
-    def __init__(self, steps_per_rotation: int, move_duration: float = 0.0) -> None:
+    def __init__(
+        self, steps_per_rotation: int = 3600, move_duration: float = 0.0
+    ) -> None:
         """Create a new DummyStepperMotor.
 
         Args:
@@ -36,9 +39,6 @@ class DummyStepperMotor(StepperMotorBase):
         self._step = 0
 
         super().__init__()
-
-    def close(self) -> None:
-        """Shut down the device."""
 
     @property
     def steps_per_rotation(self) -> int:
@@ -100,4 +100,4 @@ class DummyStepperMotor(StepperMotorBase):
         logging.info("Move finished")
         if self._notify_requested:
             self._notify_requested = False
-            pub.sendMessage(f"serial.{STEPPER_MOTOR_TOPIC}.move.end")
+            pub.sendMessage(f"device.{STEPPER_MOTOR_TOPIC}.move.end")

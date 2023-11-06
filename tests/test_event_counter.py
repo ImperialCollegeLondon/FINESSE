@@ -22,10 +22,10 @@ def test_init() -> None:
 
 def test_init_with_devices(subscribe_mock: MagicMock) -> None:
     """Test EventCounter's constructor when device names are given as arguments."""
-    counter = EventCounter(MagicMock(), MagicMock(), device_names=("device",))
+    counter = EventCounter(MagicMock(), MagicMock(), device_names=("my_device",))
     assert counter._target_count == 1
-    subscribe_mock.assert_any_call(counter.increment, "serial.device.opened")
-    subscribe_mock.assert_any_call(counter.decrement, "serial.device.close")
+    subscribe_mock.assert_any_call(counter.increment, "device.opened.my_device")
+    subscribe_mock.assert_any_call(counter.decrement, "device.closed.my_device")
 
 
 @pytest.mark.parametrize(

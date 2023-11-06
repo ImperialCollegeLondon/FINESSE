@@ -4,7 +4,9 @@ from decimal import Decimal
 import numpy
 from serial import Serial, SerialException
 
-from finesse.hardware.temperature.temperature_monitor_base import TemperatureMonitorBase
+from finesse.hardware.plugins.temperature.temperature_monitor_base import (
+    TemperatureMonitorBase,
+)
 
 
 class SenecaError(Exception):

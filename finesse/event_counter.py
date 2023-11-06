@@ -39,8 +39,8 @@ class EventCounter:
 
         # Subscribe to devices' open/close messages
         for name in device_names:
-            pub.subscribe(self.increment, f"serial.{name}.opened")
-            pub.subscribe(self.decrement, f"serial.{name}.close")
+            pub.subscribe(self.increment, f"device.opened.{name}")
+            pub.subscribe(self.decrement, f"device.closed.{name}")
 
     def increment(self) -> None:
         """Increase the counter by one and run callback if target reached."""
