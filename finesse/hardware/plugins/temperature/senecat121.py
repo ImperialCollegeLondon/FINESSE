@@ -1,33 +1,40 @@
 """This module provides an interface to Seneca temperature readers."""
 from decimal import Decimal
+from typing import Any
 
 import numpy
-from serial import Serial, SerialException
+from serial import SerialException
 
-from finesse.hardware.plugins.temperature.temperature_monitor_base import (
-    TemperatureMonitorBase,
-)
+from finesse.hardware.serial_device import SerialDevice
+
+from .temperature_monitor_base import TemperatureMonitorBase
 
 
 class SenecaError(Exception):
     """Indicates that an error occurred while communicating with the device."""
 
 
-class Seneca(TemperatureMonitorBase):
-    """An interface for Seneca temperature readers.
+class SenecaT121(
+    SerialDevice,
+    TemperatureMonitorBase,
+    description="SenecaT121",
+    default_baudrate=57600,
+):
+    """An interface for Seneca T121 temperature readers.
 
     The manual for this device is available at:
-    [Link here]
+    https://www.seneca.it/media/6848058/flyer_t12x_eng_nov_2020.pdf
     """
 
-    def __init__(self, serial: Serial) -> None:
+    def __init__(self, *serial_args: Any, **serial_kwargs: Any) -> None:
         """Create a new Seneca from an existing serial device.
 
         Args:
-            serial: Serial device
+            serial_args: Arguments to Serial constructor
+            serial_kwargs: Keyword arguments to Serial constructor
         """
-        self.serial = serial
-        super().__init__()
+        SerialDevice.__init__(self, *serial_args, **serial_kwargs)
+        TemperatureMonitorBase.__init__(self)
 
     def close(self) -> None:
         """Close the connection to the device."""
@@ -132,14 +139,3 @@ class Seneca(TemperatureMonitorBase):
         This figure is used when convering the raw data to temperatures.
         """
         return (self.max_temp - self.min_temp) / (self.max_volt - self.min_volt)
-
-
-if __name__ == "__main__":
-    data = b"\x01\x03\x101#1,\xff\xfa\xff\xf815\xff\xfa1$\xff\xfa\xcb\xe4"
-    temps = numpy.frombuffer(data, numpy.uint16, 8, 3)
-    new_temps = []
-    for temp in temps:
-        new_temp = (11.5625 * ((temp / 1000) - 4)) + -80
-        new_temps.append(new_temp)
-    print(new_temps)
-    print(data.hex())
