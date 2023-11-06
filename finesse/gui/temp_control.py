@@ -22,7 +22,6 @@ from PySide6.QtWidgets import (
 
 from ..config import (
     NUM_TEMPERATURE_MONITOR_CHANNELS,
-    TC4820_MAX_POWER,
     TEMPERATURE_CONTROLLER_POLL_INTERVAL,
     TEMPERATURE_CONTROLLER_TOPIC,
     TEMPERATURE_MONITOR_COLD_BB_IDX,
@@ -359,7 +358,7 @@ class TC4820Controls(SerialDevicePanel):
         layout.addWidget(self._pt100_val, 0, 3)
 
         self._power_bar = QProgressBar()
-        self._power_bar.setMaximum(TC4820_MAX_POWER)
+        self._power_bar.setRange(0, 100)
         self._power_bar.setTextVisible(False)
         self._power_bar.setOrientation(Qt.Orientation.Horizontal)
         layout.addWidget(self._power_bar, 1, 1, 1, 3)
@@ -423,7 +422,7 @@ class TC4820Controls(SerialDevicePanel):
         """
         self._control_val.setText(f"{properties['temperature']: .2f}")
         self._power_bar.setValue(properties["power"])
-        self._power_label.setText(f"{properties['power']}")
+        self._power_label.setText(f"{round(properties['power'])}")
         self._set_sbox.setValue(int(properties["set_point"]))
         if properties["alarm_status"] != 0:
             self._alarm_light._turn_on()
