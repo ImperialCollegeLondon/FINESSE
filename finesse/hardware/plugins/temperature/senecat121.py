@@ -22,8 +22,10 @@ class SenecaT121(
 ):
     """An interface for Seneca T121 temperature readers.
 
+    This device communicates through the MODBUS-RTU protocol.
+
     The manual for this device is available at:
-    https://www.seneca.it/media/6848058/flyer_t12x_eng_nov_2020.pdf
+    https://www.seneca.it/products/k107usb/doc/installation_manualEN
     """
 
     def __init__(self, *serial_args: Any, **serial_kwargs: Any) -> None:
@@ -64,6 +66,9 @@ class SenecaT121(
     def request_read(self) -> None:
         """Write a message to the Seneca to prepare for a read operation.
 
+        A byte array of [1, 3, 0, 2, 0, 8, 229, 204] is written to the device as a
+        request to read the data. This byte array was taken from the original C# code.
+
         Raises:
             SenecaError: Error writing to the device
         """
@@ -85,7 +90,12 @@ class SenecaT121(
             vals: A list of Decimals containing the temperature values recorded
                 by the Seneca device.
         """
-        ints = numpy.frombuffer(data, numpy.uint16, 8, 3)
+        dt = numpy.dtype(numpy.uint16).newbyteorder(">")
+        ints = numpy.frombuffer(data, dt, 8, 3)
+        print("Pre-scaling:", ints)
+
+        # Test for minimum and maximum output values
+        # ints = [4000, 20000]
 
         vals = [Decimal(float(self.calc_temp(val))) for val in ints]
         return vals
