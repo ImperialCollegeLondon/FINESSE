@@ -68,10 +68,6 @@ class OPUSControl(QGroupBox):
             )
             btn_layout.addWidget(button)
 
-        button = QPushButton("OPUS")
-        button.clicked.connect(self.open_opus)
-        btn_layout.addWidget(button)
-
         btn_layout.addStretch()
 
         return btn_layout
@@ -120,13 +116,6 @@ class OPUSControl(QGroupBox):
     def _request_status(self) -> None:
         self.logger.info("Requesting status")
         pub.sendMessage("opus.request", command="status")
-
-    def open_opus(self) -> None:
-        """Opens OPUS front end somewhere else.
-
-        TODO: No idea what this is supposed to do.
-        """
-        logging.info("Going to OPUS!")
 
 
 class OPUSLogHandler(logging.Handler):
