@@ -1,18 +1,21 @@
 # -*- mode: python ; coding: utf-8 -*-
 import docs.gen_user_guide as gen_guide
+from finesse.hardware.plugins import load_all_plugins
 
 block_cipher = None
 
 gen_guide.generate_html()
 
 a = Analysis(
-    ['stub.py'],
+    ["stub.py"],
     pathex=[],
     binaries=[],
-    datas=[('finesse/gui/images/*.png', 'finesse/gui/images'),
-           ('finesse/hardware/diag_autom.htm', 'finesse/hardware'),
-           ('docs/user_guide.html', 'docs')],
-    hiddenimports=['finesse.gui.images'],
+    datas=[
+        ("finesse/gui/images/*.png", "finesse/gui/images"),
+        ("finesse/hardware/diag_autom.htm", "finesse/hardware"),
+        ("docs/user_guide.html", "docs"),
+    ],
+    hiddenimports=["finesse.gui.images", *load_all_plugins()],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -31,7 +34,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='FINESSE',
+    name="FINESSE",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
