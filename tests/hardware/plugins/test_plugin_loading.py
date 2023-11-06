@@ -26,7 +26,9 @@ def test_import_recursively(iter_modules_mock: Mock, import_mock: Mock) -> None:
     with patch(
         "finesse.hardware.plugins._import_recursively"
     ) as import_recursively_mock:
-        _import_recursively(root_module)
+        expected = [f"root.{info.name}" for info in modinfos]
+        import_recursively_mock.return_value = []
+        assert list(_import_recursively(root_module)) == expected
 
         # Check that all submodules were imported
         import_mock.assert_has_calls([call(f"root.{info.name}") for info in modinfos])
@@ -38,5 +40,9 @@ def test_import_recursively(iter_modules_mock: Mock, import_mock: Mock) -> None:
 @patch("finesse.hardware.plugins._import_recursively")
 def test_load_all_plugins(import_mock: Mock) -> None:
     """Test the load_all_plugins() function."""
-    load_all_plugins()
+    ret = load_all_plugins()
+
+    # No plugins will be found because we're mocking _import_recursively
+    assert len(ret) == 0
+
     import_mock.assert_called_once_with(sys.modules["finesse.hardware.plugins"])

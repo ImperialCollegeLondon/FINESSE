@@ -50,9 +50,7 @@ class SerialDevice(AbstractDevice):
         # Extra, serial-specific parameters
         cls.add_device_parameters(
             DeviceParameter("port", _get_usb_serial_ports()),
-            DeviceParameter(
-                "baudrate", list(map(str, BAUDRATES)), str(default_baudrate)
-            ),
+            DeviceParameter("baudrate", BAUDRATES, default_baudrate),
         )
 
     def __init__(self, *serial_args: Any, **serial_kwargs: Any) -> None:
