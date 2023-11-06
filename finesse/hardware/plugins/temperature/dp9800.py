@@ -1,7 +1,10 @@
 """This module provides an interface to DP9800 temperature readers."""
 from decimal import Decimal
+from typing import Any
 
-from serial import Serial, SerialException
+from serial import SerialException
+
+from finesse.hardware.serial_device import SerialDevice
 
 from .temperature_monitor_base import TemperatureMonitorBase
 
@@ -81,25 +84,24 @@ class DP9800Error(Exception):
     """Indicates that an error occurred while communicating with the device."""
 
 
-class DP9800(TemperatureMonitorBase):
+class DP9800(
+    SerialDevice, TemperatureMonitorBase, description="DP9800", default_baudrate=38400
+):
     """An interface for DP9800 temperature readers.
 
     The manual for this device is available at:
     https://assets.omega.com/manuals/M5210.pdf
     """
 
-    def __init__(self, serial: Serial) -> None:
-        """Create a new DP9800 from an existing serial device.
+    def __init__(self, *serial_args: Any, **serial_kwargs: Any) -> None:
+        """Create a new DP9800.
 
         Args:
-            serial: Serial device
+            serial_args: Arguments to Serial constructor
+            serial_kwargs: Keyword arguments to Serial constructor
         """
-        self.serial = serial
-        super().__init__()
-
-    def close(self) -> None:
-        """Close the connection to the device."""
-        self.serial.close()
+        SerialDevice.__init__(self, *serial_args, **serial_kwargs)
+        TemperatureMonitorBase.__init__(self)
 
     def get_device_settings(self, sysflag: str) -> dict[str, str]:
         """Provide the settings of the device as stored in the system flag.
@@ -129,7 +131,7 @@ class DP9800(TemperatureMonitorBase):
             "temperature_unit": ["deg C", "deg F"][int(sysflag[7])],
         }
 
-    def read(self) -> bytes:
+    def read_temperature_data(self) -> bytes:
         """Read temperature data from the DP9800.
 
         The DP9800 returns a sequence of bytes containing the
@@ -194,6 +196,6 @@ class DP9800(TemperatureMonitorBase):
     def get_temperatures(self) -> list[Decimal]:
         """Get the current temperatures."""
         self.request_read()
-        data = self.read()
+        data = self.read_temperature_data()
         temperatures, _ = parse_data(data)
         return temperatures

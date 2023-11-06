@@ -3,35 +3,28 @@ from contextlib import nullcontext as does_not_raise
 from decimal import Decimal
 from itertools import chain
 from typing import Any
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 from pytest_mock import MockerFixture
 from serial import SerialException
 
-from finesse.config import TEMPERATURE_CONTROLLER_TOPIC
-from finesse.hardware.temperature.tc4820 import TC4820, MalformedMessageError
+from finesse.hardware.plugins.temperature.tc4820 import TC4820, MalformedMessageError
+
+_SERIAL_ARGS = ("COM1", 9600)
 
 
 @pytest.fixture
-def dev(mocker: MockerFixture) -> TC4820:
+def dev(serial_mock: MagicMock) -> TC4820:
     """Get an instance of a TC4820 object."""
-    serial = mocker.patch("serial.Serial")
-    return TC4820("device", serial)
+    return TC4820("hot_bb", *_SERIAL_ARGS)
 
 
 @pytest.mark.parametrize("name", ("hot_bb", "cold_bb"))
-def test_init(name: str, subscribe_mock: MagicMock) -> None:
+def test_init(name: str, subscribe_mock: MagicMock, serial_mock: MagicMock) -> None:
     """Test TC4820's constructor."""
-    dev = TC4820(name, MagicMock())
+    dev = TC4820(name, *_SERIAL_ARGS)
     assert dev.max_attempts == 3
-    subscribe_mock.assert_any_call(
-        dev._request_properties, f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{name}.request"
-    )
-    subscribe_mock.assert_any_call(
-        dev._change_set_point,
-        f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{name}.change_set_point",
-    )
 
 
 def test_get_properties(dev: TC4820) -> None:
@@ -115,23 +108,22 @@ for c in range(0, 128, 10):
         ],
     ),
 )
-def test_read(
-    value: int, message: bytes, raises: Any, dev: TC4820, mocker: MockerFixture
-) -> None:
+def test_read(value: int, message: bytes, raises: Any, dev: TC4820) -> None:
     """Test TC4820.read()."""
     with raises:
-        m = mocker.patch("serial.Serial.read_until", return_value=message)
-        assert value == dev.read()
-        m.assert_called_once_with(b"^", size=8)
+        with patch.object(dev.serial, "read_until", return_value=message) as mock:
+            assert value == dev.read_int()
+            mock.assert_called_once_with(b"^", size=8)
 
 
 @pytest.mark.parametrize("value", range(0, 0xFFFF, 200))
-def test_write(value: int, dev: TC4820, mocker: MockerFixture) -> None:
+def test_write(value: int, dev: TC4820) -> None:
     """Test TC4820.write()."""
     str_value = f"{value:0{4}x}"
-    m = mocker.patch("serial.Serial.write")
-    dev.write(str_value)
-    m.assert_called_once_with(format_message(value, checksum(value), eol="\r"))
+    dev.send_command(str_value)
+    dev.serial.write.assert_called_once_with(
+        format_message(value, checksum(value), eol="\r")
+    )
 
 
 @pytest.mark.parametrize(
@@ -149,14 +141,13 @@ def test_write(value: int, dev: TC4820, mocker: MockerFixture) -> None:
     ],
 )
 def test_request_int(
-    max_attempts: int, fail_max: int, raises: Any, mocker: MockerFixture
+    max_attempts: int, fail_max: int, raises: Any, dev: TC4820
 ) -> None:
     """Test TC4820.request_int().
 
     Check that the retrying of requests works.
     """
-    serial = mocker.patch("serial.Serial")
-    dev = TC4820("device", serial, max_attempts)
+    dev.max_attempts = max_attempts
 
     fail_count = 0
 
@@ -169,12 +160,12 @@ def test_request_int(
 
         return 0
 
-    mocker.patch.object(dev, "read", my_read)
-    write = mocker.patch("finesse.hardware.temperature.tc4820.TC4820.write")
+    send_mock = MagicMock()
     with raises:
-        assert dev.request_int("some string") == 0
-
-    write.assert_called_with("some string")
+        with patch.object(dev, "send_command", send_mock):
+            with patch.object(dev, "read_int", my_read):
+                assert dev.request_int("some string") == 0
+    send_mock.assert_called_with("some string")
 
 
 @pytest.mark.parametrize(
@@ -190,6 +181,17 @@ def test_property_getters(
     name: str, command: str, type: str, dev: TC4820, mocker: MockerFixture
 ) -> None:
     """Check that the getters for properties work."""
-    m = mocker.patch(f"finesse.hardware.temperature.tc4820.TC4820.request_{type}")
+    m = mocker.patch(
+        f"finesse.hardware.plugins.temperature.tc4820.TC4820.request_{type}"
+    )
     getattr(dev, name)
     m.assert_called_once_with(command)
+
+
+@patch("finesse.hardware.plugins.temperature.tc4820.SerialDevice")
+@patch("finesse.hardware.plugins.temperature.tc4820.TemperatureControllerBase")
+def test_close(tc_base_cls: Mock, serial_dev_cls: Mock, dev: TC4820) -> None:
+    """Test the close() method."""
+    dev.close()
+    tc_base_cls.close.assert_called_once_with(dev)
+    serial_dev_cls.close.assert_called_once_with(dev)

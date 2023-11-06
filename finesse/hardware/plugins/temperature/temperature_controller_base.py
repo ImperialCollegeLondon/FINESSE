@@ -3,14 +3,18 @@ from abc import abstractmethod
 from decimal import Decimal
 from typing import Any
 
-from pubsub import pub
-
-from ...config import TEMPERATURE_CONTROLLER_TOPIC
-from ..device_base import DeviceBase
-from ..pubsub_decorators import pubsub_broadcast, pubsub_errors
+from finesse.config import TEMPERATURE_CONTROLLER_TOPIC
+from finesse.hardware.device import Device
 
 
-class TemperatureControllerBase(DeviceBase):
+class TemperatureControllerBase(
+    Device,
+    is_base_type=True,
+    name=TEMPERATURE_CONTROLLER_TOPIC,
+    description="Temperature controller",
+    names_short=("hot_bb", "cold_bb"),
+    names_long=("hot black body", "cold black body"),
+):
     """The base class for temperature controller devices or mock devices."""
 
     def __init__(self, name: str) -> None:
@@ -21,26 +25,10 @@ class TemperatureControllerBase(DeviceBase):
         Args:
             name: The name of the device, to distinguish it from others
         """
-        super().__init__()
-        self.name = name
-        topic_base = f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{self.name}"
-        self._request_properties = pubsub_broadcast(
-            f"{topic_base}.error", f"{topic_base}.response", "properties"
-        )(self.get_properties)
-        """Requests that various device properties are sent over pubsub."""
+        super().__init__(name)
 
-        pub.subscribe(
-            self._request_properties,
-            f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{name}.request",
-        )
-
-        self._change_set_point = pubsub_errors(f"{topic_base}.error")(
-            self.change_set_point
-        )
-        pub.subscribe(
-            self._change_set_point,
-            f"serial.{TEMPERATURE_CONTROLLER_TOPIC}.{name}.change_set_point",
-        )
+        self.subscribe(self.get_properties, "request", "response", "properties")
+        self.subscribe(self.change_set_point, "change_set_point")
 
     def get_properties(self) -> dict[str, Any]:
         """Get device properties."""

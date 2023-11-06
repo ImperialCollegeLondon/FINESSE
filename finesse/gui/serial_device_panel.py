@@ -34,8 +34,8 @@ class SerialDevicePanel(QGroupBox):
         super().__init__(title, *args, **kwargs)
 
         # Enable/disable controls on device connect/disconnect
-        pub.subscribe(self._on_device_opened, f"serial.{name}.opened")
-        pub.subscribe(self._on_device_closed, f"serial.{name}.close")
+        pub.subscribe(self._on_device_opened, f"device.opened.{name}")
+        pub.subscribe(self._on_device_closed, f"device.closed.{name}")
 
     def _on_device_opened(self) -> None:
         self.set_controls_enabled(True)

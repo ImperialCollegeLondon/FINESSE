@@ -2,6 +2,7 @@
 import logging
 import traceback
 from collections.abc import Callable
+from typing import Any
 
 from decorator import decorator
 from pubsub import pub
@@ -18,7 +19,7 @@ def _error_occurred(error_topic: str, error: BaseException) -> None:
     pub.sendMessage(error_topic, error=error)
 
 
-def pubsub_errors(error_topic: str) -> Callable:
+def pubsub_errors(error_topic: str, **extra_kwargs: Any) -> Callable:
     """Catch exceptions and broadcast via pubsub.
 
     Args:
@@ -29,7 +30,7 @@ def pubsub_errors(error_topic: str) -> Callable:
         try:
             return func(*args, **kwargs)
         except Exception as error:
-            _error_occurred(error_topic, error)
+            _error_occurred(error_topic, error, **extra_kwargs)
 
     return decorator(wrapped)
 

@@ -1,17 +1,13 @@
 """Provides the base class for stepper motor implementations."""
 from abc import abstractmethod
 
-from pubsub import pub
-
-from ...config import ANGLE_PRESETS, STEPPER_MOTOR_TOPIC
-from ..device_base import DeviceBase
-from ..pubsub_decorators import pubsub_errors
-
-error_wrap = pubsub_errors(f"serial.{STEPPER_MOTOR_TOPIC}.error")
-"""Broadcast exceptions via pubsub."""
+from finesse.config import ANGLE_PRESETS, STEPPER_MOTOR_TOPIC
+from finesse.hardware.device import Device
 
 
-class StepperMotorBase(DeviceBase):
+class StepperMotorBase(
+    Device, is_base_type=True, name=STEPPER_MOTOR_TOPIC, description="Stepper motor"
+):
     """A base class for stepper motor implementations."""
 
     def __init__(self) -> None:
@@ -19,24 +15,16 @@ class StepperMotorBase(DeviceBase):
 
         Subscribe to stepper motor pubsub messages.
         """
+        super().__init__()
+
         # Versions of methods which catch and broadcast errors via pubsub
-        self._move_to = error_wrap(self.move_to)
-        self._stop_moving = error_wrap(self.stop_moving)
-        self._notify_on_stopped = error_wrap(self.notify_on_stopped)
+        self._move_to = self.pubsub_errors(self.move_to)
+        self._stop_moving = self.pubsub_errors(self.stop_moving)
+        self._notify_on_stopped = self.pubsub_errors(self.notify_on_stopped)
 
-        pub.subscribe(
-            self._move_to,
-            f"serial.{STEPPER_MOTOR_TOPIC}.move.begin",
-        )
-        pub.subscribe(self._stop_moving, f"serial.{STEPPER_MOTOR_TOPIC}.stop")
-        pub.subscribe(
-            self._notify_on_stopped, f"serial.{STEPPER_MOTOR_TOPIC}.notify_on_stopped"
-        )
-
-    @staticmethod
-    def send_error_message(error: BaseException) -> None:
-        """Send an error message when a device error has occurred."""
-        pub.sendMessage(f"serial.{STEPPER_MOTOR_TOPIC}.error", error=error)
+        self.subscribe(self.move_to, "move.begin")
+        self.subscribe(self.stop_moving, "stop")
+        self.subscribe(self.notify_on_stopped, "notify_on_stopped")
 
     @staticmethod
     def preset_angle(name: str) -> float:
@@ -118,8 +106,6 @@ class StepperMotorBase(DeviceBase):
 
     def move_to(self, target: float | str) -> None:
         """Move the motor to a specified rotation and send message when complete.
-
-        Sends a stepper.move.end message when finished.
 
         Args:
             target: The target angle (in degrees) or the name of a preset

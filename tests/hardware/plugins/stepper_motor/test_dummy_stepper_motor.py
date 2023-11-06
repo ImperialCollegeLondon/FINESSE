@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from finesse.config import ANGLE_PRESETS, STEPPER_MOTOR_TOPIC
-from finesse.hardware.stepper_motor.dummy import DummyStepperMotor
+from finesse.hardware.plugins.stepper_motor.dummy import DummyStepperMotor
 
 
 @pytest.fixture
@@ -35,9 +35,7 @@ def test_init(qtbot) -> None:
         for steps in range(-5, 5)
     ],
 )
-def test_init_raises(
-    steps: int, raises: Any, error_wrap_mock: MagicMock, qtbot
-) -> None:
+def test_init_raises(steps: int, raises: Any, subscribe_mock: MagicMock, qtbot) -> None:
     """Test that constructor raises an error for an invalid step count."""
     with raises:
         stepper = DummyStepperMotor(steps)
@@ -60,7 +58,7 @@ def test_move_to_number(
     target: int,
     raises: Any,
     stepper: DummyStepperMotor,
-    error_wrap_mock: MagicMock,
+    subscribe_mock: MagicMock,
     qtbot,
 ) -> None:
     """Check move_to, when an angle is given."""
@@ -93,7 +91,7 @@ def test_move_to_preset(
     name: str,
     raises: Any,
     stepper: DummyStepperMotor,
-    error_wrap_mock: MagicMock,
+    subscribe_mock: MagicMock,
     qtbot,
 ) -> None:
     """Check move_to, when a preset name is given."""
@@ -134,7 +132,7 @@ def test_on_move_end_notify(
     stepper._move_end_timer.timeout.emit()
 
     assert not stepper._notify_requested
-    sendmsg_mock.assert_called_once_with(f"serial.{STEPPER_MOTOR_TOPIC}.move.end")
+    sendmsg_mock.assert_called_once_with(f"device.{STEPPER_MOTOR_TOPIC}.move.end")
 
 
 def test_on_move_end_no_notify(

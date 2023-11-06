@@ -3,11 +3,14 @@ from __future__ import annotations
 
 from decimal import Decimal
 
-from ..noise_producer import NoiseParameters, NoiseProducer
+from finesse.hardware.noise_producer import NoiseParameters, NoiseProducer
+
 from .temperature_controller_base import TemperatureControllerBase
 
 
-class DummyTemperatureController(TemperatureControllerBase):
+class DummyTemperatureController(
+    TemperatureControllerBase, description="Dummy temperature controller"
+):
     """A dummy temperature controller device which produces random noise."""
 
     def __init__(
@@ -35,9 +38,6 @@ class DummyTemperatureController(TemperatureControllerBase):
         self._set_point = initial_set_point
 
         super().__init__(name)
-
-    def close(self) -> None:
-        """Shut down the device."""
 
     @property
     def temperature(self) -> Decimal:
