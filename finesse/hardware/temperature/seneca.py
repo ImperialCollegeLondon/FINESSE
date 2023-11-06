@@ -7,28 +7,6 @@ from serial import Serial, SerialException
 from finesse.hardware.temperature.temperature_monitor_base import TemperatureMonitorBase
 
 
-def check_data(data: bytes) -> None:
-    """Perform message integrity checks.
-
-    Args:
-        data: the message to check
-
-    Raises:
-        SenecaError: Malformed message received from device
-    """
-
-
-def calculate_bcc(data: bytes) -> None:
-    """Calculate block check character.
-
-    Args:
-        data: the message to check
-
-    Returns:
-        bcc: block check character
-    """
-
-
 class SenecaError(Exception):
     """Indicates that an error occurred while communicating with the device."""
 
@@ -152,3 +130,14 @@ class Seneca(TemperatureMonitorBase):
         This figure is used when convering the raw data to temperatures.
         """
         return (self.max_temp - self.min_temp) / (self.max_volt - self.min_volt)
+
+
+if __name__ == "__main__":
+    data = b"\x01\x03\x101#1,\xff\xfa\xff\xf815\xff\xfa1$\xff\xfa\xcb\xe4"
+    temps = numpy.frombuffer(data, numpy.uint16, 8, 3)
+    new_temps = []
+    for temp in temps:
+        new_temp = (11.5625 * ((temp / 1000) - 4)) + -80
+        new_temps.append(new_temp)
+    print(new_temps)
+    print(data.hex())
