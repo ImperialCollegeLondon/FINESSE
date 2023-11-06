@@ -10,26 +10,28 @@ from finesse.hardware.serial_device import SerialDevice
 from .temperature_monitor_base import TemperatureMonitorBase
 
 
-class SenecaError(Exception):
+class SenecaK107Error(Exception):
     """Indicates that an error occurred while communicating with the device."""
 
 
-class SenecaT121(
+class SenecaK107(
     SerialDevice,
     TemperatureMonitorBase,
-    description="SenecaT121",
+    description="SenecaK107",
     default_baudrate=57600,
 ):
-    """An interface for Seneca T121 temperature readers.
+    """An interface for the Seneca K107USB serial converter.
 
-    This device communicates through the MODBUS-RTU protocol.
+    This device communicates through the MODBUS-RTU protocol and outputs data from
+    temperature monitor devices. The current connected temperature monitor device is
+    the Seneca T121.
 
     The manual for this device is available at:
     https://www.seneca.it/products/k107usb/doc/installation_manualEN
     """
 
     def __init__(self, *serial_args: Any, **serial_kwargs: Any) -> None:
-        """Create a new Seneca from an existing serial device.
+        """Create a new SenecaK107.
 
         Args:
             serial_args: Arguments to Serial constructor
@@ -38,47 +40,43 @@ class SenecaT121(
         SerialDevice.__init__(self, *serial_args, **serial_kwargs)
         TemperatureMonitorBase.__init__(self)
 
-    def close(self) -> None:
-        """Close the connection to the device."""
-        self.serial.close()
-
     def read(self) -> bytes:
-        """Read temperature data from the Seneca.
+        """Read temperature data from the SenecaK107.
 
         Returns:
             data: the sequence of bytes read from the device
 
         Raises:
-            SenecaError: Malformed message received from device
+            SenecaK107Error: Malformed message received from device
         """
         try:
             data = self.serial.read(size=21)
         except SerialException as e:
-            raise SenecaError(e)
+            raise SenecaK107Error(e)
 
         # require 21 bytes else checks will fail
         min_length = 21
         if len(data) != min_length:
-            raise SenecaError("Insufficient data read from device")
+            raise SenecaK107Error("Insufficient data read from device")
 
         return data
 
     def request_read(self) -> None:
-        """Write a message to the Seneca to prepare for a read operation.
+        """Write a message to the SenecaK107 to prepare for a read operation.
 
         A byte array of [1, 3, 0, 2, 0, 8, 229, 204] is written to the device as a
         request to read the data. This byte array was taken from the original C# code.
 
         Raises:
-            SenecaError: Error writing to the device
+            SenecaK107Error: Error writing to the device
         """
         try:
             self.serial.write(bytearray([1, 3, 0, 2, 0, 8, 229, 204]))
         except Exception as e:
-            raise SenecaError(e)
+            raise SenecaK107Error(e)
 
     def parse_data(self, data: bytes) -> list[Decimal]:
-        """Parse temperature data read from the Seneca.
+        """Parse temperature data read from the SenecaK107.
 
         The sequence of bytes is put through the conversion function and translated
         into floats.
@@ -88,7 +86,7 @@ class SenecaT121(
 
         Returns:
             vals: A list of Decimals containing the temperature values recorded
-                by the Seneca device.
+                by the SenecaK107 device.
         """
         dt = numpy.dtype(numpy.uint16).newbyteorder(">")
         ints = numpy.frombuffer(data, dt, 8, 3)
@@ -101,7 +99,7 @@ class SenecaT121(
         return vals
 
     def calc_temp(self, val: numpy.float64) -> numpy.float64:
-        """Convert data read from the Seneca device into temperatures.
+        """Convert data read from the SenecaK107 device into temperatures.
 
         Args:
             val: A value from the array described by the data received from the device.
