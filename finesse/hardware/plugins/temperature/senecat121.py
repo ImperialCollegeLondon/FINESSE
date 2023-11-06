@@ -86,7 +86,6 @@ class SenecaT121(
                 by the Seneca device.
         """
         ints = numpy.frombuffer(data, numpy.uint16, 8, 3)
-        print("ints:", ints, type(ints))
 
         vals = [Decimal(float(self.calc_temp(val))) for val in ints]
         return vals
@@ -101,25 +100,23 @@ class SenecaT121(
             vals: The converted value.
         """
         temp = (self.range * ((val / 1000) - self.min_volt)) + self.min_temp
-        print("temp:", temp, type(temp))
         return temp
 
     def get_temperatures(self) -> list[Decimal]:
         """Get the current temperatures."""
         self.request_read()
         data = self.read()
-        print("range:", self.range)
         temperatures = self.parse_data(data)
         return temperatures
 
     @property
     def min_temp(self) -> int:
-        """The minimum temperature range of the device."""
+        """The minimum temperature limit of the device."""
         return -80
 
     @property
     def max_temp(self) -> int:
-        """The maximum temperature range of the device."""
+        """The maximum temperature limit of the device."""
         return 105
 
     @property
