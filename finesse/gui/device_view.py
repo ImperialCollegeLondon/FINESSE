@@ -43,7 +43,7 @@ def _create_device_widget(
     # Previous parameter values are saved if a device opens successfully
     previous_param_values = cast(
         dict[str, Any] | None,
-        settings.value(f"device/{instance.topic}/{device_type.description}/params"),
+        settings.value(f"device/{instance.topic}/{device_type.class_name}/params"),
     )
 
     widget = QWidget()
@@ -221,14 +221,13 @@ class DeviceTypeControl(QGroupBox):
         )
 
     def _on_device_opened(
-        self, instance: DeviceInstanceRef, params: dict[str, Any]
+        self, instance: DeviceInstanceRef, class_name: str, params: dict[str, Any]
     ) -> None:
         """Update the GUI for when the device is successfully opened."""
-        device_name = self._device_combo.currentText()
-        settings.setValue(f"device/{instance.topic}/type", device_name)
+        settings.setValue(f"device/{instance.topic}/type", class_name)
         if params:
             settings.setValue(
-                f"device/{instance.topic}/{device_name}/params",
+                f"device/{instance.topic}/{class_name}/params",
                 params,
             )
 

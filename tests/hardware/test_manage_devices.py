@@ -53,9 +53,8 @@ def test_open_device(
     devices_dict: dict[DeviceInstanceRef, Device] = {}
 
     with patch("finesse.hardware.manage_devices._devices", devices_dict):
-        _open_device(
-            instance=instance, class_name="some.module.MyDevice", params=params
-        )
+        class_name = "some.module.MyDevice"
+        _open_device(instance=instance, class_name=class_name, params=params)
         import_mock.assert_called_once_with("some.module")
 
         if name:
@@ -72,6 +71,7 @@ def test_open_device(
                     call(
                         f"device.opening.{instance.topic}",
                         instance=instance,
+                        class_name=class_name,
                         params=params,
                     ),
                     call(f"device.opened.{instance.topic}"),
