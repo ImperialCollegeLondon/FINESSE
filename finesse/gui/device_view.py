@@ -220,16 +220,15 @@ class DeviceTypeControl(QGroupBox):
             params=device_params,
         )
 
-    def _on_device_opened(self, params: dict[str, Any]) -> None:
+    def _on_device_opened(
+        self, instance: DeviceInstanceRef, params: dict[str, Any]
+    ) -> None:
         """Update the GUI for when the device is successfully opened."""
-        settings.setValue(
-            f"device/{self._device_instance.topic}/type",
-            self._device_combo.currentText(),
-        )
+        device_name = self._device_combo.currentText()
+        settings.setValue(f"device/{instance.topic}/type", device_name)
         if params:
             settings.setValue(
-                f"device/{self._device_instance.topic}/"
-                f"{self._device_combo.currentText()}/params",
+                f"device/{instance.topic}/{device_name}/params",
                 params,
             )
 
@@ -240,7 +239,7 @@ class DeviceTypeControl(QGroupBox):
         """Close the device."""
         pub.sendMessage("device.close", instance=self._device_instance)
 
-    def _on_device_closed(self) -> None:
+    def _on_device_closed(self, instance: DeviceInstanceRef) -> None:
         """Update the GUI for when the device is closed."""
         self._set_combos_enabled(True)
         self._open_close_btn.setText("Open")

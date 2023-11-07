@@ -4,6 +4,8 @@ from typing import Any
 
 from pubsub import pub
 
+from finesse.device_info import DeviceInstanceRef
+
 
 class EventCounter:
     """A class for monitoring events such as device opening/closing.
@@ -40,7 +42,10 @@ class EventCounter:
         # Subscribe to devices' open/close messages
         for name in device_names:
             pub.subscribe(self.increment, f"device.opened.{name}")
-            pub.subscribe(self.decrement, f"device.closed.{name}")
+            pub.subscribe(self._on_device_closed, f"device.closed.{name}")
+
+    def _on_device_closed(self, instance: DeviceInstanceRef) -> None:
+        self.decrement()
 
     def increment(self) -> None:
         """Increase the counter by one and run callback if target reached."""

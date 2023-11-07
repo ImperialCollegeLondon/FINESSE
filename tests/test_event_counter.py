@@ -25,7 +25,7 @@ def test_init_with_devices(subscribe_mock: MagicMock) -> None:
     counter = EventCounter(MagicMock(), MagicMock(), device_names=("my_device",))
     assert counter._target_count == 1
     subscribe_mock.assert_any_call(counter.increment, "device.opened.my_device")
-    subscribe_mock.assert_any_call(counter.decrement, "device.closed.my_device")
+    subscribe_mock.assert_any_call(counter._on_device_closed, "device.closed.my_device")
 
 
 @pytest.mark.parametrize(

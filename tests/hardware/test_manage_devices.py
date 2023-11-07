@@ -67,7 +67,11 @@ def test_open_device(
             # Two separate messages are sent on device open
             sendmsg_mock.assert_has_calls(
                 [
-                    call(f"device.opening.{instance.topic}", params=params),
+                    call(
+                        f"device.opening.{instance.topic}",
+                        instance=instance,
+                        params=params,
+                    ),
                     call(f"device.opened.{instance.topic}"),
                 ]
             )
@@ -114,6 +118,8 @@ def test_try_close_device(
     base_type_info.name = "test"
     device_mock = MagicMock()
     device_mock.name = name
+    instance = DeviceInstanceRef("test", name)
+    device_mock.get_instance_ref.return_value = instance
 
     if not success:
         device_mock.close.side_effect = RuntimeError("Device close failed")
@@ -126,7 +132,7 @@ def test_try_close_device(
     if name:
         topic += f".{name}"
 
-    sendmsg_mock.assert_called_once_with(f"device.closed.{topic}")
+    sendmsg_mock.assert_called_once_with(f"device.closed.{topic}", instance=instance)
 
 
 def test_close_device() -> None:
