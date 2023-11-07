@@ -28,13 +28,13 @@ def get_device_instance(base_type: type[_T], name: str | None = None) -> _T | No
 
 
 def _open_device(
-    class_name: str, instance: DeviceInstanceRef, params: dict[str, Any]
+    instance: DeviceInstanceRef, class_name: str, params: dict[str, Any]
 ) -> None:
     """Open the specified device type.
 
     Args:
-        class_name: The name of the device type's class
         instance: The instance that this device will be when opened
+        class_name: The name of the device type's class
         params: Device parameters
     """
     module, _, class_name = class_name.rpartition(".")

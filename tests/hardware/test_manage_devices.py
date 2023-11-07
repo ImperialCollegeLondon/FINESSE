@@ -53,7 +53,9 @@ def test_open_device(
     devices_dict: dict[DeviceInstanceRef, Device] = {}
 
     with patch("finesse.hardware.manage_devices._devices", devices_dict):
-        _open_device("some.module.MyDevice", instance, params)
+        _open_device(
+            instance=instance, class_name="some.module.MyDevice", params=params
+        )
         import_mock.assert_called_once_with("some.module")
 
         if name:
@@ -103,7 +105,7 @@ def test_open_device_replace_existing(
     old_device = MagicMock()
     devices_dict: dict[DeviceInstanceRef, Device] = {instance: old_device}
     with patch("finesse.hardware.manage_devices._devices", devices_dict):
-        _open_device("some.module.MyDevice", instance, {})
+        _open_device(instance=instance, class_name="some.module.MyDevice", params={})
         logging_mock.warn.assert_called()
         close_mock.assert_called_once_with(old_device)
         assert devices_dict == {instance: new_device}
