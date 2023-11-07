@@ -37,13 +37,13 @@ def _open_device(
         class_name: The name of the device type's class
         params: Device parameters
     """
-    module, _, class_name = class_name.rpartition(".")
+    module, _, class_name_part = class_name.rpartition(".")
 
     # Assume this is safe because module and class_name will not be provided directly by
     # the user
-    cls: Device = getattr(import_module(module), class_name)
+    cls: Device = getattr(import_module(module), class_name_part)
 
-    logging.info(f"Opening device of type {instance.base_type}: {class_name}")
+    logging.info(f"Opening device of type {instance.base_type}: {class_name_part}")
 
     if device := _devices.get(instance):
         logging.warn(f"Replacing existing instance of device of type {instance.topic}")
@@ -70,7 +70,10 @@ def _open_device(
         # because we want to ensure that some listeners always run before others, in
         # case an error occurs and we have to undo the work.
         pub.sendMessage(
-            f"device.opening.{instance.topic}", instance=instance, params=params_orig
+            f"device.opening.{instance.topic}",
+            instance=instance,
+            class_name=class_name,
+            params=params_orig,
         )
         pub.sendMessage(f"device.opened.{instance.topic}")
 
