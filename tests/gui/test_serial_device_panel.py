@@ -68,5 +68,5 @@ def test_on_device_opened(panel: DevicePanel) -> None:
 def test_on_device_closed(panel: DevicePanel) -> None:
     """Test the _on_device_closed() method."""
     with patch.object(panel, "set_controls_enabled") as enable_mock:
-        panel._on_device_closed()
+        panel._on_device_closed(MagicMock())
         enable_mock.assert_called_once_with(False)

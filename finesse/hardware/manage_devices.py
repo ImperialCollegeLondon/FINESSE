@@ -69,7 +69,9 @@ def _open_device(
         # Signal that device is now open. The reason for the two different topics is
         # because we want to ensure that some listeners always run before others, in
         # case an error occurs and we have to undo the work.
-        pub.sendMessage(f"device.opening.{instance.topic}", params=params_orig)
+        pub.sendMessage(
+            f"device.opening.{instance.topic}", instance=instance, params=params_orig
+        )
         pub.sendMessage(f"device.opened.{instance.topic}")
 
 
@@ -85,10 +87,8 @@ def _try_close_device(device: Device) -> None:
     except Exception as ex:
         logging.warn(f"Error while closing {device.__class__.__name__}: {ex!s}")
 
-    topic = device.get_device_base_type_info().name
-    if device.name:
-        topic += f".{device.name}"
-    pub.sendMessage(f"device.closed.{topic}")
+    instance = device.get_instance_ref()
+    pub.sendMessage(f"device.closed.{instance.topic}", instance=instance)
 
 
 def _close_device(instance: DeviceInstanceRef) -> None:

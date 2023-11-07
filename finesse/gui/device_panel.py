@@ -5,6 +5,8 @@ from decorator import decorator
 from pubsub import pub
 from PySide6.QtWidgets import QGroupBox, QWidget
 
+from finesse.device_info import DeviceInstanceRef
+
 
 class DevicePanel(QGroupBox):
     """A QGroupBox which enables/disables child controls when device opens/closes."""
@@ -40,7 +42,7 @@ class DevicePanel(QGroupBox):
     def _on_device_opened(self) -> None:
         self.set_controls_enabled(True)
 
-    def _on_device_closed(self) -> None:
+    def _on_device_closed(self, instance: DeviceInstanceRef) -> None:
         self.set_controls_enabled(False)
 
     def set_controls_enabled(self, enabled: bool) -> None:
