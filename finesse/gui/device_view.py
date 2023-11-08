@@ -274,8 +274,9 @@ class DeviceControl(QGroupBox):
         self.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
         self.setLayout(QVBoxLayout())
 
-        # pubsub topics
-        pub.subscribe(self._on_device_list, "device.list")
+        # Retrieve the list of device plugins
+        pub.subscribe(self._on_device_list, "device.list.response")
+        pub.sendMessage("device.list.request")
 
     def _on_device_list(
         self, device_types: Mapping[DeviceBaseTypeInfo, Sequence[DeviceTypeInfo]]

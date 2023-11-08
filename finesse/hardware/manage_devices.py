@@ -7,7 +7,7 @@ from typing import Any, TypeVar, cast
 from pubsub import pub
 
 from finesse.device_info import DeviceInstanceRef
-from finesse.hardware.device import Device
+from finesse.hardware.device import Device, get_device_types
 
 _devices: dict[DeviceInstanceRef, Device] = {}
 
@@ -114,8 +114,14 @@ def _close_all_devices() -> None:
     _devices.clear()
 
 
+def _broadcast_device_types() -> None:
+    """Broadcast the available device types via pubsub."""
+    pub.sendMessage("device.list.response", device_types=get_device_types())
+
+
 pub.subscribe(_open_device, "device.open")
 pub.subscribe(_close_device, "device.close")
 pub.subscribe(_on_device_error, "device.error")
+pub.subscribe(_broadcast_device_types, "device.list.request")
 
 pub.subscribe(_close_all_devices, "window.closed")
