@@ -94,6 +94,7 @@ class HardwareSetsControl(QGroupBox):
         return self._hardware_sets_combo.currentData().devices
 
     def _update_control_state(self) -> None:
+        """Enable or disable the connect and disconnect buttons as appropriate."""
         # Enable the "Connect" button if there are any devices left to connect for this
         # hardware set
         all_connected = self._connected_devices.issuperset(self.current_hardware_set)
