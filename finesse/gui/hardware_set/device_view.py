@@ -18,6 +18,7 @@ from PySide6.QtWidgets import (
 from finesse.device_info import DeviceBaseTypeInfo, DeviceInstanceRef, DeviceTypeInfo
 from finesse.gui.error_message import show_error_message
 from finesse.gui.hardware_set.device_connection import close_device, open_device
+from finesse.gui.hardware_set.hardware_set import OpenDeviceArgs
 from finesse.settings import settings
 
 
@@ -93,7 +94,7 @@ class DeviceTypeControl(QGroupBox):
         description: str,
         instance: DeviceInstanceRef,
         device_types: Sequence[DeviceTypeInfo],
-        is_connected: bool,
+        connected_device_type: str | None,
     ) -> None:
         """Create a new DeviceTypeControl.
 
@@ -101,7 +102,7 @@ class DeviceTypeControl(QGroupBox):
             description: A description of the device type
             instance: The device instance this panel is for
             device_types: The available devices for this base device type
-            is_connected: Whether the device is already connected
+            connected_device_type: The class name for this device type, if opened
         """
         if not device_types:
             raise RuntimeError("At least one device type must be specified")
@@ -127,16 +128,11 @@ class DeviceTypeControl(QGroupBox):
 
         # Select the last device that was successfully opened, if there is one
         topic = instance.topic
-        if previous_device := settings.value(f"device/{instance.topic}/type"):
-            try:
-                idx = next(
-                    i
-                    for i, device_type in enumerate(device_types)
-                    if device_type.class_name == previous_device
-                )
-                self._device_combo.setCurrentIndex(idx)
-            except StopIteration:
-                logging.warn(f"Unknown class name: {previous_device}")
+        previous_device = cast(
+            str | None, settings.value(f"device/{instance.topic}/type")
+        )
+        if previous_device:
+            self._select_device(previous_device)
 
         self._device_combo.currentIndexChanged.connect(self._on_device_selected)
         layout.addWidget(self._device_combo)
@@ -152,8 +148,8 @@ class DeviceTypeControl(QGroupBox):
         )
         self._open_close_btn.clicked.connect(self._on_open_close_clicked)
         layout.addWidget(self._open_close_btn)
-        if is_connected:
-            self._set_device_opened()
+        if connected_device_type:
+            self._set_device_opened(connected_device_type)
         else:
             self._set_device_closed()
 
@@ -222,10 +218,26 @@ class DeviceTypeControl(QGroupBox):
         if widget := self._get_current_device_type_item().widget:
             widget.setEnabled(enabled)
 
-    def _set_device_opened(self) -> None:
+    def _set_device_opened(self, class_name: str) -> None:
         """Update the GUI for when the device is opened."""
         self._set_combos_enabled(False)
         self._open_close_btn.setText("Close")
+        self._select_device(class_name)
+
+    def _select_device(self, class_name: str) -> None:
+        """Select the device from the combo box which matches class_name.
+
+        Todo: Select params too
+        """
+        try:
+            idx = next(
+                i
+                for i in range(self._device_combo.count())
+                if self._device_combo.itemData(i).device_type.class_name == class_name
+            )
+            self._device_combo.setCurrentIndex(idx)
+        except StopIteration:
+            logging.warn(f"Unknown class_name for opened device: {class_name}")
 
     def _set_device_closed(self, **kwargs) -> None:
         """Update the GUI for when the device is opened."""
@@ -240,14 +252,16 @@ class DeviceTypeControl(QGroupBox):
     def _on_device_opened(
         self, instance: DeviceInstanceRef, class_name: str, params: Mapping[str, Any]
     ) -> None:
-        """Update the GUI for when the device is successfully opened."""
+        """Save the last opened device and update the GUI appropriately."""
         settings.setValue(f"device/{instance.topic}/type", class_name)
         if params:
             settings.setValue(
                 f"device/{instance.topic}/{class_name}/params",
                 params,
             )
-        self._set_device_opened()
+
+        # Update GUI
+        self._set_device_opened(class_name)
 
     def _close_device(self) -> None:
         """Close the device."""
@@ -278,7 +292,7 @@ class DeviceTypeControl(QGroupBox):
 class DeviceControl(QGroupBox):
     """Allows for viewing and connecting to devices."""
 
-    def __init__(self, connected_devices: AbstractSet[DeviceInstanceRef]) -> None:
+    def __init__(self, connected_devices: AbstractSet[OpenDeviceArgs]) -> None:
         """Create a new DeviceControl."""
         super().__init__("Device control")
         self.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
@@ -289,6 +303,17 @@ class DeviceControl(QGroupBox):
         # Retrieve the list of device plugins
         pub.subscribe(self._on_device_list, "device.list.response")
         pub.sendMessage("device.list.request")
+
+    def _get_connected_device(self, instance: DeviceInstanceRef) -> str | None:
+        """Get the class name of the connected device matching instance, if any."""
+        try:
+            return next(
+                device.class_name
+                for device in self._connected_devices
+                if device.instance == instance
+            )
+        except StopIteration:
+            return None
 
     def _on_device_list(
         self, device_types: Mapping[DeviceBaseTypeInfo, Sequence[DeviceTypeInfo]]
@@ -305,7 +330,7 @@ class DeviceControl(QGroupBox):
                         base_type.description,
                         instance,
                         types,
-                        instance in self._connected_devices,
+                        self._get_connected_device(instance),
                     )
                 )
             else:
@@ -316,6 +341,6 @@ class DeviceControl(QGroupBox):
                             f"{base_type.description} ({long})",
                             instance,
                             types,
-                            instance in self._connected_devices,
+                            self._get_connected_device(instance),
                         )
                     )

@@ -30,7 +30,7 @@ class ManageDevicesDialog(QDialog):
     """A dialog for manually opening, closing and configuring devices."""
 
     def __init__(
-        self, parent: QWidget, connected_devices: AbstractSet[DeviceInstanceRef]
+        self, parent: QWidget, connected_devices: AbstractSet[OpenDeviceArgs]
     ) -> None:
         """Create a new ManageDevicesDialog.
 
@@ -105,7 +105,7 @@ class HardwareSetsControl(QGroupBox):
         # Create dialog lazily
         if not hasattr(self, "_manage_devices_dialog"):
             self._manage_devices_dialog = ManageDevicesDialog(
-                self.window(), {device.instance for device in self._connected_devices}
+                self.window(), self._connected_devices
             )
 
         self._manage_devices_dialog.show()
