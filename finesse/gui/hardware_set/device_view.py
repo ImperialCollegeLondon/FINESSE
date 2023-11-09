@@ -323,24 +323,12 @@ class DeviceControl(QGroupBox):
 
         # Group together devices based on their base types (e.g. "stepper motor")
         for base_type, types in device_types.items():
-            if not base_type.names_long:
-                instance = DeviceInstanceRef(base_type.name)
+            for instance, description in base_type.get_instances_and_descriptions():
                 layout.addWidget(
                     DeviceTypeControl(
-                        base_type.description,
+                        description,
                         instance,
                         types,
                         self._get_connected_device(instance),
                     )
                 )
-            else:
-                for short, long in zip(base_type.names_short, base_type.names_long):
-                    instance = DeviceInstanceRef(base_type.name, short)
-                    layout.addWidget(
-                        DeviceTypeControl(
-                            f"{base_type.description} ({long})",
-                            instance,
-                            types,
-                            self._get_connected_device(instance),
-                        )
-                    )
