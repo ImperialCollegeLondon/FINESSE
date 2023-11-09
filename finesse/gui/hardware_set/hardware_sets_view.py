@@ -127,12 +127,14 @@ class HardwareSetsControl(QGroupBox):
     def _on_device_opened(
         self, instance: DeviceInstanceRef, class_name: str, params: Mapping[str, Any]
     ) -> None:
+        """Add instance to _connected_devices and update GUI."""
         self._connected_devices.add(
             OpenDeviceArgs(instance, class_name, frozendict(params))
         )
         self._update_control_state()
 
     def _on_device_closed(self, instance: DeviceInstanceRef) -> None:
+        """Remove instance from _connected devices and update GUI."""
         try:
             # Remove the device matching this instance type (there should be only one)
             self._connected_devices.remove(
