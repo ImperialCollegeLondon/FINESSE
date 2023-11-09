@@ -111,6 +111,12 @@ class HardwareSetsControl(QGroupBox):
         skip it. If a device of the same type but with different parameters has been
         opened, then it will be closed as we open the new device.
         """
+        # Remember which hardware set was selected for next time we run the program
+        settings.setValue(
+            "hardware_set/selected", self._hardware_sets_combo.currentText()
+        )
+
+        # Open each of the devices in turn
         for device in self.current_hardware_set.difference(self._connected_devices):
             device.open()
 
