@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import Generator
+from collections.abc import Generator, Mapping
 from dataclasses import dataclass, field
 from importlib import resources
 from pathlib import Path
@@ -31,14 +31,12 @@ class OpenDeviceArgs:
         """Close the device."""
         close_device(self.instance)
 
-    @staticmethod
+    @classmethod
     def create(
-        instance: str, class_name: str, params: dict[str, Any] = {}
+        cls, instance: str, class_name: str, params: Mapping[str, Any] = frozendict()
     ) -> OpenDeviceArgs:
         """Create an OpenDeviceArgs using basic types."""
-        return OpenDeviceArgs(
-            DeviceInstanceRef.from_str(instance), class_name, frozendict(params)
-        )
+        return cls(DeviceInstanceRef.from_str(instance), class_name, frozendict(params))
 
 
 @dataclass(frozen=True)
