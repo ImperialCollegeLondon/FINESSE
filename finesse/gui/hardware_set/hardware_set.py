@@ -48,8 +48,8 @@ class HardwareSet:
     file_path: Path
     read_only: bool
 
-    @staticmethod
-    def load(file_path: Path, read_only: bool = False) -> HardwareSet:
+    @classmethod
+    def load(cls, file_path: Path, read_only: bool = False) -> HardwareSet:
         """Load a HardwareSet from a YAML file."""
         logging.info(f"Loading hardware set from {file_path}")
 
@@ -61,7 +61,7 @@ class HardwareSet:
             for k, v in plain_data.get("devices", {}).items()
         )
 
-        return HardwareSet(plain_data["name"], devices, file_path, read_only)
+        return cls(plain_data["name"], devices, file_path, read_only)
 
 
 def load_builtin_hardware_sets() -> Generator[HardwareSet, None, None]:
