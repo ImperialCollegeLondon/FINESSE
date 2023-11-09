@@ -6,10 +6,10 @@ import numpy
 from serial import SerialException
 
 from finesse.config import (
+    SENECA_MAX_MILLIVOLT,
     SENECA_MAX_TEMP,
-    SENECA_MAX_VOLT,
+    SENECA_MIN_MILLIVOLT,
     SENECA_MIN_TEMP,
-    SENECA_MIN_VOLT,
 )
 from finesse.hardware.serial_device import SerialDevice
 
@@ -40,8 +40,8 @@ class SenecaK107(
         self,
         min_temp: int = SENECA_MIN_TEMP,
         max_temp: int = SENECA_MAX_TEMP,
-        min_volt: int = SENECA_MIN_VOLT,
-        max_volt: int = SENECA_MAX_VOLT,
+        min_millivolt: int = SENECA_MIN_MILLIVOLT,
+        max_millivolt: int = SENECA_MAX_MILLIVOLT,
         *serial_args: Any,
         **serial_kwargs: Any,
     ) -> None:
@@ -50,8 +50,8 @@ class SenecaK107(
         Args:
             min_temp: The minimum temperature limit of the device.
             max_temp: The maximum temperature limit of the device.
-            min_volt: The minimum voltage output (millivolts) of the device.
-            max_volt: The maximum voltage output (millivolts) of the device.
+            min_millivolt: The minimum voltage output (millivolts) of the device.
+            max_millivolt: The maximum voltage output (millivolts) of the device.
             serial_args: Arguments to Serial constructor
             serial_kwargs: Keyword arguments to Serial constructor
         """
@@ -60,12 +60,14 @@ class SenecaK107(
 
         self.MIN_TEMP = min_temp
         self.MAX_TEMP = max_temp
-        self.MIN_VOLT = min_volt
-        self.MAX_VOLT = max_volt
+        self.MIN_MILLIVOLT = min_millivolt
+        self.MAX_MILLIVOLT = max_millivolt
 
         # The temperature range divided by the voltage range.
         # This figure is used when convering the raw data to temperatures.
-        self.RANGE = (self.MAX_TEMP - self.MIN_TEMP) / (self.MAX_VOLT - self.MIN_VOLT)
+        temp_range = self.MAX_TEMP - self.MIN_TEMP
+        millivolt_range = self.MAX_MILLIVOLT - self.MIN_MILLIVOLT
+        self.SCALING_FACTOR = temp_range / millivolt_range
 
     def read(self) -> bytes:
         """Read temperature data from the SenecaK107.
@@ -112,7 +114,7 @@ class SenecaK107(
             data: The bytes read from the device.
 
         Returns:
-            vals: A list of Decimals containing the temperature values recorded
+            A list of Decimals containing the temperature values recorded
                 by the SenecaK107 device.
         """
         # Changes byte order as data read from device is in big-endian format
@@ -132,14 +134,14 @@ class SenecaK107(
         Returns:
             The converted values.
         """
-        # Converts the millivolts value into volts
-        vals = vals / 1000
+        # Convert from microvolts to millivolts
+        vals /= 1000
         # Adjusts for minimum voltage limit
-        vals = vals - self.MIN_VOLT
+        vals -= self.MIN_MILLIVOLT
         # Scales for the device's dynamic range
-        vals = vals * self.RANGE
+        vals *= self.SCALING_FACTOR
         # Adjusts for minimum temperature limit
-        vals = vals + self.MIN_TEMP
+        vals += self.MIN_TEMP
         return vals
 
     def get_temperatures(self) -> list[Decimal]:

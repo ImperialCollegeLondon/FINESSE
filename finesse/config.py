@@ -72,8 +72,8 @@ SENECA_MIN_TEMP = -80
 SENECA_MAX_TEMP = 105
 """The default maximum temperature limit of the Seneca K107 device."""
 
-SENECA_MIN_VOLT = 4
+SENECA_MIN_MILLIVOLT = 4
 """The default minimum voltage output (millivolts) of the Seneca K107 device."""
 
-SENECA_MAX_VOLT = 20
+SENECA_MAX_MILLIVOLT = 20
 """The default maximum voltage output (millivolts) of the Seneca K107 device."""
