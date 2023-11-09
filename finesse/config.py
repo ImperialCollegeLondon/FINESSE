@@ -71,3 +71,15 @@ TEMPERATURE_MONITOR_HOT_BB_IDX = 6
 
 TEMPERATURE_MONITOR_COLD_BB_IDX = 7
 """Position of the cold blackbody on the temperature monitoring device."""
+
+SENECA_MIN_TEMP = -80
+"""The default minimum temperature limit of the Seneca K107 device."""
+
+SENECA_MAX_TEMP = 105
+"""The default maximum temperature limit of the Seneca K107 device."""
+
+SENECA_MIN_MILLIVOLT = 4
+"""The default minimum voltage output (millivolts) of the Seneca K107 device."""
+
+SENECA_MAX_MILLIVOLT = 20
+"""The default maximum voltage output (millivolts) of the Seneca K107 device."""
