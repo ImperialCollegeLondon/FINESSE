@@ -127,10 +127,10 @@ class SenecaK107(
         """Convert data read from the SenecaK107 device into temperatures.
 
         Args:
-            val: A value from the array described by the data received from the device.
+            vals: The numpy array described by the data received from the device.
 
         Returns:
-            The converted value.
+            The converted values.
         """
         # Converts the millivolts value into volts
         vals = vals / 1000
