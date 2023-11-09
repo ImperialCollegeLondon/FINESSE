@@ -1,4 +1,5 @@
 """Provides a control for viewing and connecting to devices."""
+from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any, cast
 
@@ -219,7 +220,7 @@ class DeviceTypeControl(QGroupBox):
         open_device(device_type.class_name, self._device_instance, device_params)
 
     def _on_device_opened(
-        self, instance: DeviceInstanceRef, class_name: str, params: frozendict[str, Any]
+        self, instance: DeviceInstanceRef, class_name: str, params: Mapping[str, Any]
     ) -> None:
         """Update the GUI for when the device is successfully opened."""
         settings.setValue(f"device/{instance.topic}/type", class_name)

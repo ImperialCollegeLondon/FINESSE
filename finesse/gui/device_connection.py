@@ -1,14 +1,14 @@
 """Helper functions for managing connections to devices."""
+from collections.abc import Mapping
 from typing import Any
 
-from frozendict import frozendict
 from pubsub import pub
 
 from finesse.device_info import DeviceInstanceRef
 
 
 def open_device(
-    class_name: str, instance: DeviceInstanceRef, params: frozendict[str, Any]
+    class_name: str, instance: DeviceInstanceRef, params: Mapping[str, Any]
 ) -> None:
     """Open a connection to a device."""
     pub.sendMessage(
