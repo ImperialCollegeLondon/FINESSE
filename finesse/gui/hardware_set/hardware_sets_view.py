@@ -177,6 +177,15 @@ class HardwareSetsControl(QGroupBox):
         self._connected_devices.add(
             OpenDeviceArgs(instance, class_name, frozendict(params))
         )
+
+        # Remember last opened device
+        settings.setValue(f"device/{instance.topic}/type", class_name)
+        if params:
+            settings.setValue(
+                f"device/{instance.topic}/{class_name}/params",
+                params,
+            )
+
         self._update_control_state()
 
     def _on_device_closed(self, instance: DeviceInstanceRef) -> None:
