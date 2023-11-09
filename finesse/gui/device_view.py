@@ -2,7 +2,7 @@
 import logging
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from typing import Any, cast
+from typing import AbstractSet, Any, cast
 
 from pubsub import pub
 from PySide6.QtWidgets import (
@@ -93,6 +93,7 @@ class DeviceTypeControl(QGroupBox):
         description: str,
         instance: DeviceInstanceRef,
         device_types: Sequence[DeviceTypeInfo],
+        is_connected: bool,
     ) -> None:
         """Create a new DeviceTypeControl.
 
@@ -100,6 +101,7 @@ class DeviceTypeControl(QGroupBox):
             description: A description of the device type
             instance: The device instance this panel is for
             device_types: The available devices for this base device type
+            is_connected: Whether the device is already connected
         """
         if not device_types:
             raise RuntimeError("At least one device type must be specified")
@@ -144,19 +146,23 @@ class DeviceTypeControl(QGroupBox):
             cur_item.widget.show()
             layout.addWidget(cur_item.widget)
 
-        self._open_close_btn = QPushButton("Open")
+        self._open_close_btn = QPushButton()
         self._open_close_btn.setSizePolicy(
             QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed
         )
         self._open_close_btn.clicked.connect(self._on_open_close_clicked)
         layout.addWidget(self._open_close_btn)
+        if is_connected:
+            self._set_device_opened()
+        else:
+            self._set_device_closed()
 
         # Determine whether the button should be enabled or not
         self._update_open_btn_enabled_state()
 
         # pubsub subscriptions
         pub.subscribe(self._on_device_opened, f"device.opening.{topic}")
-        pub.subscribe(self._on_device_closed, f"device.closed.{topic}")
+        pub.subscribe(self._set_device_closed, f"device.closed.{topic}")
         pub.subscribe(self._show_error_message, f"device.error.{topic}")
 
     def _update_open_btn_enabled_state(self) -> None:
@@ -187,6 +193,7 @@ class DeviceTypeControl(QGroupBox):
         self._update_open_btn_enabled_state()
 
     def _get_current_device_type_item(self) -> DeviceTypeItem:
+        """Get information about the currently selected device type."""
         return self._device_combo.currentData()
 
     def _get_current_device_and_params(
@@ -215,6 +222,16 @@ class DeviceTypeControl(QGroupBox):
         if widget := self._get_current_device_type_item().widget:
             widget.setEnabled(enabled)
 
+    def _set_device_opened(self) -> None:
+        """Update the GUI for when the device is opened."""
+        self._set_combos_enabled(False)
+        self._open_close_btn.setText("Close")
+
+    def _set_device_closed(self, **kwargs) -> None:
+        """Update the GUI for when the device is opened."""
+        self._set_combos_enabled(True)
+        self._open_close_btn.setText("Open")
+
     def _open_device(self) -> None:
         """Open the currently selected device."""
         device_type, device_params = self._get_current_device_and_params()
@@ -230,18 +247,11 @@ class DeviceTypeControl(QGroupBox):
                 f"device/{instance.topic}/{class_name}/params",
                 params,
             )
-
-        self._set_combos_enabled(False)
-        self._open_close_btn.setText("Close")
+        self._set_device_opened()
 
     def _close_device(self) -> None:
         """Close the device."""
         close_device(self._device_instance)
-
-    def _on_device_closed(self, instance: DeviceInstanceRef) -> None:
-        """Update the GUI for when the device is closed."""
-        self._set_combos_enabled(True)
-        self._open_close_btn.setText("Open")
 
     def _show_error_message(
         self, instance: DeviceInstanceRef, error: BaseException
@@ -268,11 +278,13 @@ class DeviceTypeControl(QGroupBox):
 class DeviceControl(QGroupBox):
     """Allows for viewing and connecting to devices."""
 
-    def __init__(self) -> None:
+    def __init__(self, connected_devices: AbstractSet[DeviceInstanceRef]) -> None:
         """Create a new DeviceControl."""
         super().__init__("Device control")
         self.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
         self.setLayout(QVBoxLayout())
+        self._connected_devices = connected_devices
+        """The devices already connected when the control is created."""
 
         # Retrieve the list of device plugins
         pub.subscribe(self._on_device_list, "device.list.response")
@@ -281,22 +293,29 @@ class DeviceControl(QGroupBox):
     def _on_device_list(
         self, device_types: Mapping[DeviceBaseTypeInfo, Sequence[DeviceTypeInfo]]
     ) -> None:
+        """Populate with DeviceTypeControls when a list of devices is received."""
         layout = cast(QVBoxLayout, self.layout())
 
         # Group together devices based on their base types (e.g. "stepper motor")
         for base_type, types in device_types.items():
             if not base_type.names_long:
+                instance = DeviceInstanceRef(base_type.name)
                 layout.addWidget(
                     DeviceTypeControl(
-                        base_type.description, DeviceInstanceRef(base_type.name), types
+                        base_type.description,
+                        instance,
+                        types,
+                        instance in self._connected_devices,
                     )
                 )
             else:
                 for short, long in zip(base_type.names_short, base_type.names_long):
+                    instance = DeviceInstanceRef(base_type.name, short)
                     layout.addWidget(
                         DeviceTypeControl(
                             f"{base_type.description} ({long})",
-                            DeviceInstanceRef(base_type.name, short),
+                            instance,
                             types,
+                            instance in self._connected_devices,
                         )
                     )
