@@ -3,7 +3,6 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any, cast
 
-from frozendict import frozendict
 from pubsub import pub
 from PySide6.QtWidgets import (
     QComboBox,
@@ -187,14 +186,14 @@ class DeviceTypeControl(QGroupBox):
 
     def _get_current_device_and_params(
         self,
-    ) -> tuple[DeviceTypeInfo, frozendict[str, Any]]:
+    ) -> tuple[DeviceTypeInfo, dict[str, Any]]:
         """Get the current device type and associated parameters."""
         item = self._get_current_device_type_item()
 
         # The current device widget contains combo boxes with the values
         if not item.widget:
             # No parameters needed for this device type
-            return item.device_type, frozendict()
+            return item.device_type, {}
 
         # Get the parameter values
         combos: list[QComboBox] = item.widget.findChildren(QComboBox)
@@ -202,7 +201,7 @@ class DeviceTypeControl(QGroupBox):
             p.name: c.currentData() for p, c in zip(item.device_type.parameters, combos)
         }
 
-        return item.device_type, frozendict(device_params)
+        return item.device_type, device_params
 
     def _set_combos_enabled(self, enabled: bool) -> None:
         """Set the enabled state of the combo boxes."""
