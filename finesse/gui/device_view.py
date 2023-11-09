@@ -1,4 +1,5 @@
 """Provides a control for viewing and connecting to devices."""
+import logging
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any, cast
@@ -124,12 +125,16 @@ class DeviceTypeControl(QGroupBox):
 
         # Select the last device that was successfully opened, if there is one
         topic = instance.topic
-        previous_device = cast(
-            str | None, settings.value(f"device/{instance.topic}/type")
-        )
-        descriptions = (t.description for t in device_types)
-        if previous_device and previous_device in descriptions:
-            self._device_combo.setCurrentText(previous_device)
+        if previous_device := settings.value(f"device/{instance.topic}/type"):
+            try:
+                idx = next(
+                    i
+                    for i, device_type in enumerate(device_types)
+                    if device_type.class_name == previous_device
+                )
+                self._device_combo.setCurrentIndex(idx)
+            except StopIteration:
+                logging.warn(f"Unknown class name: {previous_device}")
 
         self._device_combo.currentIndexChanged.connect(self._on_device_selected)
         layout.addWidget(self._device_combo)
