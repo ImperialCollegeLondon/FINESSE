@@ -58,37 +58,32 @@ class DeviceParametersWidget(QWidget):
             layout.addWidget(combo)
             self._combos[param.name] = combo
 
+        # If there are saved parameter values, load them now
+        self.load_saved_parameter_values()
+
     def set_parameter_value(self, param: str, value: Any) -> None:
         """Set the relevant combo box's parameter value."""
         self._combos[param].setCurrentText(str(value))
+
+    def load_saved_parameter_values(self) -> None:
+        """Set the combo boxes' parameter values according to their saved values."""
+        params = cast(
+            dict[str, Any] | None,
+            settings.value(f"device/params/{self.device_type.class_name}"),
+        )
+        if not params:
+            return
+
+        for param, value in params.items():
+            try:
+                self.set_parameter_value(param, value)
+            except Exception as error:
+                logging.warn(f"Error while setting param {param}: {error!s}")
 
     @property
     def current_parameter_values(self) -> dict[str, Any]:
         """Get all parameters and their current values."""
         return {param: combo.currentData() for param, combo in self._combos.items()}
-
-    @classmethod
-    def create_with_saved_param_values(
-        cls, device_type: DeviceTypeInfo
-    ) -> DeviceParametersWidget:
-        """Create a DeviceParametersWidget using saved values for parameters."""
-        widget = cls(device_type)
-        widget.hide()  # will be shown when used
-
-        # Previous parameter values are saved if a device opens successfully. Update the
-        # combo boxes to these values.
-        previous_param_values = cast(
-            dict[str, Any] | None,
-            settings.value(f"device/params/{device_type.class_name}"),
-        )
-        if previous_param_values:
-            for param, value in previous_param_values.items():
-                try:
-                    widget.set_parameter_value(param, value)
-                except Exception as error:
-                    logging.warn(f"Error while setting param {param}: {error!s}")
-
-        return widget
 
 
 class DeviceTypeControl(QGroupBox):
@@ -129,7 +124,9 @@ class DeviceTypeControl(QGroupBox):
         # Add names for devices to combo box along with relevant user data
         self._device_widgets: list[DeviceParametersWidget] = []
         for t in device_types:
-            widget = DeviceParametersWidget.create_with_saved_param_values(t)
+            widget = DeviceParametersWidget(t)
+            widget.hide()  # will be shown when used
+
             self._device_combo.addItem(t.description, widget)
 
             # YUCK: We have to keep our own reference to widget, as self._device_combo
@@ -223,10 +220,7 @@ class DeviceTypeControl(QGroupBox):
         self._select_device(class_name)
 
     def _select_device(self, class_name: str) -> None:
-        """Select the device from the combo box which matches class_name.
-
-        Todo: Select params too
-        """
+        """Select the device from the combo box which matches class_name."""
         try:
             idx = next(
                 i
@@ -237,6 +231,9 @@ class DeviceTypeControl(QGroupBox):
             logging.warn(f"Unknown class_name for opened device: {class_name}")
 
         self._device_combo.setCurrentIndex(idx)
+
+        # Reload saved parameter values
+        self._device_widgets[idx].load_saved_parameter_values()
 
     def _set_device_closed(self, **kwargs) -> None:
         """Update the GUI for when the device is opened."""
