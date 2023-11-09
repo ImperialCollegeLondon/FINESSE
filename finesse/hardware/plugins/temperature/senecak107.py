@@ -123,9 +123,7 @@ class SenecaK107(
         vals = self.calc_temp(ints)
         return [Decimal(val) for val in vals]
 
-    def calc_temp(
-        self, vals: numpy.ndarray[numpy.float64]
-    ) -> numpy.ndarray[numpy.float64]:
+    def calc_temp(self, vals: numpy.ndarray) -> numpy.ndarray:
         """Convert data read from the SenecaK107 device into temperatures.
 
         Args:
