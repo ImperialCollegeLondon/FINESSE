@@ -5,6 +5,12 @@ from typing import Any
 import numpy
 from serial import SerialException
 
+from finesse.config import (
+    SENECA_MAX_TEMP,
+    SENECA_MAX_VOLT,
+    SENECA_MIN_TEMP,
+    SENECA_MIN_VOLT,
+)
 from finesse.hardware.serial_device import SerialDevice
 
 from .temperature_monitor_base import TemperatureMonitorBase
@@ -30,15 +36,36 @@ class SenecaK107(
     https://www.seneca.it/products/k107usb/doc/installation_manualEN
     """
 
-    def __init__(self, *serial_args: Any, **serial_kwargs: Any) -> None:
+    def __init__(
+        self,
+        min_temp: int = SENECA_MIN_TEMP,
+        max_temp: int = SENECA_MAX_TEMP,
+        min_volt: int = SENECA_MIN_VOLT,
+        max_volt: int = SENECA_MAX_VOLT,
+        *serial_args: Any,
+        **serial_kwargs: Any,
+    ) -> None:
         """Create a new SenecaK107.
 
         Args:
+            min_temp: The minimum temperature limit of the device.
+            max_temp: The maximum temperature limit of the device.
+            min_volt: The minimum voltage output (millivolts) of the device.
+            max_volt: The maximum voltage output (millivolts) of the device.
             serial_args: Arguments to Serial constructor
             serial_kwargs: Keyword arguments to Serial constructor
         """
         SerialDevice.__init__(self, *serial_args, **serial_kwargs)
         TemperatureMonitorBase.__init__(self)
+
+        self.MIN_TEMP = min_temp
+        self.MAX_TEMP = max_temp
+        self.MIN_VOLT = min_volt
+        self.MAX_VOLT = max_volt
+
+        # The temperature range divided by the voltage range.
+        # This figure is used when convering the raw data to temperatures.
+        self.RANGE = (self.MAX_TEMP - self.MIN_TEMP) / (self.MAX_VOLT - self.MIN_VOLT)
 
     def read(self) -> bytes:
         """Read temperature data from the SenecaK107.
@@ -88,59 +115,37 @@ class SenecaK107(
             vals: A list of Decimals containing the temperature values recorded
                 by the SenecaK107 device.
         """
+        # Changes byte order as data read from device is in big-endian format
         dt = numpy.dtype(numpy.uint16).newbyteorder(">")
+        # Converts incoming bytes into 16-bit ints
         ints = numpy.frombuffer(data, dt, 8, 3)
-        print("Pre-scaling:", ints)
 
-        # Test for minimum and maximum output values
-        # ints = [4000, 20000]
+        vals = self.calc_temp(ints)
+        return [Decimal(val) for val in vals]
 
-        vals = [Decimal(float(self.calc_temp(val))) for val in ints]
-        return vals
-
-    def calc_temp(self, val: numpy.float64) -> numpy.float64:
+    def calc_temp(
+        self, vals: numpy.ndarray[numpy.float64]
+    ) -> numpy.ndarray[numpy.float64]:
         """Convert data read from the SenecaK107 device into temperatures.
 
         Args:
             val: A value from the array described by the data received from the device.
 
         Returns:
-            vals: The converted value.
+            The converted value.
         """
-        temp = (self.range * ((val / 1000) - self.min_volt)) + self.min_temp
-        return temp
+        # Converts the millivolts value into volts
+        vals = vals / 1000
+        # Adjusts for minimum voltage limit
+        vals = vals - self.MIN_VOLT
+        # Scales for the device's dynamic range
+        vals = vals * self.RANGE
+        # Adjusts for minimum temperature limit
+        vals = vals + self.MIN_TEMP
+        return vals
 
     def get_temperatures(self) -> list[Decimal]:
         """Get the current temperatures."""
         self.request_read()
         data = self.read()
-        temperatures = self.parse_data(data)
-        return temperatures
-
-    @property
-    def min_temp(self) -> int:
-        """The minimum temperature limit of the device."""
-        return -80
-
-    @property
-    def max_temp(self) -> int:
-        """The maximum temperature limit of the device."""
-        return 105
-
-    @property
-    def min_volt(self) -> int:
-        """The minimum voltage output of the device."""
-        return 4
-
-    @property
-    def max_volt(self) -> int:
-        """The maximum voltage output of the device."""
-        return 20
-
-    @property
-    def range(self) -> float:
-        """The temperature range divided by the voltage range.
-
-        This figure is used when convering the raw data to temperatures.
-        """
-        return (self.max_temp - self.min_temp) / (self.max_volt - self.min_volt)
+        return self.parse_data(data)
