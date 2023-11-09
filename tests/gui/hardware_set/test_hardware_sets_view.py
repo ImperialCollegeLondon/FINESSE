@@ -197,7 +197,10 @@ def test_disconnect_button(
             update_mock.assert_called_once_with()
 
 
-def test_on_device_opened(hw_sets: HardwareSetsControl, qtbot) -> None:
+@patch("finesse.gui.hardware_set.hardware_sets_view.settings")
+def test_on_device_opened(
+    settings_mock: Mock, hw_sets: HardwareSetsControl, qtbot
+) -> None:
     """Test the _on_device_opened() method."""
     device = DEVICES[0]
     assert not hw_sets._connected_devices
@@ -207,6 +210,9 @@ def test_on_device_opened(hw_sets: HardwareSetsControl, qtbot) -> None:
         )
         assert hw_sets._connected_devices == {device}
         update_mock.assert_called_once_with()
+        settings_mock.setValue.assert_called_with(
+            f"device/{device.instance.topic}/type", device.class_name
+        )
 
 
 def test_on_device_closed(hw_sets: HardwareSetsControl, qtbot) -> None:

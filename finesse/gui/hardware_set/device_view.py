@@ -252,15 +252,7 @@ class DeviceTypeControl(QGroupBox):
     def _on_device_opened(
         self, instance: DeviceInstanceRef, class_name: str, params: Mapping[str, Any]
     ) -> None:
-        """Save the last opened device and update the GUI appropriately."""
-        settings.setValue(f"device/{instance.topic}/type", class_name)
-        if params:
-            settings.setValue(
-                f"device/{instance.topic}/{class_name}/params",
-                params,
-            )
-
-        # Update GUI
+        """Update the GUI on device open."""
         self._set_device_opened(class_name)
 
     def _close_device(self) -> None:
