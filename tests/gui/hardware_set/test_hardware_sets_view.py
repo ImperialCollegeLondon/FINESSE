@@ -98,7 +98,10 @@ def test_add_hardware_set(hw_sets: HardwareSetsControl, qtbot) -> None:
         add_mock.assert_called_once_with("Test 1 (3)", hw_set3)
 
 
-DEVICES = [OpenDeviceArgs.create(f"type{i}", f"class{i}") for i in range(2)]
+DEVICES = [
+    OpenDeviceArgs.create(f"type{i}", f"class{i}", {"my_param": "my_value"})
+    for i in range(2)
+]
 
 
 def _get_devices(indexes: Sequence[int]) -> set[OpenDeviceArgs]:
@@ -210,8 +213,11 @@ def test_on_device_opened(
         )
         assert hw_sets._connected_devices == {device}
         update_mock.assert_called_once_with()
-        settings_mock.setValue.assert_called_with(
-            f"device/{device.instance.topic}/type", device.class_name
+        settings_mock.setValue.assert_has_calls(
+            [
+                call(f"device/type/{device.instance.topic}", device.class_name),
+                call(f"device/params/{device.class_name}", device.params),
+            ]
         )
 
 
