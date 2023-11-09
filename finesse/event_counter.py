@@ -4,8 +4,6 @@ from typing import Any
 
 from pubsub import pub
 
-from finesse.device_info import DeviceInstanceRef
-
 
 class EventCounter:
     """A class for monitoring events such as device opening/closing.
@@ -42,10 +40,7 @@ class EventCounter:
         # Subscribe to devices' open/close messages
         for name in device_names:
             pub.subscribe(self.increment, f"device.opened.{name}")
-            pub.subscribe(self._on_device_closed, f"device.closed.{name}")
-
-    def _on_device_closed(self, instance: DeviceInstanceRef) -> None:
-        self.decrement()
+            pub.subscribe(self.decrement, f"device.closed.{name}")
 
     def increment(self) -> None:
         """Increase the counter by one and run callback if target reached."""
@@ -53,7 +48,7 @@ class EventCounter:
         if self._count == self._target_count:
             self._on_target_reached()
 
-    def decrement(self) -> None:
+    def decrement(self, **kwargs) -> None:
         """Decrease the counter by one and run callback if count drops below target."""
         self._count -= 1
         if self._count == self._target_count - 1:
