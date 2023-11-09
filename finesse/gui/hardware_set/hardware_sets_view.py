@@ -17,7 +17,7 @@ from PySide6.QtWidgets import (
 )
 
 from finesse.device_info import DeviceInstanceRef
-from finesse.gui.device_view import DeviceControl
+from finesse.gui.hardware_set.device_view import DeviceControl
 from finesse.gui.hardware_set.hardware_set import (
     HardwareSet,
     OpenDeviceArgs,
