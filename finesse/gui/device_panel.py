@@ -40,9 +40,11 @@ class DevicePanel(QGroupBox):
         pub.subscribe(self._on_device_closed, f"device.closed.{name}")
 
     def _on_device_opened(self) -> None:
+        """Enable the controls when the device opens."""
         self.set_controls_enabled(True)
 
     def _on_device_closed(self, instance: DeviceInstanceRef) -> None:
+        """Disable the controls when the device closes."""
         self.set_controls_enabled(False)
 
     def set_controls_enabled(self, enabled: bool) -> None:
