@@ -69,7 +69,7 @@ class DeviceParametersWidget(QWidget):
 
     @classmethod
     def create_with_saved_param_values(
-        cls, instance: DeviceInstanceRef, device_type: DeviceTypeInfo
+        cls, device_type: DeviceTypeInfo
     ) -> DeviceParametersWidget:
         """Create a DeviceParametersWidget using saved values for parameters."""
         widget = cls(device_type)
@@ -79,7 +79,7 @@ class DeviceParametersWidget(QWidget):
         # combo boxes to these values.
         previous_param_values = cast(
             dict[str, Any] | None,
-            settings.value(f"device/{instance.topic}/{device_type.class_name}/params"),
+            settings.value(f"device/params/{device_type.class_name}"),
         )
         if previous_param_values:
             for param, value in previous_param_values.items():
@@ -129,7 +129,7 @@ class DeviceTypeControl(QGroupBox):
         # Add names for devices to combo box along with relevant user data
         self._device_widgets: list[DeviceParametersWidget] = []
         for t in device_types:
-            widget = DeviceParametersWidget.create_with_saved_param_values(instance, t)
+            widget = DeviceParametersWidget.create_with_saved_param_values(t)
             self._device_combo.addItem(t.description, widget)
 
             # YUCK: We have to keep our own reference to widget, as self._device_combo
@@ -139,7 +139,7 @@ class DeviceTypeControl(QGroupBox):
         # Select the last device that was successfully opened, if there is one
         topic = instance.topic
         previous_device = cast(
-            str | None, settings.value(f"device/{instance.topic}/type")
+            str | None, settings.value(f"device/type/{instance.topic}")
         )
         if previous_device:
             self._select_device(previous_device)

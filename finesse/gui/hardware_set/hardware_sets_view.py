@@ -179,12 +179,9 @@ class HardwareSetsControl(QGroupBox):
         )
 
         # Remember last opened device
-        settings.setValue(f"device/{instance.topic}/type", class_name)
+        settings.setValue(f"device/type/{instance.topic}", class_name)
         if params:
-            settings.setValue(
-                f"device/{instance.topic}/{class_name}/params",
-                params,
-            )
+            settings.setValue(f"device/params/{class_name}", params)
 
         self._update_control_state()
 
