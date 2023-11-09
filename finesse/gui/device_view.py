@@ -1,5 +1,5 @@
 """Provides a control for viewing and connecting to devices."""
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any, cast
 
@@ -92,7 +92,7 @@ class DeviceTypeControl(QGroupBox):
         self,
         description: str,
         instance: DeviceInstanceRef,
-        device_types: list[DeviceTypeInfo],
+        device_types: Sequence[DeviceTypeInfo],
     ) -> None:
         """Create a new DeviceTypeControl.
 
@@ -274,7 +274,7 @@ class DeviceControl(QGroupBox):
         pub.subscribe(self._on_device_list, "device.list")
 
     def _on_device_list(
-        self, device_types: dict[DeviceBaseTypeInfo, list[DeviceTypeInfo]]
+        self, device_types: Mapping[DeviceBaseTypeInfo, Sequence[DeviceTypeInfo]]
     ) -> None:
         layout = cast(QVBoxLayout, self.layout())
 
