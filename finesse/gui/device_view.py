@@ -109,9 +109,6 @@ class DeviceTypeControl(QGroupBox):
         super().__init__(description)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
-        self._device_types = device_types
-        """Type information for each of the device types for this base type."""
-
         layout = QHBoxLayout()
         self.setLayout(layout)
 
