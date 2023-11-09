@@ -148,9 +148,11 @@ def test_update_control_state(
     "connected_devices,hardware_set,open_called",
     (((), range(2), range(2)), (range(2), range(2), ()), ((0,), range(2), (1,))),
 )
+@patch("finesse.gui.hardware_set.hardware_sets_view.settings")
 @patch("finesse.gui.hardware_set.hardware_set.open_device")
 def test_connect_btn(
     open_mock: Mock,
+    settings_mock: Mock,
     connected_devices: Sequence[int],
     hardware_set: Sequence[int],
     open_called: Sequence[int],
@@ -175,6 +177,10 @@ def test_connect_btn(
                     for dev in _get_devices(open_called)
                 ),
                 any_order=True,
+            )
+
+            settings_mock.setValue.assert_called_once_with(
+                "hardware_set/selected", "Test 1"
             )
 
 
