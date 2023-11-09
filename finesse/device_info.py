@@ -72,9 +72,9 @@ class DeviceInstanceRef:
 
     @staticmethod
     def from_str(s: str) -> DeviceInstanceRef:
-        """Convert from a string in the format base_type.name."""
+        """Convert from a string in the format "base_type.name" or "base_type"."""
         base_type, _, name = s.partition(".")
-        return DeviceInstanceRef(base_type, name if name else None)
+        return DeviceInstanceRef(base_type, name or None)
 
     @property
     def topic(self) -> str:
