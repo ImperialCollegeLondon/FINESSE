@@ -1,4 +1,5 @@
 """Provides a panel for choosing between hardware sets and (dis)connecting."""
+from collections.abc import Mapping
 from typing import Any, cast
 
 from frozendict import frozendict
@@ -124,9 +125,11 @@ class HardwareSetsControl(QGroupBox):
         self._update_control_state()
 
     def _on_device_opened(
-        self, instance: DeviceInstanceRef, class_name: str, params: frozendict[str, Any]
+        self, instance: DeviceInstanceRef, class_name: str, params: Mapping[str, Any]
     ) -> None:
-        self._connected_devices.add(OpenDeviceArgs(instance, class_name, params))
+        self._connected_devices.add(
+            OpenDeviceArgs(instance, class_name, frozendict(params))
+        )
         self._update_control_state()
 
     def _on_device_closed(self, instance: DeviceInstanceRef) -> None:

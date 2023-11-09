@@ -1,9 +1,9 @@
 """This module contains code for interfacing with different hardware devices."""
 import logging
+from collections.abc import Mapping
 from importlib import import_module
 from typing import Any, TypeVar, cast
 
-from frozendict import frozendict
 from pubsub import pub
 
 from finesse.device_info import DeviceInstanceRef
@@ -29,7 +29,7 @@ def get_device_instance(base_type: type[_T], name: str | None = None) -> _T | No
 
 
 def _open_device(
-    instance: DeviceInstanceRef, class_name: str, params: frozendict[str, Any]
+    instance: DeviceInstanceRef, class_name: str, params: Mapping[str, Any]
 ) -> None:
     """Open the specified device type.
 
