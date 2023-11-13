@@ -141,7 +141,6 @@ class DeviceTypeControl(QGroupBox):
         if previous_device:
             self._select_device(previous_device)
 
-        self._device_combo.currentIndexChanged.connect(self._on_device_selected)
         layout.addWidget(self._device_combo)
 
         # Show the combo boxes for the device's parameters
@@ -162,6 +161,8 @@ class DeviceTypeControl(QGroupBox):
 
         # Determine whether the button should be enabled or not
         self._update_open_btn_enabled_state()
+
+        self._device_combo.currentIndexChanged.connect(self._on_device_selected)
 
         # pubsub subscriptions
         pub.subscribe(self._on_device_opened, f"device.opening.{topic}")
