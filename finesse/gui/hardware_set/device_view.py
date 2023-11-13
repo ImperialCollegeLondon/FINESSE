@@ -182,11 +182,9 @@ class DeviceTypeControl(QGroupBox):
         """Swap out the parameter combo boxes for the current device."""
         layout = cast(QHBoxLayout, self.layout())
 
-        # If there's already a widget in place, remove it
-        if layout.count() == 3:
-            # For some reason we also have to hide the widget else it appears over the
-            # others
-            layout.takeAt(1).widget().hide()
+        # For some reason we also have to hide the widget else it appears over the
+        # others
+        layout.takeAt(1).widget().hide()
 
         # Add the widget for the newly selected parameter if needed
         widget = self.current_device_type_widget
