@@ -215,9 +215,9 @@ class DeviceTypeControl(QGroupBox):
 
     def _set_device_opened(self, class_name: str) -> None:
         """Update the GUI for when the device is opened."""
+        self._select_device(class_name)
         self._set_combos_enabled(False)
         self._open_close_btn.setText("Close")
-        self._select_device(class_name)
 
     def _select_device(self, class_name: str) -> None:
         """Select the device from the combo box which matches class_name."""
