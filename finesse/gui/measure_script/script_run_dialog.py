@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from .script import Script, ScriptRunner
+from finesse.gui.measure_script.script import Script, ScriptRunner
 
 
 def get_total_steps(script: Script) -> int:

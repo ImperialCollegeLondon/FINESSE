@@ -2,7 +2,7 @@
 from importlib import resources
 from pathlib import Path
 
-from .em27_sensors import EM27SensorsBase
+from finesse.hardware.plugins.em27.em27_sensors import EM27SensorsBase
 
 
 class DummyEM27Sensors(EM27SensorsBase, description="Dummy EM27 sensors"):
