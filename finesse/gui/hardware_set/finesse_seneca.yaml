@@ -1,4 +1,4 @@
-name: FINESSE
+name: FINESSE (with Seneca K107)
 devices:
   stepper_motor:
     class_name: finesse.hardware.plugins.stepper_motor.st10_controller.ST10Controller
@@ -16,9 +16,9 @@ devices:
       port: "0403:6011 FT1NMSVR (3)"
       baudrate: 115200
   temperature_monitor:
-    class_name: finesse.hardware.plugins.temperature.dp9800.DP9800
+    class_name: finesse.hardware.plugins.temperature.senecak107.SenecaK107
     params:
-      port: "0403:6001"
-      baudrate: 38400
+      port: "0403:6001 AB0LMVI5"
+      baudrate: 57600
   em27_sensors:
     class_name: finesse.hardware.plugins.em27.em27_sensors.EM27Sensors
