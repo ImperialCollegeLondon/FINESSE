@@ -8,8 +8,7 @@ from serial.tools.list_ports import comports
 
 from finesse.config import BAUDRATES
 from finesse.device_info import DeviceParameter
-
-from .device import AbstractDevice
+from finesse.hardware.device import AbstractDevice
 
 _serial_ports: dict[str, str] | None = None
 

@@ -11,9 +11,10 @@ from finesse.config import (
     SENECA_MIN_MILLIVOLT,
     SENECA_MIN_TEMP,
 )
+from finesse.hardware.plugins.temperature.temperature_monitor_base import (
+    TemperatureMonitorBase,
+)
 from finesse.hardware.serial_device import SerialDevice
-
-from .temperature_monitor_base import TemperatureMonitorBase
 
 
 class SenecaK107Error(Exception):

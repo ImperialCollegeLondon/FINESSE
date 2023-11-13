@@ -14,9 +14,9 @@ from PySide6.QtWidgets import (
     QSizePolicy,
 )
 
-from ..config import DEFAULT_DATA_FILE_PATH
-from ..settings import settings
-from .path_widget import OpenDirectoryWidget
+from finesse.config import DEFAULT_DATA_FILE_PATH
+from finesse.gui.path_widget import OpenDirectoryWidget
+from finesse.settings import settings
 
 
 def _get_previous_destination_dir() -> Path:

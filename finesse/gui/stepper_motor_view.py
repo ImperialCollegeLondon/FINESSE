@@ -2,8 +2,8 @@
 from pubsub import pub
 from PySide6.QtWidgets import QButtonGroup, QGridLayout, QPushButton, QSpinBox
 
-from ..config import ANGLE_PRESETS, STEPPER_MOTOR_TOPIC
-from .device_panel import DevicePanel
+from finesse.config import ANGLE_PRESETS, STEPPER_MOTOR_TOPIC
+from finesse.gui.device_panel import DevicePanel
 
 
 class StepperMotorControl(DevicePanel):

@@ -5,8 +5,7 @@ from pubsub import pub
 from PySide6.QtCore import QTimer
 
 from finesse.config import STEPPER_MOTOR_TOPIC
-
-from .stepper_motor_base import StepperMotorBase
+from finesse.hardware.plugins.stepper_motor.stepper_motor_base import StepperMotorBase
 
 
 class DummyStepperMotor(StepperMotorBase, description="Dummy stepper motor"):
