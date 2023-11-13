@@ -4,8 +4,9 @@ from decimal import Decimal
 
 from finesse.config import NUM_TEMPERATURE_MONITOR_CHANNELS
 from finesse.hardware.noise_producer import NoiseParameters, NoiseProducer
-
-from .temperature_monitor_base import TemperatureMonitorBase
+from finesse.hardware.plugins.temperature.temperature_monitor_base import (
+    TemperatureMonitorBase,
+)
 
 _BASE_TEMPS = (19, 17, 26, 22, 24, 68, 69, 24)
 """The mean temperatures for each of the channels."""

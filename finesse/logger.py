@@ -5,7 +5,7 @@ from datetime import datetime
 
 from platformdirs import user_log_path
 
-from . import config
+from finesse import config
 
 
 def initialise_logging() -> None:

@@ -22,8 +22,7 @@ from finesse.device_info import (
     DeviceParameter,
     DeviceTypeInfo,
 )
-
-from .plugins import load_all_plugins
+from finesse.hardware.plugins import load_all_plugins
 
 _base_types: set[type[Device]] = set()
 """Registry of device base types."""
