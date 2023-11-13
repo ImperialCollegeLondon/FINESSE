@@ -23,7 +23,7 @@ class SenecaK107Error(Exception):
 class SenecaK107(
     SerialDevice,
     TemperatureMonitorBase,
-    description="SenecaK107",
+    description="Seneca K107",
     default_baudrate=57600,
 ):
     """An interface for the Seneca K107USB serial converter.
