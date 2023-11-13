@@ -1,5 +1,6 @@
 """This module contains code for interfacing with different hardware devices."""
 import logging
+from collections.abc import Mapping
 from importlib import import_module
 from typing import Any, TypeVar, cast
 
@@ -28,28 +29,30 @@ def get_device_instance(base_type: type[_T], name: str | None = None) -> _T | No
 
 
 def _open_device(
-    class_name: str, instance: DeviceInstanceRef, params: dict[str, Any]
+    instance: DeviceInstanceRef, class_name: str, params: Mapping[str, Any]
 ) -> None:
     """Open the specified device type.
 
     Args:
-        class_name: The name of the device type's class
         instance: The instance that this device will be when opened
+        class_name: The name of the device type's class
         params: Device parameters
     """
-    module, _, class_name = class_name.rpartition(".")
+    module, _, class_name_part = class_name.rpartition(".")
 
     # Assume this is safe because module and class_name will not be provided directly by
     # the user
-    cls: Device = getattr(import_module(module), class_name)
+    cls: Device = getattr(import_module(module), class_name_part)
 
-    logging.info(f"Opening device of type {instance.base_type}: {class_name}")
+    logging.info(f"Opening device of type {instance.base_type}: {class_name_part}")
 
-    if instance in _devices:
+    if device := _devices.get(instance):
         logging.warn(f"Replacing existing instance of device of type {instance.topic}")
+        _try_close_device(device)
 
     # If this instance also has a name (e.g. "hot_bb") then we also need to pass this as
     # an argument
+    params_orig = params
     if instance.name:
         # Note that we create a new dict here so we're not modifying the original one
         params = params | {"name": instance.name}
@@ -67,7 +70,12 @@ def _open_device(
         # Signal that device is now open. The reason for the two different topics is
         # because we want to ensure that some listeners always run before others, in
         # case an error occurs and we have to undo the work.
-        pub.sendMessage(f"device.opening.{instance.topic}")
+        pub.sendMessage(
+            f"device.opening.{instance.topic}",
+            instance=instance,
+            class_name=class_name,
+            params=params_orig,
+        )
         pub.sendMessage(f"device.opened.{instance.topic}")
 
 
@@ -83,10 +91,8 @@ def _try_close_device(device: Device) -> None:
     except Exception as ex:
         logging.warn(f"Error while closing {device.__class__.__name__}: {ex!s}")
 
-    topic = device.get_device_base_type_info().name
-    if device.name:
-        topic += f".{device.name}"
-    pub.sendMessage(f"device.closed.{topic}")
+    instance = device.get_instance_ref()
+    pub.sendMessage(f"device.closed.{instance.topic}", instance=instance)
 
 
 def _close_device(instance: DeviceInstanceRef) -> None:

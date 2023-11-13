@@ -28,7 +28,7 @@ def test_init(
     timer_mock.assert_called_once()
 
     # Check timer is properly set up
-    timer.setSingleShot(True)
+    timer.setSingleShot.assert_called_once_with(True)
     timer.setInterval.assert_called_once_with(1000)
     timer.timeout.connect.assert_called_once_with(_poll_em27_status)
 

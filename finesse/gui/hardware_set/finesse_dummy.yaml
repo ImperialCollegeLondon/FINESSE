@@ -1,0 +1,12 @@
+name: "FINESSE (dummy devices)"
+devices:
+  stepper_motor:
+    class_name: finesse.hardware.plugins.stepper_motor.dummy.DummyStepperMotor
+  temperature_controller.hot_bb:
+    class_name: finesse.hardware.plugins.temperature.dummy_temperature_controller.DummyTemperatureController
+  temperature_controller.cold_bb:
+    class_name: finesse.hardware.plugins.temperature.dummy_temperature_controller.DummyTemperatureController
+  temperature_monitor:
+    class_name: finesse.hardware.plugins.temperature.dummy_temperature_monitor.DummyTemperatureMonitor
+  em27_sensors:
+    class_name: finesse.hardware.plugins.em27.dummy_em27_sensors.DummyEM27Sensors
