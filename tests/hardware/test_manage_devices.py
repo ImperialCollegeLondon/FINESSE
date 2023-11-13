@@ -4,6 +4,7 @@ from itertools import product
 from unittest.mock import MagicMock, Mock, call, patch
 
 import pytest
+from frozendict import frozendict
 from pubsub import pub
 
 from finesse.device_info import DeviceInstanceRef
@@ -49,11 +50,12 @@ def test_open_device(
     module_mock.MyDevice = device_cls_mock
     import_mock.return_value = module_mock
     instance = DeviceInstanceRef("test_type", name)
-    params = {"param1": "value1", "param2": "value2"}
+    params = frozendict(param1="value1", param2="value2")
     devices_dict: dict[DeviceInstanceRef, Device] = {}
 
     with patch("finesse.hardware.manage_devices._devices", devices_dict):
-        _open_device("some.module.MyDevice", instance, params)
+        class_name = "some.module.MyDevice"
+        _open_device(instance=instance, class_name=class_name, params=params)
         import_mock.assert_called_once_with("some.module")
 
         if name:
@@ -67,8 +69,13 @@ def test_open_device(
             # Two separate messages are sent on device open
             sendmsg_mock.assert_has_calls(
                 [
-                    call(f"device.{name}.{instance.topic}")
-                    for name in ("opening", "opened")
+                    call(
+                        f"device.opening.{instance.topic}",
+                        instance=instance,
+                        class_name=class_name,
+                        params=params,
+                    ),
+                    call(f"device.opened.{instance.topic}"),
                 ]
             )
 
@@ -82,24 +89,29 @@ def test_open_device(
             logging_mock.error.assert_called()
 
 
+@patch("finesse.hardware.manage_devices._try_close_device")
 @patch("finesse.hardware.manage_devices.logging")
 @patch("finesse.hardware.manage_devices.import_module")
 def test_open_device_replace_existing(
-    import_mock: Mock, logging_mock: Mock, sendmsg_mock: MagicMock
+    import_mock: Mock, logging_mock: Mock, close_mock: Mock, sendmsg_mock: MagicMock
 ) -> None:
     """Check that a warning is produced if replacing an existing device instance."""
-    device_mock = MagicMock()
+    new_device = MagicMock()
     device_cls_mock = MagicMock()
-    device_cls_mock.return_value = device_mock
+    device_cls_mock.return_value = new_device
     module_mock = MagicMock()
     module_mock.MyDevice = device_cls_mock
     import_mock.return_value = module_mock
     instance = DeviceInstanceRef("test_type")
-    devices_dict: dict[DeviceInstanceRef, Device] = {instance: MagicMock()}
+    old_device = MagicMock()
+    devices_dict: dict[DeviceInstanceRef, Device] = {instance: old_device}
     with patch("finesse.hardware.manage_devices._devices", devices_dict):
-        _open_device("some.module.MyDevice", instance, {})
+        _open_device(
+            instance=instance, class_name="some.module.MyDevice", params=frozendict()
+        )
         logging_mock.warn.assert_called()
-        assert devices_dict == {instance: device_mock}
+        close_mock.assert_called_once_with(old_device)
+        assert devices_dict == {instance: new_device}
 
 
 @pytest.mark.parametrize("success,name", product((True, False), (None, "my_device")))
@@ -111,6 +123,8 @@ def test_try_close_device(
     base_type_info.name = "test"
     device_mock = MagicMock()
     device_mock.name = name
+    instance = DeviceInstanceRef("test", name)
+    device_mock.get_instance_ref.return_value = instance
 
     if not success:
         device_mock.close.side_effect = RuntimeError("Device close failed")
@@ -123,7 +137,7 @@ def test_try_close_device(
     if name:
         topic += f".{name}"
 
-    sendmsg_mock.assert_called_once_with(f"device.closed.{topic}")
+    sendmsg_mock.assert_called_once_with(f"device.closed.{topic}", instance=instance)
 
 
 def test_close_device() -> None:

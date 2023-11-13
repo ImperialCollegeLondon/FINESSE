@@ -48,7 +48,7 @@ class EventCounter:
         if self._count == self._target_count:
             self._on_target_reached()
 
-    def decrement(self) -> None:
+    def decrement(self, **kwargs) -> None:
         """Decrease the counter by one and run callback if count drops below target."""
         self._count -= 1
         if self._count == self._target_count - 1:

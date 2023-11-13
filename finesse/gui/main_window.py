@@ -11,6 +11,7 @@ from ..config import (
 from .data_file_view import DataFileControl
 from .device_view import DeviceControl
 from .em27_monitor import EM27Monitor
+from .hardware_set.hardware_sets_view import HardwareSetsControl
 from .measure_script.script_view import ScriptControl
 from .opus_view import OPUSControl
 from .stepper_motor_view import StepperMotorControl
@@ -30,6 +31,9 @@ class MainWindow(QMainWindow):
 
         layout_left = QGridLayout()
 
+        # For choosing hardware set
+        hardware_sets = HardwareSetsControl()
+
         # Setup for stepper motor control
         stepper_motor = StepperMotorControl()
 
@@ -44,11 +48,12 @@ class MainWindow(QMainWindow):
 
         opus: QGroupBox = OPUSControl()
 
-        layout_left.addWidget(stepper_motor, 0, 0, 1, 2)
-        layout_left.addWidget(opus, 1, 0, 1, 2)
-        layout_left.addWidget(measure_script, 2, 0, 1, 2)
-        layout_left.addWidget(device_control, 3, 0, 1, 1)
-        layout_left.addWidget(em27_monitor, 3, 1, 1, 1)
+        layout_left.addWidget(hardware_sets, 0, 0, 1, 2)
+        layout_left.addWidget(stepper_motor, 1, 0, 1, 2)
+        layout_left.addWidget(opus, 2, 0, 1, 2)
+        layout_left.addWidget(measure_script, 3, 0, 1, 2)
+        layout_left.addWidget(device_control, 4, 0, 1, 1)
+        layout_left.addWidget(em27_monitor, 4, 1, 1, 1)
 
         layout_right = QGridLayout()
 

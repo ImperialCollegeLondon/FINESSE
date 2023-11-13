@@ -20,6 +20,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from finesse.device_info import DeviceInstanceRef
+
 from ..config import (
     NUM_TEMPERATURE_MONITOR_CHANNELS,
     TEMPERATURE_CONTROLLER_POLL_INTERVAL,
@@ -303,9 +305,6 @@ class TC4820Controls(DevicePanel):
             f"device.opened.{TEMPERATURE_CONTROLLER_TOPIC}.{name}_bb",
         )
         pub.subscribe(
-            self._end_polling, f"device.closed.{TEMPERATURE_CONTROLLER_TOPIC}.{name}_bb"
-        )
-        pub.subscribe(
             self._update_controls,
             f"device.{TEMPERATURE_CONTROLLER_TOPIC}.{name}_bb.response",
         )
@@ -392,6 +391,10 @@ class TC4820Controls(DevicePanel):
             self._set_new_set_point()
             self._set_sbox.setEnabled(False)
             self._begin_polling()
+
+    def _on_device_closed(self, instance: DeviceInstanceRef) -> None:
+        super()._on_device_closed(instance)
+        self._end_polling()
 
     def _begin_polling(self) -> None:
         """Initiate polling the TC4820 device."""

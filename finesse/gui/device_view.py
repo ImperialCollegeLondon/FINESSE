@@ -1,4 +1,6 @@
 """Provides a control for viewing and connecting to devices."""
+import logging
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any, cast
 
@@ -14,9 +16,9 @@ from PySide6.QtWidgets import (
 )
 
 from finesse.device_info import DeviceBaseTypeInfo, DeviceInstanceRef, DeviceTypeInfo
+from finesse.gui.device_connection import close_device, open_device
+from finesse.gui.error_message import show_error_message
 from finesse.settings import settings
-
-from .error_message import show_error_message
 
 
 @dataclass
@@ -43,7 +45,7 @@ def _create_device_widget(
     # Previous parameter values are saved if a device opens successfully
     previous_param_values = cast(
         dict[str, Any] | None,
-        settings.value(f"device/{instance.topic}/{device_type.description}/params"),
+        settings.value(f"device/{instance.topic}/{device_type.class_name}/params"),
     )
 
     widget = QWidget()
@@ -90,7 +92,7 @@ class DeviceTypeControl(QGroupBox):
         self,
         description: str,
         instance: DeviceInstanceRef,
-        device_types: list[DeviceTypeInfo],
+        device_types: Sequence[DeviceTypeInfo],
     ) -> None:
         """Create a new DeviceTypeControl.
 
@@ -102,15 +104,10 @@ class DeviceTypeControl(QGroupBox):
         if not device_types:
             raise RuntimeError("At least one device type must be specified")
 
-        self._cur_device_params: dict[str, Any]
-        """Cache the device params used for opening the device."""
         self._device_instance = instance
 
         super().__init__(description)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-
-        self._device_types = device_types
-        """Type information for each of the device types for this base type."""
 
         layout = QHBoxLayout()
         self.setLayout(layout)
@@ -128,12 +125,16 @@ class DeviceTypeControl(QGroupBox):
 
         # Select the last device that was successfully opened, if there is one
         topic = instance.topic
-        previous_device = cast(
-            str | None, settings.value(f"device/{instance.topic}/type")
-        )
-        descriptions = (t.description for t in device_types)
-        if previous_device and previous_device in descriptions:
-            self._device_combo.setCurrentText(previous_device)
+        if previous_device := settings.value(f"device/{instance.topic}/type"):
+            try:
+                idx = next(
+                    i
+                    for i, device_type in enumerate(device_types)
+                    if device_type.class_name == previous_device
+                )
+                self._device_combo.setCurrentIndex(idx)
+            except StopIteration:
+                logging.warn(f"Unknown class name: {previous_device}")
 
         self._device_combo.currentIndexChanged.connect(self._on_device_selected)
         layout.addWidget(self._device_combo)
@@ -188,7 +189,9 @@ class DeviceTypeControl(QGroupBox):
     def _get_current_device_type_item(self) -> DeviceTypeItem:
         return self._device_combo.currentData()
 
-    def _get_current_device_and_params(self) -> tuple[DeviceTypeInfo, dict[str, Any]]:
+    def _get_current_device_and_params(
+        self,
+    ) -> tuple[DeviceTypeInfo, dict[str, Any]]:
         """Get the current device type and associated parameters."""
         item = self._get_current_device_type_item()
 
@@ -214,25 +217,18 @@ class DeviceTypeControl(QGroupBox):
 
     def _open_device(self) -> None:
         """Open the currently selected device."""
-        device_type, self._cur_device_params = self._get_current_device_and_params()
-        pub.sendMessage(
-            "device.open",
-            class_name=device_type.class_name,
-            instance=self._device_instance,
-            params=self._cur_device_params,
-        )
+        device_type, device_params = self._get_current_device_and_params()
+        open_device(device_type.class_name, self._device_instance, device_params)
 
-    def _on_device_opened(self) -> None:
+    def _on_device_opened(
+        self, instance: DeviceInstanceRef, class_name: str, params: Mapping[str, Any]
+    ) -> None:
         """Update the GUI for when the device is successfully opened."""
-        settings.setValue(
-            f"device/{self._device_instance.topic}/type",
-            self._device_combo.currentText(),
-        )
-        if self._cur_device_params:
+        settings.setValue(f"device/{instance.topic}/type", class_name)
+        if params:
             settings.setValue(
-                f"device/{self._device_instance.topic}/"
-                f"{self._device_combo.currentText()}/params",
-                self._cur_device_params,
+                f"device/{instance.topic}/{class_name}/params",
+                params,
             )
 
         self._set_combos_enabled(False)
@@ -240,9 +236,9 @@ class DeviceTypeControl(QGroupBox):
 
     def _close_device(self) -> None:
         """Close the device."""
-        pub.sendMessage("device.close", instance=self._device_instance)
+        close_device(self._device_instance)
 
-    def _on_device_closed(self) -> None:
+    def _on_device_closed(self, instance: DeviceInstanceRef) -> None:
         """Update the GUI for when the device is closed."""
         self._set_combos_enabled(True)
         self._open_close_btn.setText("Open")
@@ -282,7 +278,7 @@ class DeviceControl(QGroupBox):
         pub.subscribe(self._on_device_list, "device.list")
 
     def _on_device_list(
-        self, device_types: dict[DeviceBaseTypeInfo, list[DeviceTypeInfo]]
+        self, device_types: Mapping[DeviceBaseTypeInfo, Sequence[DeviceTypeInfo]]
     ) -> None:
         layout = cast(QVBoxLayout, self.layout())
 
