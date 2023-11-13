@@ -4,9 +4,10 @@ from typing import Any
 
 from serial import SerialException
 
+from finesse.hardware.plugins.temperature.temperature_monitor_base import (
+    TemperatureMonitorBase,
+)
 from finesse.hardware.serial_device import SerialDevice
-
-from .temperature_monitor_base import TemperatureMonitorBase
 
 
 def check_data(data: bytes) -> None:

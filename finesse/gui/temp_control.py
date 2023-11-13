@@ -20,9 +20,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from finesse.device_info import DeviceInstanceRef
-
-from ..config import (
+from finesse.config import (
     NUM_TEMPERATURE_MONITOR_CHANNELS,
     TEMPERATURE_CONTROLLER_POLL_INTERVAL,
     TEMPERATURE_CONTROLLER_TOPIC,
@@ -32,8 +30,9 @@ from ..config import (
     TEMPERATURE_MONITOR_TOPIC,
     TEMPERATURE_PLOT_TIME_RANGE,
 )
-from .device_panel import DevicePanel
-from .led_icon import LEDIcon
+from finesse.device_info import DeviceInstanceRef
+from finesse.gui.device_panel import DevicePanel
+from finesse.gui.led_icon import LEDIcon
 
 
 class TemperaturePlot(QGroupBox):
