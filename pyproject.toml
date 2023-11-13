@@ -1,11 +1,12 @@
 [tool.poetry]
 name = "FINESSE"
-version = "1.1.0"
+version = "1.2.0"
 description = "A graphical user interface for controlling and monitoring an interferometer device."
 authors = [
     "Alex Dewar <a.dewar@imperial.ac.uk>",
     "Diego Alonso Álvarez <d.alonso-alvarez@imperial.ac.uk>",
     "Dan Cummins <daniel.cummins17@imperial.ac.uk>",
+    "Callum West <c.west@imperial.ac.uk>",
     "Imperial College London RSE Team <ict-rse-team@imperial.ac.uk>",
 ]
 
