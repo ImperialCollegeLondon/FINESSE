@@ -99,9 +99,9 @@ class AbstractDevice(ABC):
     def get_device_type_info(cls) -> DeviceTypeInfo:
         """Get information about this device type."""
         return DeviceTypeInfo(
+            f"{cls.__module__}.{cls.__name__}",
             cls._device_description,
             cls.get_device_parameters(),
-            f"{cls.__module__}.{cls.__name__}",
         )
 
 

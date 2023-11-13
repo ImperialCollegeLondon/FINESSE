@@ -36,12 +36,12 @@ class DeviceParameter:
 class DeviceTypeInfo:
     """Description of a device."""
 
-    description: str
-    """A human-readable name for the device."""
-    parameters: list[DeviceParameter]
-    """The device parameters."""
     class_name: str
     """The name of the device's class including the module name."""
+    description: str
+    """A human-readable name for the device."""
+    parameters: Sequence[DeviceParameter]
+    """The device parameters."""
 
 
 @dataclass(frozen=True)
