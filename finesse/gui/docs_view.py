@@ -59,4 +59,4 @@ class DocsViewer(QAction):
 
     def _open_homepage(self):
         """Go to documentation home page."""
-        self.browser.load(QUrl(self.docs_home).as_uri())
+        self.browser.load(QUrl(f"file://{self.docs_home}"))
