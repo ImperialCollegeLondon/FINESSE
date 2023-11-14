@@ -238,3 +238,18 @@ def test_on_device_closed_not_found(hw_sets: HardwareSetsControl, qtbot) -> None
     assert not hw_sets._connected_devices
     with does_not_raise():
         hw_sets._on_device_closed(device.instance)
+
+
+def test_show_manage_devices_dialog(hw_sets: HardwareSetsControl, qtbot) -> None:
+    """Test the _show_manage_devices_dialog() method."""
+    # Check that the dialog is created if it doesn't exist
+    assert not hasattr(hw_sets, "_manage_devices_dialog")
+    hw_sets._show_manage_devices_dialog()
+    dialog = hw_sets._manage_devices_dialog
+    assert not dialog.isHidden()
+
+    # If it already exists, check it is shown
+    dialog.hide()
+    hw_sets._show_manage_devices_dialog()
+    assert not dialog.isHidden()
+    assert hw_sets._manage_devices_dialog is dialog
