@@ -19,7 +19,7 @@ CONNECTED_DEVICES = (
 
 
 @pytest.fixture
-def widget(qtbot) -> DeviceControl:
+def widget(sendmsg_mock: MagicMock, subscribe_mock: Mock, qtbot) -> DeviceControl:
     """Return a DeviceControl fixture."""
     return DeviceControl(set(CONNECTED_DEVICES))
 

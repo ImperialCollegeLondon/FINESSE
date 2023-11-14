@@ -17,7 +17,7 @@ DEVICE_TYPES = [
 
 
 @pytest.fixture
-def widget(qtbot) -> DeviceTypeControl:
+def widget(subscribe_mock: MagicMock, qtbot) -> DeviceTypeControl:
     """Create a DeviceTypeControl fixture."""
     return DeviceTypeControl(
         "Device type", DeviceInstanceRef("base_type"), DEVICE_TYPES, None

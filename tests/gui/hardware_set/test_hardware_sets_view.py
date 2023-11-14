@@ -42,7 +42,7 @@ HW_SETS = [
 @pytest.fixture
 @patch("finesse.gui.hardware_set.hardware_sets_view.load_builtin_hardware_sets")
 def hw_sets(
-    load_hw_sets_mock: Mock, subscribe_mock: MagicMock, qtbot
+    load_hw_sets_mock: Mock, sendmsg_mock: MagicMock, subscribe_mock: MagicMock, qtbot
 ) -> HardwareSetsControl:
     """A fixture for the control."""
     load_hw_sets_mock.return_value = HW_SETS
