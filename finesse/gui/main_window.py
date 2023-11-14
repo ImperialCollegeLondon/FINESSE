@@ -16,7 +16,6 @@ from finesse.config import (
     TEMPERATURE_MONITOR_COLD_BB_IDX,
     TEMPERATURE_MONITOR_HOT_BB_IDX,
 )
-
 from finesse.gui.data_file_view import DataFileControl
 from finesse.gui.device_view import DeviceControl
 from finesse.gui.docs_view import DocsViewer
