@@ -199,14 +199,6 @@ class DeviceTypeControl(QGroupBox):
         """Get information about the currently selected device type."""
         return self._device_combo.currentData()
 
-    @property
-    def current_device_and_params(
-        self,
-    ) -> tuple[DeviceTypeInfo, dict[str, Any]]:
-        """Get the current device type and associated parameters."""
-        widget = self.current_device_type_widget
-        return widget.device_type, widget.current_parameter_values
-
     def _set_combos_enabled(self, enabled: bool) -> None:
         """Set the enabled state of the combo boxes."""
         self._device_combo.setEnabled(enabled)
@@ -241,8 +233,12 @@ class DeviceTypeControl(QGroupBox):
 
     def _open_device(self) -> None:
         """Open the currently selected device."""
-        device_type, device_params = self.current_device_and_params
-        open_device(device_type.class_name, self._device_instance, device_params)
+        widget = self.current_device_type_widget
+        open_device(
+            widget.device_type.class_name,
+            self._device_instance,
+            widget.current_parameter_values,
+        )
 
     def _on_device_opened(
         self, instance: DeviceInstanceRef, class_name: str, params: Mapping[str, Any]
