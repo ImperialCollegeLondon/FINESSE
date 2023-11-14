@@ -220,11 +220,11 @@ class DeviceTypeControl(QGroupBox):
             )
         except StopIteration:
             logging.warn(f"Unknown class_name for opened device: {class_name}")
+        else:
+            self._device_combo.setCurrentIndex(idx)
 
-        self._device_combo.setCurrentIndex(idx)
-
-        # Reload saved parameter values
-        self._device_widgets[idx].load_saved_parameter_values()
+            # Reload saved parameter values
+            self._device_widgets[idx].load_saved_parameter_values()
 
     def _set_device_closed(self, **kwargs) -> None:
         """Update the GUI for when the device is opened."""
