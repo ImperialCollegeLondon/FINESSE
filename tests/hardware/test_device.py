@@ -105,9 +105,10 @@ def test_abstract_device_get_device_type_info() -> None:
     param = DeviceParameter("param1", ["a", "b"])
     MyDevice.add_device_parameters(param)
 
-    assert MyDevice.get_device_type_info() == DeviceTypeInfo(
-        f"{MyDevice.__module__}.MyDevice", "DESCRIPTION", [param]
-    )
+    with patch("finesse.hardware.device._plugins_name", MyDevice.__module__):
+        assert MyDevice.get_device_type_info() == DeviceTypeInfo(
+            "MyDevice", "DESCRIPTION", [param]
+        )
 
 
 def _wrapped_func_error_test(device: Device, wrapper: Callable, *args) -> None:

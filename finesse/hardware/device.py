@@ -22,6 +22,7 @@ from finesse.device_info import (
     DeviceParameter,
     DeviceTypeInfo,
 )
+from finesse.hardware.plugins import __name__ as _plugins_name
 from finesse.hardware.plugins import load_all_plugins
 
 _base_types: set[type[Device]] = set()
@@ -98,8 +99,13 @@ class AbstractDevice(ABC):
     @classmethod
     def get_device_type_info(cls) -> DeviceTypeInfo:
         """Get information about this device type."""
+        class_name_full = f"{cls.__module__}.{cls.__name__}"
+        class_name = class_name_full.removeprefix(f"{_plugins_name}.")
+        if len(class_name) == len(class_name_full):
+            raise RuntimeError(f"Plugins must be in {_plugins_name}")
+
         return DeviceTypeInfo(
-            f"{cls.__module__}.{cls.__name__}",
+            class_name,
             cls._device_description,
             cls.get_device_parameters(),
         )
