@@ -1,15 +1,25 @@
 """Code for FINESSE's main GUI window."""
+
 from pubsub import pub
 from PySide6.QtGui import QHideEvent, QShowEvent
-from PySide6.QtWidgets import QGridLayout, QGroupBox, QHBoxLayout, QMainWindow, QWidget
+from PySide6.QtWidgets import (
+    QGridLayout,
+    QGroupBox,
+    QHBoxLayout,
+    QMainWindow,
+    QToolBar,
+    QWidget,
+)
 
 from finesse.config import (
     APP_NAME,
     TEMPERATURE_MONITOR_COLD_BB_IDX,
     TEMPERATURE_MONITOR_HOT_BB_IDX,
 )
+
 from finesse.gui.data_file_view import DataFileControl
 from finesse.gui.device_view import DeviceControl
+from finesse.gui.docs_view import DocsViewer
 from finesse.gui.em27_monitor import EM27Monitor
 from finesse.gui.hardware_set.hardware_sets_view import HardwareSetsControl
 from finesse.gui.measure_script.script_view import ScriptControl
@@ -28,6 +38,12 @@ class MainWindow(QMainWindow):
         self.setWindowTitle(APP_NAME)
 
         set_uncaught_exception_handler(self)
+
+        docs_viewer = DocsViewer(self)
+        toolbar = QToolBar()
+        toolbar.setMovable(False)
+        toolbar.addAction(docs_viewer)
+        self.addToolBar(toolbar)
 
         layout_left = QGridLayout()
 
