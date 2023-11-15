@@ -1,5 +1,6 @@
 """Provides a base class for temperature monitor devices or mock devices."""
 from abc import abstractmethod
+from collections.abc import Sequence
 from decimal import Decimal
 
 import numpy
@@ -7,7 +8,7 @@ import numpy
 from finesse.config import TEMPERATURE_MONITOR_TOPIC
 from finesse.hardware.device import Device
 
-TemperatureSequence = list[Decimal | numpy.float64]
+TemperatureSequence = Sequence[Decimal | numpy.float64]
 
 
 class TemperatureMonitorBase(
