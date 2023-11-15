@@ -15,8 +15,7 @@ from PySide6.QtNetwork import QNetworkAccessManager, QNetworkReply, QNetworkRequ
 
 from finesse.config import OPUS_IP
 from finesse.em27_info import EM27Status
-
-from .opus_interface_base import OPUSInterfaceBase
+from finesse.hardware.plugins.em27.opus_interface_base import OPUSInterfaceBase
 
 STATUS_FILENAME = "stat.htm"
 COMMAND_FILENAME = "cmd.htm"

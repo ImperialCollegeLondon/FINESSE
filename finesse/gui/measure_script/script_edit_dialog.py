@@ -15,12 +15,12 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from ...config import DEFAULT_SCRIPT_PATH
-from ..error_message import show_error_message
-from ..path_widget import SaveFileWidget
-from .count_widget import CountWidget
-from .script import Script
-from .sequence_widget import SequenceWidget
+from finesse.config import DEFAULT_SCRIPT_PATH
+from finesse.gui.error_message import show_error_message
+from finesse.gui.measure_script.count_widget import CountWidget
+from finesse.gui.measure_script.script import Script
+from finesse.gui.measure_script.sequence_widget import SequenceWidget
+from finesse.gui.path_widget import SaveFileWidget
 
 
 class ScriptEditDialog(QDialog):
