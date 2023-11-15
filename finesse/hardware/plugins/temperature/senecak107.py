@@ -1,5 +1,4 @@
 """This module provides an interface to Seneca temperature readers."""
-from decimal import Decimal
 from typing import Any
 
 import numpy
@@ -104,7 +103,7 @@ class SenecaK107(
         except Exception as e:
             raise SenecaK107Error(e)
 
-    def parse_data(self, data: bytes) -> list[Decimal]:
+    def parse_data(self, data: bytes) -> numpy.ndarray:
         """Parse temperature data read from the SenecaK107.
 
         The sequence of bytes is put through the conversion function and translated
