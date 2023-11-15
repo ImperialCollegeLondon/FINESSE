@@ -1,5 +1,5 @@
 """The main module for the FINESSE program."""
-from .config import APP_VERSION
+from finesse.config import APP_VERSION
 
 __version__ = APP_VERSION
 
@@ -11,12 +11,12 @@ def run() -> None:
     from PySide6.QtWidgets import QApplication
 
     # This must be done before our own modules are imported
-    from .logger import initialise_logging
+    from finesse.logger import initialise_logging
 
     initialise_logging()
 
-    from . import hardware  # noqa
-    from .gui.main_window import MainWindow
+    from finesse import hardware  # noqa
+    from finesse.gui.main_window import MainWindow
 
     app = QApplication(sys.argv)
 
