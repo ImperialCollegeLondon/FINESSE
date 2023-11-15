@@ -16,9 +16,8 @@ from PySide6.QtCore import QThread, Signal, Slot
 from serial import Serial, SerialException, SerialTimeoutException
 
 from finesse.config import STEPPER_MOTOR_TOPIC
+from finesse.hardware.plugins.stepper_motor.stepper_motor_base import StepperMotorBase
 from finesse.hardware.serial_device import SerialDevice
-
-from .stepper_motor_base import StepperMotorBase
 
 
 class ST10ControllerError(SerialException):

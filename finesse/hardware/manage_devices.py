@@ -7,8 +7,7 @@ from typing import Any, TypeVar, cast
 from pubsub import pub
 
 from finesse.device_info import DeviceInstanceRef
-
-from .device import Device
+from finesse.hardware.device import Device
 
 _devices: dict[DeviceInstanceRef, Device] = {}
 
