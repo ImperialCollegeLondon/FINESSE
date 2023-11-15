@@ -5,14 +5,14 @@ from typing import cast
 from pubsub import pub
 from PySide6.QtWidgets import QFileDialog, QGridLayout, QGroupBox, QPushButton
 
-from ...config import DEFAULT_SCRIPT_PATH, STEPPER_MOTOR_TOPIC
-from ...em27_info import EM27Status
-from ...event_counter import EventCounter
-from ...settings import settings
-from ..path_widget import OpenFileWidget
-from .script import Script, ScriptRunner
-from .script_edit_dialog import ScriptEditDialog
-from .script_run_dialog import ScriptRunDialog
+from finesse.config import DEFAULT_SCRIPT_PATH, STEPPER_MOTOR_TOPIC
+from finesse.em27_info import EM27Status
+from finesse.event_counter import EventCounter
+from finesse.gui.measure_script.script import Script, ScriptRunner
+from finesse.gui.measure_script.script_edit_dialog import ScriptEditDialog
+from finesse.gui.measure_script.script_run_dialog import ScriptRunDialog
+from finesse.gui.path_widget import OpenFileWidget
+from finesse.settings import settings
 
 
 def _get_previous_script_path() -> Path | None:

@@ -15,10 +15,9 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from finesse.config import ANGLE_PRESETS
+from finesse.gui.measure_script.count_widget import CountWidget
 from finesse.gui.measure_script.script import Measurement
-
-from ...config import ANGLE_PRESETS
-from .count_widget import CountWidget
 
 
 class SequenceWidget(QWidget):

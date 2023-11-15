@@ -3,20 +3,20 @@ from pubsub import pub
 from PySide6.QtGui import QHideEvent, QShowEvent
 from PySide6.QtWidgets import QGridLayout, QGroupBox, QHBoxLayout, QMainWindow, QWidget
 
-from ..config import (
+from finesse.config import (
     APP_NAME,
     TEMPERATURE_MONITOR_COLD_BB_IDX,
     TEMPERATURE_MONITOR_HOT_BB_IDX,
 )
-from .data_file_view import DataFileControl
-from .device_view import DeviceControl
-from .em27_monitor import EM27Monitor
-from .hardware_set.hardware_sets_view import HardwareSetsControl
-from .measure_script.script_view import ScriptControl
-from .opus_view import OPUSControl
-from .stepper_motor_view import StepperMotorControl
-from .temp_control import DP9800Controls, TC4820Controls, TemperaturePlot
-from .uncaught_exceptions import set_uncaught_exception_handler
+from finesse.gui.data_file_view import DataFileControl
+from finesse.gui.device_view import DeviceControl
+from finesse.gui.em27_monitor import EM27Monitor
+from finesse.gui.hardware_set.hardware_sets_view import HardwareSetsControl
+from finesse.gui.measure_script.script_view import ScriptControl
+from finesse.gui.opus_view import OPUSControl
+from finesse.gui.stepper_motor_view import StepperMotorControl
+from finesse.gui.temp_control import DP9800Controls, TC4820Controls, TemperaturePlot
+from finesse.gui.uncaught_exceptions import set_uncaught_exception_handler
 
 
 class MainWindow(QMainWindow):

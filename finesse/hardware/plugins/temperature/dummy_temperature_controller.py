@@ -4,8 +4,9 @@ from __future__ import annotations
 from decimal import Decimal
 
 from finesse.hardware.noise_producer import NoiseParameters, NoiseProducer
-
-from .temperature_controller_base import TemperatureControllerBase
+from finesse.hardware.plugins.temperature.temperature_controller_base import (
+    TemperatureControllerBase,
+)
 
 
 class DummyTemperatureController(

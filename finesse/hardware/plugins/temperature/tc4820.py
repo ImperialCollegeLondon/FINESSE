@@ -18,9 +18,10 @@ from typing import Any
 
 from serial import SerialException
 
+from finesse.hardware.plugins.temperature.temperature_controller_base import (
+    TemperatureControllerBase,
+)
 from finesse.hardware.serial_device import SerialDevice
-
-from .temperature_controller_base import TemperatureControllerBase
 
 MAX_POWER = 511
 
