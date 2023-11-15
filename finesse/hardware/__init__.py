@@ -19,8 +19,9 @@ from finesse.config import NUM_TEMPERATURE_MONITOR_CHANNELS, TEMPERATURE_MONITOR
 from finesse.hardware import data_file_writer  # noqa: F401
 from finesse.hardware.device import get_device_types
 from finesse.hardware.plugins.temperature import get_temperature_monitor_instance
-
-from finesse.hardware.plugins.temperature.temperature_monitor_base import TemperatureSequence
+from finesse.hardware.plugins.temperature.temperature_monitor_base import (
+    TemperatureSequence,
+)
 
 _opus: OPUSInterface
 
