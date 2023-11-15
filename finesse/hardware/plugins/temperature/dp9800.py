@@ -6,7 +6,7 @@ from serial import SerialException
 
 from finesse.hardware.serial_device import SerialDevice
 
-from .temperature_monitor_base import TemperatureMonitorBase
+from .temperature_monitor_base import TemperatureMonitorBase, TemperatureSequence
 
 
 def check_data(data: bytes) -> None:
@@ -193,7 +193,7 @@ class DP9800(
         except Exception as e:
             raise DP9800Error(e)
 
-    def get_temperatures(self) -> list[Decimal]:
+    def get_temperatures(self) -> TemperatureSequence:
         """Get the current temperatures."""
         self.request_read()
         data = self.read_temperature_data()

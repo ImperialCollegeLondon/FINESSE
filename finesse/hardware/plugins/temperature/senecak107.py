@@ -13,7 +13,7 @@ from finesse.config import (
 )
 from finesse.hardware.serial_device import SerialDevice
 
-from .temperature_monitor_base import TemperatureMonitorBase
+from .temperature_monitor_base import TemperatureMonitorBase, TemperatureSequence
 
 
 class SenecaK107Error(Exception):
@@ -123,7 +123,7 @@ class SenecaK107(
         ints = numpy.frombuffer(data, dt, 8, 3)
 
         vals = self.calc_temp(ints)
-        return [Decimal(val) for val in vals]
+        return vals
 
     def calc_temp(self, vals: numpy.ndarray) -> numpy.ndarray:
         """Convert data read from the SenecaK107 device into temperatures.
@@ -144,7 +144,7 @@ class SenecaK107(
         vals += self.MIN_TEMP
         return vals
 
-    def get_temperatures(self) -> list[Decimal]:
+    def get_temperatures(self) -> TemperatureSequence:
         """Get the current temperatures."""
         self.request_read()
         data = self.read()
