@@ -10,9 +10,10 @@ from typing import Any
 class DeviceParameter:
     """A parameter that a device needs (e.g. baudrate)."""
 
+    description: str
+    """A human-readable description of the parameter."""
     possible_values: Sequence
     """Possible values the parameter can take."""
-
     default_value: Any = None
     """The default value for this parameter.
 

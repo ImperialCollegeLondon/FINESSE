@@ -46,6 +46,7 @@ class DeviceParametersWidget(QWidget):
         for name, param in device_type.parameters.items():
             combo = QComboBox()
             combo.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+            combo.setToolTip(param.description)
 
             # Keep the "real" value along with its string representation, so that we can
             # pass it back to the backend on device open

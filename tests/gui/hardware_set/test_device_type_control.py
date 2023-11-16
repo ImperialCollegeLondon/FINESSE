@@ -104,22 +104,22 @@ def test_init_no_device_types(qtbot) -> None:
 @pytest.mark.parametrize(
     "params,expected_enabled",
     (
-        ({"param_not_poss": DeviceParameter(())}, False),
+        ({"param_not_poss": DeviceParameter("", ())}, False),
         (
-            {"param_poss": DeviceParameter(range(2))},
+            {"param_poss": DeviceParameter("", range(2))},
             True,
         ),
         (
             {
-                "param_not_poss": DeviceParameter(()),
-                "param_poss": DeviceParameter(range(2)),
+                "param_not_poss": DeviceParameter("", ()),
+                "param_poss": DeviceParameter("", range(2)),
             },
             False,
         ),
         (
             {
-                "param_poss1": DeviceParameter(range(2)),
-                "param_poss2": DeviceParameter(range(2)),
+                "param_poss1": DeviceParameter("", range(2)),
+                "param_poss2": DeviceParameter("", range(2)),
             },
             True,
         ),
