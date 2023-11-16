@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from typing import Any, cast
 
 
-@dataclass(frozen=True)
+@dataclass
 class DeviceParameter:
     """A parameter that a device needs (e.g. baudrate)."""
 
@@ -36,7 +36,7 @@ class DeviceParameter:
             raise RuntimeError("Default value doesn't match type of possible values")
 
 
-@dataclass(frozen=True)
+@dataclass
 class DeviceTypeInfo:
     """Description of a device."""
 
