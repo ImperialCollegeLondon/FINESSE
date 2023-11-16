@@ -12,7 +12,9 @@ from finesse.gui.hardware_set.device_view import DeviceParametersWidget
 def widget(qtbot) -> DeviceParametersWidget:
     """A fixture providing a DeviceParametersWidget."""
     return DeviceParametersWidget(
-        DeviceTypeInfo("my_class", "My Device", {"my_param": DeviceParameter(range(2))})
+        DeviceTypeInfo(
+            "my_class", "My Device", {"my_param": DeviceParameter("", range(2))}
+        )
     )
 
 
@@ -22,11 +24,11 @@ def widget(qtbot) -> DeviceParametersWidget:
         # no params
         {},
         # one param
-        {"my_param": DeviceParameter(("value1", "value2"))},
+        {"my_param": DeviceParameter("", ("value1", "value2"))},
         # two params
         {
-            "my_param": DeviceParameter(("value1", "value2")),
-            "param2": DeviceParameter(range(3), 1),
+            "my_param": DeviceParameter("", ("value1", "value2")),
+            "param2": DeviceParameter("", range(3), 1),
         },
     ),
 )
