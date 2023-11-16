@@ -145,8 +145,8 @@ class SenecaK107(
         vals += self.MIN_TEMP
         return vals
 
-    def get_temperatures(self) -> Sequence:  # type: ignore
+    def get_temperatures(self) -> Sequence:
         """Get the current temperatures."""
         self.request_read()
         data = self.read()
-        return self.parse_data(data)
+        return self.parse_data(data)  # type: ignore
