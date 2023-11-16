@@ -81,10 +81,10 @@ def test_abstract_device_device_parameters() -> None:
     class MyDevice(AbstractDevice):
         pass
 
-    assert MyDevice.get_device_parameters() == []
-    param = DeviceParameter("param1", ["a", "b"])
-    MyDevice.add_device_parameters(param)
-    assert MyDevice.get_device_parameters() == [param]
+    assert not MyDevice.get_device_parameters()
+    param = DeviceParameter(("a", "b"))
+    MyDevice.add_device_parameters(my_param=param)
+    assert MyDevice.get_device_parameters() == {"my_param": param}
 
 
 def test_abstract_device_get_device_base_type_info() -> None:
@@ -102,12 +102,12 @@ def test_abstract_device_get_device_type_info() -> None:
     class MyDevice(AbstractDevice):
         _device_description = "DESCRIPTION"
 
-    param = DeviceParameter("param1", ["a", "b"])
-    MyDevice.add_device_parameters(param)
+    param = DeviceParameter(["a", "b"])
+    MyDevice.add_device_parameters(my_param=param)
 
     with patch("finesse.hardware.device._plugins_name", MyDevice.__module__):
         assert MyDevice.get_device_type_info() == DeviceTypeInfo(
-            "MyDevice", "DESCRIPTION", [param]
+            "MyDevice", "DESCRIPTION", {"my_param": param}
         )
 
 

@@ -11,8 +11,8 @@ from finesse.gui.hardware_set.device_view import (
 )
 
 DEVICE_TYPES = [
-    DeviceTypeInfo("my_class1", "Device 1", []),
-    DeviceTypeInfo("my_class2", "Device 2", []),
+    DeviceTypeInfo("my_class1", "Device 1"),
+    DeviceTypeInfo("my_class2", "Device 2"),
 ]
 
 
@@ -104,37 +104,23 @@ def test_init_no_device_types(qtbot) -> None:
 @pytest.mark.parametrize(
     "params,expected_enabled",
     (
-        ((DeviceParameter("param_not_poss", ()),), False),
+        ({"param_not_poss": DeviceParameter(())}, False),
         (
-            (
-                DeviceParameter(
-                    "param_poss",
-                    range(2),
-                ),
-            ),
+            {"param_poss": DeviceParameter(range(2))},
             True,
         ),
         (
-            (
-                DeviceParameter("param_not_poss", ()),
-                DeviceParameter(
-                    "param_poss",
-                    range(2),
-                ),
-            ),
+            {
+                "param_not_poss": DeviceParameter(()),
+                "param_poss": DeviceParameter(range(2)),
+            },
             False,
         ),
         (
-            (
-                DeviceParameter(
-                    "param_poss1",
-                    range(2),
-                ),
-                DeviceParameter(
-                    "param_poss2",
-                    range(2),
-                ),
-            ),
+            {
+                "param_poss1": DeviceParameter(range(2)),
+                "param_poss2": DeviceParameter(range(2)),
+            },
             True,
         ),
     ),

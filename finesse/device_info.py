@@ -1,8 +1,8 @@
 """Provides common dataclasses about devices for using in backend and frontend."""
 from __future__ import annotations
 
-from collections.abc import Iterable, Sequence
-from dataclasses import dataclass
+from collections.abc import Iterable, Mapping, Sequence
+from dataclasses import dataclass, field
 from typing import Any
 
 
@@ -10,10 +10,7 @@ from typing import Any
 class DeviceParameter:
     """A parameter that a device needs (e.g. baudrate)."""
 
-    name: str
-    """Name for the parameter."""
-
-    possible_values: Sequence[Any]
+    possible_values: Sequence
     """Possible values the parameter can take."""
 
     default_value: Any = None
@@ -40,7 +37,7 @@ class DeviceTypeInfo:
     """The name of the device's class including the module name."""
     description: str
     """A human-readable name for the device."""
-    parameters: Sequence[DeviceParameter]
+    parameters: Mapping[str, DeviceParameter] = field(default_factory=dict)
     """The device parameters."""
 
 
