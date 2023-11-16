@@ -39,9 +39,9 @@ def _open_device(
     """
     module, _, class_name_part = class_name.rpartition(".")
 
-    # Assume this is safe because module and class_name will not be provided directly by
+    # Assume this is safe because the class and module will not be provided directly by
     # the user
-    cls: Device = getattr(import_module(module), class_name_part)
+    cls: type[Device] = getattr(import_module(module), class_name_part)
 
     logging.info(f"Opening device of type {instance.base_type}: {class_name_part}")
 
@@ -51,13 +51,12 @@ def _open_device(
 
     # If this instance also has a name (e.g. "hot_bb") then we also need to pass this as
     # an argument
-    params_orig = params
+    params_with_name = dict(params)
     if instance.name:
-        # Note that we create a new dict here so we're not modifying the original one
-        params = params | {"name": instance.name}
+        params_with_name["name"] = instance.name
 
     try:
-        _devices[instance] = cls(**params)  # type: ignore[operator]
+        _devices[instance] = cls(**params_with_name)
     except Exception as error:
         logging.error(f"Failed to open {instance.topic} device: {str(error)}")
         pub.sendMessage(
@@ -73,7 +72,7 @@ def _open_device(
             f"device.opening.{instance.topic}",
             instance=instance,
             class_name=class_name,
-            params=params_orig,
+            params=params,
         )
         pub.sendMessage(f"device.opened.{instance.topic}")
 
