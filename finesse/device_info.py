@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, cast
 
 
 @dataclass(frozen=True)
@@ -12,8 +12,11 @@ class DeviceParameter:
 
     description: str
     """A human-readable description of the parameter."""
-    possible_values: Sequence
-    """Possible values the parameter can take."""
+    possible_values: Sequence | type
+    """Possible values the parameter can take.
+
+    This can either be a Sequence of possible values or a type (e.g. str or float).
+    """
     default_value: Any = None
     """The default value for this parameter.
 
@@ -21,13 +24,16 @@ class DeviceParameter:
 
     def __post_init__(self) -> None:
         """Check that default value is valid."""
-        if (
-            self.default_value is not None
-            and self.default_value not in self.possible_values
-        ):
-            raise RuntimeError(
-                f"Default value of {self.default_value} not in possible values"
-            )
+        if self.default_value is None:
+            return
+
+        if isinstance(self.possible_values, Sequence):
+            if self.default_value not in self.possible_values:
+                raise RuntimeError(
+                    f"Default value of {self.default_value} not in possible values"
+                )
+        elif not isinstance(self.default_value, cast(type, self.possible_values)):
+            raise RuntimeError("Default value doesn't match type of possible values")
 
 
 @dataclass(frozen=True)

@@ -1,5 +1,6 @@
 """Tests for the DeviceParametersWidget class."""
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
+from typing import cast
 from unittest.mock import Mock, patch
 
 import pytest
@@ -47,11 +48,14 @@ def test_init(params: Mapping[str, DeviceParameter], qtbot) -> None:
         for name, param in params.items():
             combo = widget._combos[name]
             items = [combo.itemText(i) for i in range(combo.count())]
-            assert items == list(map(str, param.possible_values))
+
+            # Non-Sequence values are not currently supported
+            poss_values = cast(Sequence, param.possible_values)
+            assert items == list(map(str, poss_values))
             assert (
                 combo.currentData() == param.default_value
                 if param.default_value
-                else param.possible_values[0]
+                else poss_values[0]
             )
 
 

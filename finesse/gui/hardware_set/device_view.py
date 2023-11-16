@@ -44,6 +44,11 @@ class DeviceParametersWidget(QWidget):
         # Make a combo box for each parameter
         self._combos: dict[str, QComboBox] = {}
         for name, param in device_type.parameters.items():
+            # The frontend currently can't deal with "typed" parameters, so ignore these
+            # for now
+            if not isinstance(param.possible_values, Sequence):
+                continue
+
             combo = QComboBox()
             combo.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
             combo.setToolTip(param.description)
