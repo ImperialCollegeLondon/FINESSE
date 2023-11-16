@@ -1,4 +1,5 @@
 """This module provides an interface to Seneca temperature readers."""
+from collections.abc import Sequence
 from typing import Any
 
 import numpy
@@ -12,7 +13,6 @@ from finesse.config import (
 )
 from finesse.hardware.plugins.temperature.temperature_monitor_base import (
     TemperatureMonitorBase,
-    TemperatureSequence,
 )
 from finesse.hardware.serial_device import SerialDevice
 
@@ -145,7 +145,7 @@ class SenecaK107(
         vals += self.MIN_TEMP
         return vals
 
-    def get_temperatures(self) -> TemperatureSequence:
+    def get_temperatures(self) -> Sequence:  # type: ignore
         """Get the current temperatures."""
         self.request_read()
         data = self.read()
