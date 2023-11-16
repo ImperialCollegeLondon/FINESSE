@@ -13,6 +13,7 @@ else:
         OPUSInterface,
     )
 
+from collections.abc import Sequence
 from datetime import datetime
 
 from finesse.config import NUM_TEMPERATURE_MONITOR_CHANNELS, TEMPERATURE_MONITOR_TOPIC
@@ -28,7 +29,7 @@ def _broadcast_device_types() -> None:
     pub.sendMessage("device.list", device_types=get_device_types())
 
 
-def _try_get_temperatures() -> list[Decimal] | None:
+def _try_get_temperatures() -> Sequence | None:
     """Try to read the current temperatures from the temperature monitor.
 
     If the device is not connected or the operation fails, None is returned.

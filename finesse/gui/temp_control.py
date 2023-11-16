@@ -1,4 +1,5 @@
 """Panel and widgets related to temperature monitoring."""
+from collections.abc import Sequence
 from datetime import datetime
 from decimal import Decimal
 from functools import partial
@@ -128,7 +129,7 @@ class TemperaturePlot(QGroupBox):
         self._canvas.draw()
 
     def _update_figure(
-        self, new_time: float, new_hot_data: Decimal, new_cold_data: Decimal
+        self, new_time: float, new_hot_data: float, new_cold_data: float
     ) -> None:
         """Updates the matplotlib figure to be contained within the panel.
 
@@ -178,15 +179,15 @@ class TemperaturePlot(QGroupBox):
         self._ax["hot"].autoscale()
         self._ax["cold"].autoscale()
 
-    def _plot_bb_temps(self, time: datetime, temperatures: list[Decimal]) -> None:
+    def _plot_bb_temps(self, time: datetime, temperatures: Sequence) -> None:
         """Extract blackbody temperatures from DP9800 data and plot them.
 
         Args:
             time: the time that the temperatures were read
             temperatures: the list of temperatures measured by the DP9800
         """
-        hot_bb_temp = temperatures[TEMPERATURE_MONITOR_HOT_BB_IDX]
-        cold_bb_temp = temperatures[TEMPERATURE_MONITOR_COLD_BB_IDX]
+        hot_bb_temp = float(temperatures[TEMPERATURE_MONITOR_HOT_BB_IDX])
+        cold_bb_temp = float(temperatures[TEMPERATURE_MONITOR_COLD_BB_IDX])
 
         self._update_figure(time.timestamp(), hot_bb_temp, cold_bb_temp)
 
@@ -263,7 +264,7 @@ class DP9800Controls(DevicePanel):
         self._poll_light.flash()
         pub.sendMessage(f"device.{TEMPERATURE_MONITOR_TOPIC}.data.request")
 
-    def _update_pt100s(self, temperatures: list[Decimal], time: datetime) -> None:
+    def _update_pt100s(self, temperatures: Sequence, time: datetime) -> None:
         """Display the latest Pt 100 temperatures.
 
         Args:
@@ -431,7 +432,7 @@ class TC4820Controls(DevicePanel):
         elif self._alarm_light._is_on:
             self._alarm_light._turn_off()
 
-    def _update_pt100(self, temperatures: list[Decimal], time: datetime):
+    def _update_pt100(self, temperatures: Sequence, time: datetime):
         """Show the latest blackbody temperature.
 
         Args:

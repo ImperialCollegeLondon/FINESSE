@@ -1,6 +1,6 @@
 """Provides a base class for temperature monitor devices or mock devices."""
 from abc import abstractmethod
-from decimal import Decimal
+from collections.abc import Sequence
 
 from finesse.config import TEMPERATURE_MONITOR_TOPIC
 from finesse.hardware.device import Device
@@ -15,5 +15,5 @@ class TemperatureMonitorBase(
     """The base class for temperature monitor devices or mock devices."""
 
     @abstractmethod
-    def get_temperatures(self) -> list[Decimal]:
+    def get_temperatures(self) -> Sequence:
         """Get the current temperatures."""
