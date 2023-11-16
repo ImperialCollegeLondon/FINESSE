@@ -1,4 +1,5 @@
 """This module provides an interface to DP9800 temperature readers."""
+from collections.abc import Sequence
 from decimal import Decimal
 from typing import Any
 
@@ -194,7 +195,7 @@ class DP9800(
         except Exception as e:
             raise DP9800Error(e)
 
-    def get_temperatures(self) -> list[Decimal]:
+    def get_temperatures(self) -> Sequence:
         """Get the current temperatures."""
         self.request_read()
         data = self.read_temperature_data()

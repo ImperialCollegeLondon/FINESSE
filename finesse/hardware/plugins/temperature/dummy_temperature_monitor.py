@@ -44,6 +44,6 @@ class DummyTemperatureMonitor(
     def close(self) -> None:
         """Close the connection to the device."""
 
-    def get_temperatures(self) -> list[Decimal]:
+    def get_temperatures(self) -> Sequence:
         """Get current temperatures."""
         return [producer() for producer in self._temperature_producers]
