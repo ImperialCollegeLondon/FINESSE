@@ -1,5 +1,5 @@
 """Tests for the DeviceParametersWidget class."""
-from collections.abc import Sequence
+from collections.abc import Mapping
 from unittest.mock import Mock, patch
 
 import pytest
@@ -12,7 +12,7 @@ from finesse.gui.hardware_set.device_view import DeviceParametersWidget
 def widget(qtbot) -> DeviceParametersWidget:
     """A fixture providing a DeviceParametersWidget."""
     return DeviceParametersWidget(
-        DeviceTypeInfo("my_class", "My Device", [DeviceParameter("my_param", range(2))])
+        DeviceTypeInfo("my_class", "My Device", {"my_param": DeviceParameter(range(2))})
     )
 
 
@@ -20,17 +20,17 @@ def widget(qtbot) -> DeviceParametersWidget:
     "params",
     (
         # no params
-        (),
+        {},
         # one param
-        (DeviceParameter("my_param", ("value1", "value2")),),
+        {"my_param": DeviceParameter(("value1", "value2"))},
         # two params
-        (
-            DeviceParameter("my_param", ("value1", "value2")),
-            DeviceParameter("param2", range(3), 1),
-        ),
+        {
+            "my_param": DeviceParameter(("value1", "value2")),
+            "param2": DeviceParameter(range(3), 1),
+        },
     ),
 )
-def test_init(params: Sequence[DeviceParameter], qtbot) -> None:
+def test_init(params: Mapping[str, DeviceParameter], qtbot) -> None:
     """Test the constructor."""
     device_type = DeviceTypeInfo("my_class", "My Device", params)
 
@@ -39,11 +39,11 @@ def test_init(params: Sequence[DeviceParameter], qtbot) -> None:
     ) as load_params_mock:
         widget = DeviceParametersWidget(device_type)
         assert widget.device_type is device_type
-        assert list(widget._combos.keys()) == [p.name for p in params]
+        assert widget._combos.keys() == params.keys()
         load_params_mock.assert_called_once_with()
 
-        for param in params:
-            combo = widget._combos[param.name]
+        for name, param in params.items():
+            combo = widget._combos[name]
             items = [combo.itemText(i) for i in range(combo.count())]
             assert items == list(map(str, param.possible_values))
             assert (

@@ -43,7 +43,7 @@ class DeviceParametersWidget(QWidget):
 
         # Make a combo box for each parameter
         self._combos: dict[str, QComboBox] = {}
-        for param in device_type.parameters:
+        for name, param in device_type.parameters.items():
             combo = QComboBox()
             combo.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
 
@@ -56,7 +56,7 @@ class DeviceParametersWidget(QWidget):
                 combo.setCurrentIndex(param.possible_values.index(param.default_value))
 
             layout.addWidget(combo)
-            self._combos[param.name] = combo
+            self._combos[name] = combo
 
         # If there are saved parameter values, load them now
         self.load_saved_parameter_values()
@@ -175,7 +175,7 @@ class DeviceTypeControl(QGroupBox):
         The "open" button should be disabled if there are no possible values for any
         of the params.
         """
-        all_params = self.current_device_type_widget.device_type.parameters
+        all_params = self.current_device_type_widget.device_type.parameters.values()
         self._open_close_btn.setEnabled(all(p.possible_values for p in all_params))
 
     def _on_device_selected(self) -> None:

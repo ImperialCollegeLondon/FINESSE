@@ -56,8 +56,8 @@ def test_on_device_list(widget_mock: Mock, widget: DeviceControl, qtbot) -> None
     """Test the _on_device_list() method."""
     base_type = DeviceBaseTypeInfo("base_type", "Base type", (), ())
     device_types = [
-        DeviceTypeInfo("my_class1", "Device 1", []),
-        DeviceTypeInfo("my_class2", "Device 2", []),
+        DeviceTypeInfo("my_class1", "Device 1"),
+        DeviceTypeInfo("my_class2", "Device 2"),
     ]
 
     with patch.object(widget, "layout"):
