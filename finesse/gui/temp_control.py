@@ -129,7 +129,7 @@ class TemperaturePlot(QGroupBox):
         self._canvas.draw()
 
     def _update_figure(
-        self, new_time: float, new_hot_data: Decimal, new_cold_data: Decimal
+        self, new_time: float, new_hot_data: float, new_cold_data: float
     ) -> None:
         """Updates the matplotlib figure to be contained within the panel.
 
@@ -186,8 +186,8 @@ class TemperaturePlot(QGroupBox):
             time: the time that the temperatures were read
             temperatures: the list of temperatures measured by the DP9800
         """
-        hot_bb_temp = temperatures[TEMPERATURE_MONITOR_HOT_BB_IDX]
-        cold_bb_temp = temperatures[TEMPERATURE_MONITOR_COLD_BB_IDX]
+        hot_bb_temp = float(temperatures[TEMPERATURE_MONITOR_HOT_BB_IDX])
+        cold_bb_temp = float(temperatures[TEMPERATURE_MONITOR_COLD_BB_IDX])
 
         self._update_figure(time.timestamp(), hot_bb_temp, cold_bb_temp)
 
