@@ -7,7 +7,7 @@ from PySide6.QtWidgets import (
     QGroupBox,
     QHBoxLayout,
     QMainWindow,
-    QToolBar,
+    QMenu,
     QWidget,
 )
 
@@ -39,10 +39,9 @@ class MainWindow(QMainWindow):
         set_uncaught_exception_handler(self)
 
         docs_viewer = DocsViewer(self)
-        toolbar = QToolBar()
-        toolbar.setMovable(False)
-        toolbar.addAction(docs_viewer)
-        self.addToolBar(toolbar)
+        helpmenu = QMenu("Help", self)
+        helpmenu.addAction(docs_viewer)
+        self.menuBar().addMenu(helpmenu)
 
         layout_left = QGridLayout()
 
