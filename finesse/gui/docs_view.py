@@ -2,6 +2,7 @@
 from importlib import resources
 from pathlib import Path
 
+from PySide6.QtCore import QObject
 from PySide6.QtGui import QAction
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWidgets import QMainWindow, QToolBar, QVBoxLayout, QWidget
@@ -10,7 +11,7 @@ from PySide6.QtWidgets import QMainWindow, QToolBar, QVBoxLayout, QWidget
 class DocsViewer(QAction):
     """A window for viewing documentation."""
 
-    def __init__(self, parent) -> None:
+    def __init__(self, parent: QObject) -> None:
         """Create a menu item for opening documentation in a new window.
 
         Args:
