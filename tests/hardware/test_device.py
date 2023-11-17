@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
-from finesse.device_info import DeviceParameter, DeviceTypeInfo
+from finesse.device_info import DeviceParameter
 from finesse.hardware.device import AbstractDevice, Device, get_device_types
 
 
@@ -138,18 +138,6 @@ def test_abstract_device_default_value() -> None:
     }
 
 
-def test_abstract_device_device_parameters() -> None:
-    """Test AbstractDevice's device parameter classmethods."""
-
-    class MyDevice(AbstractDevice):
-        pass
-
-    assert not MyDevice.get_device_parameters()
-    param = DeviceParameter("", ("a", "b"))
-    MyDevice.add_device_parameters(my_param=param)
-    assert MyDevice.get_device_parameters() == {"my_param": param}
-
-
 def test_abstract_device_get_device_base_type_info() -> None:
     """Test the get_device_base_type_info() classmethod."""
 
@@ -157,21 +145,6 @@ def test_abstract_device_get_device_base_type_info() -> None:
         _device_base_type_info = "INFO"  # type: ignore
 
     assert MyDevice.get_device_base_type_info() == "INFO"
-
-
-def test_abstract_device_get_device_type_info() -> None:
-    """Test the get_device_type_info() classmethod."""
-
-    class MyDevice(AbstractDevice):
-        _device_description = "DESCRIPTION"
-
-    param = DeviceParameter("", ("a", "b"))
-    MyDevice.add_device_parameters(my_param=param)
-
-    with patch("finesse.hardware.device._plugins_name", MyDevice.__module__):
-        assert MyDevice.get_device_type_info() == DeviceTypeInfo(
-            "MyDevice", "DESCRIPTION", {"my_param": param}
-        )
 
 
 def _wrapped_func_error_test(device: Device, wrapper: Callable, *args) -> None:

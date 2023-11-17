@@ -1,6 +1,5 @@
 """This module provides an interface to Seneca temperature readers."""
 from collections.abc import Sequence
-from typing import Any
 
 import numpy
 from serial import SerialException
@@ -21,12 +20,7 @@ class SenecaK107Error(Exception):
     """Indicates that an error occurred while communicating with the device."""
 
 
-class SenecaK107(
-    SerialDevice,
-    TemperatureMonitorBase,
-    description="Seneca K107",
-    default_baudrate=57600,
-):
+class SenecaK107(SerialDevice, TemperatureMonitorBase, description="Seneca K107"):
     """An interface for the Seneca K107USB serial converter.
 
     This device communicates through the MODBUS-RTU protocol and outputs data from
@@ -39,24 +33,24 @@ class SenecaK107(
 
     def __init__(
         self,
+        port: str,
+        baudrate: int = 57600,
         min_temp: int = SENECA_MIN_TEMP,
         max_temp: int = SENECA_MAX_TEMP,
         min_millivolt: int = SENECA_MIN_MILLIVOLT,
         max_millivolt: int = SENECA_MAX_MILLIVOLT,
-        *serial_args: Any,
-        **serial_kwargs: Any,
     ) -> None:
         """Create a new SenecaK107.
 
         Args:
+            port: Description of USB port (vendor ID + product ID + serial number)
+            baudrate: Baud rate of port
             min_temp: The minimum temperature limit of the device.
             max_temp: The maximum temperature limit of the device.
             min_millivolt: The minimum voltage output (millivolts) of the device.
             max_millivolt: The maximum voltage output (millivolts) of the device.
-            serial_args: Arguments to Serial constructor
-            serial_kwargs: Keyword arguments to Serial constructor
         """
-        SerialDevice.__init__(self, *serial_args, **serial_kwargs)
+        SerialDevice.__init__(self, port, baudrate)
         TemperatureMonitorBase.__init__(self)
 
         self.MIN_TEMP = min_temp
