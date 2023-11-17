@@ -102,7 +102,14 @@ class EM27SensorsBase(
         )
 
 
-class EM27Sensors(EM27SensorsBase, description="EM27 sensors"):
+class EM27Sensors(
+    EM27SensorsBase,
+    description="EM27 sensors",
+    parameters={
+        "host": "The IP address or hostname of the EM27 device",
+        "poll_interval": "How often to poll the device in seconds",
+    },
+):
     """An interface for EM27 sensors on the real device."""
 
     def __init__(
