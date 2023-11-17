@@ -116,14 +116,19 @@ class HardwareSetsControl(QGroupBox):
             self._hardware_sets_combo.itemText(i)
             for i in range(self._hardware_sets_combo.count())
         }
-        if hw_set.name not in labels:
-            self._hardware_sets_combo.addItem(hw_set.name, hw_set)
+
+        name_root = hw_set.name
+        if hw_set.built_in:
+            name_root += " (built in)"
+
+        if name_root not in labels:
+            self._hardware_sets_combo.addItem(name_root, hw_set)
             return
 
         # If there is already a hardware set by that name, append a number
         i = 2
         while True:
-            name = f"{hw_set.name} ({i})"
+            name = f"{name_root} ({i})"
             if name not in labels:
                 self._hardware_sets_combo.addItem(name, hw_set)
                 return

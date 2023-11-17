@@ -73,29 +73,44 @@ def test_init(
         )
 
 
-def test_add_hardware_set(hw_sets: HardwareSetsControl, qtbot) -> None:
-    """Test the add_hardware_set() method."""
-    with patch.object(hw_sets._hardware_sets_combo, "addItem") as add_mock:
-        hw_set = MagicMock()
-        hw_set.name = "New name"
-        hw_sets._add_hardware_set(hw_set)
-        add_mock.assert_called_once_with("New name", hw_set)
+@pytest.mark.parametrize(
+    "existing_hw_sets,hw_set_name,expected_name,built_in",
+    (
+        ((), HW_SETS[0].name, HW_SETS[0].name, False),
+        ((HW_SETS[0],), HW_SETS[0].name, f"{HW_SETS[0].name} (2)", False),
+        ((HW_SETS[0], HW_SETS[0]), HW_SETS[0].name, f"{HW_SETS[0].name} (3)", False),
+        ((), HW_SETS[0].name, f"{HW_SETS[0].name} (built in)", True),
+        ((HW_SETS[0],), HW_SETS[0].name, f"{HW_SETS[0].name} (built in) (2)", True),
+        (
+            (HW_SETS[0], HW_SETS[0]),
+            HW_SETS[0].name,
+            f"{HW_SETS[0].name} (built in) (3)",
+            True,
+        ),
+    ),
+)
+def test_add_hardware_set(
+    existing_hw_sets: Sequence[HardwareSet],
+    hw_set_name: str,
+    expected_name: str,
+    built_in: bool,
+    hw_sets: HardwareSetsControl,
+    qtbot,
+) -> None:
+    """Test the _add_hardware_set() method."""
+    # Patch this function, because it'll break if the combo box is empty
+    with patch.object(hw_sets, "_update_control_state"):
+        hw_sets._hardware_sets_combo.clear()
+        for hw_set in existing_hw_sets:
+            hw_set = HardwareSet(
+                hw_set.name, hw_set.devices, hw_set.file_path, built_in
+            )
+            hw_sets._add_hardware_set(hw_set)
 
-        # Check a number is appended if the name already exists
-        add_mock.reset_mock()
-        hw_set2 = MagicMock()
-        hw_set2.name = "Test 1"
-        hw_sets._add_hardware_set(hw_set2)
-        add_mock.assert_called_once_with("Test 1 (2)", hw_set2)
-
-    # Check that the number increments
-    hw_sets._hardware_sets_combo.addItem("Test 1 (2)")
-    with patch.object(hw_sets._hardware_sets_combo, "addItem") as add_mock:
-        add_mock.reset_mock()
-        hw_set3 = MagicMock()
-        hw_set3.name = "Test 1"
-        hw_sets._add_hardware_set(hw_set3)
-        add_mock.assert_called_once_with("Test 1 (3)", hw_set3)
+        with patch.object(hw_sets._hardware_sets_combo, "addItem") as add_mock:
+            hw_set = HardwareSet(hw_set_name, frozenset(), Path(), built_in)
+            hw_sets._add_hardware_set(hw_set)
+            add_mock.assert_called_once_with(expected_name, hw_set)
 
 
 DEVICES = [
