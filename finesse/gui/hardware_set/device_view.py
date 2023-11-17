@@ -10,6 +10,7 @@ from PySide6.QtWidgets import (
     QComboBox,
     QGroupBox,
     QHBoxLayout,
+    QLineEdit,
     QPushButton,
     QSizePolicy,
     QVBoxLayout,
@@ -21,6 +22,61 @@ from finesse.gui.error_message import show_error_message
 from finesse.gui.hardware_set.device_connection import close_device, open_device
 from finesse.gui.hardware_set.hardware_set import OpenDeviceArgs
 from finesse.settings import settings
+
+
+class ComboParameterWidget(QComboBox):
+    """A widget showing the possible parameter values in a combo box."""
+
+    def __init__(self, values: Sequence) -> None:
+        """Create a new ComboParameterWidget.
+
+        Args:
+            values: The possible values for this parameter
+        """
+        super().__init__()
+        self.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+
+        # Keep the "real" value along with its string representation, so that we can
+        # pass it back to the backend on device open
+        for value in values:
+            self.addItem(str(value), value)
+
+    @property
+    def value(self) -> Any:
+        """The currently selected parameter value."""
+        return self.currentData()
+
+    @value.setter
+    def value(self, new_value: Any) -> Any:
+        """Set the parameter value."""
+        self.setCurrentText(str(new_value))
+
+
+class TextParameterWidget(QLineEdit):
+    """A widget allowing the user to enter parameter values into a text box."""
+
+    def __init__(self, param_type: type) -> None:
+        """Create a new TextParameterWidget.
+
+        Args:
+            param_type: The type that the parameter must be
+        """
+        super().__init__()
+        self._param_type = param_type
+
+    @property
+    def value(self) -> Any:
+        """The currently selected parameter value.
+
+        Raises:
+            Exception: If relevant type cannot be constructed from string
+        """
+        return self._param_type(self.text())
+
+    @value.setter
+    def value(self, new_value: Any) -> Any:
+        """Set the parameter value."""
+        self.setText(str(new_value))
 
 
 class DeviceParametersWidget(QWidget):
@@ -41,35 +97,25 @@ class DeviceParametersWidget(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
-        # Make a combo box for each parameter
-        self._combos: dict[str, QComboBox] = {}
+        # Make a widget for each parameter
+        self._param_widgets: dict[str, ComboParameterWidget | TextParameterWidget] = {}
         for name, param in device_type.parameters.items():
-            # The frontend currently can't deal with "typed" parameters, so ignore these
-            # for now
-            if not isinstance(param.possible_values, Sequence):
-                continue
-
-            combo = QComboBox()
-            combo.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
-            combo.setToolTip(param.description)
-
-            # Keep the "real" value along with its string representation, so that we can
-            # pass it back to the backend on device open
-            for value in param.possible_values:
-                combo.addItem(str(value), value)
+            cls = (
+                ComboParameterWidget
+                if isinstance(param.possible_values, Sequence)
+                else TextParameterWidget
+            )
+            widget = cls(param.possible_values)
+            widget.setToolTip(param.description)
 
             if param.default_value is not None:
-                combo.setCurrentIndex(param.possible_values.index(param.default_value))
+                widget.value = param.default_value
 
-            layout.addWidget(combo)
-            self._combos[name] = combo
+            layout.addWidget(widget)
+            self._param_widgets[name] = widget
 
         # If there are saved parameter values, load them now
         self.load_saved_parameter_values()
-
-    def set_parameter_value(self, param: str, value: Any) -> None:
-        """Set the relevant combo box's parameter value."""
-        self._combos[param].setCurrentText(str(value))
 
     def load_saved_parameter_values(self) -> None:
         """Set the combo boxes' parameter values according to their saved values."""
@@ -82,14 +128,14 @@ class DeviceParametersWidget(QWidget):
 
         for param, value in params.items():
             try:
-                self.set_parameter_value(param, value)
+                self._param_widgets[param].value = value
             except Exception as error:
                 logging.warn(f"Error while setting param {param}: {error!s}")
 
     @property
     def current_parameter_values(self) -> dict[str, Any]:
         """Get all parameters and their current values."""
-        return {param: combo.currentData() for param, combo in self._combos.items()}
+        return {param: widget.value for param, widget in self._param_widgets.items()}
 
 
 class DeviceTypeControl(QGroupBox):
@@ -240,11 +286,17 @@ class DeviceTypeControl(QGroupBox):
     def _open_device(self) -> None:
         """Open the currently selected device."""
         widget = self.current_device_type_widget
-        open_device(
-            widget.device_type.class_name,
-            self._device_instance,
-            widget.current_parameter_values,
-        )
+
+        try:
+            params = widget.current_parameter_values
+        except ValueError:
+            show_error_message(
+                self,
+                "Invalid value given for at least one parameter",
+                "Invalid parameter value",
+            )
+        else:
+            open_device(widget.device_type.class_name, self._device_instance, params)
 
     def _on_device_opened(
         self, instance: DeviceInstanceRef, class_name: str, params: Mapping[str, Any]
