@@ -46,10 +46,10 @@ class HardwareSet:
     name: str
     devices: frozenset[OpenDeviceArgs]
     file_path: Path
-    read_only: bool
+    built_in: bool
 
     @classmethod
-    def load(cls, file_path: Path, read_only: bool = False) -> HardwareSet:
+    def load(cls, file_path: Path, built_in: bool = False) -> HardwareSet:
         """Load a HardwareSet from a YAML file."""
         logging.info(f"Loading hardware set from {file_path}")
 
@@ -61,11 +61,11 @@ class HardwareSet:
             for k, v in plain_data.get("devices", {}).items()
         )
 
-        return cls(plain_data["name"], devices, file_path, read_only)
+        return cls(plain_data["name"], devices, file_path, built_in)
 
 
 def load_builtin_hardware_sets() -> Generator[HardwareSet, None, None]:
     """Load all the default hardware sets included with FINESSE."""
     pkg_path = str(resources.files("finesse.gui.hardware_set").joinpath())
     for filepath in Path(pkg_path).glob("*.yaml"):
-        yield HardwareSet.load(filepath, read_only=True)
+        yield HardwareSet.load(filepath, built_in=True)

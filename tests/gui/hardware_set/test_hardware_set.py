@@ -82,4 +82,4 @@ def test_load_builtin_hardware_sets(load_mock: Mock) -> None:
     pkg_path = str(resources.files("finesse.gui.hardware_set").joinpath())
     yaml_files = Path(pkg_path).glob("*.yaml")
     list(load_builtin_hardware_sets())  # assume return value is correct
-    load_mock.assert_has_calls([call(file, read_only=True) for file in yaml_files])
+    load_mock.assert_has_calls([call(file, built_in=True) for file in yaml_files])
