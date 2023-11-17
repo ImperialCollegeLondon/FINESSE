@@ -1,7 +1,15 @@
 """Code for FINESSE's main GUI window."""
+
 from pubsub import pub
 from PySide6.QtGui import QHideEvent, QShowEvent
-from PySide6.QtWidgets import QGridLayout, QGroupBox, QHBoxLayout, QMainWindow, QWidget
+from PySide6.QtWidgets import (
+    QGridLayout,
+    QGroupBox,
+    QHBoxLayout,
+    QMainWindow,
+    QMenu,
+    QWidget,
+)
 
 from finesse.config import (
     APP_NAME,
@@ -10,6 +18,7 @@ from finesse.config import (
 )
 from finesse.gui.data_file_view import DataFileControl
 from finesse.gui.device_view import DeviceControl
+from finesse.gui.docs_view import DocsViewer
 from finesse.gui.em27_monitor import EM27Monitor
 from finesse.gui.hardware_set.hardware_sets_view import HardwareSetsControl
 from finesse.gui.measure_script.script_view import ScriptControl
@@ -28,6 +37,11 @@ class MainWindow(QMainWindow):
         self.setWindowTitle(APP_NAME)
 
         set_uncaught_exception_handler(self)
+
+        docs_viewer = DocsViewer(self)
+        helpmenu = QMenu("Help", self)
+        helpmenu.addAction(docs_viewer)
+        self.menuBar().addMenu(helpmenu)
 
         layout_left = QGridLayout()
 
