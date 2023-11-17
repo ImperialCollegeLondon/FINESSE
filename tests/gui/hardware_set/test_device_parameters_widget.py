@@ -1,12 +1,15 @@
 """Tests for the DeviceParametersWidget class."""
-from collections.abc import Mapping, Sequence
-from typing import cast
+from collections.abc import Mapping
 from unittest.mock import Mock, patch
 
 import pytest
 
 from finesse.device_info import DeviceParameter, DeviceTypeInfo
-from finesse.gui.hardware_set.device_view import DeviceParametersWidget
+from finesse.gui.hardware_set.device_view import (
+    ComboParameterWidget,
+    DeviceParametersWidget,
+    TextParameterWidget,
+)
 
 
 @pytest.fixture
@@ -14,9 +17,42 @@ def widget(qtbot) -> DeviceParametersWidget:
     """A fixture providing a DeviceParametersWidget."""
     return DeviceParametersWidget(
         DeviceTypeInfo(
-            "my_class", "My Device", {"my_param": DeviceParameter("", range(2))}
+            "my_class",
+            "My Device",
+            {
+                "param1": DeviceParameter("Parameter 1", range(2)),
+                "param2": DeviceParameter("Parameter 2", int, 0),
+            },
         )
     )
+
+
+def test_combo_parameter_widget(qtbot) -> None:
+    """Test the ComboParameterWidget class."""
+    widget = ComboParameterWidget(range(2))
+    assert all(i == widget.itemData(i) for i in range(2))
+
+    assert widget.currentIndex() == 0
+    assert widget.value == 0
+    widget.value = 1
+    assert widget.currentIndex() == 1
+    assert widget.value == 1
+
+
+def test_text_parameter_widget(qtbot) -> None:
+    """Test the TextParameterWidget class."""
+    widget = TextParameterWidget(int)
+    assert widget.text() == ""
+    widget.value = 0
+    assert widget.text() == "0"
+    assert widget.value == 0
+    widget.value = 1
+    assert widget.text() == "1"
+    assert widget.value == 1
+
+    widget.setText("non integer")
+    with pytest.raises(ValueError):
+        widget.value
 
 
 @pytest.mark.parametrize(
@@ -28,8 +64,8 @@ def widget(qtbot) -> DeviceParametersWidget:
         {"my_param": DeviceParameter("", ("value1", "value2"))},
         # two params
         {
-            "my_param": DeviceParameter("", ("value1", "value2")),
-            "param2": DeviceParameter("", range(3), 1),
+            "param1": DeviceParameter("", ("value1", "value2"), "value1"),
+            "param2": DeviceParameter("", int),
         },
     ),
 )
@@ -42,71 +78,53 @@ def test_init(params: Mapping[str, DeviceParameter], qtbot) -> None:
     ) as load_params_mock:
         widget = DeviceParametersWidget(device_type)
         assert widget.device_type is device_type
-        assert widget._combos.keys() == params.keys()
         load_params_mock.assert_called_once_with()
 
-        for name, param in params.items():
-            combo = widget._combos[name]
-            items = [combo.itemText(i) for i in range(combo.count())]
-
-            # Non-Sequence values are not currently supported
-            poss_values = cast(Sequence, param.possible_values)
-            assert items == list(map(str, poss_values))
-            assert (
-                combo.currentData() == param.default_value
-                if param.default_value
-                else poss_values[0]
-            )
+    assert widget._param_widgets.keys() == params.keys()
+    for name, param in params.items():
+        param_widget = widget._param_widgets[name]
+        if param.default_value:
+            assert param_widget.value == param.default_value
 
 
-def test_set_parameter_value(widget: DeviceParametersWidget) -> None:
-    """Test the set_parameter_value() method."""
-    combo = widget._combos["my_param"]
-    assert combo.currentText() == "0"
-
-    widget.set_parameter_value("my_param", 1)
-    assert combo.currentText() == "1"
-
-    widget.set_parameter_value("my_param", 5)  # invalid
-    assert combo.currentText() == "1"
-
-
+@pytest.mark.parametrize("param_name", ("param1", "param2"))
 @patch("finesse.gui.hardware_set.device_view.settings")
 def test_load_saved_parameter_values(
-    settings_mock: Mock, widget: DeviceParametersWidget, qtbot
+    settings_mock: Mock, param_name: str, widget: DeviceParametersWidget, qtbot
 ) -> None:
     """Test the load_saved_parameter_values() method."""
-    settings_mock.value.return_value = {"my_param": 1}
-    with patch.object(widget, "set_parameter_value") as set_param_mock:
-        widget.load_saved_parameter_values()
-        set_param_mock.assert_called_once_with("my_param", 1)
+    settings_mock.value.return_value = {param_name: 1}
+    assert widget._param_widgets[param_name].value == 0
+    widget.load_saved_parameter_values()
+    assert widget._param_widgets[param_name].value == 1
 
 
+@pytest.mark.parametrize("param_name", ("param1", "param2"))
 @patch("finesse.gui.hardware_set.device_view.settings")
 def test_load_saved_parameter_values_none_saved(
-    settings_mock: Mock, widget: DeviceParametersWidget, qtbot
+    settings_mock: Mock, param_name: str, widget: DeviceParametersWidget, qtbot
 ) -> None:
     """Test the load_saved_parameter_values() method if there are no values saved."""
     settings_mock.value.return_value = None
-    with patch.object(widget, "set_parameter_value") as set_param_mock:
-        widget.load_saved_parameter_values()
-        set_param_mock.assert_not_called()
+    assert widget._param_widgets[param_name].value == 0
+    widget.load_saved_parameter_values()
+    assert widget._param_widgets[param_name].value == 0
 
 
 @patch("finesse.gui.hardware_set.device_view.settings")
 @patch("finesse.gui.hardware_set.device_view.logging.warn")
 def test_load_saved_parameter_values_error(
-    warn_mock: Mock, settings_mock: Mock, widget: DeviceParametersWidget, qtbot
+    warn_mock: Mock,
+    settings_mock: Mock,
+    widget: DeviceParametersWidget,
+    qtbot,
 ) -> None:
     """Test the load_saved_parameter_values() method ignores errors."""
-    settings_mock.value.return_value = {"my_param": 1}
-    with patch.object(widget, "set_parameter_value") as set_param_mock:
-        set_param_mock.side_effect = KeyError
-        widget.load_saved_parameter_values()
-        set_param_mock.assert_called_once_with("my_param", 1)
-        warn_mock.assert_called_once()
+    settings_mock.value.return_value = {"made_up": 1}
+    widget.load_saved_parameter_values()
+    warn_mock.assert_called_once()
 
 
 def test_current_parameter_values(widget: DeviceParametersWidget, qtbot) -> None:
     """Test the current_parameter_values property."""
-    assert widget.current_parameter_values == {"my_param": 0}
+    assert widget.current_parameter_values == {"param1": 0, "param2": 0}

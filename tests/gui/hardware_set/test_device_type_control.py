@@ -208,6 +208,21 @@ def test_open_device(open_device_mock: Mock, widget: DeviceTypeControl, qtbot) -
     )
 
 
+@patch("finesse.gui.hardware_set.device_view.show_error_message")
+@patch(
+    "finesse.gui.hardware_set.device_view"
+    ".DeviceParametersWidget.current_parameter_values",
+    new_callable=PropertyMock,
+)
+def test_open_device_bad_params(
+    get_params_mock: Mock, error_message_mock: Mock, widget: DeviceTypeControl, qtbot
+) -> None:
+    """Test that a dialog is shown when parameter values are invalid."""
+    get_params_mock.side_effect = ValueError
+    widget._open_device()
+    error_message_mock.assert_called_once()
+
+
 @patch("finesse.gui.hardware_set.device_view.close_device")
 def test_close_device(
     close_device_mock: Mock, widget: DeviceTypeControl, qtbot
