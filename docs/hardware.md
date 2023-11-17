@@ -79,7 +79,7 @@ Many messages for communicating with devices include a string indicating which d
 the communication is intended for. This is composed of the device base type's name and,
 if provided, the device's name. For example, this could be `stepper_motor` for the
 stepper motor and `temperature_controller.hot_bb` for the hot black body temperature
-monitor.
+controller.
 
 When the main program window has loaded, the plugins are dynamically loaded and
 information about each device type (grouped by base type) is sent to the frontend with
