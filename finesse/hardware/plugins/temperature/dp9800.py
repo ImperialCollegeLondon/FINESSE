@@ -1,7 +1,6 @@
 """This module provides an interface to DP9800 temperature readers."""
 from collections.abc import Sequence
 from decimal import Decimal
-from typing import Any
 
 from serial import SerialException
 
@@ -86,23 +85,21 @@ class DP9800Error(Exception):
     """Indicates that an error occurred while communicating with the device."""
 
 
-class DP9800(
-    SerialDevice, TemperatureMonitorBase, description="DP9800", default_baudrate=38400
-):
+class DP9800(SerialDevice, TemperatureMonitorBase, description="DP9800"):
     """An interface for DP9800 temperature readers.
 
     The manual for this device is available at:
     https://assets.omega.com/manuals/M5210.pdf
     """
 
-    def __init__(self, *serial_args: Any, **serial_kwargs: Any) -> None:
+    def __init__(self, port: str, baudrate: int = 38400) -> None:
         """Create a new DP9800.
 
         Args:
-            serial_args: Arguments to Serial constructor
-            serial_kwargs: Keyword arguments to Serial constructor
+            port: Description of USB port (vendor ID + product ID + serial number)
+            baudrate: Baud rate of port
         """
-        SerialDevice.__init__(self, *serial_args, **serial_kwargs)
+        SerialDevice.__init__(self, port, baudrate)
         TemperatureMonitorBase.__init__(self)
 
     def get_device_settings(self, sysflag: str) -> dict[str, str]:

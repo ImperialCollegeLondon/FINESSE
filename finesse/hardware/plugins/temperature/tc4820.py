@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import logging
 from decimal import Decimal
-from typing import Any
 
 from serial import SerialException
 
@@ -30,31 +29,26 @@ class MalformedMessageError(Exception):
     """Raised when a message sent or received was malformed."""
 
 
-class TC4820(
-    SerialDevice,
-    TemperatureControllerBase,
-    description="TC4820",
-    default_baudrate=115200,
-):
+class TC4820(SerialDevice, TemperatureControllerBase, description="TC4820"):
     """An interface for TC4820 temperature controllers."""
 
     def __init__(
-        self, name: str, *serial_args: Any, max_attempts: int = 3, **serial_kwargs: Any
+        self, name: str, port: str, baudrate: int = 115200, max_attempts: int = 3
     ) -> None:
         """Create a new TC4820 from an existing serial device.
 
         Args:
             name: The name of the device, to distinguish it from others
-            serial_args: Arguments to pass to Serial constructor
+            port: Description of USB port (vendor ID + product ID + serial number)
+            baudrate: Baud rate of port
             max_attempts: Maximum number of attempts for requests
-            serial_kwargs: Keyword arguments to pass to Serial constructor
         """
         if max_attempts < 1:
             raise ValueError("max_attempts must be at least 1")
 
         self.max_attempts = max_attempts
 
-        SerialDevice.__init__(self, *serial_args, **serial_kwargs)
+        SerialDevice.__init__(self, port, baudrate)
         TemperatureControllerBase.__init__(self, name)
 
     def close(self) -> None:

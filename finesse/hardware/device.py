@@ -137,11 +137,6 @@ class AbstractDevice(ABC):
         """Close the connection to the device."""
 
     @classmethod
-    def add_device_parameters(cls, **parameters: DeviceParameter) -> None:
-        """Add extra parameters for this device class."""
-        cls._device_parameters = cls._device_parameters | parameters
-
-    @classmethod
     def get_device_parameters(cls) -> dict[str, DeviceParameter]:
         """Get the parameters for this device class."""
         return cls._device_parameters
