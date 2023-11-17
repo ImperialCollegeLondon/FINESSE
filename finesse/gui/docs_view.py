@@ -2,7 +2,6 @@
 from importlib import resources
 from pathlib import Path
 
-from PySide6.QtCore import QUrl
 from PySide6.QtGui import QAction
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWidgets import QMainWindow, QToolBar, QVBoxLayout, QWidget
@@ -12,8 +11,12 @@ class DocsViewer(QAction):
     """A window for viewing documentation."""
 
     def __init__(self, parent) -> None:
-        """Create a push button for opening documentation in a new window."""
-        super().__init__("Help", parent)
+        """Create a menu item for opening documentation in a new window.
+
+        Args:
+            parent: the menu on which to place the menu item
+        """
+        super().__init__("Open user manual", parent)
         self.triggered.connect(self.show_docs)
 
     def show_docs(self) -> None:
@@ -28,7 +31,7 @@ class DocsViewer(QAction):
             A main window showing the html documentation.
         """
         docs_window = QMainWindow()
-        docs_window.setWindowTitle("FINESSE User Guide")
+        docs_window.setWindowTitle("FINESSE User Manual")
 
         toolbar = QToolBar()
         toolbar.setMovable(False)
@@ -57,6 +60,6 @@ class DocsViewer(QAction):
 
         return docs_window
 
-    def _open_homepage(self):
+    def _open_homepage(self) -> None:
         """Go to documentation home page."""
         self.browser.load(self.docs_home.as_uri())
