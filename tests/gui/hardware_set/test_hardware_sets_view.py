@@ -40,24 +40,24 @@ HW_SETS = [
 
 
 @pytest.fixture
-@patch("finesse.gui.hardware_set.hardware_sets_view.load_builtin_hardware_sets")
+@patch("finesse.gui.hardware_set.hardware_sets_view.get_hardware_sets")
 def hw_sets(
-    load_hw_sets_mock: Mock, sendmsg_mock: MagicMock, subscribe_mock: MagicMock, qtbot
+    get_hw_sets_mock: Mock, sendmsg_mock: MagicMock, subscribe_mock: MagicMock, qtbot
 ) -> HardwareSetsControl:
     """A fixture for the control."""
-    load_hw_sets_mock.return_value = HW_SETS
+    get_hw_sets_mock.return_value = HW_SETS
     return HardwareSetsControl()
 
 
 @pytest.mark.parametrize("selected_hw_set", (hw_set.name for hw_set in HW_SETS))
-@patch("finesse.gui.hardware_set.hardware_sets_view.load_builtin_hardware_sets")
+@patch("finesse.gui.hardware_set.hardware_sets_view.get_hardware_sets")
 def test_init(
-    load_hw_sets_mock: Mock, selected_hw_set: str, subscribe_mock: MagicMock, qtbot
+    get_hw_sets_mock: Mock, selected_hw_set: str, subscribe_mock: MagicMock, qtbot
 ) -> None:
     """Test the constructor."""
     with patch("finesse.gui.hardware_set.hardware_sets_view.settings") as settings_mock:
         settings_mock.value.return_value = selected_hw_set
-        load_hw_sets_mock.return_value = HW_SETS
+        get_hw_sets_mock.return_value = HW_SETS
         hw_sets = HardwareSetsControl()
         settings_mock.value.assert_called_once_with("hardware_set/selected")
         assert hw_sets._hardware_sets_combo.count() == 2
