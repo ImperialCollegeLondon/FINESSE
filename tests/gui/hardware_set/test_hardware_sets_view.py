@@ -230,7 +230,7 @@ def test_on_device_opened(
         update_mock.assert_called_once_with()
         settings_mock.setValue.assert_has_calls(
             [
-                call(f"device/type/{device.instance.topic}", device.class_name),
+                call(f"device/type/{device.instance!s}", device.class_name),
                 call(f"device/params/{device.class_name}", device.params),
             ]
         )
