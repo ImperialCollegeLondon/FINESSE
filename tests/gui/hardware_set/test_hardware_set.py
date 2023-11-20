@@ -11,7 +11,8 @@ from finesse.gui.hardware_set import hardware_set
 from finesse.gui.hardware_set.hardware_set import (
     HardwareSet,
     OpenDeviceArgs,
-    load_builtin_hardware_sets,
+    _load_builtin_hardware_sets,
+    get_hardware_sets,
 )
 
 FILE_PATH = Path("test/file.yaml")
@@ -81,5 +82,12 @@ def test_load_builtin_hardware_sets(load_mock: Mock) -> None:
     """Test the load_builtin_hardware_sets() function."""
     pkg_path = str(resources.files("finesse.gui.hardware_set").joinpath())
     yaml_files = Path(pkg_path).glob("*.yaml")
-    list(load_builtin_hardware_sets())  # assume return value is correct
+    list(_load_builtin_hardware_sets())  # assume return value is correct
     load_mock.assert_has_calls([call(file, built_in=True) for file in yaml_files])
+
+
+def test_get_hardware_sets() -> None:
+    """Test the get_hardware_sets() method."""
+    hw_sets = list(range(2))
+    with patch("finesse.gui.hardware_set.hardware_set._hw_sets", hw_sets):
+        assert list(get_hardware_sets()) == hw_sets

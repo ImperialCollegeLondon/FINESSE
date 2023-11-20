@@ -63,9 +63,37 @@ class HardwareSet:
 
         return cls(plain_data["name"], devices, file_path, built_in)
 
+    def __lt__(self, other: HardwareSet) -> bool:
+        """For comparing HardwareSets."""
+        return (not self.built_in, self.name, self.file_path) < (
+            not other.built_in,
+            other.name,
+            other.file_path,
+        )
 
-def load_builtin_hardware_sets() -> Generator[HardwareSet, None, None]:
+
+def _load_builtin_hardware_sets() -> Generator[HardwareSet, None, None]:
     """Load all the default hardware sets included with FINESSE."""
     pkg_path = str(resources.files("finesse.gui.hardware_set").joinpath())
     for filepath in Path(pkg_path).glob("*.yaml"):
         yield HardwareSet.load(filepath, built_in=True)
+
+
+def _load_hardware_sets() -> None:
+    """Load all known hardware sets from disk."""
+    global _hw_sets
+    _hw_sets = sorted(_load_builtin_hardware_sets())
+
+
+def get_hardware_sets() -> Generator[HardwareSet, None, None]:
+    """Get all hardware sets in the store, sorted.
+
+    This function is a generator as we do not want to expose the underlying list, which
+    should only be modified in this module.
+    """
+    yield from _hw_sets
+
+
+_hw_sets: list[HardwareSet]
+
+_load_hardware_sets()

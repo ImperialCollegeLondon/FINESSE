@@ -21,7 +21,7 @@ from finesse.gui.hardware_set.device_view import DeviceControl
 from finesse.gui.hardware_set.hardware_set import (
     HardwareSet,
     OpenDeviceArgs,
-    load_builtin_hardware_sets,
+    get_hardware_sets,
 )
 from finesse.settings import settings
 
@@ -64,7 +64,7 @@ class HardwareSetsControl(QGroupBox):
         )
 
         # Populate combo box
-        for hw_set in load_builtin_hardware_sets():
+        for hw_set in get_hardware_sets():
             self._add_hardware_set(hw_set)
 
         # Remember which hardware set was in use the last time the program was run
