@@ -88,16 +88,15 @@ class DeviceInstanceRef:
     Used for disambiguating devices where there can be multiple instances.
     """
 
+    def __str__(self) -> str:
+        """Get the short string representation of this device."""
+        s = self.base_type
+        if self.name:
+            s += f".{self.name}"
+        return s
+
     @staticmethod
     def from_str(s: str) -> DeviceInstanceRef:
         """Convert from a string in the format "base_type.name" or "base_type"."""
         base_type, _, name = s.partition(".")
         return DeviceInstanceRef(base_type, name or None)
-
-    @property
-    def topic(self) -> str:
-        """Get the partial pubsub topic for this device."""
-        topic = self.base_type
-        if self.name:
-            topic += f".{self.name}"
-        return topic

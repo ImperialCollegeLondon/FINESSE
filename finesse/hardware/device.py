@@ -268,7 +268,7 @@ class Device(AbstractDevice):
         # Send pubsub message
         instance = self.get_instance_ref()
         pub.sendMessage(
-            f"device.error.{instance.topic}",
+            f"device.error.{instance!s}",
             instance=instance,
             error=error,
         )
