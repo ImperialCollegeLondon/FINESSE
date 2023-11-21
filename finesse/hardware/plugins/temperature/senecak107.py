@@ -59,7 +59,7 @@ class SenecaK107(SerialDevice, TemperatureMonitorBase, description="Seneca K107"
         self.MAX_MILLIVOLT = max_millivolt
 
         # The temperature range divided by the voltage range.
-        # This figure is used when convering the raw data to temperatures.
+        # This figure is used when converting the raw data to temperatures.
         temp_range = self.MAX_TEMP - self.MIN_TEMP
         millivolt_range = self.MAX_MILLIVOLT - self.MIN_MILLIVOLT
         self.SCALING_FACTOR = temp_range / millivolt_range
