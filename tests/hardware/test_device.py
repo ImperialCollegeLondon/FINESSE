@@ -106,7 +106,7 @@ def test_abstract_device_get_device_type_info() -> None:
     MyDevice.add_device_parameters(param)
 
     assert MyDevice.get_device_type_info() == DeviceTypeInfo(
-        "DESCRIPTION", [param], f"{MyDevice.__module__}.MyDevice"
+        f"{MyDevice.__module__}.MyDevice", "DESCRIPTION", [param]
     )
 
 

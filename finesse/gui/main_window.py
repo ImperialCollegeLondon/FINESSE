@@ -17,7 +17,6 @@ from finesse.config import (
     TEMPERATURE_MONITOR_HOT_BB_IDX,
 )
 from finesse.gui.data_file_view import DataFileControl
-from finesse.gui.device_view import DeviceControl
 from finesse.gui.docs_view import DocsViewer
 from finesse.gui.em27_monitor import EM27Monitor
 from finesse.gui.hardware_set.hardware_sets_view import HardwareSetsControl
@@ -54,9 +53,6 @@ class MainWindow(QMainWindow):
         # Setup for measure script panel
         measure_script = ScriptControl()
 
-        # Setup for device panel
-        device_control = DeviceControl()
-
         # Setup for interferometer monitor
         em27_monitor = EM27Monitor()
 
@@ -64,10 +60,9 @@ class MainWindow(QMainWindow):
 
         layout_left.addWidget(hardware_sets, 0, 0, 1, 2)
         layout_left.addWidget(stepper_motor, 1, 0, 1, 2)
-        layout_left.addWidget(opus, 2, 0, 1, 2)
-        layout_left.addWidget(measure_script, 3, 0, 1, 2)
-        layout_left.addWidget(device_control, 4, 0, 1, 1)
-        layout_left.addWidget(em27_monitor, 4, 1, 1, 1)
+        layout_left.addWidget(measure_script, 2, 0, 1, 2)
+        layout_left.addWidget(opus, 3, 0, 1, 1)
+        layout_left.addWidget(em27_monitor, 3, 1, 1, 1)
 
         layout_right = QGridLayout()
 

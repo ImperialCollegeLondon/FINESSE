@@ -42,7 +42,7 @@ HW_SETS = [
 @pytest.fixture
 @patch("finesse.gui.hardware_set.hardware_sets_view.load_builtin_hardware_sets")
 def hw_sets(
-    load_hw_sets_mock: Mock, subscribe_mock: MagicMock, qtbot
+    load_hw_sets_mock: Mock, sendmsg_mock: MagicMock, subscribe_mock: MagicMock, qtbot
 ) -> HardwareSetsControl:
     """A fixture for the control."""
     load_hw_sets_mock.return_value = HW_SETS
@@ -98,7 +98,10 @@ def test_add_hardware_set(hw_sets: HardwareSetsControl, qtbot) -> None:
         add_mock.assert_called_once_with("Test 1 (3)", hw_set3)
 
 
-DEVICES = [OpenDeviceArgs.create(f"type{i}", f"class{i}") for i in range(2)]
+DEVICES = [
+    OpenDeviceArgs.create(f"type{i}", f"class{i}", {"my_param": "my_value"})
+    for i in range(2)
+]
 
 
 def _get_devices(indexes: Sequence[int]) -> set[OpenDeviceArgs]:
@@ -197,7 +200,10 @@ def test_disconnect_button(
             update_mock.assert_called_once_with()
 
 
-def test_on_device_opened(hw_sets: HardwareSetsControl, qtbot) -> None:
+@patch("finesse.gui.hardware_set.hardware_sets_view.settings")
+def test_on_device_opened(
+    settings_mock: Mock, hw_sets: HardwareSetsControl, qtbot
+) -> None:
     """Test the _on_device_opened() method."""
     device = DEVICES[0]
     assert not hw_sets._connected_devices
@@ -207,6 +213,12 @@ def test_on_device_opened(hw_sets: HardwareSetsControl, qtbot) -> None:
         )
         assert hw_sets._connected_devices == {device}
         update_mock.assert_called_once_with()
+        settings_mock.setValue.assert_has_calls(
+            [
+                call(f"device/type/{device.instance.topic}", device.class_name),
+                call(f"device/params/{device.class_name}", device.params),
+            ]
+        )
 
 
 def test_on_device_closed(hw_sets: HardwareSetsControl, qtbot) -> None:
@@ -226,3 +238,18 @@ def test_on_device_closed_not_found(hw_sets: HardwareSetsControl, qtbot) -> None
     assert not hw_sets._connected_devices
     with does_not_raise():
         hw_sets._on_device_closed(device.instance)
+
+
+def test_show_manage_devices_dialog(hw_sets: HardwareSetsControl, qtbot) -> None:
+    """Test the _show_manage_devices_dialog() method."""
+    # Check that the dialog is created if it doesn't exist
+    assert not hasattr(hw_sets, "_manage_devices_dialog")
+    hw_sets._show_manage_devices_dialog()
+    dialog = hw_sets._manage_devices_dialog
+    assert not dialog.isHidden()
+
+    # If it already exists, check it is shown
+    dialog.hide()
+    hw_sets._show_manage_devices_dialog()
+    assert not dialog.isHidden()
+    assert hw_sets._manage_devices_dialog is dialog
