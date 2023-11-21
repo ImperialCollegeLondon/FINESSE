@@ -12,7 +12,7 @@ import yaml
 from frozendict import frozendict
 
 from finesse.device_info import DeviceInstanceRef
-from finesse.gui.device_connection import close_device, open_device
+from finesse.gui.hardware_set.device_connection import close_device, open_device
 
 
 @dataclass(frozen=True)

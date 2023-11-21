@@ -1,24 +1,50 @@
 """Provides a panel for choosing between hardware sets and (dis)connecting."""
 from collections.abc import Mapping
-from typing import Any, cast
+from typing import AbstractSet, Any, cast
 
 from frozendict import frozendict
 from pubsub import pub
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QComboBox,
+    QDialog,
+    QGridLayout,
     QGroupBox,
-    QHBoxLayout,
     QPushButton,
     QSizePolicy,
+    QVBoxLayout,
+    QWidget,
 )
 
 from finesse.device_info import DeviceInstanceRef
+from finesse.gui.hardware_set.device_view import DeviceControl
 from finesse.gui.hardware_set.hardware_set import (
     HardwareSet,
     OpenDeviceArgs,
     load_builtin_hardware_sets,
 )
 from finesse.settings import settings
+
+
+class ManageDevicesDialog(QDialog):
+    """A dialog for manually opening, closing and configuring devices."""
+
+    def __init__(
+        self, parent: QWidget, connected_devices: AbstractSet[OpenDeviceArgs]
+    ) -> None:
+        """Create a new ManageDevicesDialog.
+
+        Args:
+            parent: Parent window
+            connected_devices: Which devices are already connected
+        """
+        super().__init__(parent)
+        self.setWindowTitle("Manage devices")
+        self.setModal(True)
+
+        layout = QVBoxLayout()
+        layout.addWidget(DeviceControl(connected_devices))
+        self.setLayout(layout)
 
 
 class HardwareSetsControl(QGroupBox):
@@ -61,14 +87,28 @@ class HardwareSetsControl(QGroupBox):
         )
         self._disconnect_btn.pressed.connect(self._on_disconnect_btn_pressed)
 
+        manage_devices_btn = QPushButton("Manage devices")
+        manage_devices_btn.pressed.connect(self._show_manage_devices_dialog)
+        self._manage_devices_dialog: ManageDevicesDialog
+
         # Enable/disable controls
         self._update_control_state()
 
-        layout = QHBoxLayout()
-        layout.addWidget(self._hardware_sets_combo)
-        layout.addWidget(self._connect_btn)
-        layout.addWidget(self._disconnect_btn)
+        layout = QGridLayout()
+        layout.addWidget(self._hardware_sets_combo, 0, 0)
+        layout.addWidget(self._connect_btn, 0, 1)
+        layout.addWidget(self._disconnect_btn, 0, 2)
+        layout.addWidget(manage_devices_btn, 1, 0, 1, 3, Qt.AlignmentFlag.AlignHCenter)
         self.setLayout(layout)
+
+    def _show_manage_devices_dialog(self) -> None:
+        # Create dialog lazily
+        if not hasattr(self, "_manage_devices_dialog"):
+            self._manage_devices_dialog = ManageDevicesDialog(
+                self.window(), self._connected_devices
+            )
+
+        self._manage_devices_dialog.show()
 
     def _add_hardware_set(self, hw_set: HardwareSet) -> None:
         """Add a new hardware set to the combo box."""
@@ -137,6 +177,12 @@ class HardwareSetsControl(QGroupBox):
         self._connected_devices.add(
             OpenDeviceArgs(instance, class_name, frozendict(params))
         )
+
+        # Remember last opened device
+        settings.setValue(f"device/type/{instance.topic}", class_name)
+        if params:
+            settings.setValue(f"device/params/{class_name}", params)
+
         self._update_control_state()
 
     def _on_device_closed(self, instance: DeviceInstanceRef) -> None:
