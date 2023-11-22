@@ -3,6 +3,7 @@ from collections.abc import Sequence
 from typing import Any
 
 import numpy
+from crc import Calculator, Configuration
 from serial import SerialException
 
 from finesse.config import (
@@ -15,6 +16,29 @@ from finesse.hardware.plugins.temperature.temperature_monitor_base import (
     TemperatureMonitorBase,
 )
 from finesse.hardware.serial_device import SerialDevice
+
+
+def calculate_crc(data: bytes) -> int:
+    """Calculate block check character.
+
+    Args:
+        data: The message to check
+
+    Returns:
+        bcc: The calculated checksum
+    """
+    config = Configuration(
+        width=16,
+        polynomial=0x0001,
+        init_value=0xFFFF,
+        final_xor_value=0xA001,
+        reverse_input=True,
+        reverse_output=False,
+    )
+
+    calculator = Calculator(config)
+    checksum = calculator.checksum(data)
+    return checksum
 
 
 class SenecaK107Error(Exception):
@@ -74,7 +98,7 @@ class SenecaK107(
         """Read temperature data from the SenecaK107.
 
         Returns:
-            data: the sequence of bytes read from the device
+            data: The sequence of bytes read from the device
 
         Raises:
             SenecaK107Error: Malformed message received from device
@@ -120,6 +144,13 @@ class SenecaK107(
         """
         # Changes byte order as data read from device is in big-endian format
         dt = numpy.dtype(numpy.uint16).newbyteorder(">")
+
+        crc = calculate_crc(data)
+        check = numpy.frombuffer(data[19:], dt)
+
+        if crc != check:
+            raise SenecaK107Error("CRC check failed")
+
         # Converts incoming bytes into 16-bit ints
         ints = numpy.frombuffer(data, dt, 8, 3)
 
@@ -137,11 +168,11 @@ class SenecaK107(
         """
         # Convert from microvolts to millivolts
         vals /= 1000
-        # Adjusts for minimum voltage limit
+        # Adjusts for minimum voltage limit (Default 4)
         vals -= self.MIN_MILLIVOLT
-        # Scales for the device's dynamic range
+        # Scales for the device's dynamic range (Default 11.5625)
         vals *= self.SCALING_FACTOR
-        # Adjusts for minimum temperature limit
+        # Adjusts for minimum temperature limit (Default -80)
         vals += self.MIN_TEMP
         return vals
 
@@ -150,3 +181,9 @@ class SenecaK107(
         self.request_read()
         data = self.read()
         return self.parse_data(data)  # type: ignore
+
+
+if __name__ == "__main__":
+    # For testing in the lab
+    device = SenecaK107(-80, 105, 4, 20, "COM4", 57600)
+    print(device.get_temperatures())
