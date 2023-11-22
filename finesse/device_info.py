@@ -1,7 +1,7 @@
 """Provides common dataclasses about devices for using in backend and frontend."""
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from typing import Any
 
@@ -36,12 +36,12 @@ class DeviceParameter:
 class DeviceTypeInfo:
     """Description of a device."""
 
-    description: str
-    """A human-readable name for the device."""
-    parameters: list[DeviceParameter]
-    """The device parameters."""
     class_name: str
     """The name of the device's class including the module name."""
+    description: str
+    """A human-readable name for the device."""
+    parameters: Sequence[DeviceParameter]
+    """The device parameters."""
 
 
 @dataclass(frozen=True)
@@ -56,6 +56,20 @@ class DeviceBaseTypeInfo:
     """A list of possible names for this type of device."""
     names_long: Sequence[str]
     """A list of names for this type of device (human readable)."""
+
+    def get_instances_and_descriptions(self) -> Iterable[tuple[DeviceInstanceRef, str]]:
+        """Get instances and descriptions.
+
+        If there are no possible names for the type, then there will only be one
+        instance, otherwise there will be one per name.
+        """
+        if not self.names_long:
+            yield DeviceInstanceRef(self.name), self.description
+            return
+
+        for short, long in zip(self.names_short, self.names_long):
+            instance = DeviceInstanceRef(self.name, short)
+            yield instance, f"{self.description} ({long})"
 
 
 @dataclass(frozen=True)
