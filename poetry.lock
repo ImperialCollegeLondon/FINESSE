@@ -381,6 +381,17 @@ files = [
 toml = ["tomli"]
 
 [[package]]
+name = "crc"
+version = "5.0.0"
+description = "Library and CLI to calculate and verify all kinds of CRC checksums"
+optional = false
+python-versions = ">=3.8,<4.0"
+files = [
+    {file = "crc-5.0.0-py3-none-any.whl", hash = "sha256:30b01bfd580cfd2c05d26e32cb7592461499cf440ffd5c5789d0104ae8520b8e"},
+    {file = "crc-5.0.0.tar.gz", hash = "sha256:e79316c848d67e94579c0cad7be9f704f85f2cf8472517e64132a3340b7297eb"},
+]
+
+[[package]]
 name = "cycler"
 version = "0.11.0"
 description = "Composable style cycles"
@@ -2046,4 +2057,4 @@ watchmedo = ["PyYAML (>=3.10)"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.12"
-content-hash = "bc0fbe75a92d0289e8d0182dc5ec23bef01f87ac2161638a67ac7f33e9368452"
+content-hash = "cfba472aa462a3ed42edb76e05246ad43c4bd8830a99c9954c2fd39f4580e0f2"

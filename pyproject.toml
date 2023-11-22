@@ -25,6 +25,7 @@ numpy = "^1.26.1"
 decorator = "^5.1.1"
 pycsvy = "^0.2.2"
 frozendict = "^2.3.8"
+crc = "^5.0.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4"
