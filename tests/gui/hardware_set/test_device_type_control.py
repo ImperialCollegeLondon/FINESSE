@@ -11,8 +11,8 @@ from finesse.gui.hardware_set.device_view import (
 )
 
 DEVICE_TYPES = [
-    DeviceTypeInfo("my_class1", "Device 1", []),
-    DeviceTypeInfo("my_class2", "Device 2", []),
+    DeviceTypeInfo("my_class1", "Device 1"),
+    DeviceTypeInfo("my_class2", "Device 2"),
 ]
 
 
@@ -104,37 +104,23 @@ def test_init_no_device_types(qtbot) -> None:
 @pytest.mark.parametrize(
     "params,expected_enabled",
     (
-        ((DeviceParameter("param_not_poss", ()),), False),
+        ({"param_not_poss": DeviceParameter("", ())}, False),
         (
-            (
-                DeviceParameter(
-                    "param_poss",
-                    range(2),
-                ),
-            ),
+            {"param_poss": DeviceParameter("", range(2))},
             True,
         ),
         (
-            (
-                DeviceParameter("param_not_poss", ()),
-                DeviceParameter(
-                    "param_poss",
-                    range(2),
-                ),
-            ),
+            {
+                "param_not_poss": DeviceParameter("", ()),
+                "param_poss": DeviceParameter("", range(2)),
+            },
             False,
         ),
         (
-            (
-                DeviceParameter(
-                    "param_poss1",
-                    range(2),
-                ),
-                DeviceParameter(
-                    "param_poss2",
-                    range(2),
-                ),
-            ),
+            {
+                "param_poss1": DeviceParameter("", range(2)),
+                "param_poss2": DeviceParameter("", range(2)),
+            },
             True,
         ),
     ),
@@ -220,6 +206,21 @@ def test_open_device(open_device_mock: Mock, widget: DeviceTypeControl, qtbot) -
         widget._device_instance,
         widget._device_widgets[0].current_parameter_values,
     )
+
+
+@patch("finesse.gui.hardware_set.device_view.show_error_message")
+@patch(
+    "finesse.gui.hardware_set.device_view"
+    ".DeviceParametersWidget.current_parameter_values",
+    new_callable=PropertyMock,
+)
+def test_open_device_bad_params(
+    get_params_mock: Mock, error_message_mock: Mock, widget: DeviceTypeControl, qtbot
+) -> None:
+    """Test that a dialog is shown when parameter values are invalid."""
+    get_params_mock.side_effect = ValueError
+    widget._open_device()
+    error_message_mock.assert_called_once()
 
 
 @patch("finesse.gui.hardware_set.device_view.close_device")
