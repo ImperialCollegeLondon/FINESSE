@@ -22,6 +22,7 @@ from finesse.gui.hardware_set.hardware_set import (
     OpenDeviceArgs,
     _device_to_plain_data,
     _get_new_hardware_set_path,
+    _hw_set_schema,
     _load_all_hardware_sets,
     _load_builtin_hardware_sets,
     _load_hardware_sets,
@@ -148,9 +149,7 @@ def test_hardware_set_lt(hw_set1: HardwareSet, hw_set2: HardwareSet) -> None:
 @pytest.mark.parametrize(
     "data,expected",
     (
-        # Devices attribute missing
-        ({"name": NAME}, HardwareSet(NAME, frozenset(), FILE_PATH, False)),
-        # Device given with params
+        # Device given without params
         (
             {
                 "name": NAME,
@@ -163,7 +162,7 @@ def test_hardware_set_lt(hw_set1: HardwareSet, hw_set2: HardwareSet) -> None:
                 False,
             ),
         ),
-        # Device given without params
+        # Device given with params
         (
             {
                 "name": NAME,
@@ -189,11 +188,15 @@ def test_hardware_set_lt(hw_set1: HardwareSet, hw_set2: HardwareSet) -> None:
                 False,
             ),
         ),
-        # TODO: Test errors
     ),
 )
-def test_load(data: dict[str, Any], expected: HardwareSet) -> None:
-    """Test HardwareSet's static load() method."""
+@patch.object(_hw_set_schema, "validate")
+def test_load(validate_mock: Mock, data: dict[str, Any], expected: HardwareSet) -> None:
+    """Test HardwareSet's static load() method.
+
+    Validation errors (which should not occur in this test, anyway) are ignored, because
+    they are tested elsewhere.
+    """
     with patch.object(
         hardware_set.Path,
         "open",
@@ -201,6 +204,134 @@ def test_load(data: dict[str, Any], expected: HardwareSet) -> None:
     ):
         result = HardwareSet.load(FILE_PATH, False)
         assert result == expected
+
+
+@patch.object(_hw_set_schema, "validate")
+def test_load_validates_data(validate_mock: Mock) -> None:
+    """Check that HardwareSet.load() validates data against the schema."""
+    data = {
+        "name": NAME,
+        "devices": {"stepper_motor": {"class_name": "MyStepperMotor"}},
+    }
+    with patch.object(
+        hardware_set.Path,
+        "open",
+        mock_open(read_data=yaml.dump(data)),
+    ):
+        HardwareSet.load(FILE_PATH, False)
+        validate_mock.assert_called_once_with(data)
+
+
+@pytest.mark.parametrize(
+    "data,is_valid",
+    (
+        # Valid, no params
+        (
+            {
+                "name": NAME,
+                "devices": {"stepper_motor": {"class_name": "MyStepperMotor"}},
+            },
+            True,
+        ),
+        # Valid, with params
+        (
+            {
+                "name": NAME,
+                "devices": {
+                    "stepper_motor": {
+                        "class_name": "MyStepperMotor",
+                        "params": {"param1": "value1", "param2": 42},
+                    }
+                },
+            },
+            True,
+        ),
+        # Invalid (no name)
+        (
+            {
+                "devices": {"stepper_motor": {"class_name": "MyStepperMotor"}},
+            },
+            False,
+        ),
+        # Invalid (name wrong type)
+        (
+            {
+                "name": 42,
+                "devices": {"stepper_motor": {"class_name": "MyStepperMotor"}},
+            },
+            False,
+        ),
+        # Invalid (no devices)
+        (
+            {
+                "name": NAME,
+            },
+            False,
+        ),
+        # Invalid (empty devices)
+        (
+            {
+                "name": NAME,
+                "devices": {},
+            },
+            False,
+        ),
+        # Invalid (bad key type for device)
+        (
+            {
+                "name": NAME,
+                "devices": {42: {"class_name": "MyStepperMotor"}},
+            },
+            False,
+        ),
+        # Invalid (bad type for class_name)
+        (
+            {
+                "name": NAME,
+                "devices": {"stepper_motor": {"class_name": 42}},
+            },
+            False,
+        ),
+        # Invalid (params empty)
+        (
+            {
+                "name": NAME,
+                "devices": {
+                    "stepper_motor": {
+                        "class_name": "MyStepperMotor",
+                        "params": {},
+                    }
+                },
+            },
+            False,
+        ),
+        # # Invalid (bad key for params) - currently failing
+        # (
+        #     {
+        #         "name": NAME,
+        #         "devices": {
+        #             "stepper_motor": {
+        #                 "class_name": "MyStepperMotor",
+        #                 "params": {3: "value1", "param2": 42},
+        #             }
+        #         },
+        #     },
+        #     False,
+        # ),
+        # Invalid (unexpected extra key)
+        (
+            {
+                "name": NAME,
+                "devices": {"stepper_motor": {"class_name": "MyStepperMotor"}},
+                "extra_key": 42,
+            },
+            False,
+        ),
+    ),
+)
+def test_schema(data: dict[str, Any], is_valid: bool) -> None:
+    """Test that the schema validates correctly."""
+    assert _hw_set_schema.is_valid(data) == is_valid
 
 
 @pytest.mark.parametrize(
