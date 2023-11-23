@@ -5,5 +5,5 @@ from finesse.config import APP_CONFIG_PATH
 
 # We use platformdirs to choose the path for config file because Qt seems to use a
 # slightly different scheme (at least on Linux)
-settings = QSettings(str(APP_CONFIG_PATH / "settings.conf"))
+settings = QSettings(str(APP_CONFIG_PATH / "settings.ini"), QSettings.Format.IniFormat)
 """Contains the program settings for FINESSE."""
