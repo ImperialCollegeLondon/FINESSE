@@ -10,8 +10,10 @@ from __future__ import annotations
 import logging
 import traceback
 from abc import ABC, abstractmethod
-from collections.abc import Callable, Sequence
-from typing import Any
+from collections.abc import Callable, Mapping, Sequence
+from copy import deepcopy
+from inspect import signature
+from typing import Any, get_type_hints
 
 from decorator import decorate
 from pubsub import pub
@@ -22,6 +24,7 @@ from finesse.device_info import (
     DeviceParameter,
     DeviceTypeInfo,
 )
+from finesse.hardware.plugins import __name__ as _plugins_name
 from finesse.hardware.plugins import load_all_plugins
 
 _base_types: set[type[Device]] = set()
@@ -67,28 +70,76 @@ class AbstractDevice(ABC):
     """Information about the device's base type."""
     _device_description: str
     """A human-readable name."""
-    _device_parameters: list[DeviceParameter] | None = None
+    _device_parameters: dict[str, DeviceParameter] = {}
     """Possible parameters that this device type accepts.
 
     The key represents the parameter name and the value is a list of possible values.
     """
+
+    def __init_subclass__(
+        cls, parameters: Mapping[str, str | tuple[str, Sequence]] = {}
+    ) -> None:
+        """Initialise a device class.
+
+        Args:
+            parameters: Extra device parameters that this class requires
+        """
+        super().__init_subclass__()
+
+        # Every time we create a new class, create a new _device_parameters attribute,
+        # so that _add_parameters() and _update_parameter_defaults() don't clobber
+        # values for the parent class.
+        cls._device_parameters = deepcopy(cls._device_parameters)
+
+        cls._add_parameters(parameters)
+        cls._update_parameter_defaults()
+
+    @classmethod
+    def _add_parameters(
+        cls,
+        parameters: Mapping[str, str | tuple[str, Sequence]],
+    ) -> None:
+        """Store extra device parameters in a class attribute."""
+        arg_types = get_type_hints(cls.__init__)
+        for name, value in parameters.items():
+            if isinstance(value, str):
+                # Only a description provided
+                try:
+                    arg_type = arg_types[name]
+                except KeyError:
+                    raise ValueError(
+                        f"The argument {name} was not found in "
+                        f"{cls.__name__}'s constructor (or no type annotation given)."
+                    )
+
+                cls._device_parameters[name] = DeviceParameter(value, arg_type)
+            elif isinstance(value, tuple):
+                # A description and possible values provided
+                cls._device_parameters[name] = DeviceParameter(value[0], value[1])
+            else:
+                # Bad type
+                raise TypeError("Invalid parameters argument")
+
+    @classmethod
+    def _update_parameter_defaults(cls) -> None:
+        """Add default values to device parameters from this class's constructor."""
+        ctor_params = signature(cls).parameters
+        for name, param in ctor_params.items():
+            if name not in cls._device_parameters:
+                continue
+
+            default_value = param.default
+            if default_value != param.empty:
+                cls._device_parameters[name].default_value = default_value
 
     @abstractmethod
     def close(self) -> None:
         """Close the connection to the device."""
 
     @classmethod
-    def add_device_parameters(cls, *parameters: DeviceParameter) -> None:
-        """Add extra parameters for this device class."""
-        if cls._device_parameters is None:
-            cls._device_parameters = []
-
-        cls._device_parameters.extend(parameters)
-
-    @classmethod
-    def get_device_parameters(cls) -> list[DeviceParameter]:
+    def get_device_parameters(cls) -> dict[str, DeviceParameter]:
         """Get the parameters for this device class."""
-        return cls._device_parameters or []
+        return cls._device_parameters
 
     @classmethod
     def get_device_base_type_info(cls) -> DeviceBaseTypeInfo:
@@ -98,8 +149,13 @@ class AbstractDevice(ABC):
     @classmethod
     def get_device_type_info(cls) -> DeviceTypeInfo:
         """Get information about this device type."""
+        class_name_full = f"{cls.__module__}.{cls.__name__}"
+        class_name = class_name_full.removeprefix(f"{_plugins_name}.")
+        if len(class_name) == len(class_name_full):
+            raise RuntimeError(f"Plugins must be in {_plugins_name}")
+
         return DeviceTypeInfo(
-            f"{cls.__module__}.{cls.__name__}",
+            class_name,
             cls._device_description,
             cls.get_device_parameters(),
         )

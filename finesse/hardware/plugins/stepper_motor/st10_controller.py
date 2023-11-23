@@ -9,7 +9,6 @@ The specification is available online:
 
 import logging
 from queue import Queue
-from typing import Any
 
 from pubsub import pub
 from PySide6.QtCore import QThread, Signal, Slot
@@ -156,9 +155,7 @@ class _SerialReader(QThread):
         return response
 
 
-class ST10Controller(
-    SerialDevice, StepperMotorBase, description="ST10 controller", default_baudrate=9600
-):
+class ST10Controller(SerialDevice, StepperMotorBase, description="ST10 controller"):
     """An interface for the ST10-Q-NN stepper motor controller.
 
     This class allows for moving the mirror to arbitrary positions and retrieving its
@@ -171,22 +168,20 @@ class ST10Controller(
     ST10_MODEL_ID = "107F024"
     """The model and revision number for the ST10 controller we are using."""
 
-    def __init__(
-        self, *serial_args: Any, timeout: float = 5.0, **serial_kwargs: Any
-    ) -> None:
+    def __init__(self, port: str, baudrate: int = 9600, timeout: float = 5.0) -> None:
         """Create a new ST10Controller.
 
         Args:
-            serial_args: Arguments to pass to Serial constructor
+            port: Description of USB port (vendor ID + product ID + serial number)
+            baudrate: Baud rate of port
             timeout: Connection timeout
-            serial_kwargs: Keyword arguments to pass to Serial constructor
 
         Raises:
             SerialException: Error communicating with device
             SerialTimeoutException: Timed out waiting for response from device
             ST10ControllerError: Malformed message received from device
         """
-        SerialDevice.__init__(self, *serial_args, **serial_kwargs)
+        SerialDevice.__init__(self, port, baudrate)
 
         self._reader = _SerialReader(self.serial, timeout)
         self._reader.async_read_completed.connect(self._send_move_end_message)
