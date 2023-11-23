@@ -14,6 +14,7 @@ from frozendict import frozendict
 from pubsub import pub
 from PySide6.QtCore import QFile
 from PySide6.QtWidgets import QMessageBox
+from schema import And, Optional, Schema
 
 from finesse.config import HARDWARE_SET_USER_PATH
 from finesse.device_info import DeviceInstanceRef
@@ -74,6 +75,27 @@ class HardwareSetLoadError(Exception):
         self.file_paths = file_paths
 
 
+def _non_empty(x: Any) -> bool:
+    return bool(x)
+
+
+_hw_set_schema = Schema(
+    {
+        "name": str,
+        "devices": And(
+            _non_empty,
+            {
+                str: {
+                    "class_name": str,
+                    Optional("params"): And(_non_empty, dict[str, Any]),
+                }
+            },
+        ),
+    }
+)
+"""Schema for validating hardware set config files."""
+
+
 @dataclass(frozen=True)
 class HardwareSet:
     """Represents a collection of devices for a particular hardware configuration."""
@@ -106,11 +128,13 @@ class HardwareSet:
         with file_path.open() as file:
             plain_data: dict[str, Any] = yaml.safe_load(file)
 
+        # Check that loaded data matches schema
+        _hw_set_schema.validate(plain_data)
+
         devices = frozenset(
             OpenDeviceArgs.create(k, **v)
             for k, v in plain_data.get("devices", {}).items()
         )
-
         return cls(plain_data["name"], devices, file_path, built_in)
 
 
