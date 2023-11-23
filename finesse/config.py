@@ -33,7 +33,10 @@ DEFAULT_SCRIPT_PATH = Path.home()
 DEFAULT_DATA_FILE_PATH = Path.home()
 """The default path to save data files."""
 
-EM27_URL = "http://10.10.0.1/diag_autom.htm"
+EM27_HOST = "10.10.0.1"
+"""The IP address or hostname of the EM27 device."""
+
+EM27_SENSORS_URL = "http://{host}/diag_autom.htm"
 """The URL of the EM27 monitoring web server."""
 
 EM27_SENSORS_POLL_INTERVAL = 60.0

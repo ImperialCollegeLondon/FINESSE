@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 from PySide6.QtNetwork import QNetworkReply
 
-from finesse.config import EM27_URL
+from finesse.config import EM27_SENSORS_URL
 from finesse.hardware.plugins.em27.em27_sensors import (
     EM27Error,
     EM27Property,
@@ -43,8 +43,8 @@ def test_init() -> None:
     with patch("finesse.hardware.plugins.em27.em27_sensors.QTimer") as qtimer_mock:
         qtimer = MagicMock()
         qtimer_mock.return_value = qtimer
-        sensors = EM27Sensors(2.0)
-        assert sensors._url == EM27_URL
+        sensors = EM27Sensors("1.2.3.4", 2.0)
+        assert sensors._url == EM27_SENSORS_URL.format(host="1.2.3.4")
         qtimer.timeout.connect.assert_called_once_with(sensors.send_data)
         qtimer.start.assert_called_once_with(2000)
 

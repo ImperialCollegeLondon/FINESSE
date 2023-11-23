@@ -1,21 +1,22 @@
 """Provides common dataclasses about devices for using in backend and frontend."""
 from __future__ import annotations
 
-from collections.abc import Iterable, Sequence
-from dataclasses import dataclass
-from typing import Any
+from collections.abc import Iterable, Mapping, Sequence
+from dataclasses import dataclass, field
+from typing import Any, cast
 
 
-@dataclass(frozen=True)
+@dataclass
 class DeviceParameter:
     """A parameter that a device needs (e.g. baudrate)."""
 
-    name: str
-    """Name for the parameter."""
+    description: str
+    """A human-readable description of the parameter."""
+    possible_values: Sequence | type
+    """Possible values the parameter can take.
 
-    possible_values: Sequence[Any]
-    """Possible values the parameter can take."""
-
+    This can either be a Sequence of possible values or a type (e.g. str or float).
+    """
     default_value: Any = None
     """The default value for this parameter.
 
@@ -23,16 +24,19 @@ class DeviceParameter:
 
     def __post_init__(self) -> None:
         """Check that default value is valid."""
-        if (
-            self.default_value is not None
-            and self.default_value not in self.possible_values
-        ):
-            raise RuntimeError(
-                f"Default value of {self.default_value} not in possible values"
-            )
+        if self.default_value is None:
+            return
+
+        if isinstance(self.possible_values, Sequence):
+            if self.default_value not in self.possible_values:
+                raise RuntimeError(
+                    f"Default value of {self.default_value} not in possible values"
+                )
+        elif not isinstance(self.default_value, cast(type, self.possible_values)):
+            raise RuntimeError("Default value doesn't match type of possible values")
 
 
-@dataclass(frozen=True)
+@dataclass
 class DeviceTypeInfo:
     """Description of a device."""
 
@@ -40,7 +44,7 @@ class DeviceTypeInfo:
     """The name of the device's class including the module name."""
     description: str
     """A human-readable name for the device."""
-    parameters: Sequence[DeviceParameter]
+    parameters: Mapping[str, DeviceParameter] = field(default_factory=dict)
     """The device parameters."""
 
 

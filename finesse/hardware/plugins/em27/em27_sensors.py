@@ -7,7 +7,12 @@ from decimal import Decimal
 from PySide6.QtCore import QTimer, Slot
 from PySide6.QtNetwork import QNetworkReply
 
-from finesse.config import EM27_SENSORS_POLL_INTERVAL, EM27_SENSORS_TOPIC, EM27_URL
+from finesse.config import (
+    EM27_HOST,
+    EM27_SENSORS_POLL_INTERVAL,
+    EM27_SENSORS_TOPIC,
+    EM27_SENSORS_URL,
+)
 from finesse.em27_info import EM27Property
 from finesse.hardware.device import Device
 from finesse.hardware.http_requester import HTTPRequester
@@ -71,7 +76,7 @@ class EM27SensorsBase(
 ):
     """An interface for monitoring EM27 properties."""
 
-    def __init__(self, url: str = EM27_URL) -> None:
+    def __init__(self, url: str) -> None:
         """Create a new EM27 property monitor.
 
         Args:
@@ -97,16 +102,26 @@ class EM27SensorsBase(
         )
 
 
-class EM27Sensors(EM27SensorsBase, description="EM27 sensors"):
+class EM27Sensors(
+    EM27SensorsBase,
+    description="EM27 sensors",
+    parameters={
+        "host": "The IP address or hostname of the EM27 device",
+        "poll_interval": "How often to poll the device in seconds",
+    },
+):
     """An interface for EM27 sensors on the real device."""
 
-    def __init__(self, poll_interval: float = EM27_SENSORS_POLL_INTERVAL) -> None:
+    def __init__(
+        self, host: str = EM27_HOST, poll_interval: float = EM27_SENSORS_POLL_INTERVAL
+    ) -> None:
         """Create a new EM27Sensors.
 
         Args:
+            host: The IP address or hostname of the EM27 device
             poll_interval: How often to poll the sensors (seconds)
         """
-        super().__init__()
+        super().__init__(EM27_SENSORS_URL.format(host=host))
         self._poll_timer = QTimer()
         self._poll_timer.timeout.connect(self.send_data)
         self._poll_timer.start(int(poll_interval * 1000))

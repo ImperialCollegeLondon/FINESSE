@@ -16,6 +16,7 @@ from finesse.hardware.manage_devices import (
     _open_device,
     _try_close_device,
 )
+from finesse.hardware.plugins import __name__ as _plugins_name
 
 
 def test_subscriptions():
@@ -56,7 +57,7 @@ def test_open_device(
     with patch("finesse.hardware.manage_devices._devices", devices_dict):
         class_name = "some.module.MyDevice"
         _open_device(instance=instance, class_name=class_name, params=params)
-        import_mock.assert_called_once_with("some.module")
+        import_mock.assert_called_once_with(f"{_plugins_name}.some.module")
 
         if name:
             device_cls_mock.assert_called_once_with(**params, name=name)
