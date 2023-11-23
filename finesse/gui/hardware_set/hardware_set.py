@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import bisect
 import logging
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 from importlib import resources
 from pathlib import Path
@@ -12,6 +12,8 @@ from typing import Any
 import yaml
 from frozendict import frozendict
 from pubsub import pub
+from PySide6.QtCore import QFile
+from PySide6.QtWidgets import QMessageBox
 
 from finesse.config import HARDWARE_SET_USER_PATH
 from finesse.device_info import DeviceInstanceRef
@@ -55,6 +57,21 @@ def _device_to_plain_data(device: OpenDeviceArgs) -> tuple[str, dict[str, Any]]:
         out_dict["params"] = dict(device.params)
 
     return str(device.instance), out_dict
+
+
+class HardwareSetLoadError(Exception):
+    """An exception raised when one or more hardware sets fails to load."""
+
+    def __init__(self, file_paths: Sequence[Path]) -> None:
+        """Create a new HardwareSetLoadError.
+
+        Args:
+            file_paths: The paths of files which failed to load
+        """
+        super().__init__(
+            f"Failed to load the following files: {', '.join(map(str, file_paths))}"
+        )
+        self.file_paths = file_paths
 
 
 @dataclass(frozen=True)
@@ -141,17 +158,62 @@ def _save_hardware_set(hw_set: HardwareSet) -> None:
         pub.sendMessage("hardware_set.added", hw_set=new_hw_set)
 
 
+def _load_hardware_sets(dir: Path, built_in: bool) -> Iterable[HardwareSet]:
+    """Load hardware sets from the specified directory.
+
+    Raises:
+        HardwareSetLoadError: If one or more files failed to load
+    """
+    failed_files: list[Path] = []
+    for path in dir.glob("*.yaml"):
+        try:
+            yield HardwareSet.load(path, built_in=built_in)
+        except Exception as error:
+            logging.error(f"Could not load file {path}: {error!s}")
+            failed_files.append(path)
+
+    # Only raise an error after yielding as many HardwareSets as will load
+    if failed_files:
+        raise HardwareSetLoadError(failed_files)
+
+
 def _load_builtin_hardware_sets() -> Iterable[HardwareSet]:
     """Load all the default hardware sets included with FINESSE."""
     pkg_path = str(resources.files("finesse.gui.hardware_set").joinpath())
-    for filepath in Path(pkg_path).glob("*.yaml"):
-        yield HardwareSet.load(filepath, built_in=True)
+
+    # In theory, this may raise an error, but let's assume that all the built-in configs
+    # are in the correct format
+    yield from _load_hardware_sets(Path(pkg_path), built_in=True)
 
 
-def _load_hardware_sets() -> None:
+def _load_user_hardware_sets() -> Iterable[HardwareSet]:
+    """Load hardware sets added by the user."""
+    try:
+        yield from _load_hardware_sets(HARDWARE_SET_USER_PATH, built_in=False)
+    except HardwareSetLoadError as error:
+        # Give the user the option of deleting malformed files
+        joined_paths = "\n - ".join(path.name for path in error.file_paths)
+        msg_box = QMessageBox(
+            QMessageBox.Icon.Critical,
+            "Failed to load hardware sets",
+            f"Failed to load the following hardware sets:\n\n - {joined_paths}\n\n"
+            "Would you like to move them to the recycle bin?",
+            QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel,
+        )
+        ret = msg_box.exec()
+        if ret == QMessageBox.StandardButton.Ok:
+            for path in error.file_paths:
+                if QFile.moveToTrash(str(path)):
+                    logging.info(f"Trashed {path}")
+                else:
+                    logging.error(f"Failed to trash {path}")
+
+
+def _load_all_hardware_sets() -> None:
     """Load all known hardware sets from disk."""
     global _hw_sets
     _hw_sets.extend(_load_builtin_hardware_sets())
+    _hw_sets.extend(_load_user_hardware_sets())
     _hw_sets.sort()
 
 
@@ -160,12 +222,17 @@ def get_hardware_sets() -> Iterable[HardwareSet]:
 
     This function is a generator as we do not want to expose the underlying list, which
     should only be modified in this module.
+
+    The hardware sets are loaded lazily on the first call to this function. The reason
+    for not automatically loading them when the module is imported is so that we can
+    display an error dialog if it fails, for which we need a running QApplication.
     """
+    if not _hw_sets:
+        _load_all_hardware_sets()
+
     yield from _hw_sets
 
 
 _hw_sets: list[HardwareSet] = []
-
-_load_hardware_sets()
 
 pub.subscribe(_save_hardware_set, "hardware_set.add")
