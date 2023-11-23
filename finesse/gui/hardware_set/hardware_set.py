@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import bisect
 import logging
-from collections.abc import Generator, Mapping
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 from importlib import resources
 from pathlib import Path
@@ -141,7 +141,7 @@ def _save_hardware_set(hw_set: HardwareSet) -> None:
         pub.sendMessage("hardware_set.added", hw_set=new_hw_set)
 
 
-def _load_builtin_hardware_sets() -> Generator[HardwareSet, None, None]:
+def _load_builtin_hardware_sets() -> Iterable[HardwareSet]:
     """Load all the default hardware sets included with FINESSE."""
     pkg_path = str(resources.files("finesse.gui.hardware_set").joinpath())
     for filepath in Path(pkg_path).glob("*.yaml"):
@@ -155,7 +155,7 @@ def _load_hardware_sets() -> None:
     _hw_sets.sort()
 
 
-def get_hardware_sets() -> Generator[HardwareSet, None, None]:
+def get_hardware_sets() -> Iterable[HardwareSet]:
     """Get all hardware sets in the store, sorted.
 
     This function is a generator as we do not want to expose the underlying list, which
