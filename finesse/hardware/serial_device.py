@@ -1,13 +1,10 @@
 """Provides a base class for USB serial devices."""
 from __future__ import annotations
 
-from typing import Any
-
 from serial import Serial, SerialException
 from serial.tools.list_ports import comports
 
 from finesse.config import BAUDRATES
-from finesse.device_info import DeviceParameter
 from finesse.hardware.device import AbstractDevice
 
 _serial_ports: dict[str, str] | None = None
@@ -64,7 +61,16 @@ def _get_usb_serial_ports() -> dict[str, str]:
     return _serial_ports
 
 
-class SerialDevice(AbstractDevice):
+class SerialDevice(
+    AbstractDevice,
+    parameters={
+        "port": (
+            "USB port, including vendor ID, product ID and serial number",
+            tuple(_get_usb_serial_ports().keys()),
+        ),
+        "baudrate": ("Baud rate", BAUDRATES),
+    },
+):
     """A base class for USB serial devices.
 
     Note that it is not sufficient for a device type class to inherit from this class
@@ -77,18 +83,13 @@ class SerialDevice(AbstractDevice):
     serial: Serial
     """Underlying serial device."""
 
-    def __init_subclass__(cls, default_baudrate: int, **kwargs: Any) -> None:
-        """Add serial-specific device parameters to the class."""
-        super().__init_subclass__(**kwargs)
-
-        # Extra, serial-specific parameters
-        cls.add_device_parameters(
-            DeviceParameter("port", list(_get_usb_serial_ports().keys())),
-            DeviceParameter("baudrate", BAUDRATES, default_baudrate),
-        )
-
     def __init__(self, port: str, baudrate: int) -> None:
-        """Create a new serial device."""
+        """Create a new serial device.
+
+        Args:
+            port: Description of USB port (vendor ID + product ID + serial number)
+            baudrate: Baud rate of port
+        """
         try:
             device = _serial_ports[port]  # type: ignore[index]
         except KeyError:

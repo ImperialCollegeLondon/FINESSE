@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
-from finesse.device_info import DeviceParameter, DeviceTypeInfo
+from finesse.device_info import DeviceParameter
 from finesse.hardware.device import AbstractDevice, Device, get_device_types
 
 
@@ -75,16 +75,67 @@ def test_get_device_types(load_plugins_mock: Mock) -> None:
             assert get_names(1) == ["Device0", "Device2"]
 
 
-def test_abstract_device_device_parameters() -> None:
-    """Test AbstractDevice's device parameter classmethods."""
+def test_abstract_device_add_parameters_description_only() -> None:
+    """Test adding a device parameter with only a description provided."""
 
-    class MyDevice(AbstractDevice):
-        pass
+    class MyDevice(AbstractDevice, parameters={"my_param": "My parameter"}):
+        def __init__(self, my_param: int) -> None:
+            pass
 
-    assert MyDevice.get_device_parameters() == []
-    param = DeviceParameter("param1", ["a", "b"])
-    MyDevice.add_device_parameters(param)
-    assert MyDevice.get_device_parameters() == [param]
+    assert MyDevice.get_device_parameters() == {
+        "my_param": DeviceParameter("My parameter", int)
+    }
+
+
+def test_abstract_device_add_parameters_possible_values() -> None:
+    """Test adding a device parameter with description and possible values provided."""
+
+    class MyDevice(AbstractDevice, parameters={"my_param": ("My parameter", range(2))}):
+        def __init__(self, my_param: int) -> None:
+            pass
+
+    assert MyDevice.get_device_parameters() == {
+        "my_param": DeviceParameter("My parameter", range(2))
+    }
+
+
+def test_abstract_device_add_parameters_missing_arg() -> None:
+    """Test that an error is raised for a missing parameter."""
+    with pytest.raises(ValueError):
+
+        class MyDevice(AbstractDevice, parameters={"my_param": "My parameter"}):
+            pass
+
+
+def test_abstract_device_add_parameters_bad_type() -> None:
+    """Test that a TypeError is raised for a bad parameter type."""
+    with pytest.raises(TypeError):
+
+        class MyDevice(AbstractDevice, parameters={"my_param": 42}):  # type: ignore
+            def __init__(self, my_param: int) -> None:
+                pass
+
+
+def test_abstract_device_default_value() -> None:
+    """Test that default values for parameters are set correctly."""
+
+    class MyDevice(AbstractDevice, parameters={"my_param": "My parameter"}):
+        def __init__(self, my_param: int = 42) -> None:
+            pass
+
+    # Default value (and type) should be set from __init__'s signature
+    assert MyDevice.get_device_parameters() == {
+        "my_param": DeviceParameter("My parameter", int, 42)
+    }
+
+    class MyDeviceSubclass(MyDevice):
+        def __init__(self, my_param: int = 43) -> None:
+            pass
+
+    # Default value should be different for this subclass
+    assert MyDeviceSubclass.get_device_parameters() == {
+        "my_param": DeviceParameter("My parameter", int, 43)
+    }
 
 
 def test_abstract_device_get_device_base_type_info() -> None:
@@ -94,20 +145,6 @@ def test_abstract_device_get_device_base_type_info() -> None:
         _device_base_type_info = "INFO"  # type: ignore
 
     assert MyDevice.get_device_base_type_info() == "INFO"
-
-
-def test_abstract_device_get_device_type_info() -> None:
-    """Test the get_device_type_info() classmethod."""
-
-    class MyDevice(AbstractDevice):
-        _device_description = "DESCRIPTION"
-
-    param = DeviceParameter("param1", ["a", "b"])
-    MyDevice.add_device_parameters(param)
-
-    assert MyDevice.get_device_type_info() == DeviceTypeInfo(
-        f"{MyDevice.__module__}.MyDevice", "DESCRIPTION", [param]
-    )
 
 
 def _wrapped_func_error_test(device: Device, wrapper: Callable, *args) -> None:

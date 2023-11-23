@@ -8,6 +8,7 @@ from pubsub import pub
 
 from finesse.device_info import DeviceInstanceRef
 from finesse.hardware.device import Device, get_device_types
+from finesse.hardware.plugins import __name__ as _plugins_name
 
 _devices: dict[DeviceInstanceRef, Device] = {}
 
@@ -37,7 +38,7 @@ def _open_device(
         class_name: The name of the device type's class
         params: Device parameters
     """
-    module, _, class_name_part = class_name.rpartition(".")
+    module, _, class_name_part = f"{_plugins_name}.{class_name}".rpartition(".")
 
     # Assume this is safe because the class and module will not be provided directly by
     # the user
