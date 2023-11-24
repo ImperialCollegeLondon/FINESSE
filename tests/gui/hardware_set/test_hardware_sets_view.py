@@ -71,7 +71,7 @@ def test_load_last_selected_hardware_set(
     settings_mock.value.return_value = selected_hw_set
     hw_control._load_last_selected_hardware_set()
     settings_mock.value.assert_called_once_with("hardware_set/selected")
-    assert hw_control._hardware_sets_combo.currentText() == expected_selection
+    assert hw_control._combo.currentText() == expected_selection
 
 
 @patch("finesse.gui.hardware_set.hardware_sets_view.get_hardware_sets")
@@ -189,12 +189,12 @@ def test_add_hardware_set(
     qtbot,
 ) -> None:
     """Test the _add_hardware_set() method."""
-    hw_control._hardware_sets_combo.clear()
+    hw_control._combo.clear()
     for hw_set in existing_hw_sets:
         hw_set = HardwareSet(hw_set.name, hw_set.devices, hw_set.file_path, built_in)
         hw_control._add_hardware_set(hw_set)
 
-    with patch.object(hw_control._hardware_sets_combo, "addItem") as add_mock:
+    with patch.object(hw_control._combo, "addItem") as add_mock:
         hw_set = HardwareSet(hw_set_name, frozenset(), Path(), built_in)
         hw_control._add_hardware_set(hw_set)
         add_mock.assert_called_once_with(expected_name, hw_set)
@@ -208,7 +208,7 @@ def test_on_hardware_set_added(
     qtbot,
 ) -> None:
     """Test the _on_hardware_set_added() method."""
-    with patch.object(hw_control, "_hardware_sets_combo") as combo_mock:
+    with patch.object(hw_control, "_combo") as combo_mock:
         combo_mock.itemData = lambda idx: hw_sets[idx]
         combo_mock.count.return_value = len(hw_sets)
         hw_control._on_hardware_set_added(hw_sets[1])
@@ -218,7 +218,7 @@ def test_on_hardware_set_added(
 
 def test_current_hardware_set(hw_control: HardwareSetsControl, qtbot) -> None:
     """Test the current_hardware_set property."""
-    with patch.object(hw_control._hardware_sets_combo, "currentData") as data_mock:
+    with patch.object(hw_control._combo, "currentData") as data_mock:
         hw_set = MagicMock()
         data_mock.return_value = hw_set
         assert hw_control.current_hardware_set is hw_set.devices
@@ -389,7 +389,7 @@ def test_remove_hw_set_btn(
     hw_control: HardwareSetsControl, sendmsg_mock: Mock, qtbot
 ) -> None:
     """Test that _remove_hw_set_btn works."""
-    with patch.object(hw_control._hardware_sets_combo, "currentData") as data_mock:
+    with patch.object(hw_control._combo, "currentData") as data_mock:
         hw_set = MagicMock()
         data_mock.return_value = hw_set
         hw_control._remove_hw_set_btn.click()
