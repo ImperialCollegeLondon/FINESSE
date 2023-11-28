@@ -99,7 +99,7 @@ class SenecaK107(SerialDevice, TemperatureMonitorBase, description="Seneca K107"
         except Exception as e:
             raise SenecaK107Error(e)
 
-    def parse_data(self, data: bytes) -> numpy.ndarray:
+    def parse_data(self, data: bytes) -> list[numpy.float64]:
         """Parse temperature data read from the SenecaK107.
 
         The sequence of bytes is put through the conversion function and translated
@@ -117,8 +117,7 @@ class SenecaK107(SerialDevice, TemperatureMonitorBase, description="Seneca K107"
         # Converts incoming bytes into 16-bit ints
         ints = numpy.frombuffer(data, dt, 8, 3)
 
-        vals = self.calc_temp(ints)
-        return vals
+        return [self.calc_temp(val) for val in ints]
 
     def calc_temp(self, vals: numpy.ndarray) -> numpy.ndarray:
         """Convert data read from the SenecaK107 device into temperatures.
