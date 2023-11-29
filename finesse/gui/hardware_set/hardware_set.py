@@ -106,7 +106,17 @@ class HardwareSet:
     built_in: bool
 
     def __lt__(self, other: HardwareSet) -> bool:
-        """For comparing HardwareSets."""
+        """Used for sorting HardwareSets.
+
+        Built-in hardware sets come before custom ones, then the hardware sets are
+        sorted by name. In the case that two hardware sets have the same name, they will
+        be distinguished by file path (which should be unique).
+
+        The GUI appends numbers to distinguish hardware sets with the same names. The
+        reason for also using the file path for sorting is because it is not guaranteed
+        that hardware set config files will always be loaded in the same order and we
+        don't want the name + number pairs to change between runs of FINESSE.
+        """
         return (not self.built_in, self.name, self.file_path) < (
             not other.built_in,
             other.name,
