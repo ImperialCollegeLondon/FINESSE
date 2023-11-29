@@ -1,6 +1,7 @@
 """Tests for the Seneca K107 device."""
 from unittest.mock import MagicMock, patch
 
+import numpy
 import pytest
 
 from finesse.hardware.plugins.temperature.senecak107 import SenecaK107, SenecaK107Error
@@ -75,9 +76,7 @@ def test_read_error(dev: SenecaK107, message: bytes) -> None:
 
 def test_parse_data(dev: SenecaK107, data: bytes) -> None:
     """Test SenecaK107.parse_data()."""
-    parsed = dev.parse_data(data)
-
-    assert parsed == [
+    expected = [
         19.946250000000006,
         20.085000000000008,
         631.4406250000001,
@@ -87,3 +86,6 @@ def test_parse_data(dev: SenecaK107, data: bytes) -> None:
         19.946250000000006,
         631.4406250000001,
     ]
+    parsed = dev.parse_data(data)
+
+    assert numpy.allclose(parsed, expected)
