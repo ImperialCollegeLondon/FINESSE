@@ -1,0 +1,50 @@
+# Hardware sets
+
+Hardware sets are collections of hardware device types along with their associated
+parameters. They are used in FINESSE to represent a particular hardware rig (e.g.
+FINESSE or UNIRAS), so that users can easily swap between them. FINESSE comes with some
+built in configurations, but users can also define their own, either for convenience
+during testing or to build on FINESSE's functionality.
+
+Hardware sets are represented in a [YAML](https://yaml.org) format. Custom hardware sets
+can be created and imported into FINESSE. Here is an example:
+
+```yaml
+name: My hardware set
+devices:
+  stepper_motor:
+    class_name: stepper_motor.st10_controller.ST10Controller
+    params:
+      port: "0403:6011 FT1NMSVR (4)"
+      baudrate: 9600
+  temperature_controller.hot_bb:
+    class_name: temperature.tc4820.TC4820
+    params:
+      port: "0403:6011 FT1NMSVR (2)"
+      baudrate: 115200
+  temperature_controller.cold_bb:
+    class_name: temperature.tc4820.TC4820
+    params:
+      port: "0403:6011 FT1NMSVR (3)"
+      baudrate: 115200
+  temperature_monitor:
+    class_name: temperature.dp9800.DP9800
+    params:
+      port: "0403:6001"
+      baudrate: 38400
+  em27_sensors:
+    class_name: em27.em27_sensors.EM27Sensors
+```
+
+The `name` property defines a human-readable name for the hardware set, to be displayed
+in the GUI and the `devices` property contains informations about the devices in this
+hardware set. The `devices` array consists of key-value pairs, with the keys
+corresponding to device base types (see [Hardware]). The values are YAML objects with a
+`class_name` property and (optionally) a `params` property. `class_name` is a string
+corresponding to the Python class name, along with the last part of the module name (all
+plugins are in the `finesse.hardware.plugins` module, so this part is omitted). `params`
+is also a YAML object, containing key-value pairs for each of the device parameters (see
+[Hardware] again). If any of the parameters are omitted, their default values will be
+used.
+
+[Hardware]: ./hardware.md
