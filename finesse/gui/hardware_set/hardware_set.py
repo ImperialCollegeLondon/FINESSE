@@ -227,7 +227,7 @@ def _load_user_hardware_sets() -> Iterable[HardwareSet]:
         ret = msg_box.exec()
         if ret != QMessageBox.StandardButton.Ok:
             return
-            
+
         for path in error.file_paths:
             if QFile.moveToTrash(str(path)):
                 logging.info(f"Trashed {path}")
