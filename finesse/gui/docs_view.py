@@ -44,7 +44,7 @@ class DocsViewer(QAction):
         docs_path = resources.files("docs")
         self.docs_home = Path(str(docs_path.joinpath("user_guide.html")))
         if not self.docs_home.exists():
-            raise FileNotFoundError("User guide not found.")
+            self.docs_home = Path(str(docs_path.joinpath("fallback.html")))
         self.browser = QWebEngineView()
         self._open_homepage()
         home_btn.triggered.connect(self._open_homepage)
