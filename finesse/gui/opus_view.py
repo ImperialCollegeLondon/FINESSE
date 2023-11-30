@@ -1,6 +1,7 @@
 """Panel and widgets related to the control of the OPUS interferometer."""
 import logging
 import weakref
+from collections.abc import Sequence
 from functools import partial
 
 from pubsub import pub
@@ -23,10 +24,10 @@ from finesse.gui.device_panel import DevicePanel
 class OPUSControl(DevicePanel):
     """Class that monitors and controls the OPUS interferometer."""
 
-    COMMANDS = ["status", "cancel", "stop", "start", "connect"]
+    COMMANDS = ("status", "cancel", "stop", "start", "connect")
     """The default commands shown for interacting with OPUS."""
 
-    def __init__(self, commands: list[str] = COMMANDS) -> None:
+    def __init__(self, commands: Sequence[str] = COMMANDS) -> None:
         """Create the widgets to monitor and control the OPUS interferometer."""
         super().__init__(OPUS_TOPIC, "OPUS client view")
 
