@@ -10,14 +10,6 @@
             "request": "launch",
             "module": "finesse",
             "justMyCode": true
-        },
-        {
-            "name": "FINESSE (dummy EM27)",
-            "type": "python",
-            "request": "launch",
-            "module": "finesse",
-            "args": ["--dummy-em27"],
-            "justMyCode": true
         }
     ]
 }

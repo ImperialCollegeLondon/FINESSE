@@ -55,7 +55,7 @@ def parse_response(response: str) -> tuple[EM27Status, str]:
     return status, text
 
 
-class OPUSInterface(OPUSInterfaceBase):
+class OPUSInterface(OPUSInterfaceBase, description="OPUS spectrometer"):
     """Interface for communicating with the OPUS program.
 
     HTTP requests are handled on a background thread.
@@ -82,7 +82,7 @@ class OPUSInterface(OPUSInterfaceBase):
             response = reply.readAll().data().decode()
             status, text = parse_response(response)
         except Exception as e:
-            self.error_occurred(e)
+            self.send_error_message(e)
         else:
             self.send_response(command, status, text)
 

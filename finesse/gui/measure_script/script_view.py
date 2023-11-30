@@ -5,7 +5,7 @@ from typing import cast
 from pubsub import pub
 from PySide6.QtWidgets import QFileDialog, QGridLayout, QGroupBox, QPushButton
 
-from finesse.config import DEFAULT_SCRIPT_PATH, STEPPER_MOTOR_TOPIC
+from finesse.config import DEFAULT_SCRIPT_PATH, OPUS_TOPIC, STEPPER_MOTOR_TOPIC
 from finesse.em27_info import EM27Status
 from finesse.event_counter import EventCounter
 from finesse.gui.measure_script.script import Script, ScriptRunner
@@ -62,7 +62,7 @@ class ScriptControl(QGroupBox):
 
         # Monitor OPUS messages to enable/disable run button on connect/disconnect
         self._opus_connected = False
-        pub.subscribe(self._on_opus_message, "opus.response")
+        pub.subscribe(self._on_opus_message, f"device.{OPUS_TOPIC}.response")
 
         # Show/hide self.run_dialog on measure script begin/end
         pub.subscribe(self._show_run_dialog, "measure_script.begin")

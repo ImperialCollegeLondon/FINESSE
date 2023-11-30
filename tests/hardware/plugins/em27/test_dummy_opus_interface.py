@@ -8,6 +8,7 @@ from statemachine import State
 
 from finesse.hardware.plugins.em27.dummy_opus_interface import (
     DummyOPUSInterface,
+    OPUSError,
     OPUSErrorInfo,
     OPUSStateMachine,
 )
@@ -56,9 +57,8 @@ def test_request_status_idle(dev: DummyOPUSInterface) -> None:
     """Test the request_status() method raises an error if device not connected."""
     dev.state_machine.current_state = OPUSStateMachine.idle
 
-    with patch.object(dev, "error_occurred") as error_mock:
+    with pytest.raises(OPUSError):
         dev.request_command("status")
-        error_mock.assert_called_once()
 
 
 _COMMANDS = (
@@ -69,39 +69,18 @@ _COMMANDS = (
 )
 
 
-@pytest.mark.parametrize(
-    "command,required_state,timer_command,initial_state",
-    (
-        (
-            *command,
-            state,
-        )
-        for state in OPUSStateMachine.states
-        for command in _COMMANDS
-    ),
-)
-def test_request_command(
+@pytest.mark.parametrize("command,initial_state,timer_command", _COMMANDS)
+def test_request_command_success(
     command: str,
-    required_state: State,
-    timer_command: str | None,
     initial_state: State,
+    timer_command: str | None,
     dev: DummyOPUSInterface,
 ) -> None:
     """Test the request_command() method."""
     with patch.object(dev.state_machine, "measure_timer") as timer_mock:
         with patch.object(dev, "send_response") as response_mock:
-            with patch.object(dev, "error_occurred") as error_mock:
-                dev.state_machine.current_state = initial_state
-                dev.request_command(command)
-
-    if initial_state != required_state:
-        # Check the error was broadcast
-        error_mock.assert_called_once()
-        response_mock.assert_not_called()
-        return
-
-    # Check that no error was thrown
-    error_mock.assert_not_called()
+            dev.state_machine.current_state = initial_state
+            dev.request_command(command)
 
     # Check that the right response message was sent
     state = dev.state_machine.current_state
@@ -112,8 +91,25 @@ def test_request_command(
         getattr(timer_mock, timer_command).assert_called_once()
 
 
+@pytest.mark.parametrize(
+    "command,initial_state",
+    (
+        (command, state)
+        for command, required_state, _ in _COMMANDS
+        for state in OPUSStateMachine.states
+        if state != required_state  # only choose invalid states
+    ),
+)
+def test_request_command_fail(
+    command: str, initial_state: State, dev: DummyOPUSInterface
+) -> None:
+    """Test the request_command() method when the initial state is wrong."""
+    with pytest.raises(OPUSError):
+        dev.state_machine.current_state = initial_state
+        dev.request_command(command)
+
+
 def test_request_command_bad_command(dev: DummyOPUSInterface) -> None:
     """Check that request_command() handles non-existent commands correctly."""
-    with patch.object(dev, "error_occurred") as error_mock:
+    with pytest.raises(OPUSError):
         dev.request_command("non_existent_command")
-        error_mock.assert_called_once()

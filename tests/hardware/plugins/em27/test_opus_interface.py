@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 from PySide6.QtNetwork import QNetworkReply
 
-from finesse.config import OPUS_IP
+from finesse.config import OPUS_IP, OPUS_TOPIC
 from finesse.em27_info import EM27Status
 from finesse.hardware.plugins.em27.opus_interface import (
     OPUSError,
@@ -157,7 +157,7 @@ def test_on_reply_received_no_error(
     # Check the correct pubsub message is sent
     opus._on_reply_received(reply, "hello")
     sendmsg_mock.assert_called_once_with(
-        "opus.response.hello", status="status", text="text"
+        f"device.{OPUS_TOPIC}.response.hello", status="status", text="text"
     )
 
 
@@ -170,9 +170,9 @@ def test_on_reply_received_network_error(
     reply.error = QNetworkReply.NetworkError.HostNotFoundError
     reply.errorString("Something went wrong")
 
-    with patch.object(opus, "error_occurred") as error_occurred_mock:
+    with patch.object(opus, "send_error_message") as error_mock:
         opus._on_reply_received(reply, "hello")
-        error_occurred_mock.assert_called_once()
+        error_mock.assert_called_once()
 
 
 @patch("finesse.hardware.plugins.em27.opus_interface.parse_response")
@@ -187,8 +187,8 @@ def test_on_reply_received_exception(
     error = Exception()
     parse_response_mock.side_effect = error
 
-    with patch.object(opus, "error_occurred") as error_occurred_mock:
+    with patch.object(opus, "send_error_message") as error_mock:
         opus._on_reply_received(reply, "hello")
 
         # Check the error was caught
-        error_occurred_mock.assert_called_once_with(error)
+        error_mock.assert_called_once_with(error)
