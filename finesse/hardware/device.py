@@ -308,9 +308,8 @@ class Device(AbstractDevice):
                 assert len(result) == len(kwarg_names)
 
                 # Send message with arguments
-                pub.sendMessage(
-                    f"{self.topic}.{success_topic_suffix}",
-                    **dict(zip(kwarg_names, result)),
+                self.send_message(
+                    success_topic_suffix, **dict(zip(kwarg_names, result))
                 )
 
         return decorate(func, wrapped)
@@ -344,3 +343,12 @@ class Device(AbstractDevice):
         topic_name = f"{self.topic}.{topic_name_suffix}"
         self._subscriptions.append((wrapped_func, topic_name))
         pub.subscribe(wrapped_func, topic_name)
+
+    def send_message(self, topic_suffix: str, **kwargs: Any) -> None:
+        """Send a pubsub message for this device.
+
+        Args:
+            topic_suffix: The part of the topic name after self.topic
+            **kwargs: Extra arguments to include with pubsub message
+        """
+        pub.sendMessage(f"{self.topic}.{topic_suffix}", **kwargs)
