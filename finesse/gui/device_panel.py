@@ -23,7 +23,7 @@ class DevicePanel(QGroupBox):
         cls.__init__ = init_decorator(cls.__init__)
 
     def __init__(self, name: str, title: str, *args: Any, **kwargs: Any) -> None:
-        """Create a new SerialDevicePanel.
+        """Create a new DevicePanel.
 
         The controls will be disabled initially.
 
