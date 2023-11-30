@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, patch
 
 import numpy
 import pytest
+from serial import SerialException
 
 from finesse.hardware.plugins.temperature.senecak107 import SenecaK107, SenecaK107Error
 
@@ -59,6 +60,14 @@ def test_read(dev: SenecaK107, data: bytes) -> None:
         mock.assert_called_once()
 
 
+def test_read_serial_error(dev: SenecaK107, data: bytes) -> None:
+    """Test SenecaK107.read() error handling."""
+    with pytest.raises(SenecaK107Error):
+        with patch.object(dev.serial, "read", return_value=data):
+            dev.serial.read.side_effect = SerialException
+            dev.read()
+
+
 @pytest.mark.parametrize(
     "message",
     (
@@ -66,11 +75,10 @@ def test_read(dev: SenecaK107, data: bytes) -> None:
         b"\x01\x03\x101d1p\xff\xfa\xff\xf81u\xff\xfa1d\xff\xfa]Z\x01\x03",
     ),
 )
-def test_read_error(dev: SenecaK107, message: bytes) -> None:
+def test_read_length_error(dev: SenecaK107, message: bytes) -> None:
     """Test SenecaK107.read() error handling."""
     with pytest.raises(SenecaK107Error):
-        with patch.object(dev.serial, "read") as mock:
-            mock.return_value = message
+        with patch.object(dev.serial, "read", return_value=message):
             dev.read()
 
 
@@ -88,4 +96,17 @@ def test_parse_data(dev: SenecaK107, data: bytes) -> None:
     ]
     parsed = dev.parse_data(data)
 
-    assert numpy.allclose(parsed, expected)
+    numpy.testing.assert_allclose(parsed, expected)
+
+
+def test_get_temperatures(dev: SenecaK107, data: bytes) -> None:
+    """Test SenecaK107.get_temperatures()."""
+    result = MagicMock()
+    with patch.object(dev, "request_read") as request_mock:
+        with patch.object(dev, "read", return_value=data) as read_mock:
+            with patch.object(dev, "parse_data", return_value=result) as parse_mock:
+                assert dev.get_temperatures() == result
+
+    request_mock.assert_called_once_with()
+    read_mock.assert_called_once_with()
+    parse_mock.assert_called_once_with(data)
