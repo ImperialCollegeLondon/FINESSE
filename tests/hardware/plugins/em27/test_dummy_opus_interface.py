@@ -9,7 +9,7 @@ from statemachine import State
 
 from finesse.hardware.plugins.em27.dummy_opus_interface import (
     DummyOPUSInterface,
-    OPUSError,
+    OPUSErrorInfo,
     OPUSStateMachine,
 )
 
@@ -25,7 +25,7 @@ def dev(timer_mock: Mock) -> DummyOPUSInterface:
 
 def test_init(dev: DummyOPUSInterface) -> None:
     """Test that the timer's signal is connected correctly."""
-    assert dev.last_error == OPUSError.NO_ERROR
+    assert dev.last_error == OPUSErrorInfo.NO_ERROR
 
     timeout = cast(MagicMock, dev.state_machine.measure_timer.timeout)
     timeout.connect.assert_called_once_with(dev.state_machine.stop)
@@ -35,13 +35,13 @@ def test_finish_measuring(dev: DummyOPUSInterface) -> None:
     """Check that the finish_measuring() slot works."""
     dev.state_machine.current_state = OPUSStateMachine.measuring
     dev.state_machine.stop()
-    assert dev.last_error == OPUSError.NO_ERROR
+    assert dev.last_error == OPUSErrorInfo.NO_ERROR
 
 
-@pytest.mark.parametrize("state,error", product(OPUSStateMachine.states, OPUSError))
+@pytest.mark.parametrize("state,error", product(OPUSStateMachine.states, OPUSErrorInfo))
 def test_request_status(
     state: State,
-    error: OPUSError,
+    error: OPUSErrorInfo,
     dev: DummyOPUSInterface,
     sendmsg_mock: MagicMock,
 ) -> None:
@@ -54,17 +54,22 @@ def test_request_status(
         "opus.response.status",
         status=state.value,
         text=state.name,
-        error=OPUSError.NOT_CONNECTED.to_tuple()
+        error=OPUSErrorInfo.NOT_CONNECTED.to_tuple()
         if state == OPUSStateMachine.idle
         else error.to_tuple(),
     )
 
 
 _COMMANDS = (
-    ("cancel", OPUSStateMachine.measuring, OPUSError.NOT_RUNNING, "stop"),
-    ("stop", OPUSStateMachine.measuring, OPUSError.NOT_RUNNING_OR_FINISHING, "stop"),
-    ("start", OPUSStateMachine.connected, OPUSError.NOT_CONNECTED, "start"),
-    ("connect", OPUSStateMachine.idle, OPUSError.NOT_IDLE, None),
+    ("cancel", OPUSStateMachine.measuring, OPUSErrorInfo.NOT_RUNNING, "stop"),
+    (
+        "stop",
+        OPUSStateMachine.measuring,
+        OPUSErrorInfo.NOT_RUNNING_OR_FINISHING,
+        "stop",
+    ),
+    ("start", OPUSStateMachine.connected, OPUSErrorInfo.NOT_CONNECTED, "start"),
+    ("connect", OPUSStateMachine.idle, OPUSErrorInfo.NOT_IDLE, None),
 )
 
 
@@ -82,7 +87,7 @@ _COMMANDS = (
 def test_request_command(
     command: str,
     required_state: State,
-    error: OPUSError,
+    error: OPUSErrorInfo,
     timer_command: str | None,
     initial_state: State,
     dev: DummyOPUSInterface,
@@ -96,7 +101,7 @@ def test_request_command(
 
         if initial_state == required_state:
             # If we're in the required state, no error should occur
-            assert dev.last_error == OPUSError.NO_ERROR
+            assert dev.last_error == OPUSErrorInfo.NO_ERROR
 
             # Check that the right thing has been done to the timer
             if timer_command:
@@ -125,5 +130,5 @@ def test_request_command_bad_command(
         "opus.response.non_existent_command",
         status=state.value,
         text=state.name,
-        error=OPUSError.UNKNOWN_COMMAND.to_tuple(),
+        error=OPUSErrorInfo.UNKNOWN_COMMAND.to_tuple(),
     )
