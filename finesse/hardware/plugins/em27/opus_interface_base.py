@@ -1,9 +1,22 @@
 """Provides a base class for interfacing with the OPUS program."""
+from __future__ import annotations
+
 import logging
 import traceback
 from abc import ABC, abstractmethod
 
 from pubsub import pub
+
+from finesse.em27_info import EM27Status
+
+
+class OPUSError(Exception):
+    """Indicates that an error occurred with an OPUS device."""
+
+    @classmethod
+    def from_response(cls, errcode: int, errtext: str) -> OPUSError:
+        """Create an OPUSError from the information given in the device response."""
+        return cls(f"Error {errcode}: {errtext}")
 
 
 class OPUSInterfaceBase(ABC):
@@ -24,6 +37,11 @@ class OPUSInterfaceBase(ABC):
         Args:
             command: Name of command to run
         """
+
+    @staticmethod
+    def send_response(command: str, status: EM27Status, text: str) -> None:
+        """Broadcast the device's response via pubsub."""
+        pub.sendMessage(f"opus.response.{command}", status=status, text=text)
 
     @staticmethod
     def error_occurred(error: BaseException) -> None:

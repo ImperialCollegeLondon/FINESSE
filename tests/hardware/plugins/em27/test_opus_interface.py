@@ -96,10 +96,9 @@ def _get_opus_html(
 def test_parse_response_no_error(status: EM27Status, text: str) -> None:
     """Test parse_response() works when no error has occurred."""
     response = _get_opus_html(status.value, text)
-    parsed_status, parsed_text, parsed_error = parse_response(response)
+    parsed_status, parsed_text = parse_response(response)
     assert parsed_status == status
     assert parsed_text == text
-    assert parsed_error is None
 
 
 @pytest.mark.parametrize("errcode,errtext", product(range(2), ("", "error text")))
@@ -108,10 +107,8 @@ def test_parse_response_error(errcode: int, errtext: str) -> None:
     response = _get_opus_html(
         EM27Status.CONNECTING.value, "status text", errcode, errtext
     )
-    parsed_status, parsed_text, parsed_error = parse_response(response)
-    assert parsed_status == EM27Status.CONNECTING
-    assert parsed_text == "status text"
-    assert parsed_error == (errcode, errtext)
+    with pytest.raises(OPUSError):
+        parse_response(response)
 
 
 @pytest.mark.parametrize("status,text", ((None, "text"), (1, None), (None, None)))
@@ -127,10 +124,8 @@ def test_parse_response_no_id(opus: OPUSInterface) -> None:
     response = _get_opus_html(
         EM27Status.CONNECTING.value, "text", 1, "errtext", "<td>something</td>"
     )
-    parsed_status, parsed_text, parsed_error = parse_response(response)
-    assert parsed_status == EM27Status.CONNECTING
-    assert parsed_text == "text"
-    assert parsed_error == (1, "errtext")
+    with pytest.raises(OPUSError):
+        parse_response(response)
 
 
 @patch("finesse.hardware.plugins.em27.opus_interface.logging.warning")
@@ -143,10 +138,8 @@ def test_parse_response_bad_id(warning_mock: Mock) -> None:
         "errtext",
         '<td id="MADE_UP">something</td>',
     )
-    parsed_status, parsed_text, parsed_error = parse_response(response)
-    assert parsed_status == EM27Status.CONNECTING
-    assert parsed_text == "text"
-    assert parsed_error == (1, "errtext")
+    with pytest.raises(OPUSError):
+        parse_response(response)
     warning_mock.assert_called()
 
 
@@ -159,12 +152,12 @@ def test_on_reply_received_no_error(
     reply.error.return_value = QNetworkReply.NetworkError.NoError
 
     # NB: These values are of the wrong type, but it doesn't matter here
-    parse_response_mock.return_value = ("status", "text", "error")
+    parse_response_mock.return_value = ("status", "text")
 
     # Check the correct pubsub message is sent
     opus._on_reply_received(reply, "hello")
     sendmsg_mock.assert_called_once_with(
-        "opus.response.hello", status="status", text="text", error="error"
+        "opus.response.hello", status="status", text="text"
     )
 
 
