@@ -87,7 +87,7 @@ def test_init(
     subscribe_mock.assert_has_calls(
         [
             call(widget._on_device_opened, f"device.opening.{instance!s}"),
-            call(widget._set_device_closed, f"device.closed.{instance!s}"),
+            call(widget._on_device_closed, f"device.closed.{instance!s}"),
         ]
     )
 
@@ -236,6 +236,13 @@ def test_on_device_opened(widget: DeviceTypeControl, qtbot) -> None:
     with patch.object(widget, "_set_device_opened") as open_mock:
         widget._on_device_opened(DeviceInstanceRef("base_type"), "some_class", {})
         open_mock.assert_called_once_with("some_class")
+
+
+def test_on_device_closed(widget: DeviceTypeControl, qtbot) -> None:
+    """Test the _on_device_closed() method."""
+    with patch.object(widget, "_set_device_closed") as close_mock:
+        widget._on_device_closed(DeviceInstanceRef("base_type"))
+        close_mock.assert_called_once_with()
 
 
 def test_open_close_btn(widget: DeviceTypeControl, qtbot) -> None:
