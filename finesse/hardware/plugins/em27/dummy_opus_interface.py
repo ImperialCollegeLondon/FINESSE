@@ -113,7 +113,11 @@ class OPUSStateMachine(StateMachine):
         logging.info(f"Current state: {target.name}")
 
 
-class DummyOPUSInterface(OPUSInterfaceBase):
+class DummyOPUSInterface(
+    OPUSInterfaceBase,
+    description="Dummy OPUS device",
+    parameters={"measure_duration": "Measurement duration in seconds"},
+):
     """A mock version of the OPUS API for testing purposes."""
 
     _COMMAND_ERRORS = {
@@ -173,11 +177,11 @@ class DummyOPUSInterface(OPUSInterfaceBase):
             self.last_error = OPUSErrorInfo.UNKNOWN_COMMAND
 
         if errinfo := self.last_error.to_tuple():
-            self.error_occurred(OPUSError.from_response(*errinfo))
-        else:
-            # Broadcast the response for the command
-            state = self.state_machine.current_state
-            self.send_response(command, status=state.value, text=state.name)
+            raise OPUSError.from_response(*errinfo)
+
+        # Broadcast the response for the command
+        state = self.state_machine.current_state
+        self.send_response(command, status=state.value, text=state.name)
 
     def _measuring_finished(self) -> None:
         """Finish measurement successfully."""
