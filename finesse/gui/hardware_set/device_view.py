@@ -215,7 +215,7 @@ class DeviceTypeControl(QGroupBox):
 
         # pubsub subscriptions
         pub.subscribe(self._on_device_opened, f"device.opening.{instance!s}")
-        pub.subscribe(self._set_device_closed, f"device.closed.{instance!s}")
+        pub.subscribe(self._on_device_closed, f"device.closed.{instance!s}")
 
     def _update_open_btn_enabled_state(self) -> None:
         """Enable button depending on whether there are options for all params.
@@ -274,7 +274,7 @@ class DeviceTypeControl(QGroupBox):
             # Reload saved parameter values
             self._device_widgets[idx].load_saved_parameter_values()
 
-    def _set_device_closed(self, **kwargs) -> None:
+    def _set_device_closed(self) -> None:
         """Update the GUI for when the device is opened."""
         self._set_combos_enabled(True)
         self._open_close_btn.setText("Open")
@@ -299,6 +299,10 @@ class DeviceTypeControl(QGroupBox):
     ) -> None:
         """Update the GUI on device open."""
         self._set_device_opened(class_name)
+
+    def _on_device_closed(self, instance: DeviceInstanceRef) -> None:
+        """Update the GUI on device close."""
+        self._set_device_closed()
 
     def _close_device(self) -> None:
         """Close the device."""
