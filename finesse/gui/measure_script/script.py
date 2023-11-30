@@ -274,7 +274,7 @@ class ScriptRunner(StateMachine):
         )
 
         # EM27 messages
-        pub.unsubscribe(self._measuring_error, "opus.error")
+        pub.unsubscribe(self._on_em27_error, "opus.error")
         pub.unsubscribe(self._measuring_started, "opus.response.start")
         pub.unsubscribe(self._status_received, "opus.response.status")
 
@@ -290,7 +290,7 @@ class ScriptRunner(StateMachine):
         )
 
         # Listen for EM27 messages
-        pub.subscribe(self._measuring_error, "opus.error")
+        pub.subscribe(self._on_em27_error, "opus.error")
         pub.subscribe(self._measuring_started, "opus.response.start")
         pub.subscribe(self._status_received, "opus.response.status")
 
@@ -354,25 +354,12 @@ class ScriptRunner(StateMachine):
         self,
         status: EM27Status,
         text: str,
-        error: tuple[int, str] | None,
     ):
         """Start polling the EM27 so we know when the measurement is finished."""
-        if error:
-            self._on_em27_error_message(*error)
-        else:
-            _poll_em27_status()
+        _poll_em27_status()
 
-    def _status_received(
-        self,
-        status: EM27Status,
-        text: str,
-        error: tuple[int, str] | None,
-    ):
+    def _status_received(self, status: EM27Status, text: str):
         """Move on to the next measurement if the measurement has finished."""
-        if error:
-            self._on_em27_error_message(*error)
-            return
-
         if status == EM27Status.CONNECTED:  # indicates measurement is finished
             self._measuring_end()
         else:
@@ -414,22 +401,14 @@ class ScriptRunner(StateMachine):
         """Call abort()."""
         self.abort()
 
-    def _on_em27_error(self, message: str) -> None:
+    def _on_em27_error(self, error: Exception) -> None:
         """Cancel current measurement and show an error message to the user."""
         self.abort()
 
         show_error_message(
             self.parent,
-            f"EM27 error occurred. Measure script will stop running.\n\n{message}",
+            f"EM27 error occurred. Measure script will stop running.\n\n{error!s}",
         )
-
-    def _on_em27_error_message(self, errcode: int, errmsg: str) -> None:
-        """Error reported by EM27 system."""
-        self._on_em27_error(f"Error {errcode}: {errmsg}")
-
-    def _measuring_error(self, error: BaseException) -> None:
-        """Log errors from OPUS."""
-        self._on_em27_error(str(error))
 
     def _measuring_end(self) -> None:
         """Move onto the next measurement or perform another measurement here."""

@@ -4,13 +4,15 @@ import logging
 from collections.abc import Callable
 from enum import Enum
 
-from pubsub import pub
 from PySide6.QtCore import QTimer
 from statemachine import State, StateMachine
 from statemachine.exceptions import TransitionNotAllowed
 
 from finesse.em27_info import EM27Status
-from finesse.hardware.plugins.em27.opus_interface_base import OPUSInterfaceBase
+from finesse.hardware.plugins.em27.opus_interface_base import (
+    OPUSError,
+    OPUSInterfaceBase,
+)
 
 
 class OPUSErrorInfo(Enum):
@@ -166,14 +168,12 @@ class DummyOPUSInterface(OPUSInterfaceBase):
         else:
             self.last_error = OPUSErrorInfo.UNKNOWN_COMMAND
 
-        # Broadcast the response for the command
-        state = self.state_machine.current_state
-        pub.sendMessage(
-            f"opus.response.{command}",
-            status=state.value,
-            text=state.name,
-            error=self.last_error.to_tuple(),
-        )
+        if errinfo := self.last_error.to_tuple():
+            self.error_occurred(OPUSError.from_response(*errinfo))
+        else:
+            # Broadcast the response for the command
+            state = self.state_machine.current_state
+            self.send_response(command, status=state.value, text=state.name)
 
     def _measuring_finished(self) -> None:
         """Finish measurement successfully."""

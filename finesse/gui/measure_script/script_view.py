@@ -127,9 +127,7 @@ class ScriptControl(QGroupBox):
         self.run_dialog.hide()
         del self.run_dialog
 
-    def _on_opus_message(
-        self, status: EM27Status, text: str, error: tuple[int, str] | None
-    ) -> None:
+    def _on_opus_message(self, status: EM27Status, text: str) -> None:
         """Increase/decrease the enable counter when the EM27 connects/disconnects."""
         if status.is_connected == self._opus_connected:
             # The connection status hasn't changed
