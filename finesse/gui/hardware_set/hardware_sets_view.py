@@ -6,7 +6,6 @@ from typing import AbstractSet, Any, cast
 from frozendict import frozendict
 from pubsub import pub
 from PySide6.QtWidgets import (
-    QComboBox,
     QDialog,
     QFileDialog,
     QGroupBox,
@@ -25,7 +24,24 @@ from finesse.gui.hardware_set.hardware_set import (
     OpenDeviceArgs,
     get_hardware_sets,
 )
+from finesse.gui.hardware_set.hardware_sets_combo_box import HardwareSetsComboBox
 from finesse.settings import settings
+
+
+def _get_last_selected_hardware_set() -> HardwareSet | None:
+    last_selected_path = cast(str | None, settings.value("hardware_set/selected"))
+    if not last_selected_path:
+        return None
+
+    try:
+        return next(
+            hw_set
+            for hw_set in get_hardware_sets()
+            if str(hw_set.file_path) == last_selected_path
+        )
+    except StopIteration:
+        # No hardware set matching this path
+        return None
 
 
 class ManageDevicesDialog(QDialog):
@@ -60,12 +76,13 @@ class HardwareSetsControl(QGroupBox):
         pub.subscribe(self._on_device_opened, "device.opening")
         pub.subscribe(self._on_device_closed, "device.closed")
 
-        self._combo = QComboBox()
+        self._combo = HardwareSetsComboBox()
+        """A combo box for the different hardware sets."""
         self._combo.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum
         )
-        self._load_hardware_set_list()
-        self._load_last_selected_hardware_set()
+        if last_selected := _get_last_selected_hardware_set():
+            self._combo.current_hardware_set = last_selected
 
         self._connect_btn = QPushButton("Connect")
         self._connect_btn.setSizePolicy(
@@ -102,23 +119,9 @@ class HardwareSetsControl(QGroupBox):
         layout.addLayout(row2)
         self.setLayout(layout)
 
-        pub.subscribe(self._load_hardware_set_list, "hardware_set.removed")
-        pub.subscribe(self._on_hardware_set_added, "hardware_set.added")
-
         self._update_control_state()
 
         self._combo.currentIndexChanged.connect(self._update_control_state)
-
-    def _load_last_selected_hardware_set(self) -> None:
-        """Select the hardware set last selected when the program was run before."""
-        if last_selected := cast(str | None, settings.value("hardware_set/selected")):
-            self._combo.setCurrentText(last_selected)
-
-    def _load_hardware_set_list(self) -> None:
-        """Populate the combo box with hardware sets."""
-        self._combo.clear()
-        for hw_set in get_hardware_sets():
-            self._add_hardware_set(hw_set)
 
     def _import_hardware_set(self) -> None:
         """Import a hardware set from a file."""
@@ -141,7 +144,7 @@ class HardwareSetsControl(QGroupBox):
 
     def _remove_current_hardware_set(self) -> None:
         """Remove the currently selected hardware set."""
-        pub.sendMessage("hardware_set.remove", hw_set=self._combo.currentData())
+        pub.sendMessage("hardware_set.remove", hw_set=self._combo.current_hardware_set)
 
     def _show_manage_devices_dialog(self) -> None:
         """Show a dialog for managing devices manually.
@@ -155,63 +158,20 @@ class HardwareSetsControl(QGroupBox):
 
         self._manage_devices_dialog.show()
 
-    def _add_hardware_set(self, hw_set: HardwareSet) -> None:
-        """Add a new hardware set to the combo box."""
-        labels = {self._combo.itemText(i) for i in range(self._combo.count())}
-
-        name_root = hw_set.name
-        if hw_set.built_in:
-            name_root += " (built in)"
-
-        if name_root not in labels:
-            self._combo.addItem(name_root, hw_set)
-            return
-
-        # If there is already a hardware set by that name, append a number
-        i = 2
-        while True:
-            name = f"{name_root} ({i})"
-            if name not in labels:
-                self._combo.addItem(name, hw_set)
-                return
-            i += 1
-
-    def _on_hardware_set_added(self, hw_set: HardwareSet) -> None:
-        """Clear the combo box and refill it, then select hw_set.
-
-        The reason for clearing the combo box and refilling it is so that we can keep
-        the entries sorted.
-        """
-        self._load_hardware_set_list()
-
-        # Select the just-added hardware set
-        idx = next(
-            i for i in range(self._combo.count()) if self._combo.itemData(i) is hw_set
-        )
-        self._combo.setCurrentIndex(idx)
-
-    @property
-    def current_hardware_set(self) -> frozenset[OpenDeviceArgs]:
-        """Return the currently selected hardware set.
-
-        If the combo box is empty and, therefore, no hardware set is selected, an empty
-        set is returned.
-        """
-        hw_set = cast(HardwareSet | None, self._combo.currentData())
-        return hw_set.devices if hw_set else frozenset()
-
     def _update_control_state(self) -> None:
         """Enable or disable the connect and disconnect buttons as appropriate."""
         # Enable the "Connect" button if there are any devices left to connect for this
         # hardware set
-        all_connected = self._connected_devices.issuperset(self.current_hardware_set)
+        all_connected = self._connected_devices.issuperset(
+            self._combo.current_hardware_set_devices
+        )
         self._connect_btn.setEnabled(not all_connected)
 
         # Enable the "Disconnect all" button if there are *any* devices connected at all
         self._disconnect_btn.setEnabled(bool(self._connected_devices))
 
         # Enable the "Remove" button only if the hardware set is not a built in one
-        hw_set = cast(HardwareSet | None, self._combo.currentData())
+        hw_set = self._combo.current_hardware_set
         self._remove_hw_set_btn.setEnabled(hw_set is not None and not hw_set.built_in)
 
     def _on_connect_btn_pressed(self) -> None:
@@ -221,11 +181,19 @@ class HardwareSetsControl(QGroupBox):
         skip it. If a device of the same type but with different parameters has been
         opened, then it will be closed as we open the new device.
         """
+        # Something in the combo box will have been selected, so it won't be None
+        path = self._combo.current_hardware_set.file_path  # type: ignore[union-attr]
+
         # Remember which hardware set was selected for next time we run the program
-        settings.setValue("hardware_set/selected", self._combo.currentText())
+        settings.setValue(
+            "hardware_set/selected",
+            str(path),
+        )
 
         # Open each of the devices in turn
-        for device in self.current_hardware_set.difference(self._connected_devices):
+        for device in self._combo.current_hardware_set_devices.difference(
+            self._connected_devices
+        ):
             device.open()
 
         self._update_control_state()
