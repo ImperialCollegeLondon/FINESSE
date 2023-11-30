@@ -113,10 +113,6 @@ class OPUSControl(QGroupBox):
         """
         pub.sendMessage("opus.request", command=command)
 
-    def _request_status(self) -> None:
-        self.logger.info("Requesting status")
-        pub.sendMessage("opus.request", command="status")
-
 
 class OPUSLogHandler(logging.Handler):
     """Specific logger for the errors related to OPUS.
