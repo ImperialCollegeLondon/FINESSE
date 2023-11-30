@@ -1,10 +1,8 @@
 """Code for a fake stepper motor device."""
 import logging
 
-from pubsub import pub
 from PySide6.QtCore import QTimer
 
-from finesse.config import STEPPER_MOTOR_TOPIC
 from finesse.hardware.plugins.stepper_motor.stepper_motor_base import StepperMotorBase
 
 
@@ -99,4 +97,4 @@ class DummyStepperMotor(StepperMotorBase, description="Dummy stepper motor"):
         logging.info("Move finished")
         if self._notify_requested:
             self._notify_requested = False
-            pub.sendMessage(f"device.{STEPPER_MOTOR_TOPIC}.move.end")
+            self.send_message("move.end")

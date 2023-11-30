@@ -10,11 +10,9 @@ The specification is available online:
 import logging
 from queue import Queue
 
-from pubsub import pub
 from PySide6.QtCore import QThread, Signal, Slot
 from serial import Serial, SerialException, SerialTimeoutException
 
-from finesse.config import STEPPER_MOTOR_TOPIC
 from finesse.hardware.plugins.stepper_motor.stepper_motor_base import StepperMotorBase
 from finesse.hardware.serial_device import SerialDevice
 
@@ -221,7 +219,7 @@ class ST10Controller(SerialDevice, StepperMotorBase, description="ST10 controlle
 
     @Slot()
     def _send_move_end_message(self) -> None:
-        pub.sendMessage(f"device.{STEPPER_MOTOR_TOPIC}.move.end")
+        self.send_message("move.end")
 
     def _check_device_id(self) -> None:
         """Check that the ID is the correct one for an ST10.
