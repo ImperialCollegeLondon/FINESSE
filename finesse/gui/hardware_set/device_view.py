@@ -186,10 +186,7 @@ class DeviceTypeControl(QGroupBox):
             self._device_widgets.append(widget)
 
         # Select the last device that was successfully opened, if there is one
-        topic = instance.topic
-        previous_device = cast(
-            str | None, settings.value(f"device/type/{instance.topic}")
-        )
+        previous_device = cast(str | None, settings.value(f"device/type/{instance!s}"))
         if previous_device:
             self._select_device(previous_device)
 
@@ -217,9 +214,9 @@ class DeviceTypeControl(QGroupBox):
         self._device_combo.currentIndexChanged.connect(self._on_device_selected)
 
         # pubsub subscriptions
-        pub.subscribe(self._on_device_opened, f"device.opening.{topic}")
-        pub.subscribe(self._set_device_closed, f"device.closed.{topic}")
-        pub.subscribe(self._show_error_message, f"device.error.{topic}")
+        pub.subscribe(self._on_device_opened, f"device.opening.{instance!s}")
+        pub.subscribe(self._set_device_closed, f"device.closed.{instance!s}")
+        pub.subscribe(self._show_error_message, f"device.error.{instance!s}")
 
     def _update_open_btn_enabled_state(self) -> None:
         """Enable button depending on whether there are options for all params.
@@ -318,7 +315,7 @@ class DeviceTypeControl(QGroupBox):
         """
         show_error_message(
             self,
-            f"A fatal error has occurred with the {instance.topic} device: {error!s}",
+            f"A fatal error has occurred with the {instance!s} device: {error!s}",
             title="Device error",
         )
 

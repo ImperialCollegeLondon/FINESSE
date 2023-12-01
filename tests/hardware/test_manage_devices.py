@@ -71,12 +71,12 @@ def test_open_device(
             sendmsg_mock.assert_has_calls(
                 [
                     call(
-                        f"device.opening.{instance.topic}",
+                        f"device.opening.{instance!s}",
                         instance=instance,
                         class_name=class_name,
                         params=params,
                     ),
-                    call(f"device.opened.{instance.topic}"),
+                    call(f"device.opened.{instance!s}"),
                 ]
             )
 
@@ -85,7 +85,7 @@ def test_open_device(
         else:
             assert not devices_dict
             sendmsg_mock.assert_called_once_with(
-                f"device.error.{instance.topic}", instance=instance, error=error
+                f"device.error.{instance!s}", instance=instance, error=error
             )
             logging_mock.error.assert_called()
 
