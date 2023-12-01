@@ -8,7 +8,7 @@ from PySide6.QtNetwork import QNetworkReply
 
 from finesse.config import OPUS_IP
 from finesse.em27_info import EM27Status
-from finesse.hardware.plugins.em27.opus_interface import (
+from finesse.hardware.plugins.spectrometer.opus_interface import (
     OPUSError,
     OPUSInterface,
     parse_response,
@@ -112,7 +112,7 @@ def test_parse_response_no_id(opus: OPUSInterface) -> None:
         parse_response(response)
 
 
-@patch("finesse.hardware.plugins.em27.opus_interface.logging.warning")
+@patch("finesse.hardware.plugins.spectrometer.opus_interface.logging.warning")
 def test_parse_response_bad_id(warning_mock: Mock) -> None:
     """Test that parse_response() can handle <td> tags with unexpected id values."""
     response = _get_opus_html(
@@ -127,7 +127,7 @@ def test_parse_response_bad_id(warning_mock: Mock) -> None:
     warning_mock.assert_called()
 
 
-@patch("finesse.hardware.plugins.em27.opus_interface.parse_response")
+@patch("finesse.hardware.plugins.spectrometer.opus_interface.parse_response")
 def test_on_reply_received_no_error(
     parse_response_mock: Mock, opus: OPUSInterface, qtbot
 ) -> None:
@@ -142,7 +142,7 @@ def test_on_reply_received_no_error(
     assert opus._on_reply_received(reply) == ("status", "text")
 
 
-@patch("finesse.hardware.plugins.em27.opus_interface.parse_response")
+@patch("finesse.hardware.plugins.spectrometer.opus_interface.parse_response")
 def test_on_reply_received_network_error(
     parse_response_mock: Mock, opus: OPUSInterface, qtbot
 ) -> None:
@@ -155,7 +155,7 @@ def test_on_reply_received_network_error(
         opus._on_reply_received(reply)
 
 
-@patch("finesse.hardware.plugins.em27.opus_interface.parse_response")
+@patch("finesse.hardware.plugins.spectrometer.opus_interface.parse_response")
 def test_on_reply_received_exception(
     parse_response_mock: Mock, opus: OPUSInterface, qtbot
 ) -> None:

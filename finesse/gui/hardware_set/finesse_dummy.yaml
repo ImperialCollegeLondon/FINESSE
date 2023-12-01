@@ -9,6 +9,6 @@ devices:
   temperature_monitor:
     class_name: temperature.dummy_temperature_monitor.DummyTemperatureMonitor
   em27_sensors:
-    class_name: em27.dummy_em27_sensors.DummyEM27Sensors
+    class_name: spectrometer.dummy_em27_sensors.DummyEM27Sensors
   spectrometer:
-    class_name: em27.dummy_opus_interface.DummyOPUSInterface
+    class_name: spectrometer.dummy_opus_interface.DummyOPUSInterface
