@@ -7,7 +7,7 @@ import pytest
 from PySide6.QtNetwork import QNetworkReply
 
 from finesse.config import EM27_SENSORS_URL
-from finesse.hardware.plugins.em27.em27_sensors import (
+from finesse.hardware.plugins.spectrometer.em27_sensors import (
     EM27Error,
     EM27Property,
     EM27Sensors,
@@ -40,7 +40,9 @@ def em27_sensors(qtbot, subscribe_mock) -> EM27Sensors:
 
 def test_init() -> None:
     """Test EM27Sensors's constructor."""
-    with patch("finesse.hardware.plugins.em27.em27_sensors.QTimer") as qtimer_mock:
+    with patch(
+        "finesse.hardware.plugins.spectrometer.em27_sensors.QTimer"
+    ) as qtimer_mock:
         qtimer = MagicMock()
         qtimer_mock.return_value = qtimer
         sensors = EM27Sensors("1.2.3.4", 2.0)
@@ -56,7 +58,7 @@ def test_close(em27_sensors: EM27Sensors) -> None:
         qtimer_mock.stop.assert_called_once_with()
 
 
-@patch("finesse.hardware.plugins.em27.em27_sensors.get_em27sensor_data")
+@patch("finesse.hardware.plugins.spectrometer.em27_sensors.get_em27sensor_data")
 def test_on_reply_received_no_error(get_em27sensor_data_mock: Mock, qtbot) -> None:
     """Test the _on_reply_received() method works when no error occurs."""
     reply = MagicMock()
@@ -80,7 +82,7 @@ def test_on_reply_received_network_error(qtbot) -> None:
         _on_reply_received(reply)
 
 
-@patch("finesse.hardware.plugins.em27.em27_sensors.get_em27sensor_data")
+@patch("finesse.hardware.plugins.spectrometer.em27_sensors.get_em27sensor_data")
 def test_on_reply_received_exception(get_em27sensor_data_mock: Mock, qtbot) -> None:
     """Test the _on_reply_received() method works when an exception is raised."""
     reply = MagicMock()
@@ -115,7 +117,7 @@ def test_get_em27sensor_data() -> None:
     Read in the snapshot of the EM27 webpage and ensure that
     the sensor data is correctly extracted from it.
     """
-    dummy_em27_fp = resources.files("finesse.hardware.plugins.em27").joinpath(
+    dummy_em27_fp = resources.files("finesse.hardware.plugins.spectrometer").joinpath(
         "diag_autom.htm"
     )
     with dummy_em27_fp.open() as f:

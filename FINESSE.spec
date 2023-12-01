@@ -13,7 +13,10 @@ a = Analysis(
     datas=[
         ("finesse/gui/hardware_set/*.yaml", "finesse/gui/hardware_set"),
         ("finesse/gui/images/*.png", "finesse/gui/images"),
-        ("finesse/hardware/plugins/em27/diag_autom.htm", "finesse/hardware/plugins/em27"),
+        (
+            "finesse/hardware/plugins/spectrometer/diag_autom.htm",
+            "finesse/hardware/plugins/spectrometer",
+        ),
         ("docs/user_guide.html", "docs"),
         ("docs/fallback.html", "docs"),
     ],

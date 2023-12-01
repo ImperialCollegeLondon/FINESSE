@@ -14,7 +14,7 @@ from PySide6.QtNetwork import QNetworkReply
 from finesse.config import OPUS_IP
 from finesse.em27_info import EM27Status
 from finesse.hardware.http_requester import HTTPRequester
-from finesse.hardware.plugins.em27.opus_interface_base import (
+from finesse.hardware.plugins.spectrometer.opus_interface_base import (
     OPUSError,
     OPUSInterfaceBase,
 )

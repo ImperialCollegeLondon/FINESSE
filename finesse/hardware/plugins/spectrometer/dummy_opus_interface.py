@@ -9,7 +9,7 @@ from statemachine import State, StateMachine
 from statemachine.exceptions import TransitionNotAllowed
 
 from finesse.em27_info import EM27Status
-from finesse.hardware.plugins.em27.opus_interface_base import (
+from finesse.hardware.plugins.spectrometer.opus_interface_base import (
     OPUSError,
     OPUSInterfaceBase,
 )
