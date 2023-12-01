@@ -48,9 +48,9 @@ def test_init(settings_mock: Mock, subscribe_mock: Mock, qtbot: QtBot) -> None:
         script_control._hide_run_dialog, "measure_script.end"
     )
     subscribe_mock.assert_any_call(
-        script_control._on_opus_message, f"device.{SPECTROMETER_TOPIC}.response"
+        script_control._on_spectrometer_message, f"device.{SPECTROMETER_TOPIC}.response"
     )
-    assert not script_control._opus_connected
+    assert not script_control._spectrometer_connected
 
 
 @patch("finesse.gui.measure_script.script_view.settings")
@@ -280,16 +280,16 @@ def test_on_opus_message_connect(
     qtbot: QtBot,
 ) -> None:
     """Test the _on_opus_message() method when connecting."""
-    script_control._opus_connected = already_connected
+    script_control._spectrometer_connected = already_connected
 
     with patch.object(script_control, "_enable_counter") as counter_mock:
-        script_control._on_opus_message(status, "")
+        script_control._on_spectrometer_message(status, "")
         if already_connected:
             counter_mock.increment.assert_not_called()
         else:
             counter_mock.increment.assert_called_once_with()
 
-        assert script_control._opus_connected
+        assert script_control._spectrometer_connected
 
 
 @pytest.mark.parametrize(
@@ -303,13 +303,13 @@ def test_on_opus_message_disconnect(
     qtbot: QtBot,
 ) -> None:
     """Test the _on_opus_message() method when disconnecting."""
-    script_control._opus_connected = already_connected
+    script_control._spectrometer_connected = already_connected
 
     with patch.object(script_control, "_enable_counter") as counter_mock:
-        script_control._on_opus_message(status, "")
+        script_control._on_spectrometer_message(status, "")
         if not already_connected:
             counter_mock.decrement.assert_not_called()
         else:
             counter_mock.decrement.assert_called_once_with()
 
-        assert not script_control._opus_connected
+        assert not script_control._spectrometer_connected

@@ -21,7 +21,7 @@ from finesse.gui.docs_view import DocsViewer
 from finesse.gui.em27_monitor import EM27Monitor
 from finesse.gui.hardware_set.hardware_sets_view import HardwareSetsControl
 from finesse.gui.measure_script.script_view import ScriptControl
-from finesse.gui.opus_view import OPUSControl
+from finesse.gui.spectrometer_view import SpectrometerControl
 from finesse.gui.stepper_motor_view import StepperMotorControl
 from finesse.gui.temp_control import DP9800Controls, TC4820Controls, TemperaturePlot
 from finesse.gui.uncaught_exceptions import set_uncaught_exception_handler
@@ -56,12 +56,12 @@ class MainWindow(QMainWindow):
         # Setup for interferometer monitor
         em27_monitor = EM27Monitor()
 
-        opus: QGroupBox = OPUSControl()
+        spectrometer: QGroupBox = SpectrometerControl()
 
         layout_left.addWidget(hardware_sets, 0, 0, 1, 2)
         layout_left.addWidget(stepper_motor, 1, 0, 1, 2)
         layout_left.addWidget(measure_script, 2, 0, 1, 2)
-        layout_left.addWidget(opus, 3, 0, 1, 1)
+        layout_left.addWidget(spectrometer, 3, 0, 1, 1)
         layout_left.addWidget(em27_monitor, 3, 1, 1, 1)
 
         layout_right = QGridLayout()
