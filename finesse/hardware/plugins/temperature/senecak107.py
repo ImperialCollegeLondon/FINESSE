@@ -41,7 +41,7 @@ def calculate_crc(data: bytes) -> int:
     """
     # Manual calculation (doesn't currently match calculator.checksum() value)
     crc = 0xFFFF
-    for x in range(19):
+    for x in range(len(data)):
         crc ^= data[x]
 
         for y in range(8):
@@ -155,7 +155,7 @@ class SenecaK107(SerialDevice, TemperatureMonitorBase, description="Seneca K107"
 
         """
         # Disabled for now so tests can pass
-        crc = calculate_crc(data)
+        crc = calculate_crc(data[:19])
         check = numpy.frombuffer(data[19:], dt)
 
         if crc != check:
