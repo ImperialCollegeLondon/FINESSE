@@ -18,7 +18,7 @@ from PySide6.QtWidgets import QWidget
 from schema import And, Or, Schema, SchemaError
 from statemachine import State, StateMachine
 
-from finesse.config import ANGLE_PRESETS, OPUS_TOPIC, STEPPER_MOTOR_TOPIC
+from finesse.config import ANGLE_PRESETS, SPECTROMETER_TOPIC, STEPPER_MOTOR_TOPIC
 from finesse.device_info import DeviceInstanceRef
 from finesse.em27_info import EM27Status
 from finesse.gui.error_message import show_error_message
@@ -127,7 +127,7 @@ def parse_script(script: str | TextIOBase) -> dict[str, Any]:
 
 def _poll_em27_status() -> None:
     """Request the EM27's status from OPUS."""
-    pub.sendMessage(f"device.{OPUS_TOPIC}.request", command="status")
+    pub.sendMessage(f"device.{SPECTROMETER_TOPIC}.request", command="status")
 
 
 class ScriptIterator:
@@ -278,9 +278,13 @@ class ScriptRunner(StateMachine):
         )
 
         # EM27 messages
-        pub.unsubscribe(self._on_em27_error, f"device.error.{OPUS_TOPIC}")
-        pub.unsubscribe(self._measuring_started, f"device.{OPUS_TOPIC}.response.start")
-        pub.unsubscribe(self._status_received, f"device.{OPUS_TOPIC}.response.status")
+        pub.unsubscribe(self._on_em27_error, f"device.error.{SPECTROMETER_TOPIC}")
+        pub.unsubscribe(
+            self._measuring_started, f"device.{SPECTROMETER_TOPIC}.response.start"
+        )
+        pub.unsubscribe(
+            self._status_received, f"device.{SPECTROMETER_TOPIC}.response.status"
+        )
 
         # Send message signalling that the measure script is no longer running
         pub.sendMessage("measure_script.end")
@@ -294,9 +298,13 @@ class ScriptRunner(StateMachine):
         )
 
         # Listen for EM27 messages
-        pub.subscribe(self._on_em27_error, f"device.error.{OPUS_TOPIC}")
-        pub.subscribe(self._measuring_started, f"device.{OPUS_TOPIC}.response.start")
-        pub.subscribe(self._status_received, f"device.{OPUS_TOPIC}.response.status")
+        pub.subscribe(self._on_em27_error, f"device.error.{SPECTROMETER_TOPIC}")
+        pub.subscribe(
+            self._measuring_started, f"device.{SPECTROMETER_TOPIC}.response.start"
+        )
+        pub.subscribe(
+            self._status_received, f"device.{SPECTROMETER_TOPIC}.response.status"
+        )
 
     def _load_next_measurement(self) -> bool:
         """Load the next measurement in the sequence.
@@ -338,7 +346,7 @@ class ScriptRunner(StateMachine):
         NB: This is also invoked on repeat measurements
         """
         pub.sendMessage("measure_script.start_measuring", script_runner=self)
-        pub.sendMessage(f"device.{OPUS_TOPIC}.request", command="start")
+        pub.sendMessage(f"device.{SPECTROMETER_TOPIC}.request", command="start")
 
     def on_exit_measuring(self) -> None:
         """Ensure that the polling timer is stopped."""

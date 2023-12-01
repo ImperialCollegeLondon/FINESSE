@@ -10,5 +10,5 @@ devices:
     class_name: temperature.dummy_temperature_monitor.DummyTemperatureMonitor
   em27_sensors:
     class_name: em27.dummy_em27_sensors.DummyEM27Sensors
-  opus:
+  spectrometer:
     class_name: em27.dummy_opus_interface.DummyOPUSInterface
