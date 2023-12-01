@@ -9,12 +9,12 @@ from statemachine import State
 
 from finesse.config import SPECTROMETER_TOPIC, STEPPER_MOTOR_TOPIC
 from finesse.device_info import DeviceInstanceRef
-from finesse.em27_info import EM27Status
 from finesse.gui.measure_script.script import (
     Script,
     ScriptRunner,
     _poll_spectrometer_status,
 )
+from finesse.spectrometer_status import SpectrometerStatus
 
 
 @patch("finesse.gui.measure_script.script.QTimer")
@@ -207,19 +207,21 @@ def test_measuring_started_success(
     runner.current_state = ScriptRunner.measuring
 
     # Simulate response from EM27
-    runner._measuring_started(EM27Status.IDLE, "")
+    runner._measuring_started(SpectrometerStatus.IDLE, "")
 
     # Check the request is sent to the EM27
     poll_spectrometer_mock.assert_called_once()
 
 
-@pytest.mark.parametrize("status", EM27Status)
-def test_status_received(status: EM27Status, runner_measuring: ScriptRunner) -> None:
+@pytest.mark.parametrize("status", SpectrometerStatus)
+def test_status_received(
+    status: SpectrometerStatus, runner_measuring: ScriptRunner
+) -> None:
     """Test that polling the EM27's status works."""
     with patch.object(runner_measuring, "_measuring_end") as measuring_end_mock:
         runner_measuring._status_received(status, "")
 
-        if status == EM27Status.CONNECTED:  # indicates success
+        if status == SpectrometerStatus.CONNECTED:  # indicates success
             measuring_end_mock.assert_called_once()
         else:
             measuring_end_mock.assert_not_called()

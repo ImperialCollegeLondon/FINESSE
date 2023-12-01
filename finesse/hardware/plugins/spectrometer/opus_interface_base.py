@@ -4,8 +4,8 @@ from __future__ import annotations
 from abc import abstractmethod
 
 from finesse.config import SPECTROMETER_TOPIC
-from finesse.em27_info import EM27Status
 from finesse.hardware.device import Device
+from finesse.spectrometer_status import SpectrometerStatus
 
 
 class OPUSError(Exception):
@@ -36,6 +36,8 @@ class OPUSInterfaceBase(Device, name=SPECTROMETER_TOPIC, description="OPUS devic
             command: Name of command to run
         """
 
-    def send_response(self, command: str, status: EM27Status, text: str) -> None:
+    def send_response(
+        self, command: str, status: SpectrometerStatus, text: str
+    ) -> None:
         """Broadcast the device's response via pubsub."""
         self.send_message(f"response.{command}", status=status, text=text)

@@ -20,8 +20,8 @@ from statemachine import State, StateMachine
 
 from finesse.config import ANGLE_PRESETS, SPECTROMETER_TOPIC, STEPPER_MOTOR_TOPIC
 from finesse.device_info import DeviceInstanceRef
-from finesse.em27_info import EM27Status
 from finesse.gui.error_message import show_error_message
+from finesse.spectrometer_status import SpectrometerStatus
 
 
 @dataclass(frozen=True)
@@ -366,15 +366,15 @@ class ScriptRunner(StateMachine):
 
     def _measuring_started(
         self,
-        status: EM27Status,
+        status: SpectrometerStatus,
         text: str,
     ):
         """Start polling the EM27 so we know when the measurement is finished."""
         _poll_spectrometer_status()
 
-    def _status_received(self, status: EM27Status, text: str):
+    def _status_received(self, status: SpectrometerStatus, text: str):
         """Move on to the next measurement if the measurement has finished."""
-        if status == EM27Status.CONNECTED:  # indicates measurement is finished
+        if status == SpectrometerStatus.CONNECTED:  # indicates measurement is finished
             self._measuring_end()
         else:
             # Poll again later
