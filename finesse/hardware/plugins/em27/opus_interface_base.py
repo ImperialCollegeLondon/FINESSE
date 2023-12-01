@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 
-from finesse.config import OPUS_TOPIC
+from finesse.config import SPECTROMETER_TOPIC
 from finesse.em27_info import EM27Status
 from finesse.hardware.device import Device
 
@@ -17,7 +17,7 @@ class OPUSError(Exception):
         return cls(f"Error {errcode}: {errtext}")
 
 
-class OPUSInterfaceBase(Device, name=OPUS_TOPIC, description="OPUS device"):
+class OPUSInterfaceBase(Device, name=SPECTROMETER_TOPIC, description="OPUS device"):
     """Base class providing an interface to the OPUS program."""
 
     def __init__(self) -> None:

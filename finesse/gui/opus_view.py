@@ -15,7 +15,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
 )
 
-from finesse.config import OPUS_TOPIC
+from finesse.config import SPECTROMETER_TOPIC
 from finesse.device_info import DeviceInstanceRef
 from finesse.em27_info import EM27Status
 from finesse.gui.device_panel import DevicePanel
@@ -29,7 +29,7 @@ class OPUSControl(DevicePanel):
 
     def __init__(self, commands: Sequence[str] = COMMANDS) -> None:
         """Create the widgets to monitor and control the OPUS interferometer."""
-        super().__init__(OPUS_TOPIC, "OPUS client view")
+        super().__init__(SPECTROMETER_TOPIC, "OPUS client view")
 
         self.commands = commands
         self.logger = logging.getLogger("OPUS")
@@ -42,9 +42,9 @@ class OPUSControl(DevicePanel):
             QSizePolicy.Policy.MinimumExpanding,
         )
 
-        pub.subscribe(self._log_request, f"device.{OPUS_TOPIC}.request")
-        pub.subscribe(self._log_response, f"device.{OPUS_TOPIC}.response")
-        pub.subscribe(self._log_error, f"device.error.{OPUS_TOPIC}")
+        pub.subscribe(self._log_request, f"device.{SPECTROMETER_TOPIC}.request")
+        pub.subscribe(self._log_response, f"device.{SPECTROMETER_TOPIC}.response")
+        pub.subscribe(self._log_error, f"device.error.{SPECTROMETER_TOPIC}")
 
     def _create_controls(self) -> QHBoxLayout:
         """Creates the controls for communicating with the interferometer.
@@ -112,7 +112,7 @@ class OPUSControl(DevicePanel):
         Args:
             command: OPUS command to be executed
         """
-        pub.sendMessage(f"device.{OPUS_TOPIC}.request", command=command)
+        pub.sendMessage(f"device.{SPECTROMETER_TOPIC}.request", command=command)
 
 
 class OPUSLogHandler(logging.Handler):

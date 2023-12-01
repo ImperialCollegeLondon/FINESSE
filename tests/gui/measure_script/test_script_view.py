@@ -8,7 +8,7 @@ import pytest
 from PySide6.QtWidgets import QPushButton, QWidget
 from pytestqt.qtbot import QtBot
 
-from finesse.config import DEFAULT_SCRIPT_PATH, OPUS_TOPIC
+from finesse.config import DEFAULT_SCRIPT_PATH, SPECTROMETER_TOPIC
 from finesse.em27_info import EM27Status
 from finesse.gui.measure_script.script_run_dialog import ScriptRunDialog
 from finesse.gui.measure_script.script_view import ScriptControl
@@ -48,7 +48,7 @@ def test_init(settings_mock: Mock, subscribe_mock: Mock, qtbot: QtBot) -> None:
         script_control._hide_run_dialog, "measure_script.end"
     )
     subscribe_mock.assert_any_call(
-        script_control._on_opus_message, f"device.{OPUS_TOPIC}.response"
+        script_control._on_opus_message, f"device.{SPECTROMETER_TOPIC}.response"
     )
     assert not script_control._opus_connected
 

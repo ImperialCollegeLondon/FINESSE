@@ -22,5 +22,5 @@ devices:
       baudrate: 57600
   em27_sensors:
     class_name: em27.em27_sensors.EM27Sensors
-  opus:
+  spectrometer:
     class_name: em27.opus_interface.OPUSInterface

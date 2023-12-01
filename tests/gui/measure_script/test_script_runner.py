@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, Mock, call, patch
 import pytest
 from statemachine import State
 
-from finesse.config import OPUS_TOPIC, STEPPER_MOTOR_TOPIC
+from finesse.config import SPECTROMETER_TOPIC, STEPPER_MOTOR_TOPIC
 from finesse.device_info import DeviceInstanceRef
 from finesse.em27_info import EM27Status
 from finesse.gui.measure_script.script import Script, ScriptRunner, _poll_em27_status
@@ -49,7 +49,7 @@ def test_poll_em27_status(sendmsg_mock: Mock) -> None:
     """Test the _poll_em27_status function."""
     _poll_em27_status()
     sendmsg_mock.assert_called_once_with(
-        f"device.{OPUS_TOPIC}.request", command="status"
+        f"device.{SPECTROMETER_TOPIC}.request", command="status"
     )
 
 
@@ -84,12 +84,14 @@ def test_start_moving(
     subscribe_mock.assert_any_call(
         runner._on_stepper_motor_error, f"device.error.{STEPPER_MOTOR_TOPIC}"
     )
-    subscribe_mock.assert_any_call(runner._on_em27_error, f"device.error.{OPUS_TOPIC}")
     subscribe_mock.assert_any_call(
-        runner._measuring_started, f"device.{OPUS_TOPIC}.response.start"
+        runner._on_em27_error, f"device.error.{SPECTROMETER_TOPIC}"
     )
     subscribe_mock.assert_any_call(
-        runner._status_received, f"device.{OPUS_TOPIC}.response.status"
+        runner._measuring_started, f"device.{SPECTROMETER_TOPIC}.response.start"
+    )
+    subscribe_mock.assert_any_call(
+        runner._status_received, f"device.{SPECTROMETER_TOPIC}.response.status"
     )
 
 
@@ -124,13 +126,13 @@ def test_finish_moving(
         script_runner._on_stepper_motor_error, f"device.error.{STEPPER_MOTOR_TOPIC}"
     )
     unsubscribe_mock.assert_any_call(
-        script_runner._on_em27_error, f"device.error.{OPUS_TOPIC}"
+        script_runner._on_em27_error, f"device.error.{SPECTROMETER_TOPIC}"
     )
     unsubscribe_mock.assert_any_call(
-        script_runner._measuring_started, f"device.{OPUS_TOPIC}.response.start"
+        script_runner._measuring_started, f"device.{SPECTROMETER_TOPIC}.response.start"
     )
     unsubscribe_mock.assert_any_call(
-        script_runner._status_received, f"device.{OPUS_TOPIC}.response.status"
+        script_runner._status_received, f"device.{SPECTROMETER_TOPIC}.response.status"
     )
 
     # Check that this message is sent on the last iteration
@@ -145,7 +147,9 @@ def test_start_measuring(runner: ScriptRunner, sendmsg_mock: MagicMock) -> None:
     assert runner.current_state == ScriptRunner.measuring
 
     # Check that measuring has been triggered
-    sendmsg_mock.assert_any_call(f"device.{OPUS_TOPIC}.request", command="start")
+    sendmsg_mock.assert_any_call(
+        f"device.{SPECTROMETER_TOPIC}.request", command="start"
+    )
 
     sendmsg_mock.assert_any_call("measure_script.start_measuring", script_runner=runner)
 
@@ -167,7 +171,9 @@ def test_repeat_measuring(
     assert runner_measuring.current_state == ScriptRunner.measuring
 
     # Check that measuring has been triggered again
-    sendmsg_mock.assert_any_call(f"device.{OPUS_TOPIC}.request", command="start")
+    sendmsg_mock.assert_any_call(
+        f"device.{SPECTROMETER_TOPIC}.request", command="start"
+    )
 
     sendmsg_mock.assert_any_call(
         "measure_script.start_measuring", script_runner=runner_measuring
@@ -287,7 +293,8 @@ def test_on_em27_error(show_error_message_mock: Mock, runner: ScriptRunner) -> N
     """Test the _on_em27_error() method."""
     with patch.object(runner, "abort") as abort_mock:
         runner._on_em27_error(
-            instance=DeviceInstanceRef(OPUS_TOPIC), error=RuntimeError("ERROR MESSAGE")
+            instance=DeviceInstanceRef(SPECTROMETER_TOPIC),
+            error=RuntimeError("ERROR MESSAGE"),
         )
         abort_mock.assert_called_once_with()
         show_error_message_mock.assert_called_once_with(
