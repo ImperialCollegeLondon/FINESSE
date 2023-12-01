@@ -17,8 +17,8 @@ from PySide6.QtWidgets import (
 
 from finesse.config import SPECTROMETER_TOPIC
 from finesse.device_info import DeviceInstanceRef
-from finesse.em27_info import EM27Status
 from finesse.gui.device_panel import DevicePanel
+from finesse.spectrometer_status import SpectrometerStatus
 
 
 class SpectrometerControl(DevicePanel):
@@ -98,7 +98,7 @@ class SpectrometerControl(DevicePanel):
 
     def _log_response(
         self,
-        status: EM27Status,
+        status: SpectrometerStatus,
         text: str,
     ) -> None:
         self.logger.info(f"Response ({status.value}): {text}")

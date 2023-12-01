@@ -6,13 +6,13 @@ from pubsub import pub
 from PySide6.QtWidgets import QFileDialog, QGridLayout, QGroupBox, QPushButton
 
 from finesse.config import DEFAULT_SCRIPT_PATH, SPECTROMETER_TOPIC, STEPPER_MOTOR_TOPIC
-from finesse.em27_info import EM27Status
 from finesse.event_counter import EventCounter
 from finesse.gui.measure_script.script import Script, ScriptRunner
 from finesse.gui.measure_script.script_edit_dialog import ScriptEditDialog
 from finesse.gui.measure_script.script_run_dialog import ScriptRunDialog
 from finesse.gui.path_widget import OpenFileWidget
 from finesse.settings import settings
+from finesse.spectrometer_status import SpectrometerStatus
 
 
 def _get_previous_script_path() -> Path | None:
@@ -129,7 +129,7 @@ class ScriptControl(QGroupBox):
         self.run_dialog.hide()
         del self.run_dialog
 
-    def _on_spectrometer_message(self, status: EM27Status, text: str) -> None:
+    def _on_spectrometer_message(self, status: SpectrometerStatus, text: str) -> None:
         """Change the enable counter when the spectrometer connects/disconnects."""
         if status.is_connected == self._spectrometer_connected:
             # The connection status hasn't changed

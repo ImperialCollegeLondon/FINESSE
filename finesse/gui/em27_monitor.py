@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (
 )
 
 from finesse.config import EM27_SENSORS_TOPIC
-from finesse.em27_info import EM27Property
+from finesse.em27_property import EM27Property
 from finesse.gui.device_panel import DevicePanel
 from finesse.gui.led_icon import LEDIcon
 

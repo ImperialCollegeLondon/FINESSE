@@ -9,9 +9,9 @@ from PySide6.QtWidgets import QPushButton, QWidget
 from pytestqt.qtbot import QtBot
 
 from finesse.config import DEFAULT_SCRIPT_PATH, SPECTROMETER_TOPIC
-from finesse.em27_info import EM27Status
 from finesse.gui.measure_script.script_run_dialog import ScriptRunDialog
 from finesse.gui.measure_script.script_view import ScriptControl
+from finesse.spectrometer_status import SpectrometerStatus
 
 
 @pytest.fixture
@@ -271,10 +271,10 @@ def test_hide_run_dialog_no_abort(
 
 @pytest.mark.parametrize(
     "status,already_connected",
-    product((EM27Status(i) for i in range(2, 6)), (True, False)),
+    product((SpectrometerStatus(i) for i in range(2, 6)), (True, False)),
 )
 def test_on_opus_message_connect(
-    status: EM27Status,
+    status: SpectrometerStatus,
     already_connected: bool,
     script_control: ScriptControl,
     qtbot: QtBot,
@@ -294,10 +294,12 @@ def test_on_opus_message_connect(
 
 @pytest.mark.parametrize(
     "status,already_connected",
-    product((EM27Status.CONNECTING, EM27Status.UNDEFINED), (True, False)),
+    product(
+        (SpectrometerStatus.CONNECTING, SpectrometerStatus.UNDEFINED), (True, False)
+    ),
 )
 def test_on_opus_message_disconnect(
-    status: EM27Status,
+    status: SpectrometerStatus,
     already_connected: bool,
     script_control: ScriptControl,
     qtbot: QtBot,
