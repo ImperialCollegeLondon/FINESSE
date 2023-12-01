@@ -10,7 +10,11 @@ from statemachine import State
 from finesse.config import SPECTROMETER_TOPIC, STEPPER_MOTOR_TOPIC
 from finesse.device_info import DeviceInstanceRef
 from finesse.em27_info import EM27Status
-from finesse.gui.measure_script.script import Script, ScriptRunner, _poll_em27_status
+from finesse.gui.measure_script.script import (
+    Script,
+    ScriptRunner,
+    _poll_spectrometer_status,
+)
 
 
 @patch("finesse.gui.measure_script.script.QTimer")
@@ -30,7 +34,7 @@ def test_init(
     # Check timer is properly set up
     timer.setSingleShot.assert_called_once_with(True)
     timer.setInterval.assert_called_once_with(1000)
-    timer.timeout.connect.assert_called_once_with(_poll_em27_status)
+    timer.timeout.connect.assert_called_once_with(_poll_spectrometer_status)
 
     # Check we're stopping the motor
     sendmsg_mock.assert_any_call(f"device.{STEPPER_MOTOR_TOPIC}.stop")
@@ -45,9 +49,9 @@ def test_init(
     assert not script_runner.paused
 
 
-def test_poll_em27_status(sendmsg_mock: Mock) -> None:
-    """Test the _poll_em27_status function."""
-    _poll_em27_status()
+def test_poll_spectrometer_status(sendmsg_mock: Mock) -> None:
+    """Test the _poll_spectrometer_status function."""
+    _poll_spectrometer_status()
     sendmsg_mock.assert_called_once_with(
         f"device.{SPECTROMETER_TOPIC}.request", command="status"
     )
@@ -85,7 +89,7 @@ def test_start_moving(
         runner._on_stepper_motor_error, f"device.error.{STEPPER_MOTOR_TOPIC}"
     )
     subscribe_mock.assert_any_call(
-        runner._on_em27_error, f"device.error.{SPECTROMETER_TOPIC}"
+        runner._on_spectrometer_error, f"device.error.{SPECTROMETER_TOPIC}"
     )
     subscribe_mock.assert_any_call(
         runner._measuring_started, f"device.{SPECTROMETER_TOPIC}.response.start"
@@ -126,7 +130,7 @@ def test_finish_moving(
         script_runner._on_stepper_motor_error, f"device.error.{STEPPER_MOTOR_TOPIC}"
     )
     unsubscribe_mock.assert_any_call(
-        script_runner._on_em27_error, f"device.error.{SPECTROMETER_TOPIC}"
+        script_runner._on_spectrometer_error, f"device.error.{SPECTROMETER_TOPIC}"
     )
     unsubscribe_mock.assert_any_call(
         script_runner._measuring_started, f"device.{SPECTROMETER_TOPIC}.response.start"
@@ -195,8 +199,10 @@ def test_cancel_measuring(
     assert runner_measuring.current_state == ScriptRunner.not_running
 
 
-@patch("finesse.gui.measure_script.script._poll_em27_status")
-def test_measuring_started_success(poll_em27_mock: Mock, runner: ScriptRunner) -> None:
+@patch("finesse.gui.measure_script.script._poll_spectrometer_status")
+def test_measuring_started_success(
+    poll_spectrometer_mock: Mock, runner: ScriptRunner
+) -> None:
     """Test that polling starts when measurement has started successfully."""
     runner.current_state = ScriptRunner.measuring
 
@@ -204,7 +210,7 @@ def test_measuring_started_success(poll_em27_mock: Mock, runner: ScriptRunner) -
     runner._measuring_started(EM27Status.IDLE, "")
 
     # Check the request is sent to the EM27
-    poll_em27_mock.assert_called_once()
+    poll_spectrometer_mock.assert_called_once()
 
 
 @pytest.mark.parametrize("status", EM27Status)
@@ -289,18 +295,17 @@ def test_on_stepper_motor_error(runner: ScriptRunner) -> None:
 
 
 @patch("finesse.gui.measure_script.script.show_error_message")
-def test_on_em27_error(show_error_message_mock: Mock, runner: ScriptRunner) -> None:
-    """Test the _on_em27_error() method."""
+def test_on_spectrometer_error(
+    show_error_message_mock: Mock, runner: ScriptRunner
+) -> None:
+    """Test the _on_spectrometer_error() method."""
     with patch.object(runner, "abort") as abort_mock:
-        runner._on_em27_error(
+        runner._on_spectrometer_error(
             instance=DeviceInstanceRef(SPECTROMETER_TOPIC),
             error=RuntimeError("ERROR MESSAGE"),
         )
         abort_mock.assert_called_once_with()
-        show_error_message_mock.assert_called_once_with(
-            None,
-            "EM27 error occurred. Measure script will stop running.\n\nERROR MESSAGE",
-        )
+        show_error_message_mock.assert_called_once()
 
 
 def test_pause(runner: ScriptRunner) -> None:

@@ -125,8 +125,8 @@ def parse_script(script: str | TextIOBase) -> dict[str, Any]:
         raise ParseError() from e
 
 
-def _poll_em27_status() -> None:
-    """Request the EM27's status from OPUS."""
+def _poll_spectrometer_status() -> None:
+    """Request the spectrometer's status."""
     pub.sendMessage(f"device.{SPECTROMETER_TOPIC}.request", command="status")
 
 
@@ -245,7 +245,7 @@ class ScriptRunner(StateMachine):
         """A timer which checks whether the EM27's measurement is complete."""
         self._check_status_timer.setSingleShot(True)
         self._check_status_timer.setInterval(round(1000 * min_poll_interval))
-        self._check_status_timer.timeout.connect(_poll_em27_status)
+        self._check_status_timer.timeout.connect(_poll_spectrometer_status)
 
         # Send stop command in case motor is moving
         pub.sendMessage(f"device.{STEPPER_MOTOR_TOPIC}.stop")
@@ -278,7 +278,9 @@ class ScriptRunner(StateMachine):
         )
 
         # EM27 messages
-        pub.unsubscribe(self._on_em27_error, f"device.error.{SPECTROMETER_TOPIC}")
+        pub.unsubscribe(
+            self._on_spectrometer_error, f"device.error.{SPECTROMETER_TOPIC}"
+        )
         pub.unsubscribe(
             self._measuring_started, f"device.{SPECTROMETER_TOPIC}.response.start"
         )
@@ -290,7 +292,7 @@ class ScriptRunner(StateMachine):
         pub.sendMessage("measure_script.end")
 
     def on_exit_not_running(self) -> None:
-        """Subscribe to pubsub messages for the stepper motor and OPUS."""
+        """Subscribe to pubsub messages for the stepper motor and spectrometer."""
         # Listen for stepper motor messages
         pub.subscribe(self.start_measuring, f"device.{STEPPER_MOTOR_TOPIC}.move.end")
         pub.subscribe(
@@ -298,7 +300,7 @@ class ScriptRunner(StateMachine):
         )
 
         # Listen for EM27 messages
-        pub.subscribe(self._on_em27_error, f"device.error.{SPECTROMETER_TOPIC}")
+        pub.subscribe(self._on_spectrometer_error, f"device.error.{SPECTROMETER_TOPIC}")
         pub.subscribe(
             self._measuring_started, f"device.{SPECTROMETER_TOPIC}.response.start"
         )
@@ -368,7 +370,7 @@ class ScriptRunner(StateMachine):
         text: str,
     ):
         """Start polling the EM27 so we know when the measurement is finished."""
-        _poll_em27_status()
+        _poll_spectrometer_status()
 
     def _status_received(self, status: EM27Status, text: str):
         """Move on to the next measurement if the measurement has finished."""
@@ -414,13 +416,16 @@ class ScriptRunner(StateMachine):
         """Call abort()."""
         self.abort()
 
-    def _on_em27_error(self, instance: DeviceInstanceRef, error: Exception) -> None:
+    def _on_spectrometer_error(
+        self, instance: DeviceInstanceRef, error: Exception
+    ) -> None:
         """Cancel current measurement and show an error message to the user."""
         self.abort()
 
         show_error_message(
             self.parent,
-            f"EM27 error occurred. Measure script will stop running.\n\n{error!s}",
+            "Error occurred with spectrometer. "
+            f"The measure script will stop running.\n\n{error!s}",
         )
 
     def _measuring_end(self) -> None:

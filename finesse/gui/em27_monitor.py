@@ -39,7 +39,7 @@ class EM27Monitor(DevicePanel):
 
         self.setLayout(self._layout)
 
-        # Listen for properties sent by EM27Scraper backend
+        # Listen for properties sent by EM27Sensors backend
         pub.subscribe(
             self._on_properties_received, f"device.{EM27_SENSORS_TOPIC}.data.response"
         )
