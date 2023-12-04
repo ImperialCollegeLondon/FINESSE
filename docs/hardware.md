@@ -37,17 +37,18 @@ You can create a new device base like so:
 
 ```py
 class MyBaseType(
-    Device, is_base_type=True, name="my_base_type", description="Example base type"
+    Device, name="my_base_type", description="Example base type"
 ):
     # ...
 ```
 
-The `is_base_type=True` is required to register the class as a device base type. `name`
-is the short name for the base type and is used in the topic for PyPubSub messages (see
-more below). `description` provides a human-readable name for the base type, which will
-be displayed in the GUI. It is additionally possible to provide a list of possible names
-for instances of the device, but this is currently only used for temperature controllers
-(to distinguish between the hot and cold black body controllers).
+As this class inherits directly from `Device`, it will be registered as a device base
+type. `name` is the short name for the base type and is used in the topic for PyPubSub
+messages (see more below). `description` provides a human-readable name for the base
+type, which will be displayed in the GUI. It is additionally possible to provide a list
+of possible names for instances of the device, but this is currently only used for
+temperature controllers (to distinguish between the hot and cold black body
+controllers).
 
 You can create a concrete implementation of `MyBaseType` like so:
 

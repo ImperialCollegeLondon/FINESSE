@@ -5,9 +5,7 @@ from finesse.config import ANGLE_PRESETS, STEPPER_MOTOR_TOPIC
 from finesse.hardware.device import Device
 
 
-class StepperMotorBase(
-    Device, is_base_type=True, name=STEPPER_MOTOR_TOPIC, description="Stepper motor"
-):
+class StepperMotorBase(Device, name=STEPPER_MOTOR_TOPIC, description="Stepper motor"):
     """A base class for stepper motor implementations."""
 
     def __init__(self) -> None:
