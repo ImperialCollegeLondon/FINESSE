@@ -171,7 +171,7 @@ def _get_new_hardware_set_path(
     return file_path
 
 
-def _save_hardware_set(hw_set: HardwareSet) -> None:
+def _add_hardware_set(hw_set: HardwareSet) -> None:
     """Save a hardware set to disk and add to in-memory store."""
     file_path = _get_new_hardware_set_path(hw_set.file_path.stem)
     logging.info(f"Copying hardware set from {hw_set.file_path} to {file_path}")
@@ -190,6 +190,29 @@ def _save_hardware_set(hw_set: HardwareSet) -> None:
 
         # Signal that a new hardware set has been added
         pub.sendMessage("hardware_set.added", hw_set=new_hw_set)
+
+
+def _remove_hardware_set(hw_set: HardwareSet) -> None:
+    """Remove a hardware set after confirming with the user.
+
+    If the user confirms, the associated config file will be moved to the recycle bin.
+    """
+    if hw_set.built_in:
+        raise ValueError("Cannot remove built-in hardware set")
+
+    msgbox = QMessageBox(
+        QMessageBox.Icon.Question,
+        "Remove hardware set",
+        f'Are you sure you want to remove the hardware set "{hw_set.name}"? '
+        "It will be moved to the recycle bin.",
+        QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+    )
+    if msgbox.exec() == QMessageBox.StandardButton.Yes:
+        if QFile.moveToTrash(str(hw_set.file_path)):
+            _hw_sets.remove(hw_set)
+            pub.sendMessage("hardware_set.removed")
+        else:
+            show_error_message(None, "Failed to delete hardware set", "Deletion failed")
 
 
 def _load_hardware_sets(dir: Path, built_in: bool) -> Iterable[HardwareSet]:
@@ -271,4 +294,5 @@ def get_hardware_sets() -> Iterable[HardwareSet]:
 
 _hw_sets: list[HardwareSet] = []
 
-pub.subscribe(_save_hardware_set, "hardware_set.add")
+pub.subscribe(_add_hardware_set, "hardware_set.add")
+pub.subscribe(_remove_hardware_set, "hardware_set.remove")
