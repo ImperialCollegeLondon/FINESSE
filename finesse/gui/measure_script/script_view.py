@@ -129,7 +129,7 @@ class ScriptControl(QGroupBox):
         self.run_dialog.hide()
         del self.run_dialog
 
-    def _on_spectrometer_message(self, status: SpectrometerStatus, text: str) -> None:
+    def _on_spectrometer_message(self, status: SpectrometerStatus) -> None:
         """Change the enable counter when the spectrometer connects/disconnects."""
         if status.is_connected == self._spectrometer_connected:
             # The connection status hasn't changed

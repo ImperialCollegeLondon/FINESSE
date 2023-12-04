@@ -207,7 +207,7 @@ def test_measuring_started_success(
     runner.current_state = ScriptRunner.measuring
 
     # Simulate response from EM27
-    runner._measuring_started(SpectrometerStatus.IDLE, "")
+    runner._measuring_started(SpectrometerStatus.IDLE)
 
     # Check the request is sent to the EM27
     poll_spectrometer_mock.assert_called_once()
@@ -219,7 +219,7 @@ def test_status_received(
 ) -> None:
     """Test that polling the EM27's status works."""
     with patch.object(runner_measuring, "_measuring_end") as measuring_end_mock:
-        runner_measuring._status_received(status, "")
+        runner_measuring._status_received(status)
 
         if status == SpectrometerStatus.CONNECTED:  # indicates success
             measuring_end_mock.assert_called_once()

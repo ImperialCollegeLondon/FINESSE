@@ -51,10 +51,10 @@ def _format_td(name: str, value: Any) -> str:
 
 def _get_opus_html(
     status: int | None,
-    text: str | None,
     errcode: int | None = None,
     errtext: str | None = None,
     extra_text: str = "",
+    text: str | None = "status text",
 ) -> str:
     return f"""
     <html>
@@ -74,25 +74,18 @@ def _get_opus_html(
 
 
 @pytest.mark.parametrize(
-    "status,text",
-    product(
-        (SpectrometerStatus.IDLE, SpectrometerStatus.CONNECTING), ("", "status text")
-    ),
+    "status", (SpectrometerStatus.IDLE, SpectrometerStatus.CONNECTING)
 )
-def test_parse_response_no_error(status: SpectrometerStatus, text: str) -> None:
+def test_parse_response_no_error(status: SpectrometerStatus) -> None:
     """Test parse_response() works when no error has occurred."""
-    response = _get_opus_html(status.value, text)
-    parsed_status, parsed_text = parse_response(response)
-    assert parsed_status == status
-    assert parsed_text == text
+    response = _get_opus_html(status.value)
+    assert parse_response(response) == status
 
 
 @pytest.mark.parametrize("errcode,errtext", product(range(2), ("", "error text")))
 def test_parse_response_error(errcode: int, errtext: str) -> None:
     """Test parse_response() works when an error has occurred."""
-    response = _get_opus_html(
-        SpectrometerStatus.CONNECTING.value, "status text", errcode, errtext
-    )
+    response = _get_opus_html(SpectrometerStatus.CONNECTING.value, errcode, errtext)
     with pytest.raises(OPUSError):
         parse_response(response)
 
@@ -100,7 +93,7 @@ def test_parse_response_error(errcode: int, errtext: str) -> None:
 @pytest.mark.parametrize("status,text", ((None, "text"), (1, None), (None, None)))
 def test_parse_response_missing_fields(status: int | None, text: str | None) -> None:
     """Test parse_response() raises an error if fields are missing."""
-    response = _get_opus_html(status, text)
+    response = _get_opus_html(status, text=text)
     with pytest.raises(OPUSError):
         parse_response(response)
 
@@ -108,7 +101,7 @@ def test_parse_response_missing_fields(status: int | None, text: str | None) -> 
 def test_parse_response_no_id(opus: OPUSInterface) -> None:
     """Test that parse_response() can handle <td> tags without an id."""
     response = _get_opus_html(
-        SpectrometerStatus.CONNECTING.value, "text", 1, "errtext", "<td>something</td>"
+        SpectrometerStatus.CONNECTING.value, 1, "errtext", "<td>something</td>"
     )
     with pytest.raises(OPUSError):
         parse_response(response)
@@ -119,7 +112,6 @@ def test_parse_response_bad_id(warning_mock: Mock) -> None:
     """Test that parse_response() can handle <td> tags with unexpected id values."""
     response = _get_opus_html(
         SpectrometerStatus.CONNECTING.value,
-        "text",
         1,
         "errtext",
         '<td id="MADE_UP">something</td>',
@@ -137,11 +129,11 @@ def test_on_reply_received_no_error(
     reply = MagicMock()
     reply.error.return_value = QNetworkReply.NetworkError.NoError
 
-    # NB: These values are of the wrong type, but it doesn't matter here
-    parse_response_mock.return_value = ("status", "text")
+    # NB: This value is of the wrong type, but it doesn't matter here
+    parse_response_mock.return_value = "status"
 
     # Check the correct pubsub message is sent
-    assert opus._on_reply_received(reply) == ("status", "text")
+    assert opus._on_reply_received(reply) == "status"
 
 
 @patch("finesse.hardware.plugins.spectrometer.opus_interface.parse_response")
