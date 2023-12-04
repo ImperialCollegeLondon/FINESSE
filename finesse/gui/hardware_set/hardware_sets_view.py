@@ -81,6 +81,9 @@ class HardwareSetsControl(QGroupBox):
         import_hw_set_btn = QPushButton("Import config")
         import_hw_set_btn.pressed.connect(self._import_hardware_set)
 
+        self._remove_hw_set_btn = QPushButton("Remove")
+        self._remove_hw_set_btn.pressed.connect(self._remove_current_hardware_set)
+
         manage_devices_btn = QPushButton("Manage devices")
         manage_devices_btn.pressed.connect(self._show_manage_devices_dialog)
         self._manage_devices_dialog: ManageDevicesDialog
@@ -91,6 +94,7 @@ class HardwareSetsControl(QGroupBox):
         row1.addWidget(self._disconnect_btn)
         row2 = QHBoxLayout()
         row2.addWidget(import_hw_set_btn)
+        row2.addWidget(self._remove_hw_set_btn)
         row2.addWidget(manage_devices_btn)
 
         layout = QVBoxLayout()
@@ -98,6 +102,7 @@ class HardwareSetsControl(QGroupBox):
         layout.addLayout(row2)
         self.setLayout(layout)
 
+        pub.subscribe(self._load_hardware_set_list, "hardware_set.removed")
         pub.subscribe(self._on_hardware_set_added, "hardware_set.added")
 
         self._update_control_state()
@@ -113,6 +118,7 @@ class HardwareSetsControl(QGroupBox):
 
     def _load_hardware_set_list(self) -> None:
         """Populate the combo box with hardware sets."""
+        self._hardware_sets_combo.clear()
         for hw_set in get_hardware_sets():
             self._add_hardware_set(hw_set)
 
@@ -134,6 +140,12 @@ class HardwareSetsControl(QGroupBox):
             )
         else:
             pub.sendMessage("hardware_set.add", hw_set=hw_set)
+
+    def _remove_current_hardware_set(self) -> None:
+        """Remove the currently selected hardware set."""
+        pub.sendMessage(
+            "hardware_set.remove", hw_set=self._hardware_sets_combo.currentData()
+        )
 
     def _show_manage_devices_dialog(self) -> None:
         """Show a dialog for managing devices manually.
@@ -177,7 +189,6 @@ class HardwareSetsControl(QGroupBox):
         The reason for clearing the combo box and refilling it is so that we can keep
         the entries sorted.
         """
-        self._hardware_sets_combo.clear()
         self._load_hardware_set_list()
 
         # Select the just-added hardware set
@@ -207,6 +218,10 @@ class HardwareSetsControl(QGroupBox):
 
         # Enable the "Disconnect all" button if there are *any* devices connected at all
         self._disconnect_btn.setEnabled(bool(self._connected_devices))
+
+        # Enable the "Remove" button only if the hardware set is not a built in one
+        hw_set = cast(HardwareSet | None, self._hardware_sets_combo.currentData())
+        self._remove_hw_set_btn.setEnabled(hw_set is not None and not hw_set.built_in)
 
     def _on_connect_btn_pressed(self) -> None:
         """Connect to all devices in current hardware set.

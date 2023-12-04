@@ -73,11 +73,13 @@ def test_init(
     update_mock.assert_called_once_with()
 
     subscribe_mock.assert_has_calls(
-        [
+        (
             call(hw_sets._on_device_opened, "device.opening"),
             call(hw_sets._on_device_closed, "device.closed"),
             call(hw_sets._on_hardware_set_added, "hardware_set.added"),
-        ]
+            call(hw_sets._load_hardware_set_list, "hardware_set.removed"),
+        ),
+        any_order=True,
     )
 
 
@@ -222,7 +224,6 @@ def test_on_hardware_set_added(
         combo_mock.itemData = lambda idx: HW_SETS[idx]
         combo_mock.count.return_value = len(HW_SETS)
         hw_sets._on_hardware_set_added(HW_SETS[1])
-        combo_mock.clear.assert_called_once_with()
         load_mock.assert_called_once_with()
         combo_mock.setCurrentIndex.assert_called_once_with(1)
 
@@ -394,3 +395,14 @@ def test_show_manage_devices_dialog(hw_sets: HardwareSetsControl, qtbot) -> None
     hw_sets._show_manage_devices_dialog()
     assert not dialog.isHidden()
     assert hw_sets._manage_devices_dialog is dialog
+
+
+def test_remove_hw_set_btn(
+    hw_sets: HardwareSetsControl, sendmsg_mock: Mock, qtbot
+) -> None:
+    """Test that _remove_hw_set_btn works."""
+    with patch.object(hw_sets._hardware_sets_combo, "currentData") as data_mock:
+        hw_set = MagicMock()
+        data_mock.return_value = hw_set
+        hw_sets._remove_hw_set_btn.click()
+        sendmsg_mock.assert_called_once_with("hardware_set.remove", hw_set=hw_set)

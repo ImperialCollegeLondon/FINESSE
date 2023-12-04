@@ -20,6 +20,7 @@ from finesse.gui.hardware_set.hardware_set import (
     HardwareSet,
     HardwareSetLoadError,
     OpenDeviceArgs,
+    _add_hardware_set,
     _device_to_plain_data,
     _get_new_hardware_set_path,
     _hw_set_schema,
@@ -27,14 +28,14 @@ from finesse.gui.hardware_set.hardware_set import (
     _load_builtin_hardware_sets,
     _load_hardware_sets,
     _load_user_hardware_sets,
-    _save_hardware_set,
+    _remove_hardware_set,
     get_hardware_sets,
 )
 
 FILE_PATH = Path("test/file.yaml")
 NAME = "Test hardware set"
 
-HW_SETS = [
+HW_SETS = (
     HardwareSet(
         "Test 1",
         frozenset(
@@ -61,12 +62,13 @@ HW_SETS = [
         Path("path/test2.yaml"),
         False,
     ),
-]
+)
 
 
 def test_subscriptions() -> None:
     """Check the module-level subscriptions."""
-    assert pub.isSubscribed(_save_hardware_set, "hardware_set.add")
+    assert pub.isSubscribed(_add_hardware_set, "hardware_set.add")
+    assert pub.isSubscribed(_remove_hardware_set, "hardware_set.remove")
 
 
 @pytest.mark.parametrize(
@@ -368,10 +370,10 @@ def test_get_new_hardware_set_path_creates_dir(tmp_path: Path) -> None:
 
 @patch("finesse.gui.hardware_set.hardware_set._get_new_hardware_set_path")
 @patch("finesse.gui.hardware_set.hardware_set.show_error_message")
-def test_save_hardware_set_success(
+def test_add_hardware_set_success(
     error_message_mock: Mock, get_path_mock: Mock, sendmsg_mock: MagicMock
 ) -> None:
-    """Test _save_hardware_set()."""
+    """Test _add_hardware_set() when it succeeds."""
     in_path = Path("dir1/file.yaml")
     out_path = Path("dir2/file.yaml")
     hw_set = MagicMock()
@@ -383,7 +385,7 @@ def test_save_hardware_set_success(
     hw_sets: list = []
     with patch("finesse.gui.hardware_set.hardware_set._hw_sets", hw_sets):
         hw_set_new = HardwareSet(NAME, HW_SETS[0].devices, out_path, built_in=False)
-        _save_hardware_set(hw_set)
+        _add_hardware_set(hw_set)
         get_path_mock.assert_called_once_with(in_path.stem)
         hw_set.save.assert_called_once_with(out_path)
         error_message_mock.assert_not_called()
@@ -393,10 +395,10 @@ def test_save_hardware_set_success(
 
 @patch("finesse.gui.hardware_set.hardware_set._get_new_hardware_set_path")
 @patch("finesse.gui.hardware_set.hardware_set.show_error_message")
-def test_save_hardware_set_fail(
+def test_add_hardware_set_fail(
     error_message_mock: Mock, get_path_mock: Mock, sendmsg_mock: MagicMock
 ) -> None:
-    """Test _save_hardware_set()."""
+    """Test _add_hardware_set() when it fails."""
     in_path = Path("dir1/file.yaml")
     out_path = Path("dir2/file.yaml")
     hw_set = MagicMock()
@@ -405,11 +407,80 @@ def test_save_hardware_set_fail(
     get_path_mock.return_value = out_path
     hw_sets: list = []
     with patch("finesse.gui.hardware_set.hardware_set._hw_sets", hw_sets):
-        _save_hardware_set(hw_set)
+        _add_hardware_set(hw_set)
         get_path_mock.assert_called_once_with(in_path.stem)
         hw_set.save.assert_called_once_with(out_path)
         error_message_mock.assert_called_once()
         sendmsg_mock.assert_not_called()
+
+
+@patch("finesse.gui.hardware_set.hardware_set.QFile.moveToTrash")
+@patch("finesse.gui.hardware_set.hardware_set.QMessageBox")
+def test_remove_hardware_set_success(
+    msgbox_mock: Mock, trash_mock: Mock, sendmsg_mock: MagicMock
+) -> None:
+    """Test _remove_hardware_set() when removal succeeds."""
+    msgbox = MagicMock()
+    msgbox.exec.return_value = QMessageBox.StandardButton.Yes
+    msgbox_mock.StandardButton = QMessageBox.StandardButton
+    msgbox_mock.return_value = msgbox
+    trash_mock.return_value = True
+
+    hw_sets = list(HW_SETS)
+    with patch("finesse.gui.hardware_set.hardware_set._hw_sets", hw_sets):
+        _remove_hardware_set(HW_SETS[0])
+        assert hw_sets == [HW_SETS[1]]
+        trash_mock.assert_called_once_with(str(HW_SETS[0].file_path))
+        sendmsg_mock.assert_called_once_with("hardware_set.removed")
+
+
+@patch("finesse.gui.hardware_set.hardware_set.QFile.moveToTrash")
+@patch("finesse.gui.hardware_set.hardware_set.QMessageBox")
+def test_remove_hardware_set_cancelled(
+    msgbox_mock: Mock, trash_mock: Mock, sendmsg_mock: MagicMock
+) -> None:
+    """Test _remove_hardware_set() when the user cancels."""
+    msgbox = MagicMock()
+    msgbox.exec.return_value = QMessageBox.StandardButton.No
+    msgbox_mock.StandardButton = QMessageBox.StandardButton
+    msgbox_mock.return_value = msgbox
+    trash_mock.return_value = True
+
+    hw_sets = list(HW_SETS)
+    with patch("finesse.gui.hardware_set.hardware_set._hw_sets", hw_sets):
+        _remove_hardware_set(HW_SETS[0])
+        trash_mock.assert_not_called()
+        sendmsg_mock.assert_not_called()
+        assert hw_sets == list(HW_SETS)
+
+
+@patch("finesse.gui.hardware_set.hardware_set.show_error_message")
+@patch("finesse.gui.hardware_set.hardware_set.QFile.moveToTrash")
+@patch("finesse.gui.hardware_set.hardware_set.QMessageBox")
+def test_remove_hardware_set_fail(
+    msgbox_mock: Mock, trash_mock: Mock, error_mock: Mock, sendmsg_mock: MagicMock
+) -> None:
+    """Test _remove_hardware_set() when deletion fails."""
+    msgbox = MagicMock()
+    msgbox.exec.return_value = QMessageBox.StandardButton.Yes
+    msgbox_mock.StandardButton = QMessageBox.StandardButton
+    msgbox_mock.return_value = msgbox
+    trash_mock.return_value = False
+
+    hw_sets = list(HW_SETS)
+    with patch("finesse.gui.hardware_set.hardware_set._hw_sets", hw_sets):
+        _remove_hardware_set(HW_SETS[0])
+        trash_mock.assert_called_once_with(str(HW_SETS[0].file_path))
+        sendmsg_mock.assert_not_called()
+        assert hw_sets == list(HW_SETS)
+        error_mock.assert_called_once()
+
+
+def test_remove_hardware_set_fail_built_in() -> None:
+    """Test with a built-in hardware set as argument."""
+    hw_set = HardwareSet(NAME, HW_SETS[0].devices, FILE_PATH, built_in=True)
+    with pytest.raises(ValueError):
+        _remove_hardware_set(hw_set)
 
 
 @pytest.mark.parametrize(
