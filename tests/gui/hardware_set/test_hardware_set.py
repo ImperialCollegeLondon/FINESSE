@@ -35,35 +35,6 @@ from finesse.gui.hardware_set.hardware_set import (
 FILE_PATH = Path("test/file.yaml")
 NAME = "Test hardware set"
 
-HW_SETS = (
-    HardwareSet(
-        "Test 1",
-        frozenset(
-            (
-                OpenDeviceArgs.create("stepper_motor", "MyStepperMotor"),
-                OpenDeviceArgs.create(
-                    "temperature_monitor",
-                    "MyTemperatureMonitor",
-                    {"param1": "value1"},
-                ),
-            )
-        ),
-        Path("path/test.yaml"),
-        False,
-    ),
-    HardwareSet(
-        "Test 2",
-        frozenset(
-            (
-                OpenDeviceArgs.create("stepper_motor", "OtherStepperMotor"),
-                OpenDeviceArgs.create("temperature_monitor", "OtherTemperatureMonitor"),
-            )
-        ),
-        Path("path/test2.yaml"),
-        False,
-    ),
-)
-
 
 def test_subscriptions() -> None:
     """Check the module-level subscriptions."""
@@ -371,7 +342,10 @@ def test_get_new_hardware_set_path_creates_dir(tmp_path: Path) -> None:
 @patch("finesse.gui.hardware_set.hardware_set._get_new_hardware_set_path")
 @patch("finesse.gui.hardware_set.hardware_set.show_error_message")
 def test_add_hardware_set_success(
-    error_message_mock: Mock, get_path_mock: Mock, sendmsg_mock: MagicMock
+    error_message_mock: Mock,
+    get_path_mock: Mock,
+    hw_sets: Sequence[HardwareSet],
+    sendmsg_mock: MagicMock,
 ) -> None:
     """Test _add_hardware_set() when it succeeds."""
     in_path = Path("dir1/file.yaml")
@@ -379,17 +353,19 @@ def test_add_hardware_set_success(
     hw_set = MagicMock()
     hw_set.name = NAME
     hw_set.file_path = in_path
-    hw_set.devices = HW_SETS[0].devices
+    hw_set.devices = hw_sets[0].devices
     hw_set.built_in = False
     get_path_mock.return_value = out_path
-    hw_sets: list = []
-    with patch("finesse.gui.hardware_set.hardware_set._hw_sets", hw_sets):
-        hw_set_new = HardwareSet(NAME, HW_SETS[0].devices, out_path, built_in=False)
+    hw_set_list: list = []
+    with patch("finesse.gui.hardware_set.hardware_set._hw_sets", hw_set_list):
+        hw_set_new = HardwareSet(NAME, hw_sets[0].devices, out_path, built_in=False)
         _add_hardware_set(hw_set)
         get_path_mock.assert_called_once_with(in_path.stem)
         hw_set.save.assert_called_once_with(out_path)
         error_message_mock.assert_not_called()
-        assert hw_sets == [hw_set_new]  # NB: Should be sorted but we don't check this
+        assert hw_set_list == [
+            hw_set_new
+        ]  # NB: Should be sorted but we don't check this
         sendmsg_mock.assert_called_once_with("hardware_set.added", hw_set=hw_set_new)
 
 
@@ -405,8 +381,8 @@ def test_add_hardware_set_fail(
     hw_set.file_path = in_path
     hw_set.save.side_effect = RuntimeError
     get_path_mock.return_value = out_path
-    hw_sets: list = []
-    with patch("finesse.gui.hardware_set.hardware_set._hw_sets", hw_sets):
+    hw_set_list: list = []
+    with patch("finesse.gui.hardware_set.hardware_set._hw_sets", hw_set_list):
         _add_hardware_set(hw_set)
         get_path_mock.assert_called_once_with(in_path.stem)
         hw_set.save.assert_called_once_with(out_path)
@@ -417,7 +393,10 @@ def test_add_hardware_set_fail(
 @patch("finesse.gui.hardware_set.hardware_set.QFile.moveToTrash")
 @patch("finesse.gui.hardware_set.hardware_set.QMessageBox")
 def test_remove_hardware_set_success(
-    msgbox_mock: Mock, trash_mock: Mock, sendmsg_mock: MagicMock
+    msgbox_mock: Mock,
+    trash_mock: Mock,
+    hw_sets: Sequence[HardwareSet],
+    sendmsg_mock: MagicMock,
 ) -> None:
     """Test _remove_hardware_set() when removal succeeds."""
     msgbox = MagicMock()
@@ -426,18 +405,21 @@ def test_remove_hardware_set_success(
     msgbox_mock.return_value = msgbox
     trash_mock.return_value = True
 
-    hw_sets = list(HW_SETS)
-    with patch("finesse.gui.hardware_set.hardware_set._hw_sets", hw_sets):
-        _remove_hardware_set(HW_SETS[0])
-        assert hw_sets == [HW_SETS[1]]
-        trash_mock.assert_called_once_with(str(HW_SETS[0].file_path))
+    hw_set_list = list(hw_sets)
+    with patch("finesse.gui.hardware_set.hardware_set._hw_sets", hw_set_list):
+        _remove_hardware_set(hw_sets[0])
+        assert hw_set_list == [hw_sets[1]]
+        trash_mock.assert_called_once_with(str(hw_sets[0].file_path))
         sendmsg_mock.assert_called_once_with("hardware_set.removed")
 
 
 @patch("finesse.gui.hardware_set.hardware_set.QFile.moveToTrash")
 @patch("finesse.gui.hardware_set.hardware_set.QMessageBox")
 def test_remove_hardware_set_cancelled(
-    msgbox_mock: Mock, trash_mock: Mock, sendmsg_mock: MagicMock
+    msgbox_mock: Mock,
+    trash_mock: Mock,
+    hw_sets: Sequence[HardwareSet],
+    sendmsg_mock: MagicMock,
 ) -> None:
     """Test _remove_hardware_set() when the user cancels."""
     msgbox = MagicMock()
@@ -446,19 +428,23 @@ def test_remove_hardware_set_cancelled(
     msgbox_mock.return_value = msgbox
     trash_mock.return_value = True
 
-    hw_sets = list(HW_SETS)
+    hw_sets = list(hw_sets)
     with patch("finesse.gui.hardware_set.hardware_set._hw_sets", hw_sets):
-        _remove_hardware_set(HW_SETS[0])
+        _remove_hardware_set(hw_sets[0])
         trash_mock.assert_not_called()
         sendmsg_mock.assert_not_called()
-        assert hw_sets == list(HW_SETS)
+        assert hw_sets == list(hw_sets)
 
 
 @patch("finesse.gui.hardware_set.hardware_set.show_error_message")
 @patch("finesse.gui.hardware_set.hardware_set.QFile.moveToTrash")
 @patch("finesse.gui.hardware_set.hardware_set.QMessageBox")
 def test_remove_hardware_set_fail(
-    msgbox_mock: Mock, trash_mock: Mock, error_mock: Mock, sendmsg_mock: MagicMock
+    msgbox_mock: Mock,
+    trash_mock: Mock,
+    error_mock: Mock,
+    sendmsg_mock: MagicMock,
+    hw_sets: Sequence[HardwareSet],
 ) -> None:
     """Test _remove_hardware_set() when deletion fails."""
     msgbox = MagicMock()
@@ -467,18 +453,18 @@ def test_remove_hardware_set_fail(
     msgbox_mock.return_value = msgbox
     trash_mock.return_value = False
 
-    hw_sets = list(HW_SETS)
+    hw_sets = list(hw_sets)
     with patch("finesse.gui.hardware_set.hardware_set._hw_sets", hw_sets):
-        _remove_hardware_set(HW_SETS[0])
-        trash_mock.assert_called_once_with(str(HW_SETS[0].file_path))
+        _remove_hardware_set(hw_sets[0])
+        trash_mock.assert_called_once_with(str(hw_sets[0].file_path))
         sendmsg_mock.assert_not_called()
-        assert hw_sets == list(HW_SETS)
+        assert hw_sets == list(hw_sets)
         error_mock.assert_called_once()
 
 
-def test_remove_hardware_set_fail_built_in() -> None:
+def test_remove_hardware_set_fail_built_in(hw_sets: Sequence[HardwareSet]) -> None:
     """Test with a built-in hardware set as argument."""
-    hw_set = HardwareSet(NAME, HW_SETS[0].devices, FILE_PATH, built_in=True)
+    hw_set = HardwareSet(NAME, hw_sets[0].devices, FILE_PATH, built_in=True)
     with pytest.raises(ValueError):
         _remove_hardware_set(hw_set)
 
@@ -490,16 +476,20 @@ def test_remove_hardware_set_fail_built_in() -> None:
             errors,
             pytest.raises(HardwareSetLoadError) if any(errors) else does_not_raise(),
         )
-        for errors in product((False, True), repeat=len(HW_SETS))
+        for errors in product((False, True), repeat=2)  # repeat for each hardware set
     ),
 )
 @patch.object(HardwareSet, "load")
 def test_load_hardware_sets(
-    load_mock: Mock, tmp_path: Path, raise_error: Sequence[bool], raises: Any
+    load_mock: Mock,
+    tmp_path: Path,
+    hw_sets: Sequence[HardwareSet],
+    raise_error: Sequence[bool],
+    raises: Any,
 ) -> None:
     """Test _load_hardware_sets()."""
     # Create n empty files in tmp_path
-    for i in range(len(HW_SETS)):
+    for i in range(len(hw_sets)):
         path = tmp_path / f"file{i}.yaml"
         path.open("w").close()
 
@@ -510,7 +500,7 @@ def test_load_hardware_sets(
         i += 1
         if raise_error[i]:
             raise RuntimeError()
-        return HW_SETS[i]
+        return hw_sets[i]
 
     load_mock.side_effect = mock_load
     out: list[HardwareSet] = []
@@ -531,11 +521,11 @@ def test_load_builtin_hardware_sets(load_mock: Mock) -> None:
 @patch("finesse.gui.hardware_set.hardware_set._load_hardware_sets")
 def test_load_all_hardware_sets(load_mock: Mock) -> None:
     """Test _load_all_hardware_sets()."""
-    hw_sets: list[int] = []
-    with patch("finesse.gui.hardware_set.hardware_set._hw_sets", hw_sets):
+    hw_set_list: list[int] = []
+    with patch("finesse.gui.hardware_set.hardware_set._hw_sets", hw_set_list):
         load_mock.side_effect = ((1, 0), (3, 2))  # deliberately unsorted
         _load_all_hardware_sets()
-        assert hw_sets == [0, 1, 2, 3]
+        assert hw_set_list == [0, 1, 2, 3]
 
 
 @patch("finesse.gui.hardware_set.hardware_set._load_hardware_sets")
@@ -595,19 +585,20 @@ def test_load_user_hardware_sets_trash(
 
 
 @patch("finesse.gui.hardware_set.hardware_set._load_all_hardware_sets")
-def test_get_hardware_sets(load_mock: Mock) -> None:
+def test_get_hardware_sets(load_mock: Mock, hw_sets: Sequence[HardwareSet]) -> None:
     """Test the get_hardware_sets() method."""
     # Check that _load_hardware_sets() will not be called if hardware sets are already
     # loaded
-    hw_sets = list(range(2))
-    with patch("finesse.gui.hardware_set.hardware_set._hw_sets", hw_sets):
+    # hw_sets = list(range(2))
+    hw_set_list = list(hw_sets)
+    with patch("finesse.gui.hardware_set.hardware_set._hw_sets", hw_set_list):
         ret = list(get_hardware_sets())
         load_mock.assert_not_called()
-        assert ret == hw_sets
+        assert ret == hw_set_list
 
     # Check that hardware sets will be loaded if not loaded already
-    hw_sets.clear()
-    with patch("finesse.gui.hardware_set.hardware_set._hw_sets", hw_sets):
+    hw_set_list.clear()
+    with patch("finesse.gui.hardware_set.hardware_set._hw_sets", hw_set_list):
         ret = list(get_hardware_sets())
         load_mock.assert_called_once_with()
-        assert ret == hw_sets
+        assert ret == hw_set_list
