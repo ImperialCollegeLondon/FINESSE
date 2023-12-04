@@ -283,7 +283,7 @@ def test_on_opus_message_connect(
     script_control._spectrometer_connected = already_connected
 
     with patch.object(script_control, "_enable_counter") as counter_mock:
-        script_control._on_spectrometer_message(status, "")
+        script_control._on_spectrometer_message(status)
         if already_connected:
             counter_mock.increment.assert_not_called()
         else:
@@ -308,7 +308,7 @@ def test_on_opus_message_disconnect(
     script_control._spectrometer_connected = already_connected
 
     with patch.object(script_control, "_enable_counter") as counter_mock:
-        script_control._on_spectrometer_message(status, "")
+        script_control._on_spectrometer_message(status)
         if not already_connected:
             counter_mock.decrement.assert_not_called()
         else:

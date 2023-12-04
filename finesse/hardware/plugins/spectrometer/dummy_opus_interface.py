@@ -182,8 +182,7 @@ class DummyOPUSInterface(
             raise OPUSError.from_response(*errinfo)
 
         # Broadcast the response for the command
-        state = self.state_machine.current_state
-        self.send_response(command, status=state.value, text=state.name)
+        self.send_response(command, self.state_machine.current_state.value)
 
     def _measuring_finished(self) -> None:
         """Finish measurement successfully."""

@@ -36,8 +36,6 @@ class OPUSInterfaceBase(Device, name=SPECTROMETER_TOPIC, description="OPUS devic
             command: Name of command to run
         """
 
-    def send_response(
-        self, command: str, status: SpectrometerStatus, text: str
-    ) -> None:
+    def send_response(self, command: str, status: SpectrometerStatus) -> None:
         """Broadcast the device's response via pubsub."""
-        self.send_message(f"response.{command}", status=status, text=text)
+        self.send_message(f"response.{command}", status=status)

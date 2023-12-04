@@ -364,15 +364,11 @@ class ScriptRunner(StateMachine):
         if not self.paused:
             self.finish_waiting_for_measure()
 
-    def _measuring_started(
-        self,
-        status: SpectrometerStatus,
-        text: str,
-    ):
+    def _measuring_started(self, status: SpectrometerStatus):
         """Start polling the EM27 so we know when the measurement is finished."""
         _poll_spectrometer_status()
 
-    def _status_received(self, status: SpectrometerStatus, text: str):
+    def _status_received(self, status: SpectrometerStatus):
         """Move on to the next measurement if the measurement has finished."""
         if status == SpectrometerStatus.CONNECTED:  # indicates measurement is finished
             self._measuring_end()

@@ -23,8 +23,8 @@ STATUS_FILENAME = "stat.htm"
 COMMAND_FILENAME = "cmd.htm"
 
 
-def parse_response(response: str) -> tuple[SpectrometerStatus, str]:
-    """Parse EM27's HTML response."""
+def parse_response(response: str) -> SpectrometerStatus:
+    """Parse OPUS's HTML response."""
     status: SpectrometerStatus | None = None
     text: str | None = None
     errcode: int | None = None
@@ -52,7 +52,9 @@ def parse_response(response: str) -> tuple[SpectrometerStatus, str]:
     if errcode is not None:
         raise OPUSError.from_response(errcode, errtext)
 
-    return status, text
+    logging.info(f"OPUS response ({status.value}): {text}")
+
+    return status
 
 
 class OPUSInterface(OPUSInterfaceBase, description="OPUS spectrometer"):
@@ -67,16 +69,13 @@ class OPUSInterface(OPUSInterfaceBase, description="OPUS spectrometer"):
         self._requester = HTTPRequester()
 
     @Slot()
-    def _on_reply_received(
-        self, reply: QNetworkReply
-    ) -> tuple[SpectrometerStatus, str]:
+    def _on_reply_received(self, reply: QNetworkReply) -> SpectrometerStatus:
         """Handle received HTTP reply."""
         if reply.error() != QNetworkReply.NetworkError.NoError:
             raise OPUSError(f"Network error: {reply.errorString()}")
 
         response = reply.readAll().data().decode()
-        status, text = parse_response(response)
-        return status, text
+        return parse_response(response)
 
     def request_command(self, command: str) -> None:
         """Request that OPUS run the specified command.
@@ -97,6 +96,6 @@ class OPUSInterface(OPUSInterfaceBase, description="OPUS spectrometer"):
         self._requester.make_request(
             f"http://{OPUS_IP}/opusrs/{filename}",
             self.pubsub_broadcast(
-                self._on_reply_received, f"response.{command}", "status", "text"
+                self._on_reply_received, f"response.{command}", "status"
             ),
         )
