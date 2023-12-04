@@ -70,7 +70,6 @@ class EM27Error(Exception):
 
 class EM27SensorsBase(
     Device,
-    is_base_type=True,
     name=EM27_SENSORS_TOPIC,
     description="EM27 sensors",
 ):
