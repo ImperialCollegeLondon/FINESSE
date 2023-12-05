@@ -3,7 +3,7 @@ devices:
   stepper_motor:
     class_name: stepper_motor.st10_controller.ST10Controller
     params:
-      port: "0403:6011 FT1NMSVR (4)"
+      port: "0403:6011 FT1NMSVR"
       baudrate: 9600
   temperature_controller.hot_bb:
     class_name: temperature.tc4820.TC4820
