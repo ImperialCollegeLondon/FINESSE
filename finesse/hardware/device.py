@@ -12,7 +12,7 @@ import traceback
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Mapping, Sequence
 from copy import deepcopy
-from inspect import signature
+from inspect import isabstract, signature
 from typing import Any, get_type_hints
 
 from decorator import decorate
@@ -170,25 +170,16 @@ class Device(AbstractDevice):
     defined as device base types or not.
     """
 
-    def __init_subclass__(cls, is_base_type: bool = False, **kwargs: Any) -> None:
-        """Initialise a device type class.
-
-        Args:
-            is_base_type: Whether this class represents a device base type
-        """
-        # If it is a base class, we initialise it as such
-        if is_base_type:
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        """Initialise a device type class."""
+        if _base_types.isdisjoint(cls.__mro__):
+            # If the class doesn't inherit from a base type it must be a base type
+            # itself
             cls._init_base_type(**kwargs)
-            return
-
-        # If it is not, it should inherit from one
-        if not set(cls.__bases__).intersection(_base_types):
-            raise ValueError(
-                f"Class {cls.__name__} must be a device base type or inherit from one."
-            )
-
-        # And we initialise it as a concrete device class
-        cls._init_device_type(**kwargs)
+        elif not isabstract(cls):
+            # All *concrete* device classes which inherit from a base type are treated
+            # as device types. Abstract ones are ignored.
+            cls._init_device_type(**kwargs)
 
     @classmethod
     def _init_base_type(

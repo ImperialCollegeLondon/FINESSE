@@ -29,25 +29,37 @@ in the plugins directory hierarchy.
 
 ### Creating a new device type
 
-A device base type is a class providing a common interface for similar device types
-(e.g. a stepper motor). Each device base class must inherit from `Device` and each
-device class must inherit from a device base class.
+There are three "kinds" of device classes:
 
-You can create a new device base like so:
+1. Device base types, which must inherit from `Device` directly
+2. Abstract device types, which must inherit from a device base type (directly or
+   indirectly) and have at least one abstract method
+3. Concrete device types which must inherit from one of the above and have no abstract
+   methods
+
+Device base types and concrete device types are included in registries that are
+communicated to the frontend if it requests a list of plugins (abstract device types are
+excluded). Note that there are other possibilities one could imagine (e.g. a class
+inheriting from `Device` which is not registered as a device base type), but these are
+currently not possible.
+
+A device base type is a class providing a common interface for similar device types
+(e.g. a stepper motor). You can create a new device base like so:
 
 ```py
 class MyBaseType(
-    Device, is_base_type=True, name="my_base_type", description="Example base type"
+    Device, name="my_base_type", description="Example base type"
 ):
     # ...
 ```
 
-The `is_base_type=True` is required to register the class as a device base type. `name`
-is the short name for the base type and is used in the topic for PyPubSub messages (see
-more below). `description` provides a human-readable name for the base type, which will
-be displayed in the GUI. It is additionally possible to provide a list of possible names
-for instances of the device, but this is currently only used for temperature controllers
-(to distinguish between the hot and cold black body controllers).
+As this class inherits directly from `Device`, it will be registered as a device base
+type. `name` is the short name for the base type and is used in the topic for PyPubSub
+messages (see more below). `description` provides a human-readable name for the base
+type, which will be displayed in the GUI. It is additionally possible to provide a list
+of possible names for instances of the device, but this is currently only used for
+temperature controllers (to distinguish between the hot and cold black body
+controllers).
 
 You can create a concrete implementation of `MyBaseType` like so:
 
