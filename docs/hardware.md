@@ -29,11 +29,22 @@ in the plugins directory hierarchy.
 
 ### Creating a new device type
 
-A device base type is a class providing a common interface for similar device types
-(e.g. a stepper motor). Each device base class must inherit from `Device` and each
-device class must inherit from a device base class.
+There are three "kinds" of device classes:
 
-You can create a new device base like so:
+1. Device base types, which must inherit from `Device` directly
+2. Abstract device types, which must inherit from a device base type (directly or
+   indirectly) and have at least one abstract method
+3. Concrete device types which must inherit from one of the above and have no abstract
+   methods
+
+Device base types and concrete device types are included in registries that are
+communicated to the frontend if it requests a list of plugins (abstract device types are
+excluded). Note that there are other possibilities one could imagine (e.g. a class
+inheriting from `Device` which is not registered as a device base type), but these are
+currently not possible.
+
+A device base type is a class providing a common interface for similar device types
+(e.g. a stepper motor). You can create a new device base like so:
 
 ```py
 class MyBaseType(
