@@ -137,6 +137,14 @@ class DummyOPUSInterface(
         # Monitor state changes
         self.state_machine.add_observer(self)
 
+    def close(self) -> None:
+        """Close the device.
+
+        If a measurement is running, cancel it.
+        """
+        self.state_machine.measure_timer.stop()
+        super().close()
+
     def _run_command(self, command: str) -> None:
         """Try to run the specified command.
 
