@@ -4,16 +4,18 @@ import logging
 from collections.abc import Callable
 from enum import Enum
 
-from pubsub import pub
 from PySide6.QtCore import QTimer
 from statemachine import State, StateMachine
 from statemachine.exceptions import TransitionNotAllowed
 
 from finesse.em27_info import EM27Status
-from finesse.hardware.plugins.em27.opus_interface_base import OPUSInterfaceBase
+from finesse.hardware.plugins.em27.opus_interface_base import (
+    OPUSError,
+    OPUSInterfaceBase,
+)
 
 
-class OPUSError(Enum):
+class OPUSErrorInfo(Enum):
     """Represents an error code and description for OPUS errors.
 
     The codes and descriptions are taken from the manual.
@@ -33,7 +35,7 @@ class OPUSError(Enum):
 
     def to_tuple(self) -> tuple[int, str] | None:
         """Convert to a (code, message) tuple or None if no error."""
-        if self == OPUSError.NO_ERROR:
+        if self == OPUSErrorInfo.NO_ERROR:
             return None
         return self.value
 
@@ -111,10 +113,10 @@ class DummyOPUSInterface(OPUSInterfaceBase):
     """A mock version of the OPUS API for testing purposes."""
 
     _COMMAND_ERRORS = {
-        "cancel": OPUSError.NOT_RUNNING,
-        "stop": OPUSError.NOT_RUNNING_OR_FINISHING,
-        "start": OPUSError.NOT_CONNECTED,
-        "connect": OPUSError.NOT_IDLE,
+        "cancel": OPUSErrorInfo.NOT_RUNNING,
+        "stop": OPUSErrorInfo.NOT_RUNNING_OR_FINISHING,
+        "start": OPUSErrorInfo.NOT_CONNECTED,
+        "connect": OPUSErrorInfo.NOT_IDLE,
     }
     """The error thrown by each command when in an invalid state."""
 
@@ -126,7 +128,7 @@ class DummyOPUSInterface(OPUSInterfaceBase):
         """
         super().__init__()
 
-        self.last_error = OPUSError.NO_ERROR
+        self.last_error = OPUSErrorInfo.NO_ERROR
         """The last error which occurred."""
         self.state_machine = OPUSStateMachine(
             measure_duration, self._measuring_finished
@@ -143,7 +145,7 @@ class DummyOPUSInterface(OPUSInterfaceBase):
         """
         fun = getattr(self.state_machine, command)
 
-        self.last_error = OPUSError.NO_ERROR
+        self.last_error = OPUSErrorInfo.NO_ERROR
         try:
             fun()
         except TransitionNotAllowed:
@@ -160,22 +162,20 @@ class DummyOPUSInterface(OPUSInterfaceBase):
         """
         if command == "status":
             if self.state_machine.current_state == OPUSStateMachine.idle:
-                self.last_error = OPUSError.NOT_CONNECTED
+                self.last_error = OPUSErrorInfo.NOT_CONNECTED
         elif command in self._COMMAND_ERRORS:
             self._run_command(command)
         else:
-            self.last_error = OPUSError.UNKNOWN_COMMAND
+            self.last_error = OPUSErrorInfo.UNKNOWN_COMMAND
 
-        # Broadcast the response for the command
-        state = self.state_machine.current_state
-        pub.sendMessage(
-            f"opus.response.{command}",
-            status=state.value,
-            text=state.name,
-            error=self.last_error.to_tuple(),
-        )
+        if errinfo := self.last_error.to_tuple():
+            self.error_occurred(OPUSError.from_response(*errinfo))
+        else:
+            # Broadcast the response for the command
+            state = self.state_machine.current_state
+            self.send_response(command, status=state.value, text=state.name)
 
     def _measuring_finished(self) -> None:
         """Finish measurement successfully."""
-        self.last_error = OPUSError.NO_ERROR
+        self.last_error = OPUSErrorInfo.NO_ERROR
         logging.info("Measurement complete")

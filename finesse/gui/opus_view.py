@@ -96,11 +96,8 @@ class OPUSControl(QGroupBox):
         self,
         status: EM27Status,
         text: str,
-        error: tuple[int, str] | None,
     ) -> None:
         self.logger.info(f"Response ({status.value}): {text}")
-        if error:
-            self.logger.error(f"Error ({error[0]}): {error[1]}")
 
     def _log_error(self, error: BaseException) -> None:
         self.logger.error(f"Error during request: {str(error)}")
@@ -112,10 +109,6 @@ class OPUSControl(QGroupBox):
             command: OPUS command to be executed
         """
         pub.sendMessage("opus.request", command=command)
-
-    def _request_status(self) -> None:
-        self.logger.info("Requesting status")
-        pub.sendMessage("opus.request", command="status")
 
 
 class OPUSLogHandler(logging.Handler):

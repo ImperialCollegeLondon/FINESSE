@@ -9,23 +9,21 @@ import logging
 from functools import partial
 
 from bs4 import BeautifulSoup
-from pubsub import pub
 from PySide6.QtCore import Slot
 from PySide6.QtNetwork import QNetworkAccessManager, QNetworkReply, QNetworkRequest
 
 from finesse.config import OPUS_IP
 from finesse.em27_info import EM27Status
-from finesse.hardware.plugins.em27.opus_interface_base import OPUSInterfaceBase
+from finesse.hardware.plugins.em27.opus_interface_base import (
+    OPUSError,
+    OPUSInterfaceBase,
+)
 
 STATUS_FILENAME = "stat.htm"
 COMMAND_FILENAME = "cmd.htm"
 
 
-class OPUSError(Exception):
-    """Indicates that an error occurred while communicating with the OPUS program."""
-
-
-def parse_response(response: str) -> tuple[EM27Status, str, tuple[int, str] | None]:
+def parse_response(response: str) -> tuple[EM27Status, str]:
     """Parse EM27's HTML response."""
     status: EM27Status | None = None
     text: str | None = None
@@ -51,9 +49,10 @@ def parse_response(response: str) -> tuple[EM27Status, str, tuple[int, str] | No
 
     if status is None or text is None:
         raise OPUSError("Required tags not found")
-    error = None if errcode is None else (errcode, errtext)
+    if errcode is not None:
+        raise OPUSError.from_response(errcode, errtext)
 
-    return status, text, error
+    return status, text
 
 
 class OPUSInterface(OPUSInterfaceBase):
@@ -81,13 +80,11 @@ class OPUSInterface(OPUSInterfaceBase):
                 raise OPUSError(f"Network error: {reply.errorString()}")
 
             response = reply.readAll().data().decode()
-            status, text, error = parse_response(response)
-        except Exception as error:
-            self.error_occurred(error)
+            status, text = parse_response(response)
+        except Exception as e:
+            self.error_occurred(e)
         else:
-            pub.sendMessage(
-                f"opus.response.{command}", status=status, text=text, error=error
-            )
+            self.send_response(command, status, text)
 
     def request_command(self, command: str) -> None:
         """Request that OPUS run the specified command.
