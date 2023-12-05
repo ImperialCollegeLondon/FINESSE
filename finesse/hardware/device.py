@@ -2,8 +2,7 @@
 
 The Device class is the top-level base class from which all devices ultimately inherit.
 Concrete classes for devices must not inherit directly from this class, but instead
-should inherit from a device base class (defined by passing is_base_type to the class
-constructor).
+should inherit from a device base class.
 """
 from __future__ import annotations
 
