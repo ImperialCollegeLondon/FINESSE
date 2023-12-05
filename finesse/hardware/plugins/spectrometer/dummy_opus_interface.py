@@ -1,7 +1,6 @@
 """Provides a dummy EM27 device for interfacing with."""
 
 import logging
-from collections.abc import Callable
 from enum import Enum
 
 from PySide6.QtCore import QTimer
@@ -60,9 +59,7 @@ class OPUSStateMachine(StateMachine):
     _cancel_measuring = measuring.to(cancelling)
     _reset_after_cancelling = cancelling.to(connected)
 
-    def __init__(
-        self, measure_duration: float, measure_finish_callback: Callable
-    ) -> None:
+    def __init__(self, measure_duration: float) -> None:
         """Create a new OPUSStateMachine.
 
         The state diagram looks like this:
@@ -71,10 +68,7 @@ class OPUSStateMachine(StateMachine):
 
         Args:
             measure_duration: How long a single measurement takes (seconds)
-            measure_finish_callback: Called when measurement completes successfully
         """
-        self.measure_finish_callback = measure_finish_callback
-
         self.measure_timer = QTimer()
         """Timer signalling the end of a measurement."""
         self.measure_timer.setInterval(round(measure_duration * 1000))
@@ -106,7 +100,6 @@ class OPUSStateMachine(StateMachine):
     def on_exit_measuring(self) -> None:
         """Stop the measurement timer."""
         self.measure_timer.stop()
-        self.measure_finish_callback()
 
     def on_enter_state(self, target: State) -> None:
         """Log all state transitions."""
@@ -138,10 +131,11 @@ class DummyOPUSInterface(
 
         self.last_error = OPUSErrorInfo.NO_ERROR
         """The last error which occurred."""
-        self.state_machine = OPUSStateMachine(
-            measure_duration, self._measuring_finished
-        )
+        self.state_machine = OPUSStateMachine(measure_duration)
         """An object representing the internal state of the device."""
+
+        # Monitor state changes
+        self.state_machine.add_observer(self)
 
     def _run_command(self, command: str) -> None:
         """Try to run the specified command.
@@ -182,7 +176,7 @@ class DummyOPUSInterface(
         value = self.state_machine.current_state_value
         self.send_status_message(value)
 
-    def _measuring_finished(self) -> None:
+    def on_exit_measuring(self) -> None:
         """Finish measurement successfully."""
         self.last_error = OPUSErrorInfo.NO_ERROR
         logging.info("Measurement complete")
