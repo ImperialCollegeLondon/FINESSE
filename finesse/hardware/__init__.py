@@ -44,7 +44,10 @@ _DEFAULT_TEMPS = [Decimal("nan")] * NUM_TEMPERATURE_MONITOR_CHANNELS
 
 def _send_temperatures() -> None:
     """Send the current temperatures (or NaNs) via pubsub."""
-    temperatures = _try_get_temperatures() or _DEFAULT_TEMPS
+    temperatures = _try_get_temperatures()
+    if temperatures is None:
+        temperatures = _DEFAULT_TEMPS
+
     time = datetime.utcnow()
     pub.sendMessage(
         f"device.{TEMPERATURE_MONITOR_TOPIC}.data.response",
