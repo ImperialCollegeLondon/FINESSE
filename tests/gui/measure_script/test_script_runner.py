@@ -82,7 +82,7 @@ def test_start_moving(
     subscribe_mock.assert_any_call(
         runner._on_stepper_motor_error, f"device.error.{STEPPER_MOTOR_TOPIC}"
     )
-    subscribe_mock.assert_any_call(runner._measuring_error, "opus.error")
+    subscribe_mock.assert_any_call(runner._on_em27_error, "opus.error")
     subscribe_mock.assert_any_call(runner._measuring_started, "opus.response.start")
     subscribe_mock.assert_any_call(runner._status_received, "opus.response.status")
 
@@ -117,7 +117,7 @@ def test_finish_moving(
     unsubscribe_mock.assert_any_call(
         script_runner._on_stepper_motor_error, f"device.error.{STEPPER_MOTOR_TOPIC}"
     )
-    unsubscribe_mock.assert_any_call(script_runner._measuring_error, "opus.error")
+    unsubscribe_mock.assert_any_call(script_runner._on_em27_error, "opus.error")
     unsubscribe_mock.assert_any_call(
         script_runner._measuring_started, "opus.response.start"
     )
@@ -187,40 +187,22 @@ def test_measuring_started_success(poll_em27_mock: Mock, runner: ScriptRunner) -
     runner.current_state = ScriptRunner.measuring
 
     # Simulate response from EM27
-    runner._measuring_started(EM27Status.IDLE, "", None)
+    runner._measuring_started(EM27Status.IDLE, "")
 
     # Check the request is sent to the EM27
     poll_em27_mock.assert_called_once()
-
-
-def test_measuring_started_fail(runner: ScriptRunner) -> None:
-    """Test that _on_em27_error_message is called if starting the measurement fails."""
-    runner.current_state = ScriptRunner.measuring
-
-    with patch.object(runner, "_on_em27_error_message") as em27_error_mock:
-        # Simulate response from EM27
-        runner._measuring_started(EM27Status.IDLE, "", (1, "ERROR MESSAGE"))
-
-        em27_error_mock.assert_called_once_with(1, "ERROR MESSAGE")
 
 
 @pytest.mark.parametrize("status", EM27Status)
 def test_status_received(status: EM27Status, runner_measuring: ScriptRunner) -> None:
     """Test that polling the EM27's status works."""
     with patch.object(runner_measuring, "_measuring_end") as measuring_end_mock:
-        runner_measuring._status_received(status, "", None)
+        runner_measuring._status_received(status, "")
 
         if status == EM27Status.CONNECTED:  # indicates success
             measuring_end_mock.assert_called_once()
         else:
             measuring_end_mock.assert_not_called()
-
-
-def test_status_received_error(runner_measuring: ScriptRunner) -> None:
-    """Test that _on_em27_error_message is called if the status indicates an error."""
-    with patch.object(runner_measuring, "_on_em27_error_message") as em27_error_mock:
-        runner_measuring._status_received(EM27Status.IDLE, "", (1, "ERROR MESSAGE"))
-        em27_error_mock.assert_called_once_with(1, "ERROR MESSAGE")
 
 
 def test_on_exit_measuring(runner_measuring: ScriptRunner) -> None:
@@ -296,27 +278,12 @@ def test_on_stepper_motor_error(runner: ScriptRunner) -> None:
 def test_on_em27_error(show_error_message_mock: Mock, runner: ScriptRunner) -> None:
     """Test the _on_em27_error() method."""
     with patch.object(runner, "abort") as abort_mock:
-        runner._on_em27_error("ERROR MESSAGE")
+        runner._on_em27_error(RuntimeError("ERROR MESSAGE"))
         abort_mock.assert_called_once_with()
         show_error_message_mock.assert_called_once_with(
             None,
             "EM27 error occurred. Measure script will stop running.\n\nERROR MESSAGE",
         )
-
-
-def test_on_em27_error_message(runner: ScriptRunner) -> None:
-    """Test the _on_em27_error_message() method."""
-    with patch.object(runner, "_on_em27_error") as em27_error_mock:
-        runner._on_em27_error_message(1, "ERROR MESSAGE")
-        em27_error_mock.assert_called_once_with("Error 1: ERROR MESSAGE")
-
-
-def test_measuring_error(runner: ScriptRunner) -> None:
-    """Test the _measuring_error() method."""
-    with patch.object(runner, "_on_em27_error") as em27_error_mock:
-        error = RuntimeError("hello")
-        runner._measuring_error(error)
-        em27_error_mock.assert_called_once_with(str(error))
 
 
 def test_pause(runner: ScriptRunner) -> None:
