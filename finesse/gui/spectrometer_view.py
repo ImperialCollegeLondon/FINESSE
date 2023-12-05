@@ -43,7 +43,7 @@ class SpectrometerControl(DevicePanel):
         )
 
         pub.subscribe(self._log_request, f"device.{SPECTROMETER_TOPIC}.request")
-        pub.subscribe(self._log_response, f"device.{SPECTROMETER_TOPIC}.response")
+        pub.subscribe(self._log_response, f"device.{SPECTROMETER_TOPIC}.status")
         pub.subscribe(self._log_error, f"device.error.{SPECTROMETER_TOPIC}")
 
     def _create_controls(self) -> QHBoxLayout:

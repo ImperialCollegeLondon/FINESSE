@@ -162,9 +162,6 @@ class DummyOPUSInterface(
     def request_command(self, command: str) -> None:
         """Execute the specified command on the device.
 
-        Note that we treat "status" as a command, even though it requires a different
-        URL to access.
-
         Args:
             command: The command to run
         Raises:
@@ -182,7 +179,8 @@ class DummyOPUSInterface(
             raise OPUSError.from_response(*errinfo)
 
         # Broadcast the response for the command
-        self.send_response(command, self.state_machine.current_state.value)
+        value = self.state_machine.current_state_value
+        self.send_status_message(value)
 
     def _measuring_finished(self) -> None:
         """Finish measurement successfully."""
