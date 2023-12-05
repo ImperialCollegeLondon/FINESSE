@@ -24,12 +24,17 @@ def runner(subscribe_mock: MagicMock, sendmsg_mock: MagicMock) -> ScriptRunner:
 
 @pytest.fixture
 def runner_measuring(
-    runner: ScriptRunner, subscribe_mock: MagicMock, sendmsg_mock: MagicMock
+    runner: ScriptRunner,
+    subscribe_mock: MagicMock,
+    unsubscribe_mock: MagicMock,
+    sendmsg_mock: MagicMock,
 ) -> ScriptRunner:
     """Fixture for a ScriptRunner in a measuring state."""
     runner.start_moving()
+    runner.finish_moving()
     runner.start_measuring()
     subscribe_mock.reset_mock()
+    unsubscribe_mock.reset_mock()
     sendmsg_mock.reset_mock()
     return runner
 

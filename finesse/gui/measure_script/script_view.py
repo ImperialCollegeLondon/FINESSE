@@ -63,7 +63,8 @@ class ScriptControl(QGroupBox):
         # Monitor spectrometer to enable/disable run button on connect/disconnect
         self._spectrometer_connected = False
         pub.subscribe(
-            self._on_spectrometer_message, f"device.{SPECTROMETER_TOPIC}.response"
+            self._on_spectrometer_status,
+            f"device.{SPECTROMETER_TOPIC}.status",
         )
 
         # Show/hide self.run_dialog on measure script begin/end
@@ -129,7 +130,7 @@ class ScriptControl(QGroupBox):
         self.run_dialog.hide()
         del self.run_dialog
 
-    def _on_spectrometer_message(self, status: SpectrometerStatus) -> None:
+    def _on_spectrometer_status(self, status: SpectrometerStatus) -> None:
         """Change the enable counter when the spectrometer connects/disconnects."""
         if status.is_connected == self._spectrometer_connected:
             # The connection status hasn't changed

@@ -185,18 +185,18 @@ class ScriptRunner(StateMachine):
 
     start_moving = not_running.to(moving)
     """Start moving the motor to the required angle for the current measurement."""
+    finish_moving = moving.to(waiting_to_measure)
+    """Finish the moving stage."""
     finish_waiting_for_move = waiting_to_move.to(moving)
     """Stop waiting and start the next move."""
     cancel_move = moving.to(
         not_running, after=lambda: pub.sendMessage(f"device.{STEPPER_MOTOR_TOPIC}.stop")
     )
     """Cancel the current movement."""
-    start_measuring = moving.to(waiting_to_measure)
-    """Start recording the current measurement."""
+    start_measuring = waiting_to_measure.to(measuring)
+    """Start recording for the current measurement."""
     repeat_measuring = measuring.to(waiting_to_measure)
     """Record another measurement at the same angle."""
-    finish_waiting_for_measure = waiting_to_measure.to(measuring)
-    """Stop waiting and start the next measurement."""
     cancel_measuring = measuring.to(not_running)
     """Cancel the current measurement."""
     start_next_move = measuring.to(waiting_to_move)
@@ -281,12 +281,6 @@ class ScriptRunner(StateMachine):
         pub.unsubscribe(
             self._on_spectrometer_error, f"device.error.{SPECTROMETER_TOPIC}"
         )
-        pub.unsubscribe(
-            self._measuring_started, f"device.{SPECTROMETER_TOPIC}.response.start"
-        )
-        pub.unsubscribe(
-            self._status_received, f"device.{SPECTROMETER_TOPIC}.response.status"
-        )
 
         # Send message signalling that the measure script is no longer running
         pub.sendMessage("measure_script.end")
@@ -294,19 +288,13 @@ class ScriptRunner(StateMachine):
     def on_exit_not_running(self) -> None:
         """Subscribe to pubsub messages for the stepper motor and spectrometer."""
         # Listen for stepper motor messages
-        pub.subscribe(self.start_measuring, f"device.{STEPPER_MOTOR_TOPIC}.move.end")
+        pub.subscribe(self.finish_moving, f"device.{STEPPER_MOTOR_TOPIC}.move.end")
         pub.subscribe(
             self._on_stepper_motor_error, f"device.error.{STEPPER_MOTOR_TOPIC}"
         )
 
-        # Listen for EM27 messages
+        # Listen for spectrometer messages
         pub.subscribe(self._on_spectrometer_error, f"device.error.{SPECTROMETER_TOPIC}")
-        pub.subscribe(
-            self._measuring_started, f"device.{SPECTROMETER_TOPIC}.response.start"
-        )
-        pub.subscribe(
-            self._status_received, f"device.{SPECTROMETER_TOPIC}.response.status"
-        )
 
     def _load_next_measurement(self) -> bool:
         """Load the next measurement in the sequence.
@@ -342,17 +330,13 @@ class ScriptRunner(StateMachine):
         # Flag that we want a message when the movement has stopped
         pub.sendMessage(f"device.{STEPPER_MOTOR_TOPIC}.notify_on_stopped")
 
-    def on_enter_measuring(self) -> None:
-        """Tell the EM27 to start a new measurement.
-
-        NB: This is also invoked on repeat measurements
-        """
-        pub.sendMessage("measure_script.start_measuring", script_runner=self)
-        pub.sendMessage(f"device.{SPECTROMETER_TOPIC}.request", command="start")
-
     def on_exit_measuring(self) -> None:
         """Ensure that the polling timer is stopped."""
         self._check_status_timer.stop()
+
+        pub.unsubscribe(
+            self._on_spectrometer_status_received, f"device.{SPECTROMETER_TOPIC}.status"
+        )
 
     def on_enter_waiting_to_move(self) -> None:
         """Move onto the next move unless the script is paused."""
@@ -361,14 +345,41 @@ class ScriptRunner(StateMachine):
 
     def on_enter_waiting_to_measure(self) -> None:
         """Move onto the next measurement unless the script is paused."""
-        if not self.paused:
-            self.finish_waiting_for_measure()
+        pub.subscribe(
+            self._measuring_start, f"device.{SPECTROMETER_TOPIC}.status.measuring"
+        )
 
-    def _measuring_started(self, status: SpectrometerStatus):
+        if not self.paused:
+            self._request_measurement()
+
+    def on_exit_waiting_to_measure(self) -> None:
+        """Ensure that we have unsubscribed from pubsub topics."""
+        pub.unsubscribe(
+            self._measuring_start, f"device.{SPECTROMETER_TOPIC}.status.measuring"
+        )
+
+    def _request_measurement(self) -> None:
+        """Tell the EM27 to start a new measurement.
+
+        NB: This is also invoked on repeat measurements
+        """
+        pub.sendMessage("measure_script.start_measuring", script_runner=self)
+        pub.sendMessage(f"device.{SPECTROMETER_TOPIC}.request", command="start")
+
+    def _measuring_start(self, status: SpectrometerStatus):
         """Start polling the EM27 so we know when the measurement is finished."""
+        pub.unsubscribe(
+            self._measuring_start, f"device.{SPECTROMETER_TOPIC}.status.measuring"
+        )
+        self.start_measuring()
+
+        # Start polling
+        pub.subscribe(
+            self._on_spectrometer_status_received, f"device.{SPECTROMETER_TOPIC}.status"
+        )
         _poll_spectrometer_status()
 
-    def _status_received(self, status: SpectrometerStatus):
+    def _on_spectrometer_status_received(self, status: SpectrometerStatus):
         """Move on to the next measurement if the measurement has finished."""
         if status == SpectrometerStatus.CONNECTED:  # indicates measurement is finished
             self._measuring_end()
@@ -404,7 +415,7 @@ class ScriptRunner(StateMachine):
             case self.waiting_to_move:
                 self.finish_waiting_for_move()
             case self.waiting_to_measure:
-                self.finish_waiting_for_measure()
+                self._request_measurement()
 
     def _on_stepper_motor_error(
         self, instance: DeviceInstanceRef, error: BaseException

@@ -46,9 +46,9 @@ def test_request_status(state: State, dev: DummyOPUSInterface) -> None:
     """Test the request_status() method."""
     dev.state_machine.current_state = state
 
-    with patch.object(dev, "send_response") as response_mock:
+    with patch.object(dev, "send_status_message") as status_mock:
         dev.request_command("status")
-        response_mock.assert_called_once_with("status", state.value)
+        status_mock.assert_called_once_with(state.value)
 
 
 def test_request_status_idle(dev: DummyOPUSInterface) -> None:
@@ -76,13 +76,13 @@ def test_request_command_success(
 ) -> None:
     """Test the request_command() method."""
     with patch.object(dev.state_machine, "measure_timer") as timer_mock:
-        with patch.object(dev, "send_response") as response_mock:
+        with patch.object(dev, "send_status_message") as status_mock:
             dev.state_machine.current_state = initial_state
             dev.request_command(command)
 
     # Check that the right response message was sent
     state = dev.state_machine.current_state
-    response_mock.assert_called_once_with(command, state.value)
+    status_mock.assert_called_once_with(state.value)
 
     # Check that the right thing has been done to the timer
     if timer_command:

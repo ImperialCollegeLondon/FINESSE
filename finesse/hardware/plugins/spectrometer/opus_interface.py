@@ -69,13 +69,14 @@ class OPUSInterface(OPUSInterfaceBase, description="OPUS spectrometer"):
         self._requester = HTTPRequester()
 
     @Slot()
-    def _on_reply_received(self, reply: QNetworkReply) -> SpectrometerStatus:
+    def _on_reply_received(self, reply: QNetworkReply) -> None:
         """Handle received HTTP reply."""
         if reply.error() != QNetworkReply.NetworkError.NoError:
             raise OPUSError(f"Network error: {reply.errorString()}")
 
         response = reply.readAll().data().decode()
-        return parse_response(response)
+        status = parse_response(response)
+        self.send_status_message(status)
 
     def request_command(self, command: str) -> None:
         """Request that OPUS run the specified command.
@@ -95,7 +96,5 @@ class OPUSInterface(OPUSInterfaceBase, description="OPUS spectrometer"):
         # Make HTTP request in background
         self._requester.make_request(
             f"http://{OPUS_IP}/opusrs/{filename}",
-            self.pubsub_broadcast(
-                self._on_reply_received, f"response.{command}", "status"
-            ),
+            self.pubsub_errors(self._on_reply_received),
         )

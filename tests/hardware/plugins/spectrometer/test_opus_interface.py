@@ -132,8 +132,10 @@ def test_on_reply_received_no_error(
     # NB: This value is of the wrong type, but it doesn't matter here
     parse_response_mock.return_value = "status"
 
-    # Check the correct pubsub message is sent
-    assert opus._on_reply_received(reply) == "status"
+    # Check the status is send
+    with patch.object(opus, "send_status_message") as status_mock:
+        opus._on_reply_received(reply)
+        status_mock.assert_called_once_with("status")
 
 
 @patch("finesse.hardware.plugins.spectrometer.opus_interface.parse_response")
