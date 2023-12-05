@@ -8,7 +8,6 @@ from finesse.hardware.device import Device
 
 class TemperatureMonitorBase(
     Device,
-    is_base_type=True,
     name=TEMPERATURE_MONITOR_TOPIC,
     description="Temperature monitor",
 ):
