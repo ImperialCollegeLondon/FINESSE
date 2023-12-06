@@ -2,7 +2,7 @@
 from collections.abc import Sequence
 from contextlib import nullcontext as does_not_raise
 from typing import Any
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -25,7 +25,7 @@ def test_init_with_devices(subscribe_mock: MagicMock) -> None:
     counter = EventCounter(MagicMock(), MagicMock(), device_names=("my_device",))
     assert counter._target_count == 1
     subscribe_mock.assert_any_call(counter.increment, "device.opened.my_device")
-    subscribe_mock.assert_any_call(counter.decrement, "device.closed.my_device")
+    subscribe_mock.assert_any_call(counter._on_device_closed, "device.closed.my_device")
 
 
 @pytest.mark.parametrize(
@@ -90,3 +90,11 @@ def test_decrement_no_call() -> None:
     counter.decrement()
     on_target_reached.assert_not_called()
     on_below_target.assert_not_called()
+
+
+def test_on_device_closed() -> None:
+    """Test the _on_device_closed() method."""
+    counter = EventCounter(lambda: None, lambda: None, device_names=("some_device",))
+    with patch.object(counter, "decrement") as decrement_mock:
+        counter._on_device_closed(MagicMock())
+        decrement_mock.assert_called_once_with()
