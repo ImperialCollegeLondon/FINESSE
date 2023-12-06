@@ -21,6 +21,30 @@ def opus(qtbot) -> OPUSInterface:
     return OPUSInterface()
 
 
+@patch(
+    "finesse.hardware.plugins.spectrometer.opus_interface.OPUSInterfaceBase.subscribe"
+)
+@patch("finesse.hardware.plugins.spectrometer.opus_interface.QTimer")
+def test_init(timer_mock: Mock, subscribe_mock: Mock) -> None:
+    """Test the constructor."""
+    timer = MagicMock()
+    timer_mock.return_value = timer
+
+    with patch.object(OPUSInterface, "request_command") as request_mock:
+        opus = OPUSInterface()
+        request_mock.assert_called_once_with("status")
+
+        assert opus._status == SpectrometerStatus.UNDEFINED
+        timer.setSingleShot.assert_called_once_with(True)
+        timer.setInterval.assert_called_once_with(1000)
+
+        # Check that the timer polls the status
+        assert timer.timeout.connect.call_count == 1
+        request_mock.reset_mock()
+        timer.timeout.connect.call_args[0][0]()
+        request_mock.assert_called_once_with("status")
+
+
 def test_request_status(opus: OPUSInterface, qtbot) -> None:
     """Test OPUSInterface's request_status() method."""
     with patch.object(opus, "_requester") as requester_mock:
@@ -122,20 +146,38 @@ def test_parse_response_bad_id(warning_mock: Mock) -> None:
 
 
 @patch("finesse.hardware.plugins.spectrometer.opus_interface.parse_response")
-def test_on_reply_received_no_error(
+def test_on_reply_received_status_changed(
     parse_response_mock: Mock, opus: OPUSInterface, qtbot
 ) -> None:
     """Test the _on_reply_received() method works when no error occurs."""
     reply = MagicMock()
     reply.error.return_value = QNetworkReply.NetworkError.NoError
 
-    # NB: This value is of the wrong type, but it doesn't matter here
-    parse_response_mock.return_value = "status"
+    assert opus._status != SpectrometerStatus.CONNECTED
+    parse_response_mock.return_value = SpectrometerStatus.CONNECTED
+
+    # Check the status update is sent
+    with patch.object(opus, "send_status_message") as status_mock:
+        opus._on_reply_received(reply)
+        assert opus._status == SpectrometerStatus.CONNECTED
+        status_mock.assert_called_once_with(SpectrometerStatus.CONNECTED)
+
+
+@patch("finesse.hardware.plugins.spectrometer.opus_interface.parse_response")
+def test_on_reply_received_status_unchanged(
+    parse_response_mock: Mock, opus: OPUSInterface, qtbot
+) -> None:
+    """Test the _on_reply_received() method only sends a status update if changed."""
+    reply = MagicMock()
+    reply.error.return_value = QNetworkReply.NetworkError.NoError
+
+    opus._status = SpectrometerStatus.CONNECTED
+    parse_response_mock.return_value = SpectrometerStatus.CONNECTED
 
     # Check the status is send
     with patch.object(opus, "send_status_message") as status_mock:
         opus._on_reply_received(reply)
-        status_mock.assert_called_once_with("status")
+        status_mock.assert_not_called()
 
 
 @patch("finesse.hardware.plugins.spectrometer.opus_interface.parse_response")

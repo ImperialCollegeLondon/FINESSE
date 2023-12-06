@@ -68,6 +68,14 @@ TEMPERATURE_CONTROLLER_TOPIC = "temperature_controller"
 OPUS_IP = "10.10.0.2"
 """The IP address of the machine running the OPUS software."""
 
+OPUS_POLLING_INTERVAL = 1.0
+"""How long to wait between polls of the EM27's status.
+
+Note that in reality the minimum poll interval is ~2s, because that's how long the
+device takes to reply. This value then determines how often we wait before even starting
+a request.
+"""
+
 SPECTROMETER_TOPIC = "spectrometer"
 """The topic name to use for spectrometer-related messages."""
 

@@ -24,7 +24,7 @@ from finesse.spectrometer_status import SpectrometerStatus
 class SpectrometerControl(DevicePanel):
     """Class to monitor and control spectrometers."""
 
-    COMMANDS = ("status", "cancel", "stop", "start", "connect")
+    COMMANDS = ("connect", "start", "stop", "cancel")
     """The default commands shown."""
 
     def __init__(self, commands: Sequence[str] = COMMANDS) -> None:
