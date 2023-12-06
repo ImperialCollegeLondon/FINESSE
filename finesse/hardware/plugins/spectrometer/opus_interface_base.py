@@ -29,9 +29,6 @@ class OPUSInterfaceBase(Device, name=SPECTROMETER_TOPIC, description="OPUS devic
     def request_command(self, command: str) -> None:
         """Request that OPUS run the specified command.
 
-        Note that we treat "status" as a command, even though it requires a different
-        URL to access.
-
         Args:
             command: Name of command to run
         """

@@ -70,11 +70,11 @@ class OPUSInterface(OPUSInterfaceBase, description="OPUS spectrometer"):
         self._status = SpectrometerStatus.UNDEFINED
 
         self._status_timer = QTimer()
-        self._status_timer.timeout.connect(lambda: self.request_command("status"))
+        self._status_timer.timeout.connect(self._request_status)
         self._status_timer.setInterval(int(OPUS_POLLING_INTERVAL * 1000))
         self._status_timer.setSingleShot(True)
 
-        self.request_command("status")
+        self._request_status()
 
     @Slot()
     def _on_reply_received(self, reply: QNetworkReply) -> None:
@@ -94,23 +94,21 @@ class OPUSInterface(OPUSInterfaceBase, description="OPUS spectrometer"):
         # Poll the status again after a delay
         self._status_timer.start()
 
-    def request_command(self, command: str) -> None:
-        """Request that OPUS run the specified command.
-
-        Note that we treat "status" as a command, even though it requires a different
-        URL to access.
-
-        Args:
-            command: Name of command to run
-        """
-        filename = (
-            STATUS_FILENAME
-            if command == "status"
-            else f"{COMMAND_FILENAME}?opusrs{command}"
-        )
-
-        # Make HTTP request in background
+    def _make_request(self, filename: str) -> None:
+        """Make an HTTP request in the background."""
         self._requester.make_request(
             f"http://{OPUS_IP}/opusrs/{filename}",
             self.pubsub_errors(self._on_reply_received),
         )
+
+    def _request_status(self) -> None:
+        """Request the current status from OPUS."""
+        self._make_request(STATUS_FILENAME)
+
+    def request_command(self, command: str) -> None:
+        """Request that OPUS run the specified command.
+
+        Args:
+            command: Name of command to run
+        """
+        self._make_request(f"{COMMAND_FILENAME}?opusrs{command}")
