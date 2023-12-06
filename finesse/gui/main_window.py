@@ -47,11 +47,11 @@ class MainWindow(QMainWindow):
         # For choosing hardware set
         hardware_sets = HardwareSetsControl()
 
-        # Setup for stepper motor control
-        stepper_motor = StepperMotorControl()
-
         # Setup for measure script panel
         measure_script = ScriptControl()
+
+        # Setup for stepper motor control
+        stepper_motor = StepperMotorControl()
 
         # Setup for interferometer monitor
         em27_monitor = EM27Monitor()
@@ -59,8 +59,8 @@ class MainWindow(QMainWindow):
         spectrometer: QGroupBox = SpectrometerControl()
 
         layout_left.addWidget(hardware_sets, 0, 0, 1, 2)
-        layout_left.addWidget(stepper_motor, 1, 0, 1, 2)
-        layout_left.addWidget(measure_script, 2, 0, 1, 2)
+        layout_left.addWidget(measure_script, 1, 0, 1, 2)
+        layout_left.addWidget(stepper_motor, 2, 0, 1, 2)
         layout_left.addWidget(spectrometer, 3, 0, 1, 1)
         layout_left.addWidget(em27_monitor, 3, 1, 1, 1)
 
