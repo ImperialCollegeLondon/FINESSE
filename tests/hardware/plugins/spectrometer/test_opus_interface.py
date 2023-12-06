@@ -30,40 +30,39 @@ def test_init(timer_mock: Mock, subscribe_mock: Mock) -> None:
     timer = MagicMock()
     timer_mock.return_value = timer
 
-    with patch.object(OPUSInterface, "request_command") as request_mock:
+    with patch.object(OPUSInterface, "_request_status") as status_mock:
         opus = OPUSInterface()
-        request_mock.assert_called_once_with("status")
+        status_mock.assert_called_once_with()
 
         assert opus._status == SpectrometerStatus.UNDEFINED
         timer.setSingleShot.assert_called_once_with(True)
         timer.setInterval.assert_called_once_with(1000)
-
-        # Check that the timer polls the status
-        assert timer.timeout.connect.call_count == 1
-        request_mock.reset_mock()
-        timer.timeout.connect.call_args[0][0]()
-        request_mock.assert_called_once_with("status")
+        timer.timeout.connect.assert_called_once_with(opus._request_status)
 
 
 def test_request_status(opus: OPUSInterface, qtbot) -> None:
-    """Test OPUSInterface's request_status() method."""
-    with patch.object(opus, "_requester") as requester_mock:
-        opus.request_command("status")
-        assert requester_mock.make_request.call_count == 1
-        assert (
-            requester_mock.make_request.call_args[0][0]
-            == f"http://{OPUS_IP}/opusrs/stat.htm"
-        )
+    """Test OPUSInterface's _request_status() method."""
+    with patch.object(opus, "_make_request") as request_mock:
+        opus._request_status()
+        request_mock.assert_called_once_with("stat.htm")
 
 
-def test_request_command(opus: OPUSInterface, qtbot) -> None:
+@pytest.mark.parametrize("command", ("connect", "start", "stop", "cancel"))
+def test_request_command(command: str, opus: OPUSInterface, qtbot) -> None:
+    """Test OPUSInterface's request_command() method."""
+    with patch.object(opus, "_make_request") as request_mock:
+        opus.request_command(command)
+        request_mock.assert_called_once_with(f"cmd.htm?opusrs{command}")
+
+
+def test_make_request(opus: OPUSInterface, qtbot) -> None:
     """Test OPUSInterface's request_command() method."""
     with patch.object(opus, "_requester") as requester_mock:
-        opus.request_command("hello")
+        opus._make_request("hello.htm")
         assert requester_mock.make_request.call_count == 1
         assert (
             requester_mock.make_request.call_args[0][0]
-            == f"http://{OPUS_IP}/opusrs/cmd.htm?opusrshello"
+            == f"http://{OPUS_IP}/opusrs/hello.htm"
         )
 
 
