@@ -7,7 +7,7 @@ from PySide6.QtWidgets import QFileDialog, QGridLayout, QGroupBox, QPushButton
 
 from finesse.config import DEFAULT_SCRIPT_PATH, SPECTROMETER_TOPIC, STEPPER_MOTOR_TOPIC
 from finesse.device_info import DeviceInstanceRef
-from finesse.event_counter import EventCounter
+from finesse.gui.event_counter import EventCounter
 from finesse.gui.measure_script.script import Script, ScriptRunner
 from finesse.gui.measure_script.script_edit_dialog import ScriptEditDialog
 from finesse.gui.measure_script.script_run_dialog import ScriptRunDialog
