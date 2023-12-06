@@ -13,7 +13,6 @@ from typing import Any
 
 import yaml
 from pubsub import pub
-from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import QWidget
 from schema import And, Or, Schema, SchemaError
 from statemachine import State, StateMachine
@@ -125,11 +124,6 @@ def parse_script(script: str | TextIOBase) -> dict[str, Any]:
         raise ParseError() from e
 
 
-def _poll_spectrometer_status() -> None:
-    """Request the spectrometer's status."""
-    pub.sendMessage(f"device.{SPECTROMETER_TOPIC}.request", command="status")
-
-
 class ScriptIterator:
     """Allows for iterating through a Script with the required number of repeats."""
 
@@ -211,21 +205,13 @@ class ScriptRunner(StateMachine):
     def __init__(
         self,
         script: Script,
-        min_poll_interval: float = 1.0,
         parent: QWidget | None = None,
     ) -> None:
         """Create a new ScriptRunner.
 
-        Note that the EM27 often takes more than one second to respond to requests,
-        hence why we set a minimum polling interval rather than an absolute one.
-
         Args:
             script: The script to run
-            min_poll_interval: Minimum rate at which to poll EM27 (seconds)
             parent: The parent widget
-
-        Todo:
-            Error handling for the stepper motor
         """
         self.script = script
         """The running script."""
@@ -240,12 +226,6 @@ class ScriptRunner(StateMachine):
         """The current measurement to acquire."""
         self.current_measurement_count: int
         """How many times a measurement has been recorded at the current angle."""
-
-        self._check_status_timer = QTimer()
-        """A timer which checks whether the EM27's measurement is complete."""
-        self._check_status_timer.setSingleShot(True)
-        self._check_status_timer.setInterval(round(1000 * min_poll_interval))
-        self._check_status_timer.timeout.connect(_poll_spectrometer_status)
 
         # Send stop command in case motor is moving
         pub.sendMessage(f"device.{STEPPER_MOTOR_TOPIC}.stop")
@@ -272,7 +252,7 @@ class ScriptRunner(StateMachine):
             return
 
         # Stepper motor messages
-        pub.unsubscribe(self.start_measuring, f"device.{STEPPER_MOTOR_TOPIC}.move.end")
+        pub.unsubscribe(self.finish_moving, f"device.{STEPPER_MOTOR_TOPIC}.move.end")
         pub.unsubscribe(
             self._on_stepper_motor_error, f"device.error.{STEPPER_MOTOR_TOPIC}"
         )
@@ -331,11 +311,10 @@ class ScriptRunner(StateMachine):
         pub.sendMessage(f"device.{STEPPER_MOTOR_TOPIC}.notify_on_stopped")
 
     def on_exit_measuring(self) -> None:
-        """Ensure that the polling timer is stopped."""
-        self._check_status_timer.stop()
-
+        """Unsubscribe from pubsub topics."""
         pub.unsubscribe(
-            self._on_spectrometer_status_received, f"device.{SPECTROMETER_TOPIC}.status"
+            self._measuring_end,
+            f"device.{SPECTROMETER_TOPIC}.status.connected",
         )
 
     def on_enter_waiting_to_move(self) -> None:
@@ -353,7 +332,7 @@ class ScriptRunner(StateMachine):
             self._request_measurement()
 
     def on_exit_waiting_to_measure(self) -> None:
-        """Ensure that we have unsubscribed from pubsub topics."""
+        """Unsubscribe from pubsub topics."""
         pub.unsubscribe(
             self._measuring_start, f"device.{SPECTROMETER_TOPIC}.status.measuring"
         )
@@ -373,19 +352,10 @@ class ScriptRunner(StateMachine):
         )
         self.start_measuring()
 
-        # Start polling
+        # Listen for status changes
         pub.subscribe(
-            self._on_spectrometer_status_received, f"device.{SPECTROMETER_TOPIC}.status"
+            self._measuring_end, f"device.{SPECTROMETER_TOPIC}.status.connected"
         )
-        _poll_spectrometer_status()
-
-    def _on_spectrometer_status_received(self, status: SpectrometerStatus):
-        """Move on to the next measurement if the measurement has finished."""
-        if status == SpectrometerStatus.CONNECTED:  # indicates measurement is finished
-            self._measuring_end()
-        else:
-            # Poll again later
-            self._check_status_timer.start()
 
     def abort(self) -> None:
         """Abort the current measure script run."""
@@ -435,7 +405,7 @@ class ScriptRunner(StateMachine):
             f"The measure script will stop running.\n\n{error!s}",
         )
 
-    def _measuring_end(self) -> None:
+    def _measuring_end(self, status: SpectrometerStatus) -> None:
         """Move onto the next measurement or perform another measurement here."""
         self.current_measurement_count += 1
         if self.current_measurement_count == self.current_measurement.measurements:

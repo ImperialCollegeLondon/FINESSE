@@ -8,10 +8,10 @@ Note that this is a separate machine from the EM27!
 import logging
 
 from bs4 import BeautifulSoup
-from PySide6.QtCore import Slot
+from PySide6.QtCore import QTimer, Slot
 from PySide6.QtNetwork import QNetworkReply
 
-from finesse.config import OPUS_IP
+from finesse.config import OPUS_IP, OPUS_POLLING_INTERVAL
 from finesse.hardware.http_requester import HTTPRequester
 from finesse.hardware.plugins.spectrometer.opus_interface_base import (
     OPUSError,
@@ -67,6 +67,14 @@ class OPUSInterface(OPUSInterfaceBase, description="OPUS spectrometer"):
         """Create a new OPUSInterface."""
         super().__init__()
         self._requester = HTTPRequester()
+        self._status = SpectrometerStatus.UNDEFINED
+
+        self._status_timer = QTimer()
+        self._status_timer.timeout.connect(lambda: self.request_command("status"))
+        self._status_timer.setInterval(int(OPUS_POLLING_INTERVAL * 1000))
+        self._status_timer.setSingleShot(True)
+
+        self.request_command("status")
 
     @Slot()
     def _on_reply_received(self, reply: QNetworkReply) -> None:
@@ -74,9 +82,17 @@ class OPUSInterface(OPUSInterfaceBase, description="OPUS spectrometer"):
         if reply.error() != QNetworkReply.NetworkError.NoError:
             raise OPUSError(f"Network error: {reply.errorString()}")
 
+        # Parse the received message
         response = reply.readAll().data().decode()
-        status = parse_response(response)
-        self.send_status_message(status)
+        new_status = parse_response(response)
+
+        # If the status has changed, notify listeners
+        if new_status != self._status:
+            self._status = new_status
+            self.send_status_message(new_status)
+
+        # Poll the status again after a delay
+        self._status_timer.start()
 
     def request_command(self, command: str) -> None:
         """Request that OPUS run the specified command.
