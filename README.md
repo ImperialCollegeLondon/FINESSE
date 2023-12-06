@@ -60,6 +60,8 @@ To get started:
 
 1. Build the user guide:
 
-   ```bash
-   python docs/gen_user_guide.py
-   ```
+   1. Install [pandoc](https://pandoc.org/installing.html)
+
+   1. ```bash
+      python docs/gen_user_guide.py
+      ```
