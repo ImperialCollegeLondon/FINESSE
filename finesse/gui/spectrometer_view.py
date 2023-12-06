@@ -4,6 +4,7 @@ import weakref
 from collections.abc import Sequence
 from functools import partial
 
+from frozendict import frozendict
 from pubsub import pub
 from PySide6.QtGui import QTextCursor
 from PySide6.QtWidgets import (
@@ -27,12 +28,22 @@ class SpectrometerControl(DevicePanel):
     COMMANDS = ("connect", "start", "stop", "cancel")
     """The default commands shown."""
 
+    _ENABLED_BUTTONS = frozendict(
+        {
+            SpectrometerStatus.IDLE: {"connect"},
+            SpectrometerStatus.CONNECTED: {"start"},
+            SpectrometerStatus.MEASURING: {"stop", "cancel"},
+        }
+    )
+    """Which buttons to enable for different states."""
+
     def __init__(self, commands: Sequence[str] = COMMANDS) -> None:
         """Create the widgets to monitor and control the spectrometer."""
         super().__init__(SPECTROMETER_TOPIC, "Spectrometer")
 
         self.commands = commands
         self.logger = logging.getLogger("spectrometer")
+        self.buttons: dict[str, QPushButton] = {}
 
         layout = self._create_controls()
         self.setLayout(layout)
@@ -44,6 +55,9 @@ class SpectrometerControl(DevicePanel):
 
         pub.subscribe(self._log_request, f"device.{SPECTROMETER_TOPIC}.request")
         pub.subscribe(self._log_response, f"device.{SPECTROMETER_TOPIC}.status")
+        pub.subscribe(
+            self._update_buttons_enabled, f"device.{SPECTROMETER_TOPIC}.status"
+        )
         pub.subscribe(self._log_error, f"device.error.{SPECTROMETER_TOPIC}")
 
     def _create_controls(self) -> QHBoxLayout:
@@ -67,10 +81,13 @@ class SpectrometerControl(DevicePanel):
 
         for name in self.commands:
             button = QPushButton(name.capitalize())
+            button.setEnabled(False)
             button.clicked.connect(
                 partial(self.on_command_button_clicked, command=name.lower())
             )
             btn_layout.addWidget(button)
+
+            self.buttons[name] = button
 
         btn_layout.addStretch()
 
@@ -101,6 +118,12 @@ class SpectrometerControl(DevicePanel):
 
     def _log_error(self, instance: DeviceInstanceRef, error: BaseException) -> None:
         self.logger.error(f"Error during request: {error!s}")
+
+    def _update_buttons_enabled(self, status: SpectrometerStatus) -> None:
+        """Enable/disable buttons depending on the spectrometer's status."""
+        to_enable = self._ENABLED_BUTTONS.get(status, set())
+        for name, btn in self.buttons.items():
+            btn.setEnabled(name in to_enable)
 
     def on_command_button_clicked(self, command: str) -> None:
         """Execute the given command by sending a message to the appropriate topic.
