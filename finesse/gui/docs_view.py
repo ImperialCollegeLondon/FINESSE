@@ -17,7 +17,7 @@ class DocsViewer(QAction):
         Args:
             parent: the menu on which to place the menu item
         """
-        super().__init__("Open user manual", parent)
+        super().__init__("Open user guide", parent)
         self.triggered.connect(self.show_docs)
 
     def show_docs(self) -> None:
@@ -32,7 +32,7 @@ class DocsViewer(QAction):
             A main window showing the html documentation.
         """
         docs_window = QMainWindow()
-        docs_window.setWindowTitle("FINESSE User Manual")
+        docs_window.setWindowTitle("User Guide")
 
         toolbar = QToolBar()
         toolbar.setMovable(False)
