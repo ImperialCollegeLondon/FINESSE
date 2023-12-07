@@ -3,9 +3,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 
-from finesse.config import SPECTROMETER_TOPIC
-from finesse.hardware.device import Device
-from finesse.spectrometer_status import SpectrometerStatus
+from finesse.hardware.plugins.spectrometer.spectrometer_base import SpectrometerBase
 
 
 class OPUSError(Exception):
@@ -17,13 +15,24 @@ class OPUSError(Exception):
         return cls(f"Error {errcode}: {errtext}")
 
 
-class OPUSInterfaceBase(Device, name=SPECTROMETER_TOPIC, description="OPUS device"):
+class OPUSInterfaceBase(SpectrometerBase):
     """Base class providing an interface to the OPUS program."""
 
-    def __init__(self) -> None:
-        """Create a new OPUSInterfaceBase."""
-        super().__init__()
-        self.subscribe(self.request_command, "request")
+    def connect(self) -> None:
+        """Connect to the spectrometer."""
+        self.request_command("connect")
+
+    def start_measuring(self) -> None:
+        """Start a new measurement."""
+        self.request_command("start")
+
+    def stop_measuring(self) -> None:
+        """Stop the current measurement when finished."""
+        self.request_command("stop")
+
+    def cancel_measuring(self) -> None:
+        """Cancel the current measurement immediately."""
+        self.request_command("cancel")
 
     @abstractmethod
     def request_command(self, command: str) -> None:
@@ -32,7 +41,3 @@ class OPUSInterfaceBase(Device, name=SPECTROMETER_TOPIC, description="OPUS devic
         Args:
             command: Name of command to run
         """
-
-    def send_status_message(self, status: SpectrometerStatus) -> None:
-        """Send a status update via pubsub."""
-        self.send_message(f"status.{status.name.lower()}", status=status)
