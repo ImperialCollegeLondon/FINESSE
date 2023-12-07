@@ -8,6 +8,7 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QMainWindow,
     QMenu,
+    QSizePolicy,
     QWidget,
 )
 
@@ -53,16 +54,20 @@ class MainWindow(QMainWindow):
         # Setup for stepper motor control
         stepper_motor = StepperMotorControl()
 
+        # Setup for spectrometer
+        spectrometer: QGroupBox = SpectrometerControl()
+
         # Setup for interferometer monitor
         em27_monitor = EM27Monitor()
-
-        spectrometer: QGroupBox = SpectrometerControl()
+        em27_monitor.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
+        )
 
         layout_left.addWidget(hardware_sets, 0, 0, 1, 2)
         layout_left.addWidget(measure_script, 1, 0, 1, 2)
-        layout_left.addWidget(stepper_motor, 2, 0, 1, 2)
-        layout_left.addWidget(spectrometer, 3, 0, 1, 1)
-        layout_left.addWidget(em27_monitor, 3, 1, 1, 1)
+        layout_left.addWidget(stepper_motor, 2, 0, 1, 1)
+        layout_left.addWidget(spectrometer, 2, 1, 1, 1)
+        layout_left.addWidget(em27_monitor, 3, 0, 1, 2)
 
         layout_right = QGridLayout()
 
