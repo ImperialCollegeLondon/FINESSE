@@ -15,17 +15,17 @@ devices:
   stepper_motor:
     class_name: stepper_motor.st10_controller.ST10Controller
     params:
-      port: "0403:6011 FT1NMSVR (4)"
+      port: "0403:6011 (4)"
       baudrate: 9600
   temperature_controller.hot_bb:
     class_name: temperature.tc4820.TC4820
     params:
-      port: "0403:6011 FT1NMSVR (2)"
+      port: "0403:6011 (2)"
       baudrate: 115200
   temperature_controller.cold_bb:
     class_name: temperature.tc4820.TC4820
     params:
-      port: "0403:6011 FT1NMSVR (3)"
+      port: "0403:6011 (3)"
       baudrate: 115200
   temperature_monitor:
     class_name: temperature.dp9800.DP9800
@@ -48,10 +48,9 @@ is also a YAML object, containing key-value pairs for each of the device paramet
 used.
 
 Note that the port names are in a FINESSE-specific format. The string is composed of the
-USB vendor and product IDs, followed by the serial number (if present) and (optionally)
-a number to distinguish ports which share all these properties (as happens with
-USB-to-serial devices with multiple ports, for example). The easiest way to figure out
-these strings is to run FINESSE and click on "Manage devices". The available USB ports
-will be listed in the dialog.
+USB vendor and product IDs and (optionally) a number to distinguish ports which share
+all these properties (as happens with USB-to-serial devices with multiple ports, for
+example). The easiest way to figure out these strings is to run FINESSE and click on
+"Manage devices". The available USB ports will be listed in the dialog.
 
 [Hardware]: ./hardware.md

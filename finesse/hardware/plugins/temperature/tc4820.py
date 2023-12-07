@@ -39,7 +39,7 @@ class TC4820(SerialDevice, TemperatureControllerBase, description="TC4820"):
 
         Args:
             name: The name of the device, to distinguish it from others
-            port: Description of USB port (vendor ID + product ID + serial number)
+            port: Description of USB port (vendor ID + product ID)
             baudrate: Baud rate of port
             max_attempts: Maximum number of attempts for requests
         """
