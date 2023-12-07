@@ -65,6 +65,10 @@ class OPUSStateMachine(StateMachine):
     ) -> None:
         """Create a new OPUSStateMachine.
 
+        The state diagram looks like this:
+
+        ![](../../../../../OPUSStateMachine.png)
+
         Args:
             measure_duration: How long a single measurement takes (seconds)
             measure_finish_callback: Called when measurement completes successfully
