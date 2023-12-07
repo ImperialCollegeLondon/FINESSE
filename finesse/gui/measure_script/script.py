@@ -203,6 +203,10 @@ class ScriptRunner(StateMachine):
     """Trigger a move to the angle for the next measurement."""
     finish = moving.to(not_running)
     """To be called when all measurements are complete."""
+    cancel_waiting_to_move = waiting_to_move.to(not_running)
+    """Cancel the script from a waiting to move state."""
+    cancel_waiting_to_measure = waiting_to_measure.to(not_running)
+    """Cancel the script from a waiting to measure state."""
 
     def __init__(
         self,
@@ -374,9 +378,10 @@ class ScriptRunner(StateMachine):
                 self.cancel_move()
             case self.measuring:
                 self.cancel_measuring()
-            case self.waiting_to_measure | self.waiting_to_move:
-                # These states don't need any special handling
-                self.current_state = self.not_running
+            case self.waiting_to_measure:
+                self.cancel_waiting_to_measure()
+            case self.waiting_to_move:
+                self.cancel_waiting_to_move()
 
         logging.info("Aborting measure script")
 
