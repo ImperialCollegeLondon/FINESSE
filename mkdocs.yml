@@ -19,7 +19,6 @@ plugins:
 - search
 - gen-files:
     scripts:
-    - docs/gen_state_machine_diagrams.py
     - docs/gen_ref_nav.py
 - literate-nav:
     nav_file: SUMMARY.md
