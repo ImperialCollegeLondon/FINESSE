@@ -172,7 +172,7 @@ class ST10Controller(SerialDevice, StepperMotorBase, description="ST10 controlle
         """Create a new ST10Controller.
 
         Args:
-            port: Description of USB port (vendor ID + product ID + serial number)
+            port: Description of USB port (vendor ID + product ID)
             baudrate: Baud rate of port
             timeout: Connection timeout
 
