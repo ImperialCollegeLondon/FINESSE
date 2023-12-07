@@ -34,6 +34,9 @@ jobs:
         run: |
           sudo apt update
 
+          # For documentation
+          sudo apt install graphviz
+
           # Without this, PySide6 gives an ImportError
           sudo apt install libegl1
 
@@ -55,7 +58,9 @@ jobs:
         uses: codecov/codecov-action@v3
 
       - name: Check for documentation errors with MkDocs
+        if: matrix.os == 'ubuntu-latest'
         run: |
+          poetry run python docs/gen_state_machine_diagrams.py
           poetry run mkdocs build -s
 
       - name: Install Pandoc
@@ -105,4 +110,6 @@ jobs:
         run: poetry install
 
       - name: Deploy Docs
-        run: poetry run mkdocs gh-deploy --force
+        run: |
+          poetry run python docs/gen_state_machine_diagrams.py
+          poetry run mkdocs gh-deploy --force
