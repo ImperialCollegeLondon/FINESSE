@@ -343,7 +343,7 @@ class ScriptRunner(StateMachine):
         NB: This is also invoked on repeat measurements
         """
         pub.sendMessage("measure_script.start_measuring", script_runner=self)
-        pub.sendMessage(f"device.{SPECTROMETER_TOPIC}.request", command="start")
+        pub.sendMessage(f"device.{SPECTROMETER_TOPIC}.start_measuring")
 
     def _measuring_start(self, status: SpectrometerStatus):
         """Start the next measurement."""
