@@ -4,7 +4,7 @@ from functools import partial
 
 from frozendict import frozendict
 from pubsub import pub
-from PySide6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QSizePolicy, QVBoxLayout
+from PySide6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QVBoxLayout
 
 from finesse.config import SPECTROMETER_TOPIC
 from finesse.gui.device_panel import DevicePanel
@@ -39,11 +39,6 @@ class SpectrometerControl(DevicePanel):
         layout.addLayout(self._create_buttons(commands))
         layout.addWidget(self._status_label)
         self.setLayout(layout)
-
-        self.setSizePolicy(
-            QSizePolicy.Policy.Expanding,
-            QSizePolicy.Policy.MinimumExpanding,
-        )
 
         pub.subscribe(self._on_status_changed, f"device.{SPECTROMETER_TOPIC}.status")
 
