@@ -88,7 +88,6 @@ def test_init(
         [
             call(widget._on_device_opened, f"device.opening.{instance!s}"),
             call(widget._set_device_closed, f"device.closed.{instance!s}"),
-            call(widget._show_error_message, f"device.error.{instance!s}"),
         ]
     )
 
@@ -237,15 +236,6 @@ def test_on_device_opened(widget: DeviceTypeControl, qtbot) -> None:
     with patch.object(widget, "_set_device_opened") as open_mock:
         widget._on_device_opened(DeviceInstanceRef("base_type"), "some_class", {})
         open_mock.assert_called_once_with("some_class")
-
-
-@patch("finesse.gui.hardware_set.device_view.show_error_message")
-def test_show_error_message(
-    error_message_mock: Mock, widget: DeviceTypeControl, qtbot
-) -> None:
-    """Test the _show_error_message() method."""
-    widget._show_error_message(DeviceInstanceRef("base_type"), RuntimeError("boo"))
-    error_message_mock.assert_called_once()
 
 
 def test_open_close_btn(widget: DeviceTypeControl, qtbot) -> None:

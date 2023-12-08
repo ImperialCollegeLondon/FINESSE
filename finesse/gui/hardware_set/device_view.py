@@ -216,7 +216,6 @@ class DeviceTypeControl(QGroupBox):
         # pubsub subscriptions
         pub.subscribe(self._on_device_opened, f"device.opening.{instance!s}")
         pub.subscribe(self._set_device_closed, f"device.closed.{instance!s}")
-        pub.subscribe(self._show_error_message, f"device.error.{instance!s}")
 
     def _update_open_btn_enabled_state(self) -> None:
         """Enable button depending on whether there are options for all params.
@@ -304,20 +303,6 @@ class DeviceTypeControl(QGroupBox):
     def _close_device(self) -> None:
         """Close the device."""
         close_device(self._device_instance)
-
-    def _show_error_message(
-        self, instance: DeviceInstanceRef, error: BaseException
-    ) -> None:
-        """Show an error message when something has gone wrong with the device.
-
-        Todo:
-            The name of the device isn't currently very human readable.
-        """
-        show_error_message(
-            self,
-            f"A fatal error has occurred with the {instance!s} device: {error!s}",
-            title="Device error",
-        )
 
     def _on_open_close_clicked(self) -> None:
         """Open/close the connection of the chosen device when the button is pushed."""
