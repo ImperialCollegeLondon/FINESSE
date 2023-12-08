@@ -1,7 +1,13 @@
 """Tests for core serial device code."""
 from unittest.mock import MagicMock, Mock, patch
 
-from finesse.hardware.serial_device import _get_usb_serial_ports, _port_info_to_str
+import pytest
+
+from finesse.hardware.serial_device import (
+    _get_port_number,
+    _get_usb_serial_ports,
+    _port_info_to_str,
+)
 
 
 @patch("finesse.hardware.serial_device.comports")
@@ -20,7 +26,7 @@ def test_get_usb_serial_ports(comports_mock: Mock) -> None:
     PID = 2
 
     ports = []
-    for comport in ("COM1", "COM2", "COM3"):
+    for comport in ("COM3", "COM2", "COM1"):
         info = MagicMock()
         info.device = comport
 
@@ -39,3 +45,16 @@ def test_get_usb_serial_ports(comports_mock: Mock) -> None:
             _port_info_to_str(VID, PID, 0): "COM1",
             _port_info_to_str(VID, PID, 1): "COM3",
         }
+
+
+@pytest.mark.parametrize(
+    "port,number",
+    (
+        (f"{prefix}{number}", number)
+        for number in (1, 2, 10)
+        for prefix in ("COM", "/dev/ttyUSB")
+    ),
+)
+def test_get_port_number(port: str, number: int) -> None:
+    """Test _get_port_number()."""
+    assert _get_port_number(port) == number

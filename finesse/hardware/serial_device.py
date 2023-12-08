@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+import re
 
 from serial import Serial, SerialException
 from serial.tools.list_ports import comports
@@ -26,6 +27,15 @@ def _port_info_to_str(vendor_id: int, product_id: int, count: int = 0) -> str:
     return out
 
 
+def _get_port_number(port: str) -> int:
+    """Get the port number from the end of a port's name."""
+    match = re.match("[^0-9]*([0-9]+)$", port)
+    if not match:
+        raise ValueError(f"Port {port} does not end with a number")
+
+    return int(match.group(1))
+
+
 def _get_usb_serial_ports() -> dict[str, str]:
     """Get the ports for connected USB serial devices.
 
@@ -39,7 +49,7 @@ def _get_usb_serial_ports() -> dict[str, str]:
     # additional number to distinguish them
     counter: dict[tuple[int, int], int] = {}
     _serial_ports = {}
-    for port in comports():
+    for port in sorted(comports(), key=lambda port: _get_port_number(port.device)):
         # Vendor ID is a USB-specific field, so we can use this to check whether the
         # device is USB or not
         if port.vid is None:
@@ -55,10 +65,10 @@ def _get_usb_serial_ports() -> dict[str, str]:
     if not _serial_ports:
         logging.warning("No USB serial devices found")
     else:
-        port_strs = "\t- ".join(
-            f"{port}: {desc}" for desc, port in _serial_ports.items()
+        port_strs = "".join(
+            f"\n\t- {port}: {desc}" for desc, port in _serial_ports.items()
         )
-        logging.info(f"Found the following USB serial devices:\n{port_strs}")
+        logging.info(f"Found the following USB serial devices:{port_strs}")
 
     # Sort by the string representation of the key
     _serial_ports = dict(sorted(_serial_ports.items(), key=lambda item: item[0]))
