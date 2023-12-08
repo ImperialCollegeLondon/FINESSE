@@ -99,10 +99,6 @@ class OPUSStateMachine(StateMachine):
         """Stop the measurement timer."""
         self.measure_timer.stop()
 
-    def on_enter_state(self, target: State) -> None:
-        """Log all state transitions."""
-        logging.info(f"Current state: {target.name}")
-
 
 class DummyOPUSInterface(
     OPUSInterfaceBase,
