@@ -27,11 +27,7 @@ class OPUSInterfaceBase(SpectrometerBase):
         self.request_command("start")
 
     def stop_measuring(self) -> None:
-        """Stop the current measurement when finished."""
-        self.request_command("stop")
-
-    def cancel_measuring(self) -> None:
-        """Cancel the current measurement immediately."""
+        """Stop the current measurement."""
         self.request_command("cancel")
 
     @abstractmethod

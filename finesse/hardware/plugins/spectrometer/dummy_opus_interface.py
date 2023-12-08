@@ -72,7 +72,7 @@ class OPUSStateMachine(StateMachine):
         """Timer signalling the end of a measurement."""
         self.measure_timer.setInterval(round(measure_duration * 1000))
         self.measure_timer.setSingleShot(True)
-        self.measure_timer.timeout.connect(self.stop)
+        self.measure_timer.timeout.connect(self._on_measure_finished)
 
         super().__init__()
 
@@ -81,13 +81,13 @@ class OPUSStateMachine(StateMachine):
         self._start_connecting()
         self._finish_connecting()
 
-    def cancel(self) -> None:
-        """Cancel the current measurement."""
+    def stop(self) -> None:
+        """Stop the current measurement."""
         self._cancel_measuring()
         self._reset_after_cancelling()
         logging.info("Cancelling current measurement")
 
-    def stop(self) -> None:
+    def _on_measure_finished(self) -> None:
         """Finish measurement successfully."""
         self._start_finishing_measuring()
         self._finish_measuring()

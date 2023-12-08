@@ -39,10 +39,4 @@ def test_start_measuring(opus: _MockOPUS) -> None:
 def test_stop_measuring(opus: _MockOPUS) -> None:
     """Test the stop_measuring() method."""
     opus.stop_measuring()
-    opus.assert_command_requested("stop")
-
-
-def test_cancel_measuring(opus: _MockOPUS) -> None:
-    """Test the cancel_measuring() method."""
-    opus.cancel_measuring()
     opus.assert_command_requested("cancel")
