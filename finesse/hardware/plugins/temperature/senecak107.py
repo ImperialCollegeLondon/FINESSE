@@ -43,7 +43,7 @@ class SenecaK107(SerialDevice, TemperatureMonitorBase, description="Seneca K107"
         """Create a new SenecaK107.
 
         Args:
-            port: Description of USB port (vendor ID + product ID + serial number)
+            port: Description of USB port (vendor ID + product ID)
             baudrate: Baud rate of port
             min_temp: The minimum temperature limit of the device.
             max_temp: The maximum temperature limit of the device.
