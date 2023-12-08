@@ -1,7 +1,7 @@
 {
-  "ignorePatterns": [
-    {
-      "pattern": "^\\.\\./reference/"
-    }
-  ]
+    "ignorePatterns": [
+        {
+            "pattern": "^\\.\\./reference/"
+        }
+    ]
 }
