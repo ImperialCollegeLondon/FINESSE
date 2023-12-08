@@ -175,7 +175,3 @@ class DummyOPUSInterface(
     def on_enter_state(self, target: State) -> None:
         """Broadcast state changes via pubsub."""
         self.send_status_message(target.value)
-
-    def on_exit_measuring(self) -> None:
-        """Finish measurement successfully."""
-        logging.info("Measurement complete")
