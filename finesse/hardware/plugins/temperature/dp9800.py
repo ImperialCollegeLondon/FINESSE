@@ -96,7 +96,7 @@ class DP9800(SerialDevice, TemperatureMonitorBase, description="DP9800"):
         """Create a new DP9800.
 
         Args:
-            port: Description of USB port (vendor ID + product ID + serial number)
+            port: Description of USB port (vendor ID + product ID)
             baudrate: Baud rate of port
         """
         SerialDevice.__init__(self, port, baudrate)

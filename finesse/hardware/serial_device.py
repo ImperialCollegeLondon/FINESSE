@@ -10,20 +10,15 @@ from finesse.hardware.device import AbstractDevice
 _serial_ports: dict[str, str] | None = None
 
 
-def _port_info_to_str(
-    vendor_id: int, product_id: int, serial_number: str | None = None, count: int = 0
-) -> str:
+def _port_info_to_str(vendor_id: int, product_id: int, count: int = 0) -> str:
     """Convert USB port information to a formatted string.
 
     Args:
         vendor_id: USB vendor ID
         product_id: USB product ID
-        serial_number: USB serial number (not always present)
         count: Extra field to distinguish devices
     """
     out = f"{vendor_id:04x}:{product_id:04x}"
-    if serial_number:
-        out += f" {serial_number}"
     if count > 0:
         out += f" ({count+1})"
     return out
@@ -38,9 +33,9 @@ def _get_usb_serial_ports() -> dict[str, str]:
     if _serial_ports is not None:
         return _serial_ports
 
-    # Keep track of ports with the same vendor ID, product ID and serial number and
-    # assign them an additional number to distinguish them
-    counter: dict[tuple[int, int, str | None], int] = {}
+    # Keep track of ports with the same vendor and product ID and assign them an
+    # additional number to distinguish them
+    counter: dict[tuple[int, int], int] = {}
     _serial_ports = {}
     for port in comports():
         # Vendor ID is a USB-specific field, so we can use this to check whether the
@@ -48,7 +43,7 @@ def _get_usb_serial_ports() -> dict[str, str]:
         if port.vid is None:
             continue
 
-        key = (port.vid, port.pid, port.serial_number)
+        key = (port.vid, port.pid)
         if key not in counter:
             counter[key] = 0
 
@@ -65,7 +60,7 @@ class SerialDevice(
     AbstractDevice,
     parameters={
         "port": (
-            "USB port, including vendor ID, product ID and serial number",
+            "USB port (vendor and product ID)",
             tuple(_get_usb_serial_ports().keys()),
         ),
         "baudrate": ("Baud rate", BAUDRATES),
@@ -87,7 +82,7 @@ class SerialDevice(
         """Create a new serial device.
 
         Args:
-            port: Description of USB port (vendor ID + product ID + serial number)
+            port: Description of USB port (vendor ID + product ID)
             baudrate: Baud rate of port
         """
         try:
