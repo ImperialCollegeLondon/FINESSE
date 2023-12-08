@@ -17,15 +17,12 @@ class _MockSpectrometer(SpectrometerBase, description="Mock spectrometer"):
     def stop_measuring(self) -> None:
         pass
 
-    def cancel_measuring(self) -> None:
-        pass
-
 
 def test_init() -> None:
     """Test the constructor."""
     with patch.object(_MockSpectrometer, "subscribe") as subscribe_mock:
         dev = _MockSpectrometer()
-        commands = ("connect", "start_measuring", "stop_measuring", "cancel_measuring")
+        commands = ("connect", "start_measuring", "stop_measuring")
         subscribe_mock.assert_has_calls(
             [call(getattr(dev, command), command) for command in commands],
             any_order=True,

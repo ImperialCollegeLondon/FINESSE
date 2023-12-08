@@ -17,7 +17,6 @@ class SpectrometerBase(Device, name=SPECTROMETER_TOPIC, description="Spectromete
             "connect",
             "start_measuring",
             "stop_measuring",
-            "cancel_measuring",
         ):
             self.subscribe(getattr(self, command), command)
 
@@ -31,11 +30,7 @@ class SpectrometerBase(Device, name=SPECTROMETER_TOPIC, description="Spectromete
 
     @abstractmethod
     def stop_measuring(self) -> None:
-        """Stop the current measurement when finished."""
-
-    @abstractmethod
-    def cancel_measuring(self) -> None:
-        """Cancel the current measurement immediately."""
+        """Stop the current measurement."""
 
     def send_status_message(self, status: SpectrometerStatus) -> None:
         """Send a status update via pubsub."""
