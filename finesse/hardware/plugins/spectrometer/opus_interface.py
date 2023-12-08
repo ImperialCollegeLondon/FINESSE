@@ -52,8 +52,6 @@ def parse_response(response: str) -> SpectrometerStatus:
     if errcode is not None:
         raise OPUSError.from_response(errcode, errtext)
 
-    logging.info(f"OPUS response ({status.value}): {text}")
-
     return status
 
 
