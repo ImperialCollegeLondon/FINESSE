@@ -76,6 +76,11 @@ class OPUSInterface(OPUSInterfaceBase, description="OPUS spectrometer"):
 
         self._request_status()
 
+    def close(self) -> None:
+        """Close the device."""
+        self._status_timer.stop()
+        super().close()
+
     @Slot()
     def _on_reply_received(self, reply: QNetworkReply) -> None:
         """Handle received HTTP reply."""
