@@ -98,6 +98,9 @@ jobs:
         run: |
           sudo apt update
 
+          # For documentation
+          sudo apt install graphviz
+
           # Without this, PySide6 gives an ImportError
           sudo apt install libegl1
 
