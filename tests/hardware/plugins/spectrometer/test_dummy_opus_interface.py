@@ -187,10 +187,3 @@ def test_on_enter_state(state: State, opus: DummyOPUSInterface) -> None:
     """Test that state changes are broadcast."""
     opus.on_enter_state(state)
     opus.send_status_message.assert_called_once_with(state.value)  # type: ignore
-
-
-@patch("finesse.hardware.plugins.spectrometer.dummy_opus_interface.logging")
-def test_on_exit_measuring(logging_mock: Mock, opus: DummyOPUSInterface) -> None:
-    """Test that a message is logged when measuring ends."""
-    opus.on_exit_measuring()
-    logging_mock.info.assert_called()
