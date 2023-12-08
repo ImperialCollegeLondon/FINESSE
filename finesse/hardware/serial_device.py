@@ -1,6 +1,8 @@
 """Provides a base class for USB serial devices."""
 from __future__ import annotations
 
+import logging
+
 from serial import Serial, SerialException
 from serial.tools.list_ports import comports
 
@@ -49,6 +51,14 @@ def _get_usb_serial_ports() -> dict[str, str]:
 
         _serial_ports[_port_info_to_str(*key, counter[key])] = port.device
         counter[key] += 1
+
+    if not _serial_ports:
+        logging.warning("No USB serial devices found")
+    else:
+        port_strs = "\t- ".join(
+            f"{port}: {desc}" for desc, port in _serial_ports.items()
+        )
+        logging.info(f"Found the following USB serial devices:\n{port_strs}")
 
     # Sort by the string representation of the key
     _serial_ports = dict(sorted(_serial_ports.items(), key=lambda item: item[0]))
