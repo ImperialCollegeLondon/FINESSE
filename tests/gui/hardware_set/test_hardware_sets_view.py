@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, Mock, PropertyMock, call, patch
 
 import pytest
 
+from finesse.device_info import DeviceInstanceRef
 from finesse.gui.hardware_set.hardware_set import HardwareSet, OpenDeviceArgs
 from finesse.gui.hardware_set.hardware_sets_view import (
     HardwareSetsControl,
@@ -295,6 +296,15 @@ def test_on_device_closed_not_found(hw_control: HardwareSetsControl, qtbot) -> N
     assert not hw_control._connected_devices
     with does_not_raise():
         hw_control._on_device_closed(device.instance)
+
+
+@patch("finesse.gui.hardware_set.hardware_sets_view.show_error_message")
+def test_on_device_error(
+    error_message_mock: Mock, hw_control: HardwareSetsControl, qtbot
+) -> None:
+    """Test the _on_device_error() method."""
+    hw_control._on_device_error(DeviceInstanceRef("base_type"), RuntimeError("boo"))
+    error_message_mock.assert_called_once()
 
 
 def test_show_manage_devices_dialog(hw_control: HardwareSetsControl, qtbot) -> None:
