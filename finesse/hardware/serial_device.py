@@ -36,13 +36,18 @@ def _get_port_number(port: str) -> int:
     return int(match.group(1))
 
 
-def _get_usb_serial_ports() -> dict[str, str]:
+def _get_usb_serial_ports(refresh: bool = False) -> dict[str, str]:
     """Get the ports for connected USB serial devices.
 
-    The list of ports is only requested from the OS once and the result is cached.
+    The list of ports is only requested from the OS once and the result is cached,
+    unless the refresh argument is set to true.
+
+    Args:
+        refresh: Refresh the list of serial ports even if they have already been
+                 requested
     """
     global _serial_ports
-    if _serial_ports is not None:
+    if _serial_ports is not None and not refresh:
         return _serial_ports
 
     # Keep track of ports with the same vendor and product ID and assign them an
@@ -105,12 +110,19 @@ class SerialDevice(
             port: Description of USB port (vendor ID + product ID)
             baudrate: Baud rate of port
         """
+        # If port is unknown, it may be because the user connected the device after the
+        # list of serial ports was retrieved, so we refresh the list to check if it is
+        # now available. (NB: mypy warning suppressed because we know _serial_ports is
+        # not None here.)
+        refresh = port not in _serial_ports  # type: ignore[operator]
+        devices = _get_usb_serial_ports(refresh)
+
         try:
-            device = _serial_ports[port]  # type: ignore[index]
+            device = devices[port]
         except KeyError:
             raise SerialException(f'Device not present: "{port!s}"')
-
-        self.serial = Serial(port=device, baudrate=baudrate)
+        else:
+            self.serial = Serial(port=device, baudrate=baudrate)
 
     def close(self) -> None:
         """Close the connection to the device."""
