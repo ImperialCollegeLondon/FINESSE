@@ -75,6 +75,7 @@ class HardwareSetsControl(QGroupBox):
         self._connected_devices: set[OpenDeviceArgs] = set()
         pub.subscribe(self._on_device_opened, "device.opening")
         pub.subscribe(self._on_device_closed, "device.closed")
+        pub.subscribe(self._on_device_error, "device.error")
 
         self._combo = HardwareSetsComboBox()
         """A combo box for the different hardware sets."""
@@ -237,3 +238,17 @@ class HardwareSetsControl(QGroupBox):
         except StopIteration:
             # No device of this type found
             pass
+
+    def _on_device_error(
+        self, instance: DeviceInstanceRef, error: BaseException
+    ) -> None:
+        """Show an error message when something has gone wrong with the device.
+
+        Todo:
+            The name of the device isn't currently very human readable.
+        """
+        show_error_message(
+            self,
+            f"A fatal error has occurred with the {instance!s} device: {error!s}",
+            title="Device error",
+        )
