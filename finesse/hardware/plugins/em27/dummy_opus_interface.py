@@ -167,6 +167,8 @@ class DummyOPUSInterface(
 
         Args:
             command: The command to run
+        Raises:
+            OPUSError: If the device is in the wrong state for this command
         """
         if command == "status":
             if self.state_machine.current_state == OPUSStateMachine.idle:
