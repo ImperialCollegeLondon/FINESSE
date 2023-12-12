@@ -1,7 +1,7 @@
 """Provides a panel for choosing between hardware sets and (dis)connecting."""
-from collections.abc import Mapping
+from collections.abc import Mapping, Set
 from pathlib import Path
-from typing import AbstractSet, Any, cast
+from typing import Any, cast
 
 from frozendict import frozendict
 from pubsub import pub
@@ -47,9 +47,7 @@ def _get_last_selected_hardware_set() -> HardwareSet | None:
 class ManageDevicesDialog(QDialog):
     """A dialog for manually opening, closing and configuring devices."""
 
-    def __init__(
-        self, parent: QWidget, connected_devices: AbstractSet[OpenDeviceArgs]
-    ) -> None:
+    def __init__(self, parent: QWidget, connected_devices: Set[OpenDeviceArgs]) -> None:
         """Create a new ManageDevicesDialog.
 
         Args:
