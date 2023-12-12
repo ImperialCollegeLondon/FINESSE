@@ -1,4 +1,4 @@
-"""Tests for the SerialDevicePanel."""
+"""Tests for the DevicePanel."""
 from collections.abc import Sequence
 from unittest.mock import MagicMock, patch
 
@@ -9,8 +9,8 @@ from pytestqt.qtbot import QtBot
 from finesse.gui.device_panel import DevicePanel
 
 
-class _ChildSerialDevicePanel(DevicePanel):
-    """Inherit from SerialDevicePanel in order to test __init_subclass__."""
+class _ChildDevicePanel(DevicePanel):
+    """Inherit from DevicePanel in order to test __init_subclass__."""
 
     def __init__(self) -> None:
         super().__init__("my_device", "My Panel")
@@ -24,8 +24,8 @@ class _ChildSerialDevicePanel(DevicePanel):
 
 @pytest.fixture
 def panel(qtbot: QtBot) -> DevicePanel:
-    """A fixture providing a SerialDevicePanel."""
-    return _ChildSerialDevicePanel()
+    """A fixture providing a DevicePanel."""
+    return _ChildDevicePanel()
 
 
 def _check_controls_enabled(panel: DevicePanel, enabled: bool) -> None:
@@ -37,7 +37,7 @@ def _check_controls_enabled(panel: DevicePanel, enabled: bool) -> None:
 
 
 def test_init(subscribe_mock: MagicMock, qtbot: QtBot) -> None:
-    """Test SerialDevicePanel's constructor."""
+    """Test DevicePanel's constructor."""
     panel = DevicePanel("my_device", "My Title")
 
     subscribe_mock.assert_any_call(panel._on_device_opened, "device.opened.my_device")

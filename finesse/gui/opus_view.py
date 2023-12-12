@@ -1,6 +1,7 @@
 """Panel and widgets related to the control of the OPUS interferometer."""
 import logging
 import weakref
+from collections.abc import Sequence
 from functools import partial
 
 from pubsub import pub
@@ -14,18 +15,21 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
 )
 
+from finesse.config import OPUS_TOPIC
+from finesse.device_info import DeviceInstanceRef
 from finesse.em27_info import EM27Status
+from finesse.gui.device_panel import DevicePanel
 
 
-class OPUSControl(QGroupBox):
+class OPUSControl(DevicePanel):
     """Class that monitors and controls the OPUS interferometer."""
 
-    COMMANDS = ["status", "cancel", "stop", "start", "connect"]
+    COMMANDS = ("status", "cancel", "stop", "start", "connect")
     """The default commands shown for interacting with OPUS."""
 
-    def __init__(self, commands: list[str] = COMMANDS) -> None:
+    def __init__(self, commands: Sequence[str] = COMMANDS) -> None:
         """Create the widgets to monitor and control the OPUS interferometer."""
-        super().__init__("OPUS client view")
+        super().__init__(OPUS_TOPIC, "OPUS client view")
 
         self.commands = commands
         self.logger = logging.getLogger("OPUS")
@@ -38,9 +42,9 @@ class OPUSControl(QGroupBox):
             QSizePolicy.Policy.MinimumExpanding,
         )
 
-        pub.subscribe(self._log_request, "opus.request")
-        pub.subscribe(self._log_response, "opus.response")
-        pub.subscribe(self._log_error, "opus.error")
+        pub.subscribe(self._log_request, f"device.{OPUS_TOPIC}.request")
+        pub.subscribe(self._log_response, f"device.{OPUS_TOPIC}.response")
+        pub.subscribe(self._log_error, f"device.error.{OPUS_TOPIC}")
 
     def _create_controls(self) -> QHBoxLayout:
         """Creates the controls for communicating with the interferometer.
@@ -99,7 +103,7 @@ class OPUSControl(QGroupBox):
     ) -> None:
         self.logger.info(f"Response ({status.value}): {text}")
 
-    def _log_error(self, error: BaseException) -> None:
+    def _log_error(self, instance: DeviceInstanceRef, error: BaseException) -> None:
         self.logger.error(f"Error during request: {str(error)}")
 
     def on_command_button_clicked(self, command: str) -> None:
@@ -108,7 +112,7 @@ class OPUSControl(QGroupBox):
         Args:
             command: OPUS command to be executed
         """
-        pub.sendMessage("opus.request", command=command)
+        pub.sendMessage(f"device.{OPUS_TOPIC}.request", command=command)
 
 
 class OPUSLogHandler(logging.Handler):
