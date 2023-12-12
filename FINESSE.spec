@@ -15,6 +15,7 @@ a = Analysis(
         ("finesse/gui/images/*.png", "finesse/gui/images"),
         ("finesse/hardware/plugins/em27/diag_autom.htm", "finesse/hardware/plugins/em27"),
         ("docs/user_guide.html", "docs"),
+        ("docs/fallback.html", "docs"),
     ],
     hiddenimports=["finesse.gui.images", *load_all_plugins()],
     hookspath=[],
