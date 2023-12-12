@@ -88,12 +88,12 @@ class _SerialReader(QThread):
         """
         raw = self.serial.read_until(b"\r")
 
-        logging.debug(f"(ST10) <<< {repr(raw)}")
+        logging.debug(f"(ST10) <<< {raw!r}")
 
         try:
             return raw[:-1].decode("ascii")
         except UnicodeDecodeError:
-            raise ST10ControllerError(f"Invalid message received: {repr(raw)}")
+            raise ST10ControllerError(f"Invalid message received: {raw!r}")
 
     def _read_error(self, error: BaseException) -> None:
         if self.stopping:
@@ -384,7 +384,7 @@ class ST10Controller(SerialDevice, StepperMotorBase, description="ST10 controlle
             UnicodeEncodeError: Malformed message
         """
         data = f"{message}\r".encode("ascii")
-        logging.debug(f"(ST10) >>> {repr(data)}")
+        logging.debug(f"(ST10) >>> {data!r}")
         self.serial.write(data)
 
     def _write_check(self, message: str) -> None:

@@ -77,7 +77,7 @@ class Script:
             with open(file_path) as f:
                 return cls(file_path, **parse_script(f))
         except OSError as e:
-            show_error_message(parent, f"Error: Could not read {file_path}: {str(e)}")
+            show_error_message(parent, f"Error: Could not read {file_path}: {e!s}")
         except ParseError:
             show_error_message(parent, f"Error: {file_path} is in an invalid format")
         return None
