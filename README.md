@@ -57,3 +57,11 @@ To get started:
    ```bash
    pytest
    ```
+
+1. Build the user guide:
+
+   1. Install [pandoc](https://pandoc.org/installing.html)
+
+   1. ```bash
+      python docs/gen_user_guide.py
+      ```
