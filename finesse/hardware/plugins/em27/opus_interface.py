@@ -6,14 +6,14 @@ The OPUS program must be running on the computer at OPUS_IP for the commands to 
 Note that this is a separate machine from the EM27!
 """
 import logging
-from functools import partial
 
 from bs4 import BeautifulSoup
 from PySide6.QtCore import Slot
-from PySide6.QtNetwork import QNetworkAccessManager, QNetworkReply, QNetworkRequest
+from PySide6.QtNetwork import QNetworkReply
 
 from finesse.config import OPUS_IP
 from finesse.em27_info import EM27Status
+from finesse.hardware.http_requester import HTTPRequester
 from finesse.hardware.plugins.em27.opus_interface_base import (
     OPUSError,
     OPUSInterfaceBase,
@@ -55,36 +55,26 @@ def parse_response(response: str) -> tuple[EM27Status, str]:
     return status, text
 
 
-class OPUSInterface(OPUSInterfaceBase):
+class OPUSInterface(OPUSInterfaceBase, description="OPUS spectrometer"):
     """Interface for communicating with the OPUS program.
 
     HTTP requests are handled on a background thread.
     """
 
-    def __init__(self, timeout: float = 3.0) -> None:
-        """Create a new OPUSInterface.
-
-        Args:
-            timeout: Amount of time before request times out (seconds)
-        """
+    def __init__(self) -> None:
+        """Create a new OPUSInterface."""
         super().__init__()
-
-        self._manager = QNetworkAccessManager()
-        self._timeout = timeout
+        self._requester = HTTPRequester()
 
     @Slot()
-    def _on_reply_received(self, reply: QNetworkReply, command: str) -> None:
+    def _on_reply_received(self, reply: QNetworkReply) -> tuple[EM27Status, str]:
         """Handle received HTTP reply."""
-        try:
-            if reply.error() != QNetworkReply.NetworkError.NoError:
-                raise OPUSError(f"Network error: {reply.errorString()}")
+        if reply.error() != QNetworkReply.NetworkError.NoError:
+            raise OPUSError(f"Network error: {reply.errorString()}")
 
-            response = reply.readAll().data().decode()
-            status, text = parse_response(response)
-        except Exception as e:
-            self.error_occurred(e)
-        else:
-            self.send_response(command, status, text)
+        response = reply.readAll().data().decode()
+        status, text = parse_response(response)
+        return status, text
 
     def request_command(self, command: str) -> None:
         """Request that OPUS run the specified command.
@@ -102,7 +92,9 @@ class OPUSInterface(OPUSInterfaceBase):
         )
 
         # Make HTTP request in background
-        request = QNetworkRequest(f"http://{OPUS_IP}/opusrs/{filename}")
-        request.setTransferTimeout(round(1000 * self._timeout))
-        reply = self._manager.get(request)
-        reply.finished.connect(partial(self._on_reply_received, reply, command))
+        self._requester.make_request(
+            f"http://{OPUS_IP}/opusrs/{filename}",
+            self.pubsub_broadcast(
+                self._on_reply_received, f"response.{command}", "status", "text"
+            ),
+        )

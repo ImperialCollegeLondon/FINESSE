@@ -21,42 +21,26 @@ def opus(qtbot) -> OPUSInterface:
     return OPUSInterface()
 
 
-@patch("finesse.hardware.plugins.em27.opus_interface.QNetworkRequest")
-def test_request_status(network_request_mock: Mock, opus: OPUSInterface, qtbot) -> None:
+def test_request_status(opus: OPUSInterface, qtbot) -> None:
     """Test OPUSInterface's request_status() method."""
-    with patch.object(opus, "_manager"):
+    with patch.object(opus, "_requester") as requester_mock:
         opus.request_command("status")
-        network_request_mock.assert_called_once_with(
-            f"http://{OPUS_IP}/opusrs/stat.htm"
+        assert requester_mock.make_request.call_count == 1
+        assert (
+            requester_mock.make_request.call_args[0][0]
+            == f"http://{OPUS_IP}/opusrs/stat.htm"
         )
 
 
-@patch("finesse.hardware.plugins.em27.opus_interface.QNetworkRequest")
-def test_request_command(
-    network_request_mock: Mock, opus: OPUSInterface, qtbot
-) -> None:
+def test_request_command(opus: OPUSInterface, qtbot) -> None:
     """Test OPUSInterface's request_command() method."""
-    request = MagicMock()
-    network_request_mock.return_value = request
-    reply = MagicMock()
-
-    with patch.object(opus, "_manager") as manager_mock:
-        with patch.object(opus, "_on_reply_received") as reply_received_mock:
-            manager_mock.get.return_value = reply
-            opus.request_command("hello")
-            network_request_mock.assert_called_once_with(
-                f"http://{OPUS_IP}/opusrs/cmd.htm?opusrshello"
-            )
-            request.setTransferTimeout.assert_called_once_with(
-                round(1000 * opus._timeout)
-            )
-
-            # Check that the reply will be handled by _on_reply_received()
-            connect_mock = reply.finished.connect
-            connect_mock.assert_called_once()
-            handler = connect_mock.call_args_list[0].args[0]
-            handler()
-            reply_received_mock.assert_called_once()
+    with patch.object(opus, "_requester") as requester_mock:
+        opus.request_command("hello")
+        assert requester_mock.make_request.call_count == 1
+        assert (
+            requester_mock.make_request.call_args[0][0]
+            == f"http://{OPUS_IP}/opusrs/cmd.htm?opusrshello"
+        )
 
 
 def _format_td(name: str, value: Any) -> str:
@@ -145,7 +129,7 @@ def test_parse_response_bad_id(warning_mock: Mock) -> None:
 
 @patch("finesse.hardware.plugins.em27.opus_interface.parse_response")
 def test_on_reply_received_no_error(
-    parse_response_mock: Mock, opus: OPUSInterface, sendmsg_mock: Mock, qtbot
+    parse_response_mock: Mock, opus: OPUSInterface, qtbot
 ) -> None:
     """Test the _on_reply_received() method works when no error occurs."""
     reply = MagicMock()
@@ -155,10 +139,7 @@ def test_on_reply_received_no_error(
     parse_response_mock.return_value = ("status", "text")
 
     # Check the correct pubsub message is sent
-    opus._on_reply_received(reply, "hello")
-    sendmsg_mock.assert_called_once_with(
-        "opus.response.hello", status="status", text="text"
-    )
+    assert opus._on_reply_received(reply) == ("status", "text")
 
 
 @patch("finesse.hardware.plugins.em27.opus_interface.parse_response")
@@ -167,12 +148,11 @@ def test_on_reply_received_network_error(
 ) -> None:
     """Test the _on_reply_received() method handles network errors."""
     reply = MagicMock()
-    reply.error = QNetworkReply.NetworkError.HostNotFoundError
-    reply.errorString("Something went wrong")
+    reply.error.return_value = QNetworkReply.NetworkError.HostNotFoundError
+    reply.errorString.return_value = "Something went wrong"
 
-    with patch.object(opus, "error_occurred") as error_occurred_mock:
-        opus._on_reply_received(reply, "hello")
-        error_occurred_mock.assert_called_once()
+    with pytest.raises(OPUSError):
+        opus._on_reply_received(reply)
 
 
 @patch("finesse.hardware.plugins.em27.opus_interface.parse_response")
@@ -184,11 +164,7 @@ def test_on_reply_received_exception(
     reply.error.return_value = QNetworkReply.NetworkError.NoError
 
     # Make parse_response() raise an exception
-    error = Exception()
-    parse_response_mock.side_effect = error
+    parse_response_mock.side_effect = RuntimeError
 
-    with patch.object(opus, "error_occurred") as error_occurred_mock:
-        opus._on_reply_received(reply, "hello")
-
-        # Check the error was caught
-        error_occurred_mock.assert_called_once_with(error)
+    with pytest.raises(RuntimeError):
+        opus._on_reply_received(reply)

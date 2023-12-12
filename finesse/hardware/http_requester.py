@@ -20,13 +20,12 @@ class HTTPRequester:
         self._manager = QNetworkAccessManager()
 
     def make_request(self, url: str, callback: Callable[[QNetworkReply], Any]) -> None:
-        """Make a new HTTP request.
+        """Make a new HTTP request in the background.
 
         Args:
             url: The URL to connect to
             callback: Function to be invoked when the request finishes
         """
-        # Make HTTP request in background
         request = QNetworkRequest(url)
         request.setTransferTimeout(round(1000 * self._timeout))
         reply = self._manager.get(request)
