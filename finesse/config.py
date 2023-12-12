@@ -68,8 +68,8 @@ TEMPERATURE_CONTROLLER_TOPIC = "temperature_controller"
 OPUS_IP = "10.10.0.2"
 """The IP address of the machine running the OPUS software."""
 
-OPUS_TOPIC = "opus"
-"""The topic name to use for OPUS-related messages."""
+SPECTROMETER_TOPIC = "spectrometer"
+"""The topic name to use for spectrometer-related messages."""
 
 TEMPERATURE_CONTROLLER_POLL_INTERVAL = 2
 """Number of seconds between temperature controller device reads."""

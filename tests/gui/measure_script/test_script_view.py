@@ -8,10 +8,10 @@ import pytest
 from PySide6.QtWidgets import QPushButton, QWidget
 from pytestqt.qtbot import QtBot
 
-from finesse.config import DEFAULT_SCRIPT_PATH, OPUS_TOPIC
-from finesse.em27_info import EM27Status
+from finesse.config import DEFAULT_SCRIPT_PATH, SPECTROMETER_TOPIC
 from finesse.gui.measure_script.script_run_dialog import ScriptRunDialog
 from finesse.gui.measure_script.script_view import ScriptControl
+from finesse.spectrometer_status import SpectrometerStatus
 
 
 @pytest.fixture
@@ -48,9 +48,9 @@ def test_init(settings_mock: Mock, subscribe_mock: Mock, qtbot: QtBot) -> None:
         script_control._hide_run_dialog, "measure_script.end"
     )
     subscribe_mock.assert_any_call(
-        script_control._on_opus_message, f"device.{OPUS_TOPIC}.response"
+        script_control._on_spectrometer_message, f"device.{SPECTROMETER_TOPIC}.response"
     )
-    assert not script_control._opus_connected
+    assert not script_control._spectrometer_connected
 
 
 @patch("finesse.gui.measure_script.script_view.settings")
@@ -271,45 +271,47 @@ def test_hide_run_dialog_no_abort(
 
 @pytest.mark.parametrize(
     "status,already_connected",
-    product((EM27Status(i) for i in range(2, 6)), (True, False)),
+    product((SpectrometerStatus(i) for i in range(2, 6)), (True, False)),
 )
 def test_on_opus_message_connect(
-    status: EM27Status,
+    status: SpectrometerStatus,
     already_connected: bool,
     script_control: ScriptControl,
     qtbot: QtBot,
 ) -> None:
     """Test the _on_opus_message() method when connecting."""
-    script_control._opus_connected = already_connected
+    script_control._spectrometer_connected = already_connected
 
     with patch.object(script_control, "_enable_counter") as counter_mock:
-        script_control._on_opus_message(status, "")
+        script_control._on_spectrometer_message(status, "")
         if already_connected:
             counter_mock.increment.assert_not_called()
         else:
             counter_mock.increment.assert_called_once_with()
 
-        assert script_control._opus_connected
+        assert script_control._spectrometer_connected
 
 
 @pytest.mark.parametrize(
     "status,already_connected",
-    product((EM27Status.CONNECTING, EM27Status.UNDEFINED), (True, False)),
+    product(
+        (SpectrometerStatus.CONNECTING, SpectrometerStatus.UNDEFINED), (True, False)
+    ),
 )
 def test_on_opus_message_disconnect(
-    status: EM27Status,
+    status: SpectrometerStatus,
     already_connected: bool,
     script_control: ScriptControl,
     qtbot: QtBot,
 ) -> None:
     """Test the _on_opus_message() method when disconnecting."""
-    script_control._opus_connected = already_connected
+    script_control._spectrometer_connected = already_connected
 
     with patch.object(script_control, "_enable_counter") as counter_mock:
-        script_control._on_opus_message(status, "")
+        script_control._on_spectrometer_message(status, "")
         if not already_connected:
             counter_mock.decrement.assert_not_called()
         else:
             counter_mock.decrement.assert_called_once_with()
 
-        assert not script_control._opus_connected
+        assert not script_control._spectrometer_connected

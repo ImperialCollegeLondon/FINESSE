@@ -5,14 +5,14 @@ from typing import cast
 from pubsub import pub
 from PySide6.QtWidgets import QFileDialog, QGridLayout, QGroupBox, QPushButton
 
-from finesse.config import DEFAULT_SCRIPT_PATH, OPUS_TOPIC, STEPPER_MOTOR_TOPIC
-from finesse.em27_info import EM27Status
+from finesse.config import DEFAULT_SCRIPT_PATH, SPECTROMETER_TOPIC, STEPPER_MOTOR_TOPIC
 from finesse.event_counter import EventCounter
 from finesse.gui.measure_script.script import Script, ScriptRunner
 from finesse.gui.measure_script.script_edit_dialog import ScriptEditDialog
 from finesse.gui.measure_script.script_run_dialog import ScriptRunDialog
 from finesse.gui.path_widget import OpenFileWidget
 from finesse.settings import settings
+from finesse.spectrometer_status import SpectrometerStatus
 
 
 def _get_previous_script_path() -> Path | None:
@@ -60,9 +60,11 @@ class ScriptControl(QGroupBox):
         layout.addWidget(run_btn, 1, 1)
         self.setLayout(layout)
 
-        # Monitor OPUS messages to enable/disable run button on connect/disconnect
-        self._opus_connected = False
-        pub.subscribe(self._on_opus_message, f"device.{OPUS_TOPIC}.response")
+        # Monitor spectrometer to enable/disable run button on connect/disconnect
+        self._spectrometer_connected = False
+        pub.subscribe(
+            self._on_spectrometer_message, f"device.{SPECTROMETER_TOPIC}.response"
+        )
 
         # Show/hide self.run_dialog on measure script begin/end
         pub.subscribe(self._show_run_dialog, "measure_script.begin")
@@ -127,9 +129,9 @@ class ScriptControl(QGroupBox):
         self.run_dialog.hide()
         del self.run_dialog
 
-    def _on_opus_message(self, status: EM27Status, text: str) -> None:
-        """Increase/decrease the enable counter when the EM27 connects/disconnects."""
-        if status.is_connected == self._opus_connected:
+    def _on_spectrometer_message(self, status: SpectrometerStatus, text: str) -> None:
+        """Change the enable counter when the spectrometer connects/disconnects."""
+        if status.is_connected == self._spectrometer_connected:
             # The connection status hasn't changed
             return
 
@@ -138,4 +140,4 @@ class ScriptControl(QGroupBox):
         else:
             self._enable_counter.decrement()
 
-        self._opus_connected = status.is_connected
+        self._spectrometer_connected = status.is_connected
