@@ -12,20 +12,20 @@ from PySide6.QtCore import Slot
 from PySide6.QtNetwork import QNetworkReply
 
 from finesse.config import OPUS_IP
-from finesse.em27_info import EM27Status
 from finesse.hardware.http_requester import HTTPRequester
-from finesse.hardware.plugins.em27.opus_interface_base import (
+from finesse.hardware.plugins.spectrometer.opus_interface_base import (
     OPUSError,
     OPUSInterfaceBase,
 )
+from finesse.spectrometer_status import SpectrometerStatus
 
 STATUS_FILENAME = "stat.htm"
 COMMAND_FILENAME = "cmd.htm"
 
 
-def parse_response(response: str) -> tuple[EM27Status, str]:
+def parse_response(response: str) -> tuple[SpectrometerStatus, str]:
     """Parse EM27's HTML response."""
-    status: EM27Status | None = None
+    status: SpectrometerStatus | None = None
     text: str | None = None
     errcode: int | None = None
     errtext: str = ""
@@ -37,7 +37,7 @@ def parse_response(response: str) -> tuple[EM27Status, str]:
         id = td.attrs["id"]
         data = td.contents[0] if td.contents else ""
         if id == "STATUS":
-            status = EM27Status(int(data))
+            status = SpectrometerStatus(int(data))
         elif id == "TEXT":
             text = data
         elif id == "ERRCODE":
@@ -67,7 +67,9 @@ class OPUSInterface(OPUSInterfaceBase, description="OPUS spectrometer"):
         self._requester = HTTPRequester()
 
     @Slot()
-    def _on_reply_received(self, reply: QNetworkReply) -> tuple[EM27Status, str]:
+    def _on_reply_received(
+        self, reply: QNetworkReply
+    ) -> tuple[SpectrometerStatus, str]:
         """Handle received HTTP reply."""
         if reply.error() != QNetworkReply.NetworkError.NoError:
             raise OPUSError(f"Network error: {reply.errorString()}")

@@ -8,11 +8,11 @@ from PySide6.QtCore import QTimer
 from statemachine import State, StateMachine
 from statemachine.exceptions import TransitionNotAllowed
 
-from finesse.em27_info import EM27Status
-from finesse.hardware.plugins.em27.opus_interface_base import (
+from finesse.hardware.plugins.spectrometer.opus_interface_base import (
     OPUSError,
     OPUSInterfaceBase,
 )
+from finesse.spectrometer_status import SpectrometerStatus
 
 
 class OPUSErrorInfo(Enum):
@@ -43,12 +43,12 @@ class OPUSErrorInfo(Enum):
 class OPUSStateMachine(StateMachine):
     """An FSM for keeping track of the internal state of the mock device."""
 
-    idle = State("Idle", EM27Status.IDLE, initial=True)
-    connecting = State("Connecting", EM27Status.CONNECTING)
-    connected = State("Connected", EM27Status.CONNECTED)
-    measuring = State("Measuring", EM27Status.MEASURING)
-    finishing = State("Finishing current measurement", EM27Status.FINISHING)
-    cancelling = State("Cancelling", EM27Status.CANCELLING)
+    idle = State("Idle", SpectrometerStatus.IDLE, initial=True)
+    connecting = State("Connecting", SpectrometerStatus.CONNECTING)
+    connected = State("Connected", SpectrometerStatus.CONNECTED)
+    measuring = State("Measuring", SpectrometerStatus.MEASURING)
+    finishing = State("Finishing current measurement", SpectrometerStatus.FINISHING)
+    cancelling = State("Cancelling", SpectrometerStatus.CANCELLING)
     # The manual also describes an "Undefined" state, which we aren't using
 
     _start_connecting = idle.to(connecting)

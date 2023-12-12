@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 from statemachine import State
 
-from finesse.hardware.plugins.em27.dummy_opus_interface import (
+from finesse.hardware.plugins.spectrometer.dummy_opus_interface import (
     DummyOPUSInterface,
     OPUSError,
     OPUSErrorInfo,
@@ -15,7 +15,7 @@ from finesse.hardware.plugins.em27.dummy_opus_interface import (
 
 
 @pytest.fixture
-@patch("finesse.hardware.plugins.em27.dummy_opus_interface.QTimer")
+@patch("finesse.hardware.plugins.spectrometer.dummy_opus_interface.QTimer")
 def dev(timer_mock: Mock) -> DummyOPUSInterface:
     """A fixture for DummyOPUSInterface."""
     timer_mock.return_value = MagicMock()

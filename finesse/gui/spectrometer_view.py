@@ -1,4 +1,4 @@
-"""Panel and widgets related to the control of the OPUS interferometer."""
+"""Panel and widgets related to the control of spectrometers."""
 import logging
 import weakref
 from collections.abc import Sequence
@@ -15,24 +15,24 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
 )
 
-from finesse.config import OPUS_TOPIC
+from finesse.config import SPECTROMETER_TOPIC
 from finesse.device_info import DeviceInstanceRef
-from finesse.em27_info import EM27Status
 from finesse.gui.device_panel import DevicePanel
+from finesse.spectrometer_status import SpectrometerStatus
 
 
-class OPUSControl(DevicePanel):
-    """Class that monitors and controls the OPUS interferometer."""
+class SpectrometerControl(DevicePanel):
+    """Class to monitor and control spectrometers."""
 
     COMMANDS = ("status", "cancel", "stop", "start", "connect")
-    """The default commands shown for interacting with OPUS."""
+    """The default commands shown."""
 
     def __init__(self, commands: Sequence[str] = COMMANDS) -> None:
-        """Create the widgets to monitor and control the OPUS interferometer."""
-        super().__init__(OPUS_TOPIC, "OPUS client view")
+        """Create the widgets to monitor and control the spectrometer."""
+        super().__init__(SPECTROMETER_TOPIC, "Spectrometer")
 
         self.commands = commands
-        self.logger = logging.getLogger("OPUS")
+        self.logger = logging.getLogger("spectrometer")
 
         layout = self._create_controls()
         self.setLayout(layout)
@@ -42,9 +42,9 @@ class OPUSControl(DevicePanel):
             QSizePolicy.Policy.MinimumExpanding,
         )
 
-        pub.subscribe(self._log_request, f"device.{OPUS_TOPIC}.request")
-        pub.subscribe(self._log_response, f"device.{OPUS_TOPIC}.response")
-        pub.subscribe(self._log_error, f"device.error.{OPUS_TOPIC}")
+        pub.subscribe(self._log_request, f"device.{SPECTROMETER_TOPIC}.request")
+        pub.subscribe(self._log_response, f"device.{SPECTROMETER_TOPIC}.response")
+        pub.subscribe(self._log_error, f"device.error.{SPECTROMETER_TOPIC}")
 
     def _create_controls(self) -> QHBoxLayout:
         """Creates the controls for communicating with the interferometer.
@@ -77,14 +77,14 @@ class OPUSControl(DevicePanel):
         return btn_layout
 
     def _create_log_area(self) -> QGroupBox:
-        """Creates the log area for OPUS-related communication.
+        """Creates the log area for spectrometer-related communication.
 
         Returns:
             Widget containing the log area
         """
         log_box = QGroupBox("Error log")
         log_area = QTextBrowser()
-        OPUSLogHandler.set_handler(self.logger, log_area)
+        LogHandler.set_handler(self.logger, log_area)
 
         log_layout = QVBoxLayout()
         log_layout.addWidget(log_area)
@@ -98,7 +98,7 @@ class OPUSControl(DevicePanel):
 
     def _log_response(
         self,
-        status: EM27Status,
+        status: SpectrometerStatus,
         text: str,
     ) -> None:
         self.logger.info(f"Response ({status.value}): {text}")
@@ -110,17 +110,13 @@ class OPUSControl(DevicePanel):
         """Execute the given command by sending a message to the appropriate topic.
 
         Args:
-            command: OPUS command to be executed
+            command: Command to be executed
         """
-        pub.sendMessage(f"device.{OPUS_TOPIC}.request", command=command)
+        pub.sendMessage(f"device.{SPECTROMETER_TOPIC}.request", command=command)
 
 
-class OPUSLogHandler(logging.Handler):
-    """Specific logger for the errors related to OPUS.
-
-    Only log messages using the OPUS logger will be recorded here. Typically, they will
-    be error messages, but it can be any information worth logging.
-    """
+class LogHandler(logging.Handler):
+    """Specific logger for spectrometers."""
 
     @classmethod
     def set_handler(cls, logger: logging.Logger, log_area: QTextBrowser):
@@ -163,17 +159,3 @@ class OPUSLogHandler(logging.Handler):
         cursor = log_area.textCursor()
         cursor.movePosition(QTextCursor.End)
         log_area.setTextCursor(cursor)
-
-
-if __name__ == "__main__":
-    import sys
-
-    from PySide6.QtWidgets import QApplication, QMainWindow
-
-    app = QApplication(sys.argv)
-
-    window = QMainWindow()
-    opus = OPUSControl()
-    window.setCentralWidget(opus)
-    window.show()
-    app.exec()
