@@ -48,7 +48,8 @@ def test_init(settings_mock: Mock, subscribe_mock: Mock, qtbot: QtBot) -> None:
         script_control._hide_run_dialog, "measure_script.end"
     )
     subscribe_mock.assert_any_call(
-        script_control._on_spectrometer_message, f"device.{SPECTROMETER_TOPIC}.response"
+        script_control._on_spectrometer_status,
+        f"device.{SPECTROMETER_TOPIC}.status",
     )
     assert not script_control._spectrometer_connected
 
@@ -283,7 +284,7 @@ def test_on_opus_message_connect(
     script_control._spectrometer_connected = already_connected
 
     with patch.object(script_control, "_enable_counter") as counter_mock:
-        script_control._on_spectrometer_message(status, "")
+        script_control._on_spectrometer_status(status)
         if already_connected:
             counter_mock.increment.assert_not_called()
         else:
@@ -308,7 +309,7 @@ def test_on_opus_message_disconnect(
     script_control._spectrometer_connected = already_connected
 
     with patch.object(script_control, "_enable_counter") as counter_mock:
-        script_control._on_spectrometer_message(status, "")
+        script_control._on_spectrometer_status(status)
         if not already_connected:
             counter_mock.decrement.assert_not_called()
         else:
