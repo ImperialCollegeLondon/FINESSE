@@ -93,7 +93,7 @@ def test_show_error_message(
     msgbox_mock.assert_called_once_with(
         msgbox_mock.Icon.Critical,
         "Error writing to file",
-        f"An error occurred while writing the data file: {str(error)}",
+        f"An error occurred while writing the data file: {error!s}",
         msgbox_mock.StandardButton.Ok,
         data_file,
     )

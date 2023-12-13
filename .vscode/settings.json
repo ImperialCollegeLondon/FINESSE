@@ -1,8 +1,17 @@
 {
     "[python]": {
-        "editor.formatOnSave": true,
-        "editor.defaultFormatter": "ms-python.black-formatter"
+        "editor.defaultFormatter": "charliermarsh.ruff"
     },
+    "[json]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[jsonc]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[yaml]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "editor.formatOnSave": true,
     "editor.rulers": [88],
 
     // --no-cov needed so that breakpoints work: https://github.com/microsoft/vscode-python/issues/693

@@ -139,7 +139,7 @@ class TC4820(SerialDevice, TemperatureControllerBase, description="TC4820"):
             try:
                 return self.read_int()
             except MalformedMessageError as e:
-                logging.warn(f"Malformed message: {str(e)}; retrying")
+                logging.warn(f"Malformed message: {e!s}; retrying")
 
         raise SerialException(
             f"Maximum number of attempts (={self.max_attempts}) exceeded"

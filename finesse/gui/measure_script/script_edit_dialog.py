@@ -106,7 +106,7 @@ class ScriptEditDialog(QDialog):
                 yaml.safe_dump(script, f)
         except Exception as e:
             show_error_message(
-                self, f"Error occurred while saving file {file_path}:\n{str(e)}"
+                self, f"Error occurred while saving file {file_path}:\n{e!s}"
             )
             return False
 
