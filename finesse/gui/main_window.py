@@ -76,10 +76,10 @@ class MainWindow(QMainWindow):
         bb_monitor: QGroupBox = TemperaturePlot()
         dp9800: QGroupBox = TemperatureMonitorControl()
         tc4820_hot: QGroupBox = TemperatureControllerControl(
-            "hot", TEMPERATURE_MONITOR_HOT_BB_IDX
+            "hot", TEMPERATURE_MONITOR_HOT_BB_IDX, allow_update=True
         )
         tc4820_cold: QGroupBox = TemperatureControllerControl(
-            "cold", TEMPERATURE_MONITOR_COLD_BB_IDX
+            "cold", TEMPERATURE_MONITOR_COLD_BB_IDX, allow_update=False
         )
 
         # Setup for data file widgets

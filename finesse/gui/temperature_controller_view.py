@@ -28,12 +28,13 @@ from finesse.gui.led_icon import LEDIcon
 class TemperatureControllerControl(DevicePanel):
     """A widget to interact with temperature controllers."""
 
-    def __init__(self, name: str, temperature_idx: int) -> None:
+    def __init__(self, name: str, temperature_idx: int, allow_update: bool) -> None:
         """Create a new TemperatureControllerControl.
 
         Args:
             name: Name of the blackbody the temperature controller is controlling
             temperature_idx: Index of the blackbody on the temperature monitor
+            allow_update: Whether to allow modifying the temperature
         """
         super().__init__(
             f"{TEMPERATURE_CONTROLLER_TOPIC}.{name}_bb",
@@ -43,7 +44,7 @@ class TemperatureControllerControl(DevicePanel):
         self._poll_interval = 1000 * TEMPERATURE_CONTROLLER_POLL_INTERVAL
         self._temperature_idx = temperature_idx
 
-        layout = self._create_controls()
+        layout = self._create_controls(allow_update)
         self.setLayout(layout)
 
         self.setSizePolicy(
@@ -63,7 +64,7 @@ class TemperatureControllerControl(DevicePanel):
             self._update_pt100, f"device.{TEMPERATURE_MONITOR_TOPIC}.data.response"
         )
 
-    def _create_controls(self) -> QGridLayout:
+    def _create_controls(self, allow_update: bool) -> QGridLayout:
         """Creates the overall layout for the panel.
 
         Returns:
@@ -128,6 +129,7 @@ class TemperatureControllerControl(DevicePanel):
 
         self._update_pbtn = QPushButton("UPDATE")
         self._update_pbtn.setCheckable(True)
+        self._update_pbtn.setEnabled(allow_update)
         self._update_pbtn.clicked.connect(self._on_update_clicked)
         layout.addWidget(self._update_pbtn, 2, 3)
 
@@ -152,8 +154,6 @@ class TemperatureControllerControl(DevicePanel):
         # DevicePanel.set_controls_enabled() will enable these, but we want them to
         # begin disabled
         self._set_sbox.setEnabled(False)
-        if self._name.count("cold"):
-            self._update_pbtn.setEnabled(False)
         self._poll_device()
         self._poll_light.timer.start(self._poll_interval)
 
