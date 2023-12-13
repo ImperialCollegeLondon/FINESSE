@@ -1,4 +1,4 @@
-name: "FINESSE (dummy devices)"
+name: "Dummy devices"
 devices:
   stepper_motor:
     class_name: stepper_motor.dummy.DummyStepperMotor
