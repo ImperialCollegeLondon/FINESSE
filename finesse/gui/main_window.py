@@ -24,7 +24,9 @@ from finesse.gui.hardware_set.hardware_sets_view import HardwareSetsControl
 from finesse.gui.measure_script.script_view import ScriptControl
 from finesse.gui.spectrometer_view import SpectrometerControl
 from finesse.gui.stepper_motor_view import StepperMotorControl
-from finesse.gui.temp_control import DP9800Controls, TC4820Controls, TemperaturePlot
+from finesse.gui.temperature_controller_view import TemperatureControllerControl
+from finesse.gui.temperature_monitor_view import TemperatureMonitorControl
+from finesse.gui.temperature_plot import TemperaturePlot
 from finesse.gui.uncaught_exceptions import set_uncaught_exception_handler
 
 
@@ -72,9 +74,13 @@ class MainWindow(QMainWindow):
         layout_right = QGridLayout()
 
         bb_monitor: QGroupBox = TemperaturePlot()
-        dp9800: QGroupBox = DP9800Controls()
-        tc4820_hot: QGroupBox = TC4820Controls("hot", TEMPERATURE_MONITOR_HOT_BB_IDX)
-        tc4820_cold: QGroupBox = TC4820Controls("cold", TEMPERATURE_MONITOR_COLD_BB_IDX)
+        dp9800: QGroupBox = TemperatureMonitorControl()
+        tc4820_hot: QGroupBox = TemperatureControllerControl(
+            "hot", TEMPERATURE_MONITOR_HOT_BB_IDX
+        )
+        tc4820_cold: QGroupBox = TemperatureControllerControl(
+            "cold", TEMPERATURE_MONITOR_COLD_BB_IDX
+        )
 
         # Setup for data file widgets
         data_file = DataFileControl()
