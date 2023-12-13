@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import Mapping, Sequence
-from typing import AbstractSet, Any, cast
+from collections.abc import Mapping, Sequence, Set
+from typing import Any, cast
 
 from pubsub import pub
 from PySide6.QtWidgets import (
@@ -319,7 +319,7 @@ class DeviceTypeControl(QGroupBox):
 class DeviceControl(QGroupBox):
     """Allows for viewing and connecting to devices."""
 
-    def __init__(self, connected_devices: AbstractSet[OpenDeviceArgs]) -> None:
+    def __init__(self, connected_devices: Set[OpenDeviceArgs]) -> None:
         """Create a new DeviceControl."""
         super().__init__("Device control")
         self.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)

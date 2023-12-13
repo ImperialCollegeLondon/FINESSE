@@ -12,7 +12,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Callable, Mapping, Sequence
 from copy import deepcopy
 from inspect import isabstract, signature
-from typing import Any, get_type_hints
+from typing import Any, ClassVar, get_type_hints
 
 from decorator import decorate
 from pubsub import pub
@@ -65,11 +65,11 @@ def get_device_types() -> dict[DeviceBaseTypeInfo, list[DeviceTypeInfo]]:
 class AbstractDevice(ABC):
     """An abstract base class for devices."""
 
-    _device_base_type_info: DeviceBaseTypeInfo
+    _device_base_type_info: ClassVar[DeviceBaseTypeInfo]
     """Information about the device's base type."""
-    _device_description: str
+    _device_description: ClassVar[str]
     """A human-readable name."""
-    _device_parameters: dict[str, DeviceParameter] = {}
+    _device_parameters: ClassVar[dict[str, DeviceParameter]] = {}
     """Possible parameters that this device type accepts.
 
     The key represents the parameter name and the value is a list of possible values.

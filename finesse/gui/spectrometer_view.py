@@ -104,7 +104,7 @@ class SpectrometerControl(DevicePanel):
         self.logger.info(f"Response ({status.value}): {text}")
 
     def _log_error(self, instance: DeviceInstanceRef, error: BaseException) -> None:
-        self.logger.error(f"Error during request: {str(error)}")
+        self.logger.error(f"Error during request: {error!s}")
 
     def on_command_button_clicked(self, command: str) -> None:
         """Execute the given command by sending a message to the appropriate topic.

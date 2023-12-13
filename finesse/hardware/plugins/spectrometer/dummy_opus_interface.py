@@ -3,6 +3,7 @@
 import logging
 from collections.abc import Callable
 from enum import Enum
+from typing import ClassVar
 
 from PySide6.QtCore import QTimer
 from statemachine import State, StateMachine
@@ -120,7 +121,7 @@ class DummyOPUSInterface(
 ):
     """A mock version of the OPUS API for testing purposes."""
 
-    _COMMAND_ERRORS = {
+    _COMMAND_ERRORS: ClassVar = {
         "cancel": OPUSErrorInfo.NOT_RUNNING,
         "stop": OPUSErrorInfo.NOT_RUNNING_OR_FINISHING,
         "start": OPUSErrorInfo.NOT_CONNECTED,

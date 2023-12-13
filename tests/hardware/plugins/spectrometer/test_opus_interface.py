@@ -46,7 +46,7 @@ def test_request_command(opus: OPUSInterface, qtbot) -> None:
 def _format_td(name: str, value: Any) -> str:
     if value is None:
         return ""
-    return f'<td id="{name}">{str(value)}</td>'
+    return f'<td id="{name}">{value!s}</td>'
 
 
 def _get_opus_html(

@@ -2,7 +2,6 @@
 import logging
 import traceback
 from collections.abc import Callable
-from typing import Any
 
 from decorator import decorator
 from pubsub import pub
@@ -13,13 +12,13 @@ def _error_occurred(error_topic: str, error: BaseException) -> None:
     traceback_str = "".join(traceback.format_tb(error.__traceback__))
 
     # Write details including stack trace to program log
-    logging.error(f"Caught error ({error_topic}): {str(error)}\n\n{traceback_str}")
+    logging.error(f"Caught error ({error_topic}): {error!s}\n\n{traceback_str}")
 
     # Notify listeners
     pub.sendMessage(error_topic, error=error)
 
 
-def pubsub_errors(error_topic: str, **extra_kwargs: Any) -> Callable:
+def pubsub_errors(error_topic: str) -> Callable:
     """Catch exceptions and broadcast via pubsub.
 
     Args:
@@ -30,6 +29,6 @@ def pubsub_errors(error_topic: str, **extra_kwargs: Any) -> Callable:
         try:
             return func(*args, **kwargs)
         except Exception as error:
-            _error_occurred(error_topic, error, **extra_kwargs)
+            _error_occurred(error_topic, error)
 
     return decorator(wrapped)
