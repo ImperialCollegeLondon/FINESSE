@@ -29,15 +29,10 @@ class OPUSInterfaceBase(Device, name=SPECTROMETER_TOPIC, description="OPUS devic
     def request_command(self, command: str) -> None:
         """Request that OPUS run the specified command.
 
-        Note that we treat "status" as a command, even though it requires a different
-        URL to access.
-
         Args:
             command: Name of command to run
         """
 
-    def send_response(
-        self, command: str, status: SpectrometerStatus, text: str
-    ) -> None:
-        """Broadcast the device's response via pubsub."""
-        self.send_message(f"response.{command}", status=status, text=text)
+    def send_status_message(self, status: SpectrometerStatus) -> None:
+        """Send a status update via pubsub."""
+        self.send_message(f"status.{status.name.lower()}", status=status)

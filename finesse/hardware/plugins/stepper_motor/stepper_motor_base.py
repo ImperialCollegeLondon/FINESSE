@@ -15,11 +15,6 @@ class StepperMotorBase(Device, name=STEPPER_MOTOR_TOPIC, description="Stepper mo
         """
         super().__init__()
 
-        # Versions of methods which catch and broadcast errors via pubsub
-        self._move_to = self.pubsub_errors(self.move_to)
-        self._stop_moving = self.pubsub_errors(self.stop_moving)
-        self._notify_on_stopped = self.pubsub_errors(self.notify_on_stopped)
-
         self.subscribe(self.move_to, "move.begin")
         self.subscribe(self.stop_moving, "stop")
         self.subscribe(self.notify_on_stopped, "notify_on_stopped")

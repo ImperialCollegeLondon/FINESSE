@@ -1,7 +1,6 @@
 """Tests for the ScriptRunner class."""
 from itertools import chain
 from pathlib import Path
-from typing import cast
 from unittest.mock import MagicMock, Mock, call, patch
 
 import pytest
@@ -9,52 +8,33 @@ from statemachine import State
 
 from finesse.config import SPECTROMETER_TOPIC, STEPPER_MOTOR_TOPIC
 from finesse.device_info import DeviceInstanceRef
-from finesse.gui.measure_script.script import (
-    Script,
-    ScriptRunner,
-    _poll_spectrometer_status,
-)
+from finesse.gui.measure_script.script import Script, ScriptRunner
 from finesse.spectrometer_status import SpectrometerStatus
 
 
-@patch("finesse.gui.measure_script.script.QTimer")
-def test_init(
-    timer_mock: Mock, subscribe_mock: MagicMock, sendmsg_mock: MagicMock
-) -> None:
+def test_init(subscribe_mock: MagicMock, sendmsg_mock: MagicMock) -> None:
     """Test ScriptRunner's constructor."""
-    timer = MagicMock()
-    timer_mock.return_value = timer
-
     script = Script(Path(), 1, ())
-    script_runner = ScriptRunner(script)
-
-    # Check the constructor was called once. Will need to be amended if we add timers.
-    timer_mock.assert_called_once()
-
-    # Check timer is properly set up
-    timer.setSingleShot.assert_called_once_with(True)
-    timer.setInterval.assert_called_once_with(1000)
-    timer.timeout.connect.assert_called_once_with(_poll_spectrometer_status)
+    runner = ScriptRunner(script)
 
     # Check we're stopping the motor
-    sendmsg_mock.assert_any_call(f"device.{STEPPER_MOTOR_TOPIC}.stop")
+    sendmsg_mock.assert_called_once_with(f"device.{STEPPER_MOTOR_TOPIC}.stop")
 
     # Check we're subscribed to abort messages
-    subscribe_mock.assert_any_call(script_runner.abort, "measure_script.abort")
+    subscribe_mock.assert_has_calls(
+        (
+            call(runner.abort, "measure_script.abort"),
+            call(runner.pause, "measure_script.pause"),
+            call(runner.unpause, "measure_script.unpause"),
+        ),
+        any_order=True,
+    )
 
     # Initial state
-    assert script_runner.current_state == ScriptRunner.not_running
+    assert runner.current_state == ScriptRunner.not_running
 
     # Should start unpaused
-    assert not script_runner.paused
-
-
-def test_poll_spectrometer_status(sendmsg_mock: Mock) -> None:
-    """Test the _poll_spectrometer_status function."""
-    _poll_spectrometer_status()
-    sendmsg_mock.assert_called_once_with(
-        f"device.{SPECTROMETER_TOPIC}.request", command="status"
-    )
+    assert not runner.paused
 
 
 def test_start_moving(
@@ -70,32 +50,26 @@ def test_start_moving(
 
     # Check that we have signalled start of script and that command has been sent to
     # stepper motor
-    calls = (
-        call("measure_script.begin", script_runner=runner),
-        call("measure_script.start_moving", script_runner=runner),
-        call(
-            f"device.{STEPPER_MOTOR_TOPIC}.move.begin",
-            target=runner.script.sequence[0].angle,
-        ),
-        call(f"device.{STEPPER_MOTOR_TOPIC}.notify_on_stopped"),
+    sendmsg_mock.assert_has_calls(
+        (
+            call("measure_script.begin", script_runner=runner),
+            call("measure_script.start_moving", script_runner=runner),
+            call(
+                f"device.{STEPPER_MOTOR_TOPIC}.move.begin",
+                target=runner.script.sequence[0].angle,
+            ),
+            call(f"device.{STEPPER_MOTOR_TOPIC}.notify_on_stopped"),
+        )
     )
-    sendmsg_mock.assert_has_calls(calls)
 
     # Check subscriptions
-    subscribe_mock.assert_any_call(
-        runner.start_measuring, f"device.{STEPPER_MOTOR_TOPIC}.move.end"
-    )
-    subscribe_mock.assert_any_call(
-        runner._on_stepper_motor_error, f"device.error.{STEPPER_MOTOR_TOPIC}"
-    )
-    subscribe_mock.assert_any_call(
-        runner._on_spectrometer_error, f"device.error.{SPECTROMETER_TOPIC}"
-    )
-    subscribe_mock.assert_any_call(
-        runner._measuring_started, f"device.{SPECTROMETER_TOPIC}.response.start"
-    )
-    subscribe_mock.assert_any_call(
-        runner._status_received, f"device.{SPECTROMETER_TOPIC}.response.status"
+    subscribe_mock.assert_has_calls(
+        (
+            call(runner.finish_moving, f"device.{STEPPER_MOTOR_TOPIC}.move.end"),
+            call(runner._on_stepper_motor_error, f"device.error.{STEPPER_MOTOR_TOPIC}"),
+            call(runner._on_spectrometer_error, f"device.error.{SPECTROMETER_TOPIC}"),
+        ),
+        any_order=True,
     )
 
 
@@ -114,8 +88,9 @@ def test_finish_moving(
     script_runner.start_moving()
     for _ in range(repeats):
         assert script_runner.current_state == ScriptRunner.moving
+        script_runner.finish_moving()
+        assert script_runner.current_state == ScriptRunner.waiting_to_measure
         script_runner.start_measuring()
-        assert script_runner.current_state == ScriptRunner.measuring
 
         sendmsg_mock.reset_mock()
         script_runner.start_next_move()
@@ -123,30 +98,48 @@ def test_finish_moving(
     assert script_runner.current_state == ScriptRunner.not_running
 
     # Check we've unsubscribed from device messages
-    unsubscribe_mock.assert_any_call(
-        script_runner.start_measuring, f"device.{STEPPER_MOTOR_TOPIC}.move.end"
-    )
-    unsubscribe_mock.assert_any_call(
-        script_runner._on_stepper_motor_error, f"device.error.{STEPPER_MOTOR_TOPIC}"
-    )
-    unsubscribe_mock.assert_any_call(
-        script_runner._on_spectrometer_error, f"device.error.{SPECTROMETER_TOPIC}"
-    )
-    unsubscribe_mock.assert_any_call(
-        script_runner._measuring_started, f"device.{SPECTROMETER_TOPIC}.response.start"
-    )
-    unsubscribe_mock.assert_any_call(
-        script_runner._status_received, f"device.{SPECTROMETER_TOPIC}.response.status"
+    unsubscribe_mock.assert_has_calls(
+        (
+            call(script_runner.finish_moving, f"device.{STEPPER_MOTOR_TOPIC}.move.end"),
+            call(
+                script_runner._on_stepper_motor_error,
+                f"device.error.{STEPPER_MOTOR_TOPIC}",
+            ),
+            call(
+                script_runner._on_spectrometer_error,
+                f"device.error.{SPECTROMETER_TOPIC}",
+            ),
+        ),
+        any_order=True,
     )
 
     # Check that this message is sent on the last iteration
     sendmsg_mock.assert_called_once_with("measure_script.end")
 
 
-def test_start_measuring(runner: ScriptRunner, sendmsg_mock: MagicMock) -> None:
+def test_finish_moving_paused(
+    runner: ScriptRunner,
+    subscribe_mock: MagicMock,
+    unsubscribe_mock: MagicMock,
+    sendmsg_mock: MagicMock,
+) -> None:
+    """Test that finish_moving() waits if paused."""
+    runner.current_state = ScriptRunner.moving
+    runner.pause()
+    runner.finish_moving()
+    assert runner.current_state == ScriptRunner.waiting_to_measure
+
+
+def test_start_measuring(
+    runner: ScriptRunner,
+    subscribe_mock: MagicMock,
+    unsubscribe_mock: MagicMock,
+    sendmsg_mock: MagicMock,
+) -> None:
     """Test the start_measuring() method."""
     runner.current_state = ScriptRunner.moving
-
+    runner.finish_moving()
+    assert runner.current_state == ScriptRunner.waiting_to_measure
     runner.start_measuring()
     assert runner.current_state == ScriptRunner.measuring
 
@@ -158,37 +151,26 @@ def test_start_measuring(runner: ScriptRunner, sendmsg_mock: MagicMock) -> None:
     sendmsg_mock.assert_any_call("measure_script.start_measuring", script_runner=runner)
 
 
-def test_start_measuring_paused(runner: ScriptRunner) -> None:
-    """Test that start_measuring() waits if paused."""
-    runner.current_state = ScriptRunner.moving
-    runner.pause()
-
-    runner.start_measuring()
-    assert runner.current_state == ScriptRunner.waiting_to_measure
-
-
 def test_repeat_measuring(
-    runner_measuring: ScriptRunner, sendmsg_mock: MagicMock
+    runner_measuring: ScriptRunner,
+    subscribe_mock: MagicMock,
+    unsubscribe_mock: MagicMock,
+    sendmsg_mock: MagicMock,
 ) -> None:
     """Test that repeat measurements work correctly."""
-    runner_measuring.repeat_measuring()
-    assert runner_measuring.current_state == ScriptRunner.measuring
-
-    # Check that measuring has been triggered again
-    sendmsg_mock.assert_any_call(
-        f"device.{SPECTROMETER_TOPIC}.request", command="start"
-    )
-
-    sendmsg_mock.assert_any_call(
-        "measure_script.start_measuring", script_runner=runner_measuring
-    )
+    with patch.object(runner_measuring, "_request_measurement") as request_mock:
+        runner_measuring.repeat_measuring()
+        assert runner_measuring.current_state == ScriptRunner.waiting_to_measure
+        request_mock.assert_called_once_with()
 
 
 def test_repeat_measuring_paused(runner_measuring: ScriptRunner) -> None:
     """Test that repeat_measuring() waits if paused."""
-    runner_measuring.pause()
-    runner_measuring.repeat_measuring()
-    assert runner_measuring.current_state == ScriptRunner.waiting_to_measure
+    with patch.object(runner_measuring, "_request_measurement") as request_mock:
+        runner_measuring.pause()
+        runner_measuring.repeat_measuring()
+        assert runner_measuring.current_state == ScriptRunner.waiting_to_measure
+        request_mock.assert_not_called()
 
 
 def test_cancel_measuring(
@@ -199,39 +181,31 @@ def test_cancel_measuring(
     assert runner_measuring.current_state == ScriptRunner.not_running
 
 
-@patch("finesse.gui.measure_script.script._poll_spectrometer_status")
 def test_measuring_started_success(
-    poll_spectrometer_mock: Mock, runner: ScriptRunner
+    runner: ScriptRunner,
+    subscribe_mock: MagicMock,
+    unsubscribe_mock: MagicMock,
+    sendmsg_mock: MagicMock,
 ) -> None:
     """Test that polling starts when measurement has started successfully."""
-    runner.current_state = ScriptRunner.measuring
+    runner.current_state = ScriptRunner.waiting_to_measure
+    runner._measuring_start(SpectrometerStatus.IDLE)
+    unsubscribe_mock.assert_called_with(
+        runner._measuring_start, f"device.{SPECTROMETER_TOPIC}.status.measuring"
+    )
+    subscribe_mock.assert_called_with(
+        runner._measuring_end, f"device.{SPECTROMETER_TOPIC}.status.connected"
+    )
 
-    # Simulate response from EM27
-    runner._measuring_started(SpectrometerStatus.IDLE, "")
 
-    # Check the request is sent to the EM27
-    poll_spectrometer_mock.assert_called_once()
-
-
-@pytest.mark.parametrize("status", SpectrometerStatus)
-def test_status_received(
-    status: SpectrometerStatus, runner_measuring: ScriptRunner
+def test_on_exit_measuring(
+    runner_measuring: ScriptRunner, unsubscribe_mock: MagicMock
 ) -> None:
-    """Test that polling the EM27's status works."""
-    with patch.object(runner_measuring, "_measuring_end") as measuring_end_mock:
-        runner_measuring._status_received(status, "")
-
-        if status == SpectrometerStatus.CONNECTED:  # indicates success
-            measuring_end_mock.assert_called_once()
-        else:
-            measuring_end_mock.assert_not_called()
-
-
-def test_on_exit_measuring(runner_measuring: ScriptRunner) -> None:
     """Test that the timer is stopped when exiting measuring state."""
     runner_measuring.on_exit_measuring()
-    timer_stop = cast(MagicMock, runner_measuring._check_status_timer.stop)
-    timer_stop.assert_called_once()
+    unsubscribe_mock.assert_called_once_with(
+        runner_measuring._measuring_end, f"device.{SPECTROMETER_TOPIC}.status.connected"
+    )
 
 
 @pytest.mark.parametrize("current_measurement_repeat", range(3))
@@ -249,7 +223,7 @@ def test_measuring_end(
         with patch.object(
             runner_measuring, "repeat_measuring"
         ) as repeat_measuring_mock:
-            runner_measuring._measuring_end()
+            runner_measuring._measuring_end(SpectrometerStatus.CONNECTED)
 
             assert (
                 runner_measuring.current_measurement_count
@@ -325,12 +299,10 @@ def test_pause(runner: ScriptRunner) -> None:
                 ScriptRunner.not_running,
                 ScriptRunner.moving,
                 ScriptRunner.measuring,
+                ScriptRunner.waiting_to_measure,
             )
         ),
-        (
-            (ScriptRunner.waiting_to_move, ScriptRunner.moving),
-            (ScriptRunner.waiting_to_measure, ScriptRunner.measuring),
-        ),
+        ((ScriptRunner.waiting_to_move, ScriptRunner.moving),),
     ),
 )
 def test_unpause(begin_state: State, end_state: State, runner: ScriptRunner) -> None:
@@ -344,3 +316,13 @@ def test_unpause(begin_state: State, end_state: State, runner: ScriptRunner) -> 
     runner.unpause()
     assert not runner.paused
     assert runner.current_state == end_state
+
+
+def test_unpause_waiting_to_measure(runner: ScriptRunner) -> None:
+    """Test that unpausing while waiting to measure triggers a measurement request."""
+    with patch.object(runner, "_request_measurement") as request_mock:
+        runner.pause()
+        runner.current_state = ScriptRunner.waiting_to_measure
+        request_mock.assert_not_called()
+        runner.unpause()
+        request_mock.assert_called_once_with()

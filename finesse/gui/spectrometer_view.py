@@ -24,7 +24,7 @@ from finesse.spectrometer_status import SpectrometerStatus
 class SpectrometerControl(DevicePanel):
     """Class to monitor and control spectrometers."""
 
-    COMMANDS = ("status", "cancel", "stop", "start", "connect")
+    COMMANDS = ("connect", "start", "stop", "cancel")
     """The default commands shown."""
 
     def __init__(self, commands: Sequence[str] = COMMANDS) -> None:
@@ -43,7 +43,7 @@ class SpectrometerControl(DevicePanel):
         )
 
         pub.subscribe(self._log_request, f"device.{SPECTROMETER_TOPIC}.request")
-        pub.subscribe(self._log_response, f"device.{SPECTROMETER_TOPIC}.response")
+        pub.subscribe(self._log_response, f"device.{SPECTROMETER_TOPIC}.status")
         pub.subscribe(self._log_error, f"device.error.{SPECTROMETER_TOPIC}")
 
     def _create_controls(self) -> QHBoxLayout:
@@ -96,12 +96,8 @@ class SpectrometerControl(DevicePanel):
         """Log when a command request is sent."""
         self.logger.info(f'Executing command "{command}"')
 
-    def _log_response(
-        self,
-        status: SpectrometerStatus,
-        text: str,
-    ) -> None:
-        self.logger.info(f"Response ({status.value}): {text}")
+    def _log_response(self, status: SpectrometerStatus) -> None:
+        self.logger.info(f"Status: {status.name}")
 
     def _log_error(self, instance: DeviceInstanceRef, error: BaseException) -> None:
         self.logger.error(f"Error during request: {error!s}")
