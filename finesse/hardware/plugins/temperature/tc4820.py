@@ -104,14 +104,14 @@ class TC4820(SerialDevice, TemperatureControllerBase, description="TC4820"):
         return int.from_bytes(int_bytes, byteorder="big", signed=True)
 
     def send_command(self, command: str) -> None:
-        """Write a message to the TC4820.
+        r"""Write a message to the TC4820.
 
         The command is usually an integer represented as a zero-padded six-char
         hexadecimal string.
 
-        Sent are encoded similarly (but not identically) to those received and look like
-        "*{command}{checksum}^", where the checksum is calculated as it is for received
-        messages.
+        Sent messages are encoded similarly (but not identically) to those received and
+        look like "*{command}{checksum}\r", where the checksum is calculated as it is
+        for received messages.
 
         Args:
             command: The string command to send
