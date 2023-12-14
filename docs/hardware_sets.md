@@ -37,7 +37,7 @@ devices:
 ```
 
 The `name` property defines a human-readable name for the hardware set, to be displayed
-in the GUI and the `devices` property contains informations about the devices in this
+in the GUI and the `devices` property contains information about the devices in this
 hardware set. The `devices` array consists of key-value pairs, with the keys
 corresponding to device base types (see [Hardware]). The values are YAML objects with a
 `class_name` property and (optionally) a `params` property. `class_name` is a string

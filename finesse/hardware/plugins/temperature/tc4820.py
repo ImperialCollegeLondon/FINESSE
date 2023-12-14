@@ -62,7 +62,7 @@ class TC4820(SerialDevice, TemperatureControllerBase, description="TC4820"):
         Valid messages have the form "*{number}{checksum}^", where {number} is a signed
         integer represented as a zero-padded four-char hexadecimal number and {checksum}
         is the checksum for this message, represented as a zero-padded two-char
-        hexademical number (see checksum() function for details). Negative numbers are
+        hexadecimal number (see checksum() function for details). Negative numbers are
         represented as if they had been cast to an unsigned integer before being encoded
         as hex (i.e. -1 is represented as "ffff").
 
@@ -107,7 +107,7 @@ class TC4820(SerialDevice, TemperatureControllerBase, description="TC4820"):
         """Write a message to the TC4820.
 
         The command is usually an integer represented as a zero-padded six-char
-        hexademical string.
+        hexadecimal string.
 
         Sent are encoded similarly (but not identically) to those received and look like
         "*{command}{checksum}^", where the checksum is calculated as it is for received
