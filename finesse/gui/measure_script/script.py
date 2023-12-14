@@ -338,7 +338,7 @@ class ScriptRunner(StateMachine):
         )
 
     def _request_measurement(self) -> None:
-        """Tell the EM27 to start a new measurement.
+        """Tell the spectrometer to start a new measurement.
 
         NB: This is also invoked on repeat measurements
         """
@@ -346,7 +346,7 @@ class ScriptRunner(StateMachine):
         pub.sendMessage(f"device.{SPECTROMETER_TOPIC}.request", command="start")
 
     def _measuring_start(self, status: SpectrometerStatus):
-        """Start polling the EM27 so we know when the measurement is finished."""
+        """Start the next measurement."""
         pub.unsubscribe(
             self._measuring_start, f"device.{SPECTROMETER_TOPIC}.status.measuring"
         )

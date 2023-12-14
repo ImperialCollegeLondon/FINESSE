@@ -3,7 +3,7 @@ from typing import Any
 
 from decorator import decorator
 from pubsub import pub
-from PySide6.QtWidgets import QGroupBox, QWidget
+from PySide6.QtWidgets import QGroupBox
 
 from finesse.device_info import DeviceInstanceRef
 
@@ -18,7 +18,7 @@ class DevicePanel(QGroupBox):
         @decorator
         def init_decorator(previous_init, self, *args, **kwargs):
             previous_init(self, *args, **kwargs)
-            self.set_controls_enabled(False)
+            self.setEnabled(False)
 
         cls.__init__ = init_decorator(cls.__init__)
 
@@ -41,17 +41,8 @@ class DevicePanel(QGroupBox):
 
     def _on_device_opened(self) -> None:
         """Enable the controls when the device opens."""
-        self.set_controls_enabled(True)
+        self.setEnabled(True)
 
     def _on_device_closed(self, instance: DeviceInstanceRef) -> None:
         """Disable the controls when the device closes."""
-        self.set_controls_enabled(False)
-
-    def set_controls_enabled(self, enabled: bool) -> None:
-        """Enable/disable the controls in this panel.
-
-        Args:
-            enabled: Whether to enable or disable the controls
-        """
-        for widget in self.findChildren(QWidget):
-            widget.setEnabled(enabled)
+        self.setEnabled(False)
