@@ -1,32 +1,48 @@
 """Test the OPUSInterfaceBase class."""
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
-from finesse.config import SPECTROMETER_TOPIC
 from finesse.hardware.plugins.spectrometer.opus_interface_base import OPUSInterfaceBase
-from finesse.spectrometer_status import SpectrometerStatus
 
 
-class _MyOPUSClass(OPUSInterfaceBase, description="My OPUS class"):
-    def request_command(self, command: str) -> None:
-        pass
+class _MockOPUS(OPUSInterfaceBase, description="Mock OPUS device"):
+    def __init__(self):
+        super().__init__()
+        self._request_mock = MagicMock()
+
+    def request_command(self, command: str):
+        self._request_mock(command)
+
+    def assert_command_requested(self, command: str):
+        self._request_mock.assert_called_once_with(command)
 
 
-@patch("finesse.hardware.plugins.spectrometer.opus_interface_base.Device.subscribe")
-def test_init(subscribe_mock: Mock) -> None:
-    """Test the constructor."""
-    opus = _MyOPUSClass()
-    subscribe_mock.assert_called_once_with(opus.request_command, "request")
+@pytest.fixture
+def opus() -> _MockOPUS:
+    """Provides an OPUS device with request_command() mocked."""
+    return _MockOPUS()
 
 
-@pytest.mark.parametrize("status", SpectrometerStatus)
-def test_send_status_message(
-    status: SpectrometerStatus, sendmsg_mock: MagicMock
-) -> None:
-    """Test the send_status_message() method."""
-    opus = _MyOPUSClass()
-    opus.send_status_message(status)
-    sendmsg_mock.assert_called_once_with(
-        f"device.{SPECTROMETER_TOPIC}.status.{status.name.lower()}", status=status
-    )
+def test_connect(opus: _MockOPUS) -> None:
+    """Test the connect() method."""
+    opus.connect()
+    opus.assert_command_requested("connect")
+
+
+def test_start_measuring(opus: _MockOPUS) -> None:
+    """Test the start_measuring() method."""
+    opus.start_measuring()
+    opus.assert_command_requested("start")
+
+
+def test_stop_measuring(opus: _MockOPUS) -> None:
+    """Test the stop_measuring() method."""
+    opus.stop_measuring()
+    opus.assert_command_requested("stop")
+
+
+def test_cancel_measuring(opus: _MockOPUS) -> None:
+    """Test the cancel_measuring() method."""
+    opus.cancel_measuring()
+    opus.assert_command_requested("cancel")

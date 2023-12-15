@@ -1,5 +1,5 @@
 """Panel and widgets related to the control of spectrometers."""
-from collections.abc import Sequence
+from collections.abc import Mapping
 from functools import partial
 
 from frozendict import frozendict
@@ -14,19 +14,26 @@ from finesse.spectrometer_status import SpectrometerStatus
 class SpectrometerControl(DevicePanel):
     """Class to monitor and control spectrometers."""
 
-    _COMMANDS = ("connect", "start", "stop", "cancel")
-    """The default commands shown."""
+    _COMMANDS = frozendict(
+        {
+            "connect": "Connect",
+            "start_measuring": "Start",
+            "stop_measuring": "Stop",
+            "cancel_measuring": "Cancel",
+        }
+    )
+    """The default commands shown (key=command, value=label)."""
 
     _ENABLED_BUTTONS = frozendict(
         {
             SpectrometerStatus.IDLE: {"connect"},
-            SpectrometerStatus.CONNECTED: {"start"},
-            SpectrometerStatus.MEASURING: {"stop", "cancel"},
+            SpectrometerStatus.CONNECTED: {"start_measuring"},
+            SpectrometerStatus.MEASURING: {"stop_measuring", "cancel_measuring"},
         }
     )
     """Which buttons to enable for different states."""
 
-    def __init__(self, commands: Sequence[str] = _COMMANDS) -> None:
+    def __init__(self, commands: Mapping[str, str] = _COMMANDS) -> None:
         """Create the widgets to monitor and control the spectrometer."""
         super().__init__(SPECTROMETER_TOPIC, "Spectrometer")
 
@@ -42,7 +49,7 @@ class SpectrometerControl(DevicePanel):
 
         pub.subscribe(self._on_status_changed, f"device.{SPECTROMETER_TOPIC}.status")
 
-    def _create_buttons(self, commands: Sequence[str]) -> QHBoxLayout:
+    def _create_buttons(self, commands: Mapping[str, str]) -> QHBoxLayout:
         """Creates the buttons.
 
         Returns:
@@ -50,15 +57,15 @@ class SpectrometerControl(DevicePanel):
         """
         btn_layout = QHBoxLayout()
 
-        for name in commands:
-            button = QPushButton(name.capitalize())
+        for command, label in commands.items():
+            button = QPushButton(label)
             button.setEnabled(False)
             button.clicked.connect(
-                partial(self.on_command_button_clicked, command=name.lower())
+                partial(self.on_command_button_clicked, command=command)
             )
             btn_layout.addWidget(button)
 
-            self._buttons[name] = button
+            self._buttons[command] = button
 
         return btn_layout
 
@@ -68,8 +75,8 @@ class SpectrometerControl(DevicePanel):
 
         # Enable/disable buttons depending on the spectrometer's status
         to_enable = self._ENABLED_BUTTONS.get(status, set())
-        for name, btn in self._buttons.items():
-            btn.setEnabled(name in to_enable)
+        for command, btn in self._buttons.items():
+            btn.setEnabled(command in to_enable)
 
     def on_command_button_clicked(self, command: str) -> None:
         """Execute the given command by sending a message to the appropriate topic.
@@ -77,4 +84,4 @@ class SpectrometerControl(DevicePanel):
         Args:
             command: Command to be executed
         """
-        pub.sendMessage(f"device.{SPECTROMETER_TOPIC}.request", command=command)
+        pub.sendMessage(f"device.{SPECTROMETER_TOPIC}.{command}")
