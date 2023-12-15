@@ -1,12 +1,13 @@
 """Tests for core serial device code."""
 from typing import Any
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, Mock, call, patch
 
 import pytest
 from serial import SerialException
 
 from finesse.hardware.serial_device import (
     SerialDevice,
+    _create_serial,
     _get_port_number,
     _get_usb_serial_ports,
     _port_info_to_str,
@@ -74,42 +75,75 @@ def test_get_port_number_bad() -> None:
         _get_port_number("NO_NUMBER")
 
 
-@patch("finesse.hardware.serial_device._serial_ports", {"name1": "COM1"})
+@pytest.mark.parametrize("refresh", (False, True))
+@patch("finesse.hardware.serial_device._get_usb_serial_ports")
 @patch("finesse.hardware.serial_device.Serial")
-def test_init(serial_mock: Mock) -> None:
-    """Test SerialDevice's constructor."""
+def test_create_serial_success(
+    serial_mock: Mock, get_serial_ports_mock: Mock, refresh: bool
+) -> None:
+    """Test _create_serial() when a connection is successful."""
     serial = MagicMock()
     serial_mock.return_value = serial
-    dev = SerialDevice("name1", 1234)
+    get_serial_ports_mock.return_value = {"name1": "COM1"}
+    ret = _create_serial("name1", 1234, refresh)
+    assert ret == serial
     serial_mock.assert_called_once_with(port="COM1", baudrate=1234)
-    assert dev.serial is serial
+    get_serial_ports_mock.assert_called_once_with(refresh)
 
 
-@patch(
-    "finesse.hardware.serial_device._get_usb_serial_ports",
-    return_value={"name2": "COM2"},
-)
-@patch("finesse.hardware.serial_device._serial_ports", {"name1": "COM1"})
+@pytest.mark.parametrize("refresh", (False, True))
+@patch("finesse.hardware.serial_device._get_usb_serial_ports")
 @patch("finesse.hardware.serial_device.Serial")
-def test_init_refresh_succeed(serial_mock: Mock, get_ports_mock: Mock) -> None:
-    """Test SerialDevice's constructor succeeds after refreshing ports."""
-    serial = MagicMock()
-    serial_mock.return_value = serial
-    dev = SerialDevice("name2", 1234)
-    serial_mock.assert_called_once_with(port="COM2", baudrate=1234)
-    assert dev.serial is serial
-
-
-@patch(
-    "finesse.hardware.serial_device._get_usb_serial_ports",
-    return_value={"name2": "COM2"},
-)
-@patch("finesse.hardware.serial_device._serial_ports", {"name1": "COM1"})
-@patch("finesse.hardware.serial_device.Serial")
-def test_init_refresh_fail(serial_mock: Mock, get_ports_mock: Mock) -> None:
-    """Test SerialDevice's constructor raises an exception if the port isn't found."""
+def test_create_serial_fail_no_device(
+    serial_mock: Mock, get_serial_ports_mock: Mock, refresh: bool
+) -> None:
+    """Test _create_serial() when the device is not in the list."""
+    get_serial_ports_mock.return_value = {"name1": "COM1"}
     with pytest.raises(SerialException):
-        SerialDevice("name3", 1234)
+        _create_serial("name2", 1234, refresh)
+
+
+@pytest.mark.parametrize("refresh", (False, True))
+@patch("finesse.hardware.serial_device._get_usb_serial_ports")
+@patch("finesse.hardware.serial_device.Serial")
+def test_create_serial_fail_error(
+    serial_mock: Mock, get_serial_ports_mock: Mock, refresh: bool
+) -> None:
+    """Test _create_serial() when the device is not in the list."""
+    serial_mock.side_effect = SerialException
+    get_serial_ports_mock.return_value = {"name1": "COM1"}
+    with pytest.raises(SerialException):
+        _create_serial("name1", 1234, refresh)
+
+
+@patch("finesse.hardware.serial_device._create_serial")
+def test_init_success_first(create_mock: Mock) -> None:
+    """Test SerialDevice's constructor when it succeeds the first time."""
+    serial = MagicMock()
+    create_mock.return_value = serial
+    dev = SerialDevice("name1", 1234)
+    create_mock.assert_called_once_with("name1", 1234, refresh=False)
+    assert dev.serial is serial
+
+
+@patch("finesse.hardware.serial_device._create_serial")
+def test_init_success_second(create_mock: Mock) -> None:
+    """Test SerialDevice's constructor when it succeeds the second time."""
+    serial = MagicMock()
+    create_mock.side_effect = (SerialException, serial)
+    dev = SerialDevice("name1", 1234)
+    create_mock.assert_has_calls(
+        [call("name1", 1234, refresh=refresh) for refresh in (False, True)]
+    )
+    assert dev.serial is serial
+
+
+@patch("finesse.hardware.serial_device._create_serial")
+def test_init_fail(create_mock: Mock) -> None:
+    """Test SerialDevice's constructor when it fails on both attempts."""
+    create_mock.side_effect = SerialException
+    with pytest.raises(SerialException):
+        SerialDevice("name1", 1234)
 
 
 @patch("finesse.hardware.serial_device._serial_ports", {"name1": "COM1"})
