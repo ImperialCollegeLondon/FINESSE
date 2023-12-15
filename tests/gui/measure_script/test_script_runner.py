@@ -143,11 +143,7 @@ def test_start_measuring(
     runner.start_measuring()
     assert runner.current_state == ScriptRunner.measuring
 
-    # Check that measuring has been triggered
-    sendmsg_mock.assert_any_call(
-        f"device.{SPECTROMETER_TOPIC}.request", command="start"
-    )
-
+    sendmsg_mock.assert_any_call(f"device.{SPECTROMETER_TOPIC}.start_measuring")
     sendmsg_mock.assert_any_call("measure_script.start_measuring", script_runner=runner)
 
 
