@@ -14,6 +14,7 @@ from PySide6.QtWidgets import (
 
 from finesse.config import (
     APP_NAME,
+    APP_VERSION,
     TEMPERATURE_MONITOR_COLD_BB_IDX,
     TEMPERATURE_MONITOR_HOT_BB_IDX,
 )
@@ -36,7 +37,7 @@ class MainWindow(QMainWindow):
     def __init__(self) -> None:
         """Create a new MainWindow."""
         super().__init__()
-        self.setWindowTitle(APP_NAME)
+        self.setWindowTitle(f"{APP_NAME} v{APP_VERSION}")
 
         set_uncaught_exception_handler(self)
 
