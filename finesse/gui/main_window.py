@@ -74,11 +74,11 @@ class MainWindow(QMainWindow):
         layout_right = QGridLayout()
 
         bb_monitor: QGroupBox = TemperaturePlot()
-        dp9800: QGroupBox = TemperatureMonitorControl()
-        tc4820_hot: QGroupBox = TemperatureControllerControl(
+        temp_monitor: QGroupBox = TemperatureMonitorControl()
+        tc_hot: QGroupBox = TemperatureControllerControl(
             "hot", TEMPERATURE_MONITOR_HOT_BB_IDX, allow_update=True
         )
-        tc4820_cold: QGroupBox = TemperatureControllerControl(
+        tc_cold: QGroupBox = TemperatureControllerControl(
             "cold", TEMPERATURE_MONITOR_COLD_BB_IDX, allow_update=False
         )
 
@@ -86,9 +86,9 @@ class MainWindow(QMainWindow):
         data_file = DataFileControl()
 
         layout_right.addWidget(bb_monitor, 1, 0, 1, 2)
-        layout_right.addWidget(dp9800, 2, 0, 1, 2)
-        layout_right.addWidget(tc4820_hot, 3, 0, 1, 1)
-        layout_right.addWidget(tc4820_cold, 3, 1, 1, 1)
+        layout_right.addWidget(temp_monitor, 2, 0, 1, 2)
+        layout_right.addWidget(tc_hot, 3, 0, 1, 1)
+        layout_right.addWidget(tc_cold, 3, 1, 1, 1)
         layout_right.addWidget(data_file, 4, 0, 1, 2)
 
         # Display widgets in two columns
