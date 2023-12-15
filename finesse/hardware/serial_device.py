@@ -81,6 +81,24 @@ def _get_usb_serial_ports(refresh: bool = False) -> dict[str, str]:
     return _serial_ports
 
 
+def _create_serial(port: str, baudrate: int, refresh: bool) -> Serial:
+    """Create a new serial device and connect to it.
+
+    Args:
+        port: Description of USB port (vendor ID + product ID)
+        baudrate: Baud rate of port
+        refresh: Whether to force-refresh the list of COM ports
+    """
+    devices = _get_usb_serial_ports(refresh)
+
+    try:
+        device = devices[port]
+    except KeyError:
+        raise SerialException(f'Device not present: "{port!s}"')
+    else:
+        return Serial(port=device, baudrate=baudrate)
+
+
 class SerialDevice(
     AbstractDevice,
     parameters={
@@ -112,17 +130,13 @@ class SerialDevice(
         """
         # If port is unknown, it may be because the user connected the device after the
         # list of serial ports was retrieved, so we refresh the list to check if it is
-        # now available. (NB: mypy warning suppressed because we know _serial_ports is
-        # not None here.)
-        refresh = port not in _serial_ports  # type: ignore[operator]
-        devices = _get_usb_serial_ports(refresh)
-
+        # now available. Similarly, the COM port may have changed due to the user
+        # disconnecting and reconnecting the device, in which case we also need to
+        # refresh the list.
         try:
-            device = devices[port]
-        except KeyError:
-            raise SerialException(f'Device not present: "{port!s}"')
-        else:
-            self.serial = Serial(port=device, baudrate=baudrate)
+            self.serial = _create_serial(port, baudrate, refresh=False)
+        except SerialException:
+            self.serial = _create_serial(port, baudrate, refresh=True)
 
     def close(self) -> None:
         """Close the connection to the device."""
