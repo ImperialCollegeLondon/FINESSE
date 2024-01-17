@@ -20,7 +20,17 @@ class SenecaK107Error(Exception):
     """Indicates that an error occurred while communicating with the device."""
 
 
-class SenecaK107(SerialDevice, TemperatureMonitorBase, description="Seneca K107"):
+class SenecaK107(
+    SerialDevice,
+    TemperatureMonitorBase,
+    description="Seneca K107",
+    parameters={
+        "min_temp": "The minimum temperature limit of the device",
+        "max_temp": "The maximum temperature limit of the device",
+        "min_millivolt": "The minimum voltage output (millivolts) of the device",
+        "max_millivolt": "The maximum voltage output (millivolts) of the device",
+    },
+):
     """An interface for the Seneca K107USB serial converter.
 
     This device communicates through the MODBUS-RTU protocol and outputs data from
