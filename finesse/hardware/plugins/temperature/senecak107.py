@@ -1,4 +1,5 @@
 """This module provides an interface to Seneca temperature readers."""
+import logging
 from collections.abc import Sequence
 
 import numpy
@@ -132,6 +133,9 @@ class SenecaK107(
     def calc_temp(self, vals: numpy.ndarray) -> numpy.ndarray:
         """Convert data read from the SenecaK107 device into temperatures.
 
+        Any readings outside the minimum and maximum temperature values will be changed
+        to NaNs and a warning will be raised in the logs.
+
         Args:
             vals: The numpy array described by the data received from the device.
 
@@ -146,6 +150,15 @@ class SenecaK107(
         calc *= self.SCALING_FACTOR
         # Adjusts for minimum temperature limit
         calc += self.MIN_TEMP
+
+        nan = float("nan")
+
+        calc[calc > self.MAX_TEMP] = nan
+        calc[calc < self.MIN_TEMP] = nan
+
+        if numpy.isnan(calc).any():
+            logging.warn(f"Out-of-range temperature(s) detected: {calc}")
+
         return calc
 
     def get_temperatures(self) -> Sequence:
