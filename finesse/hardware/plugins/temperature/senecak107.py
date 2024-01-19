@@ -151,10 +151,8 @@ class SenecaK107(
         # Adjusts for minimum temperature limit
         calc += self.MIN_TEMP
 
-        nan = float("nan")
-
-        calc[calc > self.MAX_TEMP] = nan
-        calc[calc < self.MIN_TEMP] = nan
+        calc[calc > self.MAX_TEMP] = numpy.nan
+        calc[calc < self.MIN_TEMP] = numpy.nan
 
         if numpy.isnan(calc).any():
             logging.warn(f"Out-of-range temperature(s) detected: {calc}")
