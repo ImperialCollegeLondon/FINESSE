@@ -27,7 +27,7 @@ def calculate_crc(data: bytes) -> int:
     Returns:
         bcc: The calculated checksum
     """
-    calculator = Calculator(Crc16.MODBUS)
+    calculator = Calculator(Crc16.MODBUS)  # type: ignore
     checksum = calculator.checksum(data[:19])
     return checksum
 
