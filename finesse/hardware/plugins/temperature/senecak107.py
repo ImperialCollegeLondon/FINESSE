@@ -155,7 +155,7 @@ class SenecaK107(
         calc[calc < self.MIN_TEMP] = numpy.nan
 
         if numpy.isnan(calc).any():
-            logging.warn(f"Out-of-range temperature(s) detected: {calc}")
+            logging.warning(f"Out-of-range temperature(s) detected: {calc}")
 
         return calc
 
