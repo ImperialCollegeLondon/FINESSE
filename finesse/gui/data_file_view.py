@@ -128,7 +128,7 @@ class DataFileControl(QGroupBox):
         msg_box = QMessageBox(
             QMessageBox.Icon.Critical,
             "Error writing to file",
-            f"An error occurred while writing the data file: {str(error)}",
+            f"An error occurred while writing the data file: {error!s}",
             QMessageBox.StandardButton.Ok,
             self,
         )

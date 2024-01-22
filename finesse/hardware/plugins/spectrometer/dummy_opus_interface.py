@@ -1,19 +1,21 @@
 """Provides a dummy EM27 device for interfacing with."""
 
 import logging
-from collections.abc import Callable
 from enum import Enum
+from typing import ClassVar
 
-from pubsub import pub
 from PySide6.QtCore import QTimer
 from statemachine import State, StateMachine
 from statemachine.exceptions import TransitionNotAllowed
 
-from finesse.em27_info import EM27Status
-from finesse.hardware.plugins.em27.opus_interface_base import OPUSInterfaceBase
+from finesse.hardware.plugins.spectrometer.opus_interface_base import (
+    OPUSError,
+    OPUSInterfaceBase,
+)
+from finesse.spectrometer_status import SpectrometerStatus
 
 
-class OPUSError(Enum):
+class OPUSErrorInfo(Enum):
     """Represents an error code and description for OPUS errors.
 
     The codes and descriptions are taken from the manual.
@@ -31,22 +33,20 @@ class OPUSError(Enum):
     NO_RESULT = (6, "No result available")
     NOT_CONNECTED = (7, "System not connected")
 
-    def to_tuple(self) -> tuple[int, str] | None:
-        """Convert to a (code, message) tuple or None if no error."""
-        if self == OPUSError.NO_ERROR:
-            return None
-        return self.value
+    def raise_exception(self) -> None:
+        """Raise this error as an exception."""
+        raise OPUSError.from_response(*self.value)
 
 
 class OPUSStateMachine(StateMachine):
     """An FSM for keeping track of the internal state of the mock device."""
 
-    idle = State("Idle", EM27Status.IDLE, initial=True)
-    connecting = State("Connecting", EM27Status.CONNECTING)
-    connected = State("Connected", EM27Status.CONNECTED)
-    measuring = State("Measuring", EM27Status.MEASURING)
-    finishing = State("Finishing current measurement", EM27Status.FINISHING)
-    cancelling = State("Cancelling", EM27Status.CANCELLING)
+    idle = State("Idle", SpectrometerStatus.IDLE, initial=True)
+    connecting = State("Connecting", SpectrometerStatus.CONNECTING)
+    connected = State("Connected", SpectrometerStatus.CONNECTED)
+    measuring = State("Measuring", SpectrometerStatus.MEASURING)
+    finishing = State("Finishing current measurement", SpectrometerStatus.FINISHING)
+    cancelling = State("Cancelling", SpectrometerStatus.CANCELLING)
     # The manual also describes an "Undefined" state, which we aren't using
 
     _start_connecting = idle.to(connecting)
@@ -58,17 +58,16 @@ class OPUSStateMachine(StateMachine):
     _cancel_measuring = measuring.to(cancelling)
     _reset_after_cancelling = cancelling.to(connected)
 
-    def __init__(
-        self, measure_duration: float, measure_finish_callback: Callable
-    ) -> None:
+    def __init__(self, measure_duration: float) -> None:
         """Create a new OPUSStateMachine.
+
+        The state diagram looks like this:
+
+        ![](../../../../../OPUSStateMachine.png)
 
         Args:
             measure_duration: How long a single measurement takes (seconds)
-            measure_finish_callback: Called when measurement completes successfully
         """
-        self.measure_finish_callback = measure_finish_callback
-
         self.measure_timer = QTimer()
         """Timer signalling the end of a measurement."""
         self.measure_timer.setInterval(round(measure_duration * 1000))
@@ -100,21 +99,20 @@ class OPUSStateMachine(StateMachine):
     def on_exit_measuring(self) -> None:
         """Stop the measurement timer."""
         self.measure_timer.stop()
-        self.measure_finish_callback()
-
-    def on_enter_state(self, target: State) -> None:
-        """Log all state transitions."""
-        logging.info(f"Current state: {target.name}")
 
 
-class DummyOPUSInterface(OPUSInterfaceBase):
+class DummyOPUSInterface(
+    OPUSInterfaceBase,
+    description="Dummy OPUS device",
+    parameters={"measure_duration": "Measurement duration in seconds"},
+):
     """A mock version of the OPUS API for testing purposes."""
 
-    _COMMAND_ERRORS = {
-        "cancel": OPUSError.NOT_RUNNING,
-        "stop": OPUSError.NOT_RUNNING_OR_FINISHING,
-        "start": OPUSError.NOT_CONNECTED,
-        "connect": OPUSError.NOT_IDLE,
+    _COMMAND_ERRORS: ClassVar = {
+        "cancel": OPUSErrorInfo.NOT_RUNNING,
+        "stop": OPUSErrorInfo.NOT_RUNNING_OR_FINISHING,
+        "start": OPUSErrorInfo.NOT_CONNECTED,
+        "connect": OPUSErrorInfo.NOT_IDLE,
     }
     """The error thrown by each command when in an invalid state."""
 
@@ -126,12 +124,22 @@ class DummyOPUSInterface(OPUSInterfaceBase):
         """
         super().__init__()
 
-        self.last_error = OPUSError.NO_ERROR
-        """The last error which occurred."""
-        self.state_machine = OPUSStateMachine(
-            measure_duration, self._measuring_finished
-        )
+        self.state_machine = OPUSStateMachine(measure_duration)
         """An object representing the internal state of the device."""
+
+        # Monitor state changes
+        self.state_machine.add_observer(self)
+
+        # Broadcast initial status
+        self.on_enter_state(self.state_machine.current_state)
+
+    def close(self) -> None:
+        """Close the device.
+
+        If a measurement is running, cancel it.
+        """
+        self.state_machine.measure_timer.stop()
+        super().close()
 
     def _run_command(self, command: str) -> None:
         """Try to run the specified command.
@@ -143,39 +151,24 @@ class DummyOPUSInterface(OPUSInterfaceBase):
         """
         fun = getattr(self.state_machine, command)
 
-        self.last_error = OPUSError.NO_ERROR
         try:
             fun()
         except TransitionNotAllowed:
-            self.last_error = self._COMMAND_ERRORS[command]
+            self._COMMAND_ERRORS[command].raise_exception()
 
     def request_command(self, command: str) -> None:
         """Execute the specified command on the device.
 
-        Note that we treat "status" as a command, even though it requires a different
-        URL to access.
-
         Args:
             command: The command to run
+        Raises:
+            OPUSError: If the device is in the wrong state for this command
         """
-        if command == "status":
-            if self.state_machine.current_state == OPUSStateMachine.idle:
-                self.last_error = OPUSError.NOT_CONNECTED
-        elif command in self._COMMAND_ERRORS:
-            self._run_command(command)
-        else:
-            self.last_error = OPUSError.UNKNOWN_COMMAND
+        if command not in self._COMMAND_ERRORS:
+            OPUSErrorInfo.UNKNOWN_COMMAND.raise_exception()
 
-        # Broadcast the response for the command
-        state = self.state_machine.current_state
-        pub.sendMessage(
-            f"opus.response.{command}",
-            status=state.value,
-            text=state.name,
-            error=self.last_error.to_tuple(),
-        )
+        self._run_command(command)
 
-    def _measuring_finished(self) -> None:
-        """Finish measurement successfully."""
-        self.last_error = OPUSError.NO_ERROR
-        logging.info("Measurement complete")
+    def on_enter_state(self, target: State) -> None:
+        """Broadcast state changes via pubsub."""
+        self.send_status_message(target.value)

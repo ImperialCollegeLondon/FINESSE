@@ -47,7 +47,7 @@ def _open_device(
     logging.info(f"Opening device of type {instance.base_type}: {class_name_part}")
 
     if device := _devices.get(instance):
-        logging.warn(f"Replacing existing instance of device of type {instance.topic}")
+        logging.warn(f"Replacing existing instance of device of type {instance!s}")
         _try_close_device(device)
 
     # If this instance also has a name (e.g. "hot_bb") then we also need to pass this as
@@ -59,10 +59,8 @@ def _open_device(
     try:
         _devices[instance] = cls(**params_with_name)
     except Exception as error:
-        logging.error(f"Failed to open {instance.topic} device: {str(error)}")
-        pub.sendMessage(
-            f"device.error.{instance.topic}", instance=instance, error=error
-        )
+        logging.error(f"Failed to open {instance!s} device: {error!s}")
+        pub.sendMessage(f"device.error.{instance!s}", instance=instance, error=error)
     else:
         logging.info("Opened device")
 
@@ -70,12 +68,12 @@ def _open_device(
         # because we want to ensure that some listeners always run before others, in
         # case an error occurs and we have to undo the work.
         pub.sendMessage(
-            f"device.opening.{instance.topic}",
+            f"device.opening.{instance!s}",
             instance=instance,
             class_name=class_name,
             params=params,
         )
-        pub.sendMessage(f"device.opened.{instance.topic}")
+        pub.sendMessage(f"device.opened.{instance!s}")
 
 
 def _try_close_device(device: Device) -> None:
@@ -91,7 +89,7 @@ def _try_close_device(device: Device) -> None:
         logging.warn(f"Error while closing {device.__class__.__name__}: {ex!s}")
 
     instance = device.get_instance_ref()
-    pub.sendMessage(f"device.closed.{instance.topic}", instance=instance)
+    pub.sendMessage(f"device.closed.{instance!s}", instance=instance)
 
 
 def _close_device(instance: DeviceInstanceRef) -> None:

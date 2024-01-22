@@ -2,8 +2,7 @@
 
 The Device class is the top-level base class from which all devices ultimately inherit.
 Concrete classes for devices must not inherit directly from this class, but instead
-should inherit from a device base class (defined by passing is_base_type to the class
-constructor).
+should inherit from a device base class.
 """
 from __future__ import annotations
 
@@ -12,8 +11,8 @@ import traceback
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Mapping, Sequence
 from copy import deepcopy
-from inspect import signature
-from typing import Any, get_type_hints
+from inspect import isabstract, signature
+from typing import Any, ClassVar, get_type_hints
 
 from decorator import decorate
 from pubsub import pub
@@ -66,11 +65,11 @@ def get_device_types() -> dict[DeviceBaseTypeInfo, list[DeviceTypeInfo]]:
 class AbstractDevice(ABC):
     """An abstract base class for devices."""
 
-    _device_base_type_info: DeviceBaseTypeInfo
+    _device_base_type_info: ClassVar[DeviceBaseTypeInfo]
     """Information about the device's base type."""
-    _device_description: str
+    _device_description: ClassVar[str]
     """A human-readable name."""
-    _device_parameters: dict[str, DeviceParameter] = {}
+    _device_parameters: ClassVar[dict[str, DeviceParameter]] = {}
     """Possible parameters that this device type accepts.
 
     The key represents the parameter name and the value is a list of possible values.
@@ -170,25 +169,16 @@ class Device(AbstractDevice):
     defined as device base types or not.
     """
 
-    def __init_subclass__(cls, is_base_type: bool = False, **kwargs: Any) -> None:
-        """Initialise a device type class.
-
-        Args:
-            is_base_type: Whether this class represents a device base type
-        """
-        # If it is a base class, we initialise it as such
-        if is_base_type:
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        """Initialise a device type class."""
+        if _base_types.isdisjoint(cls.__mro__):
+            # If the class doesn't inherit from a base type it must be a base type
+            # itself
             cls._init_base_type(**kwargs)
-            return
-
-        # If it is not, it should inherit from one
-        if not set(cls.__bases__).intersection(_base_types):
-            raise ValueError(
-                f"Class {cls.__name__} must be a device base type or inherit from one."
-            )
-
-        # And we initialise it as a concrete device class
-        cls._init_device_type(**kwargs)
+        elif not isabstract(cls):
+            # All *concrete* device classes which inherit from a base type are treated
+            # as device types. Abstract ones are ignored.
+            cls._init_device_type(**kwargs)
 
     @classmethod
     def _init_base_type(
@@ -268,7 +258,7 @@ class Device(AbstractDevice):
         # Send pubsub message
         instance = self.get_instance_ref()
         pub.sendMessage(
-            f"device.error.{instance.topic}",
+            f"device.error.{instance!s}",
             instance=instance,
             error=error,
         )
@@ -318,9 +308,8 @@ class Device(AbstractDevice):
                 assert len(result) == len(kwarg_names)
 
                 # Send message with arguments
-                pub.sendMessage(
-                    f"{self.topic}.{success_topic_suffix}",
-                    **dict(zip(kwarg_names, result)),
+                self.send_message(
+                    success_topic_suffix, **dict(zip(kwarg_names, result))
                 )
 
         return decorate(func, wrapped)
@@ -354,3 +343,12 @@ class Device(AbstractDevice):
         topic_name = f"{self.topic}.{topic_name_suffix}"
         self._subscriptions.append((wrapped_func, topic_name))
         pub.subscribe(wrapped_func, topic_name)
+
+    def send_message(self, topic_suffix: str, **kwargs: Any) -> None:
+        """Send a pubsub message for this device.
+
+        Args:
+            topic_suffix: The part of the topic name after self.topic
+            **kwargs: Extra arguments to include with pubsub message
+        """
+        pub.sendMessage(f"{self.topic}.{topic_suffix}", **kwargs)

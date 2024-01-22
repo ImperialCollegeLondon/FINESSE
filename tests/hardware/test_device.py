@@ -9,9 +9,7 @@ from finesse.device_info import DeviceParameter
 from finesse.hardware.device import AbstractDevice, Device, get_device_types
 
 
-class _MockBaseClass(
-    Device, is_base_type=True, name="mock", description="Mock base class"
-):
+class _MockBaseClass(Device, name="mock", description="Mock base class"):
     pass
 
 

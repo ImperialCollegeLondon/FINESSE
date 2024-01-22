@@ -64,7 +64,7 @@ def _show_uncaught_exception_dialog(
     dialog.setWindowTitle("Uncaught exception")
     dialog.resize(700, 500)
 
-    label = QLabel(f"An unhandled error has occurred: {repr(exc_value)}")
+    label = QLabel(f"An unhandled error has occurred: {exc_value!r}")
     textEdit = QPlainTextEdit(traceback_str)
     textEdit.setReadOnly(True)
     buttonBox = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok)

@@ -1,4 +1,5 @@
 """This module provides an interface to Seneca temperature readers."""
+import logging
 from collections.abc import Sequence
 
 import numpy
@@ -35,7 +36,17 @@ class SenecaK107Error(Exception):
     """Indicates that an error occurred while communicating with the device."""
 
 
-class SenecaK107(SerialDevice, TemperatureMonitorBase, description="Seneca K107"):
+class SenecaK107(
+    SerialDevice,
+    TemperatureMonitorBase,
+    description="Seneca K107",
+    parameters={
+        "min_temp": "The minimum temperature limit of the device",
+        "max_temp": "The maximum temperature limit of the device",
+        "min_millivolt": "The minimum voltage output (millivolts) of the device",
+        "max_millivolt": "The maximum voltage output (millivolts) of the device",
+    },
+):
     """An interface for the Seneca K107USB serial converter.
 
     This device communicates through the MODBUS-RTU protocol and outputs data from
@@ -58,7 +69,7 @@ class SenecaK107(SerialDevice, TemperatureMonitorBase, description="Seneca K107"
         """Create a new SenecaK107.
 
         Args:
-            port: Description of USB port (vendor ID + product ID + serial number)
+            port: Description of USB port (vendor ID + product ID)
             baudrate: Baud rate of port
             min_temp: The minimum temperature limit of the device.
             max_temp: The maximum temperature limit of the device.
@@ -146,6 +157,9 @@ class SenecaK107(SerialDevice, TemperatureMonitorBase, description="Seneca K107"
     def calc_temp(self, vals: numpy.ndarray) -> numpy.ndarray:
         """Convert data read from the SenecaK107 device into temperatures.
 
+        Any readings outside the minimum and maximum temperature values will be changed
+        to NaNs and a warning will be raised in the logs.
+
         Args:
             vals: The numpy array described by the data received from the device.
 
@@ -160,6 +174,13 @@ class SenecaK107(SerialDevice, TemperatureMonitorBase, description="Seneca K107"
         calc *= self.SCALING_FACTOR
         # Adjusts for minimum temperature limit
         calc += self.MIN_TEMP
+
+        calc[calc > self.MAX_TEMP] = numpy.nan
+        calc[calc < self.MIN_TEMP] = numpy.nan
+
+        if numpy.isnan(calc).any():
+            logging.warning(f"Out-of-range temperature(s) detected: {calc}")
+
         return calc
 
     def get_temperatures(self) -> Sequence:

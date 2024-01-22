@@ -5,9 +5,7 @@ from finesse.config import ANGLE_PRESETS, STEPPER_MOTOR_TOPIC
 from finesse.hardware.device import Device
 
 
-class StepperMotorBase(
-    Device, is_base_type=True, name=STEPPER_MOTOR_TOPIC, description="Stepper motor"
-):
+class StepperMotorBase(Device, name=STEPPER_MOTOR_TOPIC, description="Stepper motor"):
     """A base class for stepper motor implementations."""
 
     def __init__(self) -> None:
@@ -16,11 +14,6 @@ class StepperMotorBase(
         Subscribe to stepper motor pubsub messages.
         """
         super().__init__()
-
-        # Versions of methods which catch and broadcast errors via pubsub
-        self._move_to = self.pubsub_errors(self.move_to)
-        self._stop_moving = self.pubsub_errors(self.stop_moving)
-        self._notify_on_stopped = self.pubsub_errors(self.notify_on_stopped)
 
         self.subscribe(self.move_to, "move.begin")
         self.subscribe(self.stop_moving, "stop")

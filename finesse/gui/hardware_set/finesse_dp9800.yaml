@@ -3,17 +3,17 @@ devices:
   stepper_motor:
     class_name: stepper_motor.st10_controller.ST10Controller
     params:
-      port: "0403:6011 FT1NMSVR (4)"
+      port: "0403:6011"
       baudrate: 9600
   temperature_controller.hot_bb:
     class_name: temperature.tc4820.TC4820
     params:
-      port: "0403:6011 FT1NMSVR (2)"
+      port: "0403:6011 (2)"
       baudrate: 115200
   temperature_controller.cold_bb:
     class_name: temperature.tc4820.TC4820
     params:
-      port: "0403:6011 FT1NMSVR (3)"
+      port: "0403:6011 (3)"
       baudrate: 115200
   temperature_monitor:
     class_name: temperature.dp9800.DP9800
@@ -21,4 +21,6 @@ devices:
       port: "0403:6001"
       baudrate: 38400
   em27_sensors:
-    class_name: em27.em27_sensors.EM27Sensors
+    class_name: spectrometer.em27_sensors.EM27Sensors
+  spectrometer:
+    class_name: spectrometer.opus_interface.OPUSInterface

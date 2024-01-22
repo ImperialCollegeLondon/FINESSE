@@ -13,15 +13,14 @@ from typing import Any
 
 import yaml
 from pubsub import pub
-from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import QWidget
 from schema import And, Or, Schema, SchemaError
 from statemachine import State, StateMachine
 
-from finesse.config import ANGLE_PRESETS, STEPPER_MOTOR_TOPIC
+from finesse.config import ANGLE_PRESETS, SPECTROMETER_TOPIC, STEPPER_MOTOR_TOPIC
 from finesse.device_info import DeviceInstanceRef
-from finesse.em27_info import EM27Status
 from finesse.gui.error_message import show_error_message
+from finesse.spectrometer_status import SpectrometerStatus
 
 
 @dataclass(frozen=True)
@@ -77,7 +76,7 @@ class Script:
             with open(file_path) as f:
                 return cls(file_path, **parse_script(f))
         except OSError as e:
-            show_error_message(parent, f"Error: Could not read {file_path}: {str(e)}")
+            show_error_message(parent, f"Error: Could not read {file_path}: {e!s}")
         except ParseError:
             show_error_message(parent, f"Error: {file_path} is in an invalid format")
         return None
@@ -125,11 +124,6 @@ def parse_script(script: str | TextIOBase) -> dict[str, Any]:
         raise ParseError() from e
 
 
-def _poll_em27_status() -> None:
-    """Request the EM27's status from OPUS."""
-    pub.sendMessage("opus.request", command="status")
-
-
 class ScriptIterator:
     """Allows for iterating through a Script with the required number of repeats."""
 
@@ -169,7 +163,7 @@ class ScriptRunner(StateMachine):
 
     The state diagram looks like this:
 
-    ![](../../../../script_runner_graph.png)
+    ![](../../../../ScriptRunner.png)
     """
 
     not_running = State("Not running", initial=True)
@@ -185,43 +179,39 @@ class ScriptRunner(StateMachine):
 
     start_moving = not_running.to(moving)
     """Start moving the motor to the required angle for the current measurement."""
+    finish_moving = moving.to(waiting_to_measure)
+    """Finish the moving stage."""
     finish_waiting_for_move = waiting_to_move.to(moving)
     """Stop waiting and start the next move."""
     cancel_move = moving.to(
         not_running, after=lambda: pub.sendMessage(f"device.{STEPPER_MOTOR_TOPIC}.stop")
     )
     """Cancel the current movement."""
-    start_measuring = moving.to(waiting_to_measure)
-    """Start recording the current measurement."""
+    start_measuring = waiting_to_measure.to(measuring)
+    """Start recording for the current measurement."""
     repeat_measuring = measuring.to(waiting_to_measure)
     """Record another measurement at the same angle."""
-    finish_waiting_for_measure = waiting_to_measure.to(measuring)
-    """Stop waiting and start the next measurement."""
     cancel_measuring = measuring.to(not_running)
     """Cancel the current measurement."""
     start_next_move = measuring.to(waiting_to_move)
     """Trigger a move to the angle for the next measurement."""
     finish = moving.to(not_running)
     """To be called when all measurements are complete."""
+    cancel_waiting_to_move = waiting_to_move.to(not_running)
+    """Cancel the script from a waiting to move state."""
+    cancel_waiting_to_measure = waiting_to_measure.to(not_running)
+    """Cancel the script from a waiting to measure state."""
 
     def __init__(
         self,
         script: Script,
-        min_poll_interval: float = 1.0,
         parent: QWidget | None = None,
     ) -> None:
         """Create a new ScriptRunner.
 
-        Note that the EM27 often takes more than one second to respond to requests,
-        hence why we set a minimum polling interval rather than an absolute one.
-
         Args:
             script: The script to run
-            min_poll_interval: Minimum rate at which to poll EM27 (seconds)
             parent: The parent widget
-
-        Todo:
-            Error handling for the stepper motor
         """
         self.script = script
         """The running script."""
@@ -236,12 +226,6 @@ class ScriptRunner(StateMachine):
         """The current measurement to acquire."""
         self.current_measurement_count: int
         """How many times a measurement has been recorded at the current angle."""
-
-        self._check_status_timer = QTimer()
-        """A timer which checks whether the EM27's measurement is complete."""
-        self._check_status_timer.setSingleShot(True)
-        self._check_status_timer.setInterval(round(1000 * min_poll_interval))
-        self._check_status_timer.timeout.connect(_poll_em27_status)
 
         # Send stop command in case motor is moving
         pub.sendMessage(f"device.{STEPPER_MOTOR_TOPIC}.stop")
@@ -268,31 +252,29 @@ class ScriptRunner(StateMachine):
             return
 
         # Stepper motor messages
-        pub.unsubscribe(self.start_measuring, f"device.{STEPPER_MOTOR_TOPIC}.move.end")
+        pub.unsubscribe(self.finish_moving, f"device.{STEPPER_MOTOR_TOPIC}.move.end")
         pub.unsubscribe(
             self._on_stepper_motor_error, f"device.error.{STEPPER_MOTOR_TOPIC}"
         )
 
         # EM27 messages
-        pub.unsubscribe(self._measuring_error, "opus.error")
-        pub.unsubscribe(self._measuring_started, "opus.response.start")
-        pub.unsubscribe(self._status_received, "opus.response.status")
+        pub.unsubscribe(
+            self._on_spectrometer_error, f"device.error.{SPECTROMETER_TOPIC}"
+        )
 
         # Send message signalling that the measure script is no longer running
         pub.sendMessage("measure_script.end")
 
     def on_exit_not_running(self) -> None:
-        """Subscribe to pubsub messages for the stepper motor and OPUS."""
+        """Subscribe to pubsub messages for the stepper motor and spectrometer."""
         # Listen for stepper motor messages
-        pub.subscribe(self.start_measuring, f"device.{STEPPER_MOTOR_TOPIC}.move.end")
+        pub.subscribe(self.finish_moving, f"device.{STEPPER_MOTOR_TOPIC}.move.end")
         pub.subscribe(
             self._on_stepper_motor_error, f"device.error.{STEPPER_MOTOR_TOPIC}"
         )
 
-        # Listen for EM27 messages
-        pub.subscribe(self._measuring_error, "opus.error")
-        pub.subscribe(self._measuring_started, "opus.response.start")
-        pub.subscribe(self._status_received, "opus.response.status")
+        # Listen for spectrometer messages
+        pub.subscribe(self._on_spectrometer_error, f"device.error.{SPECTROMETER_TOPIC}")
 
     def _load_next_measurement(self) -> bool:
         """Load the next measurement in the sequence.
@@ -328,17 +310,12 @@ class ScriptRunner(StateMachine):
         # Flag that we want a message when the movement has stopped
         pub.sendMessage(f"device.{STEPPER_MOTOR_TOPIC}.notify_on_stopped")
 
-    def on_enter_measuring(self) -> None:
-        """Tell the EM27 to start a new measurement.
-
-        NB: This is also invoked on repeat measurements
-        """
-        pub.sendMessage("measure_script.start_measuring", script_runner=self)
-        pub.sendMessage("opus.request", command="start")
-
     def on_exit_measuring(self) -> None:
-        """Ensure that the polling timer is stopped."""
-        self._check_status_timer.stop()
+        """Unsubscribe from pubsub topics."""
+        pub.unsubscribe(
+            self._measuring_end,
+            f"device.{SPECTROMETER_TOPIC}.status.connected",
+        )
 
     def on_enter_waiting_to_move(self) -> None:
         """Move onto the next move unless the script is paused."""
@@ -347,37 +324,38 @@ class ScriptRunner(StateMachine):
 
     def on_enter_waiting_to_measure(self) -> None:
         """Move onto the next measurement unless the script is paused."""
+        pub.subscribe(
+            self._measuring_start, f"device.{SPECTROMETER_TOPIC}.status.measuring"
+        )
+
         if not self.paused:
-            self.finish_waiting_for_measure()
+            self._request_measurement()
 
-    def _measuring_started(
-        self,
-        status: EM27Status,
-        text: str,
-        error: tuple[int, str] | None,
-    ):
-        """Start polling the EM27 so we know when the measurement is finished."""
-        if error:
-            self._on_em27_error_message(*error)
-        else:
-            _poll_em27_status()
+    def on_exit_waiting_to_measure(self) -> None:
+        """Unsubscribe from pubsub topics."""
+        pub.unsubscribe(
+            self._measuring_start, f"device.{SPECTROMETER_TOPIC}.status.measuring"
+        )
 
-    def _status_received(
-        self,
-        status: EM27Status,
-        text: str,
-        error: tuple[int, str] | None,
-    ):
-        """Move on to the next measurement if the measurement has finished."""
-        if error:
-            self._on_em27_error_message(*error)
-            return
+    def _request_measurement(self) -> None:
+        """Tell the spectrometer to start a new measurement.
 
-        if status == EM27Status.CONNECTED:  # indicates measurement is finished
-            self._measuring_end()
-        else:
-            # Poll again later
-            self._check_status_timer.start()
+        NB: This is also invoked on repeat measurements
+        """
+        pub.sendMessage("measure_script.start_measuring", script_runner=self)
+        pub.sendMessage(f"device.{SPECTROMETER_TOPIC}.start_measuring")
+
+    def _measuring_start(self, status: SpectrometerStatus):
+        """Start the next measurement."""
+        pub.unsubscribe(
+            self._measuring_start, f"device.{SPECTROMETER_TOPIC}.status.measuring"
+        )
+        self.start_measuring()
+
+        # Listen for status changes
+        pub.subscribe(
+            self._measuring_end, f"device.{SPECTROMETER_TOPIC}.status.connected"
+        )
 
     def abort(self) -> None:
         """Abort the current measure script run."""
@@ -387,9 +365,10 @@ class ScriptRunner(StateMachine):
                 self.cancel_move()
             case self.measuring:
                 self.cancel_measuring()
-            case self.waiting_to_measure | self.waiting_to_move:
-                # These states don't need any special handling
-                self.current_state = self.not_running
+            case self.waiting_to_measure:
+                self.cancel_waiting_to_measure()
+            case self.waiting_to_move:
+                self.cancel_waiting_to_move()
 
         logging.info("Aborting measure script")
 
@@ -406,7 +385,7 @@ class ScriptRunner(StateMachine):
             case self.waiting_to_move:
                 self.finish_waiting_for_move()
             case self.waiting_to_measure:
-                self.finish_waiting_for_measure()
+                self._request_measurement()
 
     def _on_stepper_motor_error(
         self, instance: DeviceInstanceRef, error: BaseException
@@ -414,39 +393,22 @@ class ScriptRunner(StateMachine):
         """Call abort()."""
         self.abort()
 
-    def _on_em27_error(self, message: str) -> None:
+    def _on_spectrometer_error(
+        self, instance: DeviceInstanceRef, error: Exception
+    ) -> None:
         """Cancel current measurement and show an error message to the user."""
         self.abort()
 
         show_error_message(
             self.parent,
-            f"EM27 error occurred. Measure script will stop running.\n\n{message}",
+            "Error occurred with spectrometer. "
+            f"The measure script will stop running.\n\n{error!s}",
         )
 
-    def _on_em27_error_message(self, errcode: int, errmsg: str) -> None:
-        """Error reported by EM27 system."""
-        self._on_em27_error(f"Error {errcode}: {errmsg}")
-
-    def _measuring_error(self, error: BaseException) -> None:
-        """Log errors from OPUS."""
-        self._on_em27_error(str(error))
-
-    def _measuring_end(self) -> None:
+    def _measuring_end(self, status: SpectrometerStatus) -> None:
         """Move onto the next measurement or perform another measurement here."""
         self.current_measurement_count += 1
         if self.current_measurement_count == self.current_measurement.measurements:
             self.start_next_move()
         else:
             self.repeat_measuring()
-
-
-if __name__ == "__main__":
-    # Generate state diagram for ScriptRunner
-    from statemachine.contrib.diagram import DotGraphMachine
-
-    import finesse
-
-    graph = DotGraphMachine(ScriptRunner)
-
-    doc_dir = Path(finesse.__file__).parent.parent / "docs"
-    graph().write_png(str(doc_dir / "script_runner_graph.png"))
