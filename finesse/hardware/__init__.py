@@ -1,26 +1,13 @@
 """This module contains code for interfacing with different hardware devices."""
-import sys
+from collections.abc import Sequence
+from datetime import datetime
 from decimal import Decimal
 
 from pubsub import pub
 
-if "--dummy-em27" in sys.argv:
-    from finesse.hardware.plugins.em27.dummy_opus_interface import (
-        DummyOPUSInterface as OPUSInterface,
-    )
-else:
-    from finesse.hardware.plugins.em27.opus_interface import (  # type: ignore
-        OPUSInterface,
-    )
-
-from collections.abc import Sequence
-from datetime import datetime
-
 from finesse.config import NUM_TEMPERATURE_MONITOR_CHANNELS, TEMPERATURE_MONITOR_TOPIC
 from finesse.hardware import data_file_writer  # noqa: F401
 from finesse.hardware.plugins.temperature import get_temperature_monitor_instance
-
-_opus: OPUSInterface
 
 
 def _try_get_temperatures() -> Sequence | None:
@@ -44,7 +31,10 @@ _DEFAULT_TEMPS = [Decimal("nan")] * NUM_TEMPERATURE_MONITOR_CHANNELS
 
 def _send_temperatures() -> None:
     """Send the current temperatures (or NaNs) via pubsub."""
-    temperatures = _try_get_temperatures() or _DEFAULT_TEMPS
+    temperatures = _try_get_temperatures()
+    if temperatures is None:
+        temperatures = _DEFAULT_TEMPS
+
     time = datetime.utcnow()
     pub.sendMessage(
         f"device.{TEMPERATURE_MONITOR_TOPIC}.data.response",
@@ -54,18 +44,3 @@ def _send_temperatures() -> None:
 
 
 pub.subscribe(_send_temperatures, f"device.{TEMPERATURE_MONITOR_TOPIC}.data.request")
-
-
-def _init_hardware():
-    global _opus
-
-    _opus = OPUSInterface()
-
-
-def _stop_hardware():
-    global _opus
-    del _opus
-
-
-pub.subscribe(_init_hardware, "window.opened")
-pub.subscribe(_stop_hardware, "window.closed")

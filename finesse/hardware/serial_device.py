@@ -1,6 +1,9 @@
 """Provides a base class for USB serial devices."""
 from __future__ import annotations
 
+import logging
+import re
+
 from serial import Serial, SerialException
 from serial.tools.list_ports import comports
 
@@ -10,23 +13,27 @@ from finesse.hardware.device import AbstractDevice
 _serial_ports: dict[str, str] | None = None
 
 
-def _port_info_to_str(
-    vendor_id: int, product_id: int, serial_number: str | None = None, count: int = 0
-) -> str:
+def _port_info_to_str(vendor_id: int, product_id: int, count: int = 0) -> str:
     """Convert USB port information to a formatted string.
 
     Args:
         vendor_id: USB vendor ID
         product_id: USB product ID
-        serial_number: USB serial number (not always present)
         count: Extra field to distinguish devices
     """
     out = f"{vendor_id:04x}:{product_id:04x}"
-    if serial_number:
-        out += f" {serial_number}"
     if count > 0:
         out += f" ({count+1})"
     return out
+
+
+def _get_port_number(port: str) -> int:
+    """Get the port number from the end of a port's name."""
+    match = re.match("[^0-9]*([0-9]+)$", port)
+    if not match:
+        raise ValueError(f"Port {port} does not end with a number")
+
+    return int(match.group(1))
 
 
 def _get_usb_serial_ports() -> dict[str, str]:
@@ -38,22 +45,30 @@ def _get_usb_serial_ports() -> dict[str, str]:
     if _serial_ports is not None:
         return _serial_ports
 
-    # Keep track of ports with the same vendor ID, product ID and serial number and
-    # assign them an additional number to distinguish them
-    counter: dict[tuple[int, int, str | None], int] = {}
+    # Keep track of ports with the same vendor and product ID and assign them an
+    # additional number to distinguish them
+    counter: dict[tuple[int, int], int] = {}
     _serial_ports = {}
-    for port in comports():
+    for port in sorted(comports(), key=lambda port: _get_port_number(port.device)):
         # Vendor ID is a USB-specific field, so we can use this to check whether the
         # device is USB or not
         if port.vid is None:
             continue
 
-        key = (port.vid, port.pid, port.serial_number)
+        key = (port.vid, port.pid)
         if key not in counter:
             counter[key] = 0
 
         _serial_ports[_port_info_to_str(*key, counter[key])] = port.device
         counter[key] += 1
+
+    if not _serial_ports:
+        logging.warning("No USB serial devices found")
+    else:
+        port_strs = "".join(
+            f"\n\t- {port}: {desc}" for desc, port in _serial_ports.items()
+        )
+        logging.info(f"Found the following USB serial devices:{port_strs}")
 
     # Sort by the string representation of the key
     _serial_ports = dict(sorted(_serial_ports.items(), key=lambda item: item[0]))
@@ -65,7 +80,7 @@ class SerialDevice(
     AbstractDevice,
     parameters={
         "port": (
-            "USB port, including vendor ID, product ID and serial number",
+            "USB port (vendor and product ID)",
             tuple(_get_usb_serial_ports().keys()),
         ),
         "baudrate": ("Baud rate", BAUDRATES),
@@ -87,7 +102,7 @@ class SerialDevice(
         """Create a new serial device.
 
         Args:
-            port: Description of USB port (vendor ID + product ID + serial number)
+            port: Description of USB port (vendor ID + product ID)
             baudrate: Baud rate of port
         """
         try:

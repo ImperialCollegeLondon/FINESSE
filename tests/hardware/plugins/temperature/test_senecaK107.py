@@ -87,12 +87,12 @@ def test_parse_data(dev: SenecaK107, data: bytes) -> None:
     expected = [
         19.946250000000006,
         20.085000000000008,
-        631.4406250000001,
-        631.4175,
+        numpy.nan,
+        numpy.nan,
         20.14281249999999,
-        631.4406250000001,
+        numpy.nan,
         19.946250000000006,
-        631.4406250000001,
+        numpy.nan,
     ]
     parsed = dev.parse_data(data)
 

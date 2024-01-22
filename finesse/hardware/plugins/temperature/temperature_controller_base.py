@@ -9,7 +9,6 @@ from finesse.hardware.device import Device
 
 class TemperatureControllerBase(
     Device,
-    is_base_type=True,
     name=TEMPERATURE_CONTROLLER_TOPIC,
     description="Temperature controller",
     names_short=("hot_bb", "cold_bb"),

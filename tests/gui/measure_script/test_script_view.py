@@ -1,17 +1,16 @@
 """Tests for ScriptControl."""
-from itertools import product
 from pathlib import Path
 from typing import cast
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, Mock, call, patch
 
 import pytest
 from PySide6.QtWidgets import QPushButton, QWidget
 from pytestqt.qtbot import QtBot
 
-from finesse.config import DEFAULT_SCRIPT_PATH
-from finesse.em27_info import EM27Status
+from finesse.config import DEFAULT_SCRIPT_PATH, SPECTROMETER_TOPIC
 from finesse.gui.measure_script.script_run_dialog import ScriptRunDialog
 from finesse.gui.measure_script.script_view import ScriptControl
+from finesse.spectrometer_status import SpectrometerStatus
 
 
 @pytest.fixture
@@ -39,16 +38,24 @@ def test_init(settings_mock: Mock, subscribe_mock: Mock, qtbot: QtBot) -> None:
     """Test ScriptControl's constructor."""
     settings_mock.value.return_value = "/my/path.yaml"
     script_control = ScriptControl()
+    assert not script_control._spectrometer_ready
 
     # Check we are subscribed to the relevant pubsub messages
-    subscribe_mock.assert_any_call(
-        script_control._show_run_dialog, "measure_script.begin"
+    subscribe_mock.assert_has_calls(
+        (
+            call(script_control._show_run_dialog, "measure_script.begin"),
+            call(script_control._hide_run_dialog, "measure_script.end"),
+            call(
+                script_control._on_spectrometer_status_changed,
+                f"device.{SPECTROMETER_TOPIC}.status",
+            ),
+            call(
+                script_control._on_spectrometer_disconnect,
+                f"device.closed.{SPECTROMETER_TOPIC}",
+            ),
+        ),
+        any_order=True,
     )
-    subscribe_mock.assert_any_call(
-        script_control._hide_run_dialog, "measure_script.end"
-    )
-    subscribe_mock.assert_any_call(script_control._on_opus_message, "opus.response")
-    assert not script_control._opus_connected
 
 
 @patch("finesse.gui.measure_script.script_view.settings")
@@ -267,47 +274,66 @@ def test_hide_run_dialog_no_abort(
     sendmsg_mock.assert_not_called()
 
 
-@pytest.mark.parametrize(
-    "status,already_connected",
-    product((EM27Status(i) for i in range(2, 6)), (True, False)),
-)
-def test_on_opus_message_connect(
-    status: EM27Status,
-    already_connected: bool,
-    script_control: ScriptControl,
-    qtbot: QtBot,
+@pytest.mark.parametrize("old_ready_state", (True, False))
+def test_set_spectrometer_ready(
+    old_ready_state: bool, script_control: ScriptControl, qtbot: QtBot
 ) -> None:
-    """Test the _on_opus_message() method when connecting."""
-    script_control._opus_connected = already_connected
+    """Test the _set_spectrometer_ready() method when the status becomes ready."""
+    script_control._spectrometer_ready = old_ready_state
 
     with patch.object(script_control, "_enable_counter") as counter_mock:
-        script_control._on_opus_message(status, "", None)
-        if already_connected:
+        script_control._set_spectrometer_ready(True)
+        if old_ready_state:
             counter_mock.increment.assert_not_called()
         else:
             counter_mock.increment.assert_called_once_with()
 
-        assert script_control._opus_connected
+        assert script_control._spectrometer_ready
 
 
-@pytest.mark.parametrize(
-    "status,already_connected",
-    product((EM27Status.CONNECTING, EM27Status.UNDEFINED), (True, False)),
-)
-def test_on_opus_message_disconnect(
-    status: EM27Status,
-    already_connected: bool,
-    script_control: ScriptControl,
-    qtbot: QtBot,
+@pytest.mark.parametrize("old_ready_state", (True, False))
+def test_set_spectrometer_not_ready(
+    old_ready_state: bool, script_control: ScriptControl, qtbot: QtBot
 ) -> None:
-    """Test the _on_opus_message() method when disconnecting."""
-    script_control._opus_connected = already_connected
+    """Test the _set_spectrometer_ready() method when the status becomes not ready."""
+    script_control._spectrometer_ready = old_ready_state
 
     with patch.object(script_control, "_enable_counter") as counter_mock:
-        script_control._on_opus_message(status, "", None)
-        if not already_connected:
+        script_control._set_spectrometer_ready(False)
+        if not old_ready_state:
             counter_mock.decrement.assert_not_called()
         else:
             counter_mock.decrement.assert_called_once_with()
 
-        assert not script_control._opus_connected
+        assert not script_control._spectrometer_ready
+
+
+def test_on_spectrometer_status_changed_ready(
+    script_control: ScriptControl, qtbot: QtBot
+) -> None:
+    """Test the _on_spectrometer_status_changed() method when it becomes ready."""
+    with patch.object(script_control, "_set_spectrometer_ready") as ready_mock:
+        script_control._on_spectrometer_status_changed(SpectrometerStatus.CONNECTED)
+        ready_mock.assert_called_once_with(True)
+
+
+@pytest.mark.parametrize(
+    "status",
+    (status for status in SpectrometerStatus if status != SpectrometerStatus.CONNECTED),
+)
+def test_on_spectrometer_status_changed_not_ready(
+    status: SpectrometerStatus, script_control: ScriptControl, qtbot: QtBot
+) -> None:
+    """Test the _on_spectrometer_status_changed() method when it becomes not ready."""
+    with patch.object(script_control, "_set_spectrometer_ready") as ready_mock:
+        script_control._on_spectrometer_status_changed(status)
+        ready_mock.assert_called_once_with(False)
+
+
+def test_on_spectrometer_disconnect(
+    script_control: ScriptControl, qtbot: QtBot
+) -> None:
+    """Test the _on_spectrometer_disconnect() method."""
+    with patch.object(script_control, "_set_spectrometer_ready") as ready_mock:
+        script_control._on_spectrometer_disconnect(MagicMock())
+        ready_mock.assert_called_once_with(False)

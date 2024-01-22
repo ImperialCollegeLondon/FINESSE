@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import Mapping, Sequence
-from typing import AbstractSet, Any, cast
+from collections.abc import Mapping, Sequence, Set
+from typing import Any, cast
 
 from pubsub import pub
 from PySide6.QtWidgets import (
@@ -186,10 +186,7 @@ class DeviceTypeControl(QGroupBox):
             self._device_widgets.append(widget)
 
         # Select the last device that was successfully opened, if there is one
-        topic = instance.topic
-        previous_device = cast(
-            str | None, settings.value(f"device/type/{instance.topic}")
-        )
+        previous_device = cast(str | None, settings.value(f"device/type/{instance!s}"))
         if previous_device:
             self._select_device(previous_device)
 
@@ -217,9 +214,8 @@ class DeviceTypeControl(QGroupBox):
         self._device_combo.currentIndexChanged.connect(self._on_device_selected)
 
         # pubsub subscriptions
-        pub.subscribe(self._on_device_opened, f"device.opening.{topic}")
-        pub.subscribe(self._set_device_closed, f"device.closed.{topic}")
-        pub.subscribe(self._show_error_message, f"device.error.{topic}")
+        pub.subscribe(self._on_device_opened, f"device.opening.{instance!s}")
+        pub.subscribe(self._on_device_closed, f"device.closed.{instance!s}")
 
     def _update_open_btn_enabled_state(self) -> None:
         """Enable button depending on whether there are options for all params.
@@ -278,7 +274,7 @@ class DeviceTypeControl(QGroupBox):
             # Reload saved parameter values
             self._device_widgets[idx].load_saved_parameter_values()
 
-    def _set_device_closed(self, **kwargs) -> None:
+    def _set_device_closed(self) -> None:
         """Update the GUI for when the device is opened."""
         self._set_combos_enabled(True)
         self._open_close_btn.setText("Open")
@@ -304,23 +300,13 @@ class DeviceTypeControl(QGroupBox):
         """Update the GUI on device open."""
         self._set_device_opened(class_name)
 
+    def _on_device_closed(self, instance: DeviceInstanceRef) -> None:
+        """Update the GUI on device close."""
+        self._set_device_closed()
+
     def _close_device(self) -> None:
         """Close the device."""
         close_device(self._device_instance)
-
-    def _show_error_message(
-        self, instance: DeviceInstanceRef, error: BaseException
-    ) -> None:
-        """Show an error message when something has gone wrong with the device.
-
-        Todo:
-            The name of the device isn't currently very human readable.
-        """
-        show_error_message(
-            self,
-            f"A fatal error has occurred with the {instance.topic} device: {error!s}",
-            title="Device error",
-        )
 
     def _on_open_close_clicked(self) -> None:
         """Open/close the connection of the chosen device when the button is pushed."""
@@ -333,7 +319,7 @@ class DeviceTypeControl(QGroupBox):
 class DeviceControl(QGroupBox):
     """Allows for viewing and connecting to devices."""
 
-    def __init__(self, connected_devices: AbstractSet[OpenDeviceArgs]) -> None:
+    def __init__(self, connected_devices: Set[OpenDeviceArgs]) -> None:
         """Create a new DeviceControl."""
         super().__init__("Device control")
         self.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)

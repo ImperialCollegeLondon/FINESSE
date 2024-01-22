@@ -2,6 +2,8 @@
 from importlib.metadata import version
 from pathlib import Path
 
+from platformdirs import user_config_path
+
 APP_NAME = "FINESSE"
 """A human-readable name for the app."""
 
@@ -10,6 +12,12 @@ APP_AUTHOR = "Imperial College London"
 
 APP_VERSION = version("finesse")
 """The current version of the app."""
+
+APP_CONFIG_PATH = user_config_path(APP_NAME, APP_AUTHOR, ensure_exists=True)
+"""Path where config files will be saved."""
+
+HARDWARE_SET_USER_PATH = APP_CONFIG_PATH / "hardware_sets"
+"""Path where user-added hardware set config files will be saved."""
 
 ANGLE_PRESETS = {
     "zenith": 180.0,
@@ -59,6 +67,17 @@ TEMPERATURE_CONTROLLER_TOPIC = "temperature_controller"
 
 OPUS_IP = "10.10.0.2"
 """The IP address of the machine running the OPUS software."""
+
+OPUS_POLLING_INTERVAL = 1.0
+"""How long to wait between polls of the EM27's status.
+
+Note that in reality the minimum poll interval is ~2s, because that's how long the
+device takes to reply. This value then determines how often we wait before even starting
+a request.
+"""
+
+SPECTROMETER_TOPIC = "spectrometer"
+"""The topic name to use for spectrometer-related messages."""
 
 TEMPERATURE_CONTROLLER_POLL_INTERVAL = 2
 """Number of seconds between temperature controller device reads."""

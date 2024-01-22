@@ -5,14 +5,15 @@ from typing import cast
 from pubsub import pub
 from PySide6.QtWidgets import QFileDialog, QGridLayout, QGroupBox, QPushButton
 
-from finesse.config import DEFAULT_SCRIPT_PATH, STEPPER_MOTOR_TOPIC
-from finesse.em27_info import EM27Status
-from finesse.event_counter import EventCounter
+from finesse.config import DEFAULT_SCRIPT_PATH, SPECTROMETER_TOPIC, STEPPER_MOTOR_TOPIC
+from finesse.device_info import DeviceInstanceRef
+from finesse.gui.event_counter import EventCounter
 from finesse.gui.measure_script.script import Script, ScriptRunner
 from finesse.gui.measure_script.script_edit_dialog import ScriptEditDialog
 from finesse.gui.measure_script.script_run_dialog import ScriptRunDialog
 from finesse.gui.path_widget import OpenFileWidget
 from finesse.settings import settings
+from finesse.spectrometer_status import SpectrometerStatus
 
 
 def _get_previous_script_path() -> Path | None:
@@ -60,9 +61,16 @@ class ScriptControl(QGroupBox):
         layout.addWidget(run_btn, 1, 1)
         self.setLayout(layout)
 
-        # Monitor OPUS messages to enable/disable run button on connect/disconnect
-        self._opus_connected = False
-        pub.subscribe(self._on_opus_message, "opus.response")
+        # Enable the run button when the spectrometer is connected and not already
+        # measuring and disable otherwise
+        self._spectrometer_ready = False
+        pub.subscribe(
+            self._on_spectrometer_status_changed,
+            f"device.{SPECTROMETER_TOPIC}.status",
+        )
+        pub.subscribe(
+            self._on_spectrometer_disconnect, f"device.closed.{SPECTROMETER_TOPIC}"
+        )
 
         # Show/hide self.run_dialog on measure script begin/end
         pub.subscribe(self._show_run_dialog, "measure_script.begin")
@@ -127,17 +135,22 @@ class ScriptControl(QGroupBox):
         self.run_dialog.hide()
         del self.run_dialog
 
-    def _on_opus_message(
-        self, status: EM27Status, text: str, error: tuple[int, str] | None
-    ) -> None:
-        """Increase/decrease the enable counter when the EM27 connects/disconnects."""
-        if status.is_connected == self._opus_connected:
-            # The connection status hasn't changed
+    def _set_spectrometer_ready(self, ready: bool) -> None:
+        if ready == self._spectrometer_ready:
+            # The ready state hasn't changed
             return
 
-        if status.is_connected:
+        self._spectrometer_ready = ready
+
+        if ready:
             self._enable_counter.increment()
         else:
             self._enable_counter.decrement()
 
-        self._opus_connected = status.is_connected
+    def _on_spectrometer_status_changed(self, status: SpectrometerStatus) -> None:
+        """Change the enable counter when the spectrometer's status changes."""
+        self._set_spectrometer_ready(status == SpectrometerStatus.CONNECTED)
+
+    def _on_spectrometer_disconnect(self, instance: DeviceInstanceRef) -> None:
+        """Decrement the enable counter when the spectrometer disconnects."""
+        self._set_spectrometer_ready(False)
