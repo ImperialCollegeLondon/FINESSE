@@ -2,7 +2,7 @@
 from collections.abc import Sequence
 
 import numpy
-from crc import Calculator, Configuration
+from crc import Calculator, Crc16
 from serial import SerialException
 
 from finesse.config import (
@@ -26,31 +26,8 @@ def calculate_crc(data: bytes) -> int:
     Returns:
         bcc: The calculated checksum
     """
-    config = Configuration(
-        width=16,
-        polynomial=0x0001,
-        init_value=0xFFFF,
-        final_xor_value=0xA001,
-        reverse_input=True,
-        reverse_output=False,
-    )
-
-    calculator = Calculator(config)
-    checksum = calculator.checksum(data)
-
-    """
-    # Manual calculation (doesn't currently match calculator.checksum() value)
-    crc = 0xFFFF
-    for x in range(len(data)):
-        crc ^= data[x]
-
-        for y in range(8):
-            if (crc & 0x0001) != 0:
-                crc >>= 1
-                crc ^= 0xA001
-            else:
-                crc >>= 1
-    """
+    calculator = Calculator(Crc16.MODBUS)
+    checksum = calculator.checksum(data[:19])
     return checksum
 
 
@@ -150,17 +127,16 @@ class SenecaK107(SerialDevice, TemperatureMonitorBase, description="Seneca K107"
             A list of Decimals containing the temperature values recorded
                 by the SenecaK107 device.
         """
-        # Changes byte order as data read from device is in big-endian format
-        dt = numpy.dtype(numpy.uint16).newbyteorder(">")
+        crc = calculate_crc(data)
+        check = numpy.frombuffer(data[19:], numpy.dtype(numpy.uint16))
 
-        """
-        # Disabled for now so tests can pass
-        crc = calculate_crc(data[:19])
-        check = numpy.frombuffer(data[19:], dt)
+        print("TEST:", crc, check)
 
         if crc != check:
             raise SenecaK107Error("CRC check failed")
-        """
+
+        # Changes byte order as data read from device is in big-endian format
+        dt = numpy.dtype(numpy.uint16).newbyteorder(">")
 
         # Converts incoming bytes into 16-bit ints
         ints = numpy.frombuffer(data, dt, 8, 3)
