@@ -19,7 +19,7 @@ from finesse.hardware.serial_device import SerialDevice
 
 
 def calculate_crc(data: bytes) -> int:
-    """Calculate block check character.
+    """Perform cyclic redundancy check (crc).
 
     Args:
         data: The message to check
