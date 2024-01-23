@@ -186,5 +186,3 @@ class SenecaK107(
         self.request_read()
         data = self.read()
         return self.parse_data(data)  # type: ignore
-
-
