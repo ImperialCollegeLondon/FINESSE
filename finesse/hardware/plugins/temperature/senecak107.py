@@ -141,7 +141,6 @@ class SenecaK107(
         crc = calculate_crc(data)
         check = numpy.frombuffer(data[19:], numpy.dtype(numpy.uint16))
 
-
         if crc != check:
             raise SenecaK107Error("CRC check failed")
 
