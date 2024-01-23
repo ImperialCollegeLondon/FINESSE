@@ -135,7 +135,7 @@ class SenecaK107(
             data: The bytes read from the device.
 
         Returns:
-            A list of Decimals containing the temperature values recorded
+            An array containing the temperature values recorded
                 by the SenecaK107 device.
         """
         crc = calculate_crc(data)
