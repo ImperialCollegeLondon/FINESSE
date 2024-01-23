@@ -188,7 +188,3 @@ class SenecaK107(
         return self.parse_data(data)  # type: ignore
 
 
-if __name__ == "__main__":
-    # For testing in the lab
-    device = SenecaK107("0403:6001 AB0LMVI5A", 57600)
-    print(device.get_temperatures())
