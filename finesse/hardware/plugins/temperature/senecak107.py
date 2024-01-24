@@ -185,4 +185,4 @@ class SenecaK107(
         """Get the current temperatures."""
         self.request_read()
         data = self.read()
-        return self.parse_data(data)  # type: ignore
+        return self.parse_data(data).tolist()
