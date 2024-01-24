@@ -39,7 +39,7 @@ types-beautifulsoup4 = "^4.12.0.7"
 pytest-qt = "^4.2.0"
 types-decorator = "^5.1.8.4"
 pydot = "^1.4.2"
-ruff = "^0.1.7"
+ruff = "^0.1.14"
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = "^1.4.3"
