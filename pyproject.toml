@@ -24,7 +24,7 @@ python-statemachine = "^2.1.2"
 numpy = "^1.26.2"
 decorator = "^5.1.1"
 pycsvy = "^0.2.2"
-frozendict = "^2.3.10"
+frozendict = "^2.4.0"
 crc = "^6.1.0"
 
 [tool.poetry.group.dev.dependencies]
