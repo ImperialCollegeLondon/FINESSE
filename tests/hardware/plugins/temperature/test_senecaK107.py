@@ -105,7 +105,7 @@ def test_get_temperatures(dev: SenecaK107, data: bytes) -> None:
     with patch.object(dev, "request_read") as request_mock:
         with patch.object(dev, "read", return_value=data) as read_mock:
             with patch.object(dev, "parse_data", return_value=result) as parse_mock:
-                assert dev.get_temperatures() == result
+                assert dev.get_temperatures() == result.tolist()
 
     request_mock.assert_called_once_with()
     read_mock.assert_called_once_with()
