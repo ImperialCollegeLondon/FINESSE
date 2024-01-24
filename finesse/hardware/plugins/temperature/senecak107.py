@@ -3,6 +3,7 @@ import logging
 from collections.abc import Sequence
 
 import numpy
+from crc import Calculator, Crc16
 from serial import SerialException
 
 from finesse.config import (
@@ -15,6 +16,20 @@ from finesse.hardware.plugins.temperature.temperature_monitor_base import (
     TemperatureMonitorBase,
 )
 from finesse.hardware.serial_device import SerialDevice
+
+
+def calculate_crc(data: bytes) -> int:
+    """Perform cyclic redundancy check (crc).
+
+    Args:
+        data: The message to check
+
+    Returns:
+        crc: The calculated checksum
+    """
+    calculator = Calculator(Crc16.MODBUS)  # type: ignore
+    checksum = calculator.checksum(data[:-2])
+    return checksum
 
 
 class SenecaK107Error(Exception):
@@ -79,7 +94,7 @@ class SenecaK107(
         """Read temperature data from the SenecaK107.
 
         Returns:
-            data: the sequence of bytes read from the device
+            data: The sequence of bytes read from the device
 
         Raises:
             SenecaK107Error: Malformed message received from device
@@ -120,11 +135,18 @@ class SenecaK107(
             data: The bytes read from the device.
 
         Returns:
-            A list of Decimals containing the temperature values recorded
+            An array containing the temperature values recorded
                 by the SenecaK107 device.
         """
+        crc = calculate_crc(data)
+        check = numpy.frombuffer(data[19:], numpy.dtype(numpy.uint16))
+
+        if crc != check:
+            raise SenecaK107Error("CRC check failed")
+
         # Changes byte order as data read from device is in big-endian format
         dt = numpy.dtype(numpy.uint16).newbyteorder(">")
+
         # Converts incoming bytes into 16-bit ints
         ints = numpy.frombuffer(data, dt, 8, 3)
 
@@ -163,4 +185,4 @@ class SenecaK107(
         """Get the current temperatures."""
         self.request_read()
         data = self.read()
-        return self.parse_data(data)  # type: ignore
+        return self.parse_data(data).tolist()
