@@ -19,7 +19,6 @@ class SpectrometerControl(DevicePanel):
             "connect": "Connect",
             "start_measuring": "Start",
             "stop_measuring": "Stop",
-            "cancel_measuring": "Cancel",
         }
     )
     """The default commands shown (key=command, value=label)."""
@@ -28,7 +27,7 @@ class SpectrometerControl(DevicePanel):
         {
             SpectrometerStatus.IDLE: {"connect"},
             SpectrometerStatus.CONNECTED: {"start_measuring"},
-            SpectrometerStatus.MEASURING: {"stop_measuring", "cancel_measuring"},
+            SpectrometerStatus.MEASURING: {"stop_measuring"},
         }
     )
     """Which buttons to enable for different states."""

@@ -59,7 +59,7 @@ def test_sm_init(
     sm = OPUSStateMachine(duration_secs)
     timer.setInterval.assert_called_once_with(duration_ms)
     timer.setSingleShot.assert_called_once_with(True)
-    timer.timeout.connect.assert_called_once_with(sm.stop)
+    timer.timeout.connect.assert_called_once_with(sm._on_measure_finished)
 
 
 def test_sm_connect(sm: OPUSStateMachine) -> None:
@@ -89,19 +89,6 @@ def test_sm_stop(sm: OPUSStateMachine) -> None:
         observer = _MockObserver()
         sm.add_observer(observer)
         sm.stop()
-        observer.assert_has_states(
-            OPUSStateMachine.finishing, OPUSStateMachine.connected
-        )
-        timer_mock.stop.assert_called_once_with()
-
-
-def test_sm_cancel(sm: OPUSStateMachine) -> None:
-    """Test the cancel() method."""
-    with patch.object(sm, "measure_timer") as timer_mock:
-        sm.current_state = OPUSStateMachine.measuring
-        observer = _MockObserver()
-        sm.add_observer(observer)
-        sm.cancel()
         observer.assert_has_states(
             OPUSStateMachine.cancelling, OPUSStateMachine.connected
         )
