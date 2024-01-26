@@ -36,13 +36,18 @@ def _get_port_number(port: str) -> int:
     return int(match.group(1))
 
 
-def _get_usb_serial_ports() -> dict[str, str]:
+def _get_usb_serial_ports(refresh: bool = False) -> dict[str, str]:
     """Get the ports for connected USB serial devices.
 
-    The list of ports is only requested from the OS once and the result is cached.
+    The list of ports is only requested from the OS once and the result is cached,
+    unless the refresh argument is set to true.
+
+    Args:
+        refresh: Refresh the list of serial ports even if they have already been
+                 requested
     """
     global _serial_ports
-    if _serial_ports is not None:
+    if _serial_ports is not None and not refresh:
         return _serial_ports
 
     # Keep track of ports with the same vendor and product ID and assign them an
@@ -76,6 +81,24 @@ def _get_usb_serial_ports() -> dict[str, str]:
     return _serial_ports
 
 
+def _create_serial(port: str, baudrate: int, refresh: bool) -> Serial:
+    """Create a new serial device and connect to it.
+
+    Args:
+        port: Description of USB port (vendor ID + product ID)
+        baudrate: Baud rate of port
+        refresh: Whether to force-refresh the list of COM ports
+    """
+    devices = _get_usb_serial_ports(refresh)
+
+    try:
+        device = devices[port]
+    except KeyError:
+        raise SerialException(f'Device not present: "{port!s}"')
+    else:
+        return Serial(port=device, baudrate=baudrate)
+
+
 class SerialDevice(
     AbstractDevice,
     parameters={
@@ -105,12 +128,15 @@ class SerialDevice(
             port: Description of USB port (vendor ID + product ID)
             baudrate: Baud rate of port
         """
+        # If port is unknown, it may be because the user connected the device after the
+        # list of serial ports was retrieved, so we refresh the list to check if it is
+        # now available. Similarly, the COM port may have changed due to the user
+        # disconnecting and reconnecting the device, in which case we also need to
+        # refresh the list.
         try:
-            device = _serial_ports[port]  # type: ignore[index]
-        except KeyError:
-            raise SerialException(f'Device not present: "{port!s}"')
-
-        self.serial = Serial(port=device, baudrate=baudrate)
+            self.serial = _create_serial(port, baudrate, refresh=False)
+        except SerialException:
+            self.serial = _create_serial(port, baudrate, refresh=True)
 
     def close(self) -> None:
         """Close the connection to the device."""
