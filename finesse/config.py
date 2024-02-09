@@ -53,6 +53,18 @@ EM27_SENSORS_POLL_INTERVAL = 60.0
 EM27_SENSORS_TOPIC = "em27_sensors"
 """The topic name to use for EM27 sensor-related messages."""
 
+DECADES_HOST = "localhost"
+"""The IP address or hostname of the DECADES server."""
+
+DECADES_SENSORS_URL = "http://{host}/decades"
+"""The URL of the DECADES server."""
+
+DECADES_SENSORS_POLL_INTERVAL = 60.0
+"""Poll rate for DECADES sensors."""
+
+DECADES_SENSORS_TOPIC = "decades_sensors"
+"""The topic name to use for DECADES sensor-related messages."""
+
 DEFAULT_HTTP_TIMEOUT = 2.0
 """How long to wait for a response from a server for."""
 
