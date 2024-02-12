@@ -2,6 +2,8 @@
 
 This is used to query the DECADES server for aircraft sensor data.
 """
+import json
+
 from PySide6.QtCore import QTimer, Slot
 from PySide6.QtNetwork import QNetworkReply
 
@@ -15,7 +17,7 @@ from finesse.hardware.device import Device
 from finesse.hardware.http_requester import HTTPRequester
 
 
-def get_decades_sensor_data(content: str) -> None:
+def get_decades_sensor_data(content: list[dict]) -> list[dict]:
     """Parse and return sensor data from a DECADES server query.
 
     Args:
@@ -25,11 +27,14 @@ def get_decades_sensor_data(content: str) -> None:
         None
     """
     # TODO: Parse sensor data.
-    return None
+    for sensor in content:
+        print(sensor)
+
+    return content
 
 
 @Slot()
-def _on_reply_received(reply: QNetworkReply) -> None:
+def _on_reply_received(reply: QNetworkReply) -> list[dict]:
     """Handle received HTTP reply.
 
     Args:
@@ -38,7 +43,7 @@ def _on_reply_received(reply: QNetworkReply) -> None:
     if reply.error() != QNetworkReply.NetworkError.NoError:
         raise DecadesError(f"Error: {reply.errorString()}")
 
-    content = reply.readAll().data().decode()
+    content = json.loads(reply.readAll().data().decode())
     return get_decades_sensor_data(content)
 
 
