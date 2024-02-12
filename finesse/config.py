@@ -56,7 +56,7 @@ EM27_SENSORS_TOPIC = "em27_sensors"
 DECADES_HOST = "localhost"
 """The IP address or hostname of the DECADES server."""
 
-DECADES_SENSORS_URL = "http://{host}/decades"
+DECADES_SENSORS_URL = "http://{host}/decades/params"
 """The URL of the DECADES server."""
 
 DECADES_SENSORS_POLL_INTERVAL = 60.0
