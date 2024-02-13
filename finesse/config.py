@@ -82,6 +82,12 @@ FTSW500_HOST = "127.0.0.1"
 FTSW500_PORT = 7778
 """The port on which the TCP server of FTSW500 is listening."""
 
+FTSW500_POLLING_INTERVAL = 1.0
+"""How long to wait between polls of the EM27's status."""
+
+FTSW500_TIMEOUT = 1.0
+"""How long to wait for a response from FTSW500 for."""
+
 SPECTROMETER_TOPIC = "spectrometer"
 """The topic name to use for spectrometer-related messages."""
 
