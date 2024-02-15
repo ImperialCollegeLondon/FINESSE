@@ -19,7 +19,7 @@ from finesse.hardware.device import Device
 from finesse.hardware.http_requester import HTTPRequester
 
 
-def get_decades_sensor_data(content: list[dict]) -> list[dict]:
+def get_decades_sensor_data(content: dict[str, list]) -> dict[str, float]:
     """Parse and return sensor data from a DECADES server query.
 
     Args:
@@ -28,15 +28,17 @@ def get_decades_sensor_data(content: list[dict]) -> list[dict]:
     Returns:
         None
     """
-    # TODO: Parse sensor data.
-    for sensor in content:
-        print(sensor)
+    parsed_content = {}
+    for sensor, value in content.items():
+        # Only values from current epoch should be returned
+        assert len(value) == 1
+        parsed_content[sensor] = value[0]
 
-    return content
+    return parsed_content
 
 
 @Slot()
-def _on_reply_received(reply: QNetworkReply) -> list[dict]:
+def _on_reply_received(reply: QNetworkReply) -> dict[str, float]:
     """Handle received HTTP reply.
 
     Args:
