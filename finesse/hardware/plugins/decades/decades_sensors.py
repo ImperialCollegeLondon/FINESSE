@@ -3,13 +3,15 @@
 This is used to query the DECADES server for aircraft sensor data.
 """
 import json
+import time
 
-from PySide6.QtCore import QTimer, Slot
+from PySide6.QtCore import QTimer, QUrlQuery, Slot
 from PySide6.QtNetwork import QNetworkReply
 
 from finesse.config import (
     DECADES_HOST,
     DECADES_SENSORS_POLL_INTERVAL,
+    DECADES_SENSORS_QUERY_LIST,
     DECADES_SENSORS_TOPIC,
     DECADES_SENSORS_URL,
 )
@@ -78,8 +80,15 @@ class DecadesSensorsBase(
 
         The HTTP request is made on a background thread.
         """
+        epoch_time = str(int(time.time()))
+        url = QUrlQuery(self._url + "?")
+        url.addQueryItem("frm", epoch_time)
+        url.addQueryItem("to", epoch_time)
+        for sensor in DECADES_SENSORS_QUERY_LIST:
+            url.addQueryItem("para", sensor)
+
         self._requester.make_request(
-            self._url,
+            url.toString(),
             self.pubsub_broadcast(_on_reply_received, "data.response", "data"),
         )
 
@@ -89,7 +98,7 @@ class DecadesSensors(
     description="DECADES sensors",
     parameters={
         "host": "The IP address or hostname of the DECADES server",
-        "poll_interval": "How often to poll the device in seconds",
+        "poll_interval": "How often to poll the device (seconds)",
     },
 ):
     """A class for monitoring a DECADES sensor server."""
