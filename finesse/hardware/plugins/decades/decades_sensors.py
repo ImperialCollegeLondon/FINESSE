@@ -30,8 +30,10 @@ def get_decades_sensor_data(content: dict[str, list]) -> dict[str, float]:
     """
     parsed_content = {}
     for sensor, value in content.items():
-        # Only values from current epoch should be returned
-        assert len(value) == 1
+        if len(value) != 1:
+            # Only single values (current time) should be returned
+            raise DecadesError(f"Unexpected number of values for sensor {sensor}")
+
         parsed_content[sensor] = value[0]
 
     return parsed_content
