@@ -10,16 +10,16 @@ from PySide6.QtNetwork import QNetworkReply
 
 from finesse.config import (
     DECADES_HOST,
-    DECADES_SENSORS_POLL_INTERVAL,
-    DECADES_SENSORS_QUERY_LIST,
-    DECADES_SENSORS_TOPIC,
-    DECADES_SENSORS_URL,
+    DECADES_POLL_INTERVAL,
+    DECADES_QUERY_LIST,
+    DECADES_TOPIC,
+    DECADES_URL,
 )
 from finesse.hardware.device import Device
 from finesse.hardware.http_requester import HTTPRequester
 
 
-def get_decades_sensor_data(content: dict[str, list]) -> dict[str, float]:
+def get_decades_data(content: dict[str, list]) -> dict[str, float]:
     """Parse and return sensor data from a DECADES server query.
 
     Args:
@@ -50,16 +50,16 @@ def _on_reply_received(reply: QNetworkReply) -> dict[str, float]:
         raise DecadesError(f"Error: {reply.errorString()}")
 
     content = json.loads(reply.readAll().data().decode())
-    return get_decades_sensor_data(content)
+    return get_decades_data(content)
 
 
 class DecadesError(Exception):
     """Indicates that an error occurred while querying the DECADES server."""
 
 
-class DecadesSensorsBase(
+class DecadesBase(
     Device,
-    name=DECADES_SENSORS_TOPIC,
+    name=DECADES_TOPIC,
     description="DECADES sensors",
 ):
     """An interface for monitoring generic DECADES sensor servers."""
@@ -88,7 +88,7 @@ class DecadesSensorsBase(
         url = QUrlQuery(self._url + "?")
         url.addQueryItem("frm", epoch_time)
         url.addQueryItem("to", epoch_time)
-        for sensor in DECADES_SENSORS_QUERY_LIST:
+        for sensor in DECADES_QUERY_LIST:
             url.addQueryItem("para", sensor)
 
         self._requester.make_request(
@@ -97,8 +97,8 @@ class DecadesSensorsBase(
         )
 
 
-class DecadesSensors(
-    DecadesSensorsBase,
+class Decades(
+    DecadesBase,
     description="DECADES sensors",
     parameters={
         "host": "The IP address or hostname of the DECADES server",
@@ -110,15 +110,15 @@ class DecadesSensors(
     def __init__(
         self,
         host: str = DECADES_HOST,
-        poll_interval: float = DECADES_SENSORS_POLL_INTERVAL,
+        poll_interval: float = DECADES_POLL_INTERVAL,
     ) -> None:
-        """Create a new DecadesSensors.
+        """Create a new Decades instance.
 
         Args:
             host: The IP address or hostname of the DECADES server
             poll_interval: How often to poll the sensors (seconds)
         """
-        super().__init__(DECADES_SENSORS_URL.format(host=host))
+        super().__init__(DECADES_URL.format(host=host))
         self._poll_timer = QTimer()
         self._poll_timer.timeout.connect(self.send_data)
         self._poll_timer.start(int(poll_interval * 1000))
