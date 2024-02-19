@@ -5,7 +5,7 @@ import pytest
 from PySide6.QtNetwork import QNetworkReply
 
 from finesse.config import DECADES_SENSORS_QUERY_LIST, DECADES_SENSORS_URL
-from finesse.hardware.plugins.decades.decades_sensors import (
+from finesse.hardware.plugins.decades.decades import (
     DecadesError,
     DecadesSensors,
     _on_reply_received,
@@ -19,7 +19,7 @@ def decades_sensors(qtbot, subscribe_mock) -> DecadesSensors:
     return DecadesSensors()
 
 
-@patch("finesse.hardware.plugins.decades.decades_sensors.QTimer")
+@patch("finesse.hardware.plugins.decades.decades.QTimer")
 def test_init(qtimer_class_mock: Mock) -> None:
     """Test DecadesSensors's constructor."""
     sensors = DecadesSensors("1.2.3.4", 2.0)
@@ -37,7 +37,7 @@ def test_close(decades_sensors: DecadesSensors) -> None:
 
 
 @patch("json.loads")
-@patch("finesse.hardware.plugins.decades.decades_sensors.get_decades_sensor_data")
+@patch("finesse.hardware.plugins.decades.decades.get_decades_sensor_data")
 def test_on_reply_received_no_error(
     get_decades_sensor_data_mock: Mock, json_loads_mock: Mock, qtbot
 ) -> None:
@@ -65,7 +65,7 @@ def test_on_reply_received_network_error(qtbot) -> None:
 
 
 @patch("json.loads")
-@patch("finesse.hardware.plugins.decades.decades_sensors.get_decades_sensor_data")
+@patch("finesse.hardware.plugins.decades.decades.get_decades_sensor_data")
 def test_on_reply_received_exception(
     get_decades_sensor_data_mock: Mock, json_loads_mock: Mock, qtbot
 ) -> None:
