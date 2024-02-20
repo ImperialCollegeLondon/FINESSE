@@ -53,6 +53,25 @@ EM27_SENSORS_POLL_INTERVAL = 60.0
 EM27_SENSORS_TOPIC = "em27_sensors"
 """The topic name to use for EM27 sensor-related messages."""
 
+DECADES_HOST = "localhost"
+"""The IP address or hostname of the DECADES server."""
+
+DECADES_URL = "http://{host}/decades/livedata"
+"""The URL of the DECADES sensor data endpoint."""
+
+DECADES_POLL_INTERVAL = 60.0
+"""Poll rate for DECADES sensors."""
+
+DECADES_TOPIC = "decades"
+"""The topic name to use for DECADES sensor-related messages."""
+
+DECADES_QUERY_LIST = [
+    "static_pressure",
+    "gin_altitude",
+    "deiced_true_air_temp_c",
+]
+"""List of DECADES sensor queries to make."""
+
 DEFAULT_HTTP_TIMEOUT = 2.0
 """How long to wait for a response from a server for."""
 
