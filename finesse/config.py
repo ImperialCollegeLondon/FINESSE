@@ -124,3 +124,6 @@ SENECA_MIN_MILLIVOLT = 4
 
 SENECA_MAX_MILLIVOLT = 20
 """The default maximum voltage output (millivolts) of the Seneca K107 device."""
+
+TIME_TOPIC = "time"
+"""The topic name to use for time-related messages."""
