@@ -127,3 +127,6 @@ SENECA_MAX_MILLIVOLT = 20
 
 TIME_TOPIC = "time"
 """The topic name to use for time-related messages."""
+
+TIME_NTP_HOST = "localhost"
+"""The IP address or hostname of the NTP time server."""
