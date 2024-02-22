@@ -6,7 +6,7 @@ from finesse.hardware.plugins.time.time_base import TimeBase
 
 
 class NTPTimeError(Exception):
-    """Indicates that an error occurred while querying the time."""
+    """Indicates that an error occurred while querying the NTP time server."""
 
 
 class NTPTime(
@@ -19,7 +19,11 @@ class NTPTime(
     """A time source that queries an NTP server."""
 
     def __init__(self, ntp_host: str = TIME_NTP_HOST) -> None:
-        """Create a new NTPTime."""
+        """Create a new NTPTime.
+
+        Args:
+            ntp_host: The IP address or hostname of the NTP server
+        """
         super().__init__()
         self._client = NTPClient()
         self._ntp_host = ntp_host
