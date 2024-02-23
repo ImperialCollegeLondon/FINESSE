@@ -83,7 +83,7 @@ FTSW500_PORT = 7778
 """The port on which the TCP server of FTSW500 is listening."""
 
 FTSW500_POLLING_INTERVAL = 1.0
-"""How long to wait between polls of the EM27's status."""
+"""How long to wait between polls of FTSW500's status."""
 
 FTSW500_TIMEOUT = 5.0
 """How long to wait for a response from FTSW500 for."""
