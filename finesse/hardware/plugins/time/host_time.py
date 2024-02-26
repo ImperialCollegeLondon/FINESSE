@@ -11,5 +11,9 @@ class HostTime(TimeBase, description="Host time"):
         """Close the connection to the device."""
 
     def get_time(self) -> float:
-        """Get the current time."""
+        """Get the current time.
+
+        Returns:
+            The current time in seconds since the epoch.
+        """
         return time()

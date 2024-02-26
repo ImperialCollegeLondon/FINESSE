@@ -35,7 +35,11 @@ class NTPTime(
         """Close the connection to the device."""
 
     def get_time(self) -> float:
-        """Get the current time."""
+        """Get the current time.
+
+        Returns:
+            The current time in seconds since the epoch.
+        """
         try:
             response = self._client.request(
                 self._ntp_host,

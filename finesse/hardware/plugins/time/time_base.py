@@ -10,4 +10,8 @@ class TimeBase(Device, name=TIME_TOPIC, description="Time source"):
 
     @abstractmethod
     def get_time(self) -> float:
-        """Get the current time."""
+        """Get the current time.
+
+        Returns:
+            The current time in seconds since the epoch.
+        """
