@@ -5,6 +5,7 @@ from typing import cast
 
 from pubsub import pub
 from PySide6.QtWidgets import (
+    QGridLayout,
     QGroupBox,
     QHBoxLayout,
     QLabel,
@@ -12,6 +13,7 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QPushButton,
     QSizePolicy,
+    QWidget,
 )
 
 from finesse.config import DEFAULT_DATA_FILE_PATH
@@ -35,7 +37,7 @@ class DataFileControl(QGroupBox):
         """Create a new DataFileControl."""
         super().__init__("Data file")
 
-        layout = QHBoxLayout()
+        layout = QGridLayout()
 
         self.open_dir_widget = OpenDirectoryWidget(
             parent=self,
@@ -44,18 +46,25 @@ class DataFileControl(QGroupBox):
         )
         """Lets the user choose the destination for data files."""
         self.open_dir_widget.set_path(_get_previous_destination_dir())
-        layout.addWidget(QLabel("Destination directory:"))
-        layout.addWidget(self.open_dir_widget)
+        layout.addWidget(QLabel("Destination directory:"), 0, 0)
+        layout.addWidget(self.open_dir_widget, 0, 1)
+
+        layout.addWidget(QLabel("Filename prefix:"), 1, 0)
+
+        filename = QWidget()
+        filename_layout = QHBoxLayout()
 
         self.filename_prefix_widget = QLineEdit()
         self.filename_prefix_widget.setText(_get_previous_filename_prefix())
-        layout.addWidget(QLabel("Filename prefix:"))
-        layout.addWidget(self.filename_prefix_widget)
-
         self.record_btn = QPushButton("Start recording")
         """Toggles recording state."""
         self.record_btn.clicked.connect(self._toggle_recording)
-        layout.addWidget(self.record_btn)
+        filename_layout.addWidget(self.filename_prefix_widget)
+        filename_layout.addWidget(self.record_btn)
+
+        filename.setLayout(filename_layout)
+
+        layout.addWidget(filename, 1, 1)
 
         self.setLayout(layout)
 

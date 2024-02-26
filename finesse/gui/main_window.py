@@ -66,11 +66,15 @@ class MainWindow(QMainWindow):
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
         )
 
+        # Setup for data file widgets
+        data_file = DataFileControl()
+
         layout_left.addWidget(hardware_sets, 0, 0, 1, 2)
         layout_left.addWidget(measure_script, 1, 0, 1, 2)
         layout_left.addWidget(stepper_motor, 2, 0, 1, 1)
         layout_left.addWidget(spectrometer, 2, 1, 1, 1)
         layout_left.addWidget(em27_monitor, 3, 0, 1, 2)
+        layout_left.addWidget(data_file, 4, 0, 1, 2)
 
         layout_right = QGridLayout()
 
@@ -83,14 +87,10 @@ class MainWindow(QMainWindow):
             "cold", TEMPERATURE_MONITOR_COLD_BB_IDX, allow_update=False
         )
 
-        # Setup for data file widgets
-        data_file = DataFileControl()
-
         layout_right.addWidget(bb_monitor, 1, 0, 1, 2)
         layout_right.addWidget(temp_monitor, 2, 0, 1, 2)
         layout_right.addWidget(tc_hot, 3, 0, 1, 1)
         layout_right.addWidget(tc_cold, 3, 1, 1, 1)
-        layout_right.addWidget(data_file, 4, 0, 1, 2)
 
         # Display widgets in two columns
         left = QWidget()
