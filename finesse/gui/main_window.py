@@ -22,6 +22,7 @@ from finesse.gui.data_file_view import DataFileControl
 from finesse.gui.docs_view import DocsViewer
 from finesse.gui.em27_monitor import EM27Monitor
 from finesse.gui.hardware_set.hardware_sets_view import HardwareSetsControl
+from finesse.gui.logs_view import LogLocationOpen, LogOpen
 from finesse.gui.measure_script.script_view import ScriptControl
 from finesse.gui.spectrometer_view import SpectrometerControl
 from finesse.gui.stepper_motor_view import StepperMotorControl
@@ -45,6 +46,13 @@ class MainWindow(QMainWindow):
         helpmenu = QMenu("Help", self)
         helpmenu.addAction(docs_viewer)
         self.menuBar().addMenu(helpmenu)
+
+        open_log = LogOpen(self)
+        open_log_location = LogLocationOpen(self)
+        logsmenu = QMenu("Logs", self)
+        logsmenu.addAction(open_log)
+        logsmenu.addAction(open_log_location)
+        self.menuBar().addMenu(logsmenu)
 
         layout_left = QGridLayout()
 
