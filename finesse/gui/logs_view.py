@@ -1,11 +1,12 @@
 """Code for FINESSE's documentation viewer window."""
 import os
-import webbrowser
+import platform
+import subprocess
 
 from PySide6.QtCore import QObject, QUrl
 from PySide6.QtGui import QAction, QDesktopServices
 
-from finesse.logger import get_log_path
+from finesse.logger import filename, get_log_path
 
 
 class LogOpen(QAction):
@@ -22,12 +23,12 @@ class LogOpen(QAction):
 
     def open_log(self) -> None:
         """Opens the current log file."""
-        self.path = os.path.realpath(get_log_path())
-        self.files = [
-            f"{self.path}/{x}" for x in os.listdir(self.path) if x.endswith(".log")
-        ]
-        self.log = max(self.files, key=os.path.getctime)
-        webbrowser.open(self.log)
+        if platform.system() == "Darwin":
+            subprocess.call(("open", filename))
+        elif platform.system() == "Windows":
+            os.startfile(filename)
+        else:
+            subprocess.call(("xdg-open", filename))
 
 
 class LogLocationOpen(QAction):
