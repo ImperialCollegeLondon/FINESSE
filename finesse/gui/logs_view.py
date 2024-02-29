@@ -24,7 +24,7 @@ class LogOpen(QAction):
         """Opens the current log file."""
         self.path = os.path.realpath(get_log_path())
         self.files = [
-            f"{self.path}\\{x}" for x in os.listdir(self.path) if x.endswith(".log")
+            f"{self.path}/{x}" for x in os.listdir(self.path) if x.endswith(".log")
         ]
         self.log = max(self.files, key=os.path.getctime)
         webbrowser.open(self.log)
