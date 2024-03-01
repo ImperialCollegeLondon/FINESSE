@@ -4,7 +4,7 @@ import os
 from PySide6.QtCore import QObject, QUrl
 from PySide6.QtGui import QAction, QDesktopServices
 
-from finesse.logger import get_log_path, log_file
+from finesse.logger import get_log_path
 
 
 class LogOpen(QAction):
@@ -21,6 +21,8 @@ class LogOpen(QAction):
 
     def open_log(self) -> None:
         """Opens the current log file."""
+        from finesse.logger import log_file
+
         QDesktopServices.openUrl(QUrl.fromLocalFile(log_file))
 
 
