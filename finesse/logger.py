@@ -20,10 +20,8 @@ def get_log_path():
 
 def initialise_logging() -> None:
     """Configure the program's logger."""
-    log_path = get_log_path()
-
     global log_file
-    log_file = log_path / f"{datetime.now().strftime('%Y%m%d_%H-%M-%S')}.log"
+    log_file = get_log_path() / f"{datetime.now().strftime('%Y%m%d_%H-%M-%S')}.log"
 
     # Allow user to set log level with environment variable
     log_level = (os.environ.get("FINESSE_LOG_LEVEL") or "INFO").upper()
