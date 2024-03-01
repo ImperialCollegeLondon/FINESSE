@@ -31,11 +31,7 @@ def get_decades_data(content: dict[str, list]) -> dict[str, float]:
     """
     parsed_content = {}
     for sensor, value in content.items():
-        if len(value) != 1:
-            # Only single values (current time) should be returned
-            raise DecadesError(f"Unexpected number of values for sensor {sensor}")
-
-        parsed_content[sensor] = value[0]
+        parsed_content[sensor] = value[-1]
 
     return parsed_content
 
@@ -85,13 +81,11 @@ class DecadesBase(
 
         The HTTP request is made on a background thread.
         """
-        epoch_time = str(int(time.time()))
+        epoch_time = str(int(time.time() - DECADES_POLL_INTERVAL))
         url = QUrlQuery(self._url + "?")
         url.addQueryItem("frm", epoch_time)
-        url.addQueryItem("to", epoch_time)
         for sensor in DECADES_QUERY_LIST:
             url.addQueryItem("para", sensor)
-
         self._requester.make_request(
             url.toString(),
             self.pubsub_broadcast(_on_reply_received, "data.response", "data"),
