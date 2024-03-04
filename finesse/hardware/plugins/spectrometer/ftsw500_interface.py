@@ -1,9 +1,14 @@
-"""Module containing code for sending commands to FTSW500 for the ABB spectrometer.
+r"""Module containing code for sending commands to FTSW500 for the ABB spectrometer.
 
 Communication is via TCP.
 
 The FTSW500 program must be running on the computer at FTSW500_HOST for the commands to
-work.
+work. The server always returns a response after having received a command. The response
+will start with the tag "ACK" in case of success, or "NAK" otherwise, and is terminated
+by the end-of-line character "\n". An answer can also contain a string value or message
+after the tag, which will be preceded by "&". For example, querying whether the
+instrument is currently measuring data would yield a response "ACK&true\n" or
+"ACK&false\n".
 """
 
 import logging
@@ -25,14 +30,7 @@ from finesse.spectrometer_status import SpectrometerStatus
 
 
 def parse_response(response: bytes) -> SpectrometerStatus | None:
-    r"""Parse FTSW500's response.
-
-    The server always returns a response after having received a command. The response
-    will start with the tag "ACK" in case of success, or "NAK" otherwise, and is
-    terminated by the end-of-line character "\n". An answer can also contain a string
-    value or message after the tag, which will be preceded by "&". For example, querying
-    whether the instrument is currently measuring data would yield a response
-    "ACK&true\n" or "ACK&false\n".
+    """Parse FTSW500's response.
 
     Querying the FTSW500 state yields one of the following values:
     0: when disconnected
@@ -54,7 +52,7 @@ def parse_response(response: bytes) -> SpectrometerStatus | None:
         status = int(msg.split("&")[1])
     elif msg.startswith("NAK&"):
         raise FTSW500Error(msg.split("&")[1])
-    else:
+    else:  # i.e. "ACK"
         return None
 
     if status == -1:
