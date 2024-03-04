@@ -2,17 +2,26 @@
 import logging
 import os
 from datetime import datetime
+from pathlib import Path
 
 from platformdirs import user_log_path
 
 from finesse import config
 
+log_file: Path
+
+
+def get_log_path():
+    """Return the user log path."""
+    log_path = user_log_path(config.APP_NAME, config.APP_AUTHOR)
+    log_path.mkdir(parents=True, exist_ok=True)
+    return log_path
+
 
 def initialise_logging() -> None:
     """Configure the program's logger."""
-    log_path = user_log_path(config.APP_NAME, config.APP_AUTHOR)
-    log_path.mkdir(parents=True, exist_ok=True)
-    filename = log_path / f"{datetime.now().strftime('%Y%m%d_%H-%M-%S')}.log"
+    global log_file
+    log_file = get_log_path() / f"{datetime.now().strftime('%Y%m%d_%H-%M-%S')}.log"
 
     # Allow user to set log level with environment variable
     log_level = (os.environ.get("FINESSE_LOG_LEVEL") or "INFO").upper()
@@ -23,5 +32,5 @@ def initialise_logging() -> None:
     logging.basicConfig(
         level=log_level,
         format="%(asctime)s [%(levelname)s] %(message)s",
-        handlers=[logging.FileHandler(filename), logging.StreamHandler()],
+        handlers=[logging.FileHandler(log_file), logging.StreamHandler()],
     )
