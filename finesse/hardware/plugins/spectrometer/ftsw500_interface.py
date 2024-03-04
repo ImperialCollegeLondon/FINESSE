@@ -49,26 +49,13 @@ def parse_response(response: bytes) -> SpectrometerStatus | None:
         SpectrometerStatus: the generic spectrometer device state of FTSW500
     """
     msg = response.decode()
-    if msg.startswith("NAK"):
-        if "&" in msg:
-            try:
-                status = int(msg.split("&")[1])
-            except ValueError:
-                logging.error(f"{msg.split('&')[1][:-1]}")
-                return None
-        else:
-            return None
-    elif msg.startswith("ACK"):
-        if "&" in msg:
-            try:
-                status = int(msg.split("&")[1])
-            except ValueError:
-                logging.info(f"{msg.split('&')[1][:-1]}")
-                return None
-        else:
-            return None
+    print(msg[:-1])
+    if msg.startswith("ACK&"):
+        status = int(msg.split("&")[1])
+    elif msg.startswith("NAK&"):
+        raise FTSW500Error(msg.split("&")[1])
     else:
-        raise FTSW500Error("Unrecognised response")
+        return None
 
     if status == -1:
         return SpectrometerStatus(1)
@@ -103,11 +90,8 @@ class FTSW500Interface(FTSW500InterfaceBase, description="FTSW500 spectrometer")
         """Query whether FTSW500 has a modal dialog open."""
         self._requester.sendall(b"isModalMessageDisplayed\n")
         data = self._requester.recv(1024)
-        if data != b"":
-            if data.decode().split("&")[1] == "true\n":
-                return True
-            else:
-                return False
+        if data.decode().split("&")[1] == "true\n":
+            return True
         else:
             return False
 
@@ -115,11 +99,8 @@ class FTSW500Interface(FTSW500InterfaceBase, description="FTSW500 spectrometer")
         """Query whether FTSW500 has a non-modal dialog open."""
         self._requester.sendall(b"isNonModalMessageDisplayed\n")
         data = self._requester.recv(1024)
-        if data != b"":
-            if data.decode().split("&")[1] == "true\n":
-                return True
-            else:
-                return False
+        if data.decode().split("&")[1] == "true\n":
+            return True
         else:
             return False
 
