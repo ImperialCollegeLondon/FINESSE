@@ -86,6 +86,37 @@ class FTSW500Interface(FTSW500InterfaceBase, description="FTSW500 spectrometer")
 
         self._request_status()
 
+    def _set_output_path_prefix(self, output_path_prefix: str) -> None:
+        """Set the output path prefix for FTSW500 data."""
+        self._requester.sendall(
+            f"setOutputPathPrefixField&{output_path_prefix}\n".encode()
+        )
+        self._requester.recv(1024)
+
+    def _set_output_prefix(self, output_prefix: str) -> None:
+        """Set the output prefix for FTSW500 data."""
+        self._requester.sendall(f"setOutputPrefixOnlyField&{output_prefix}\n".encode())
+        self._requester.recv(1024)
+
+    def set_data_description(self, data_description: str) -> None:
+        """Set the description for FTSW500 data."""
+        self._requester.sendall(
+            f"setDataDescriptionField&{data_description}\n".encode()
+        )
+        self._requester.recv(1024)
+
+    def set_num_measurements(self, num_measurements: int) -> None:
+        """Set the number of measurements for FTSW500 to record."""
+        self._requester.sendall(
+            f"setNumberMeasurementField&{num_measurements}\n".encode()
+        )
+        self._requester.recv(1024)
+
+    def set_temperature(self, temperature: float) -> None:
+        """Set the temperature for FTSW500 data."""
+        self._requester.sendall(f"setTemperatureField&{temperature}\n".encode())
+        self._requester.recv(1024)
+
     def _check_is_modal_dialog_open(self) -> bool:
         """Query whether FTSW500 has a modal dialog open."""
         self._requester.sendall(b"isModalMessageDisplayed\n")
