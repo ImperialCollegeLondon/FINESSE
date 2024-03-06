@@ -1,0 +1,3171 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../dummy_opus_interface/">
+      
+      
+        <link rel="next" href="../ftsw500_interface/">
+      
+      
+      <link rel="icon" href="../../../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.2">
+    
+    
+      
+        <title>em27_sensors - FINESSE</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../../assets/stylesheets/main.50c56a3b.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../../../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../../../../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#finesse.hardware.plugins.spectrometer.em27_sensors" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../../../../.." title="FINESSE" class="md-header__button md-logo" aria-label="FINESSE" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            FINESSE
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              em27_sensors
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ImperialCollegeLondon/FINESSE" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../../../.." title="FINESSE" class="md-nav__button md-logo" aria-label="FINESSE" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    FINESSE
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ImperialCollegeLondon/FINESSE" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    FINESSE documentation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../hardware/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Hardware
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../hardware_sets/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Hardware sets
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../../measure_scripts/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Measure scripts
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Code Reference
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Code Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1" checked>
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    finesse
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_1" id="__nav_5_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5_1">
+            <span class="md-nav__icon md-icon"></span>
+            finesse
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../config/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    config
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../device_info/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    device_info
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../em27_property/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    em27_property
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1_4" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../gui/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    gui
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_1_4" id="__nav_5_1_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_5_1_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1_4">
+            <span class="md-nav__icon md-icon"></span>
+            gui
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../gui/data_file_view/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    data_file_view
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../gui/device_panel/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    device_panel
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../gui/docs_view/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    docs_view
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../gui/em27_monitor/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    em27_monitor
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../gui/error_message/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    error_message
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../gui/event_counter/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    event_counter
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1_4_7" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../gui/hardware_set/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    hardware_set
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_1_4_7" id="__nav_5_1_4_7_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_5_1_4_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1_4_7">
+            <span class="md-nav__icon md-icon"></span>
+            hardware_set
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../gui/hardware_set/device_connection/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    device_connection
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../gui/hardware_set/device_view/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    device_view
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../gui/hardware_set/hardware_set/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    hardware_set
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../gui/hardware_set/hardware_sets_combo_box/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    hardware_sets_combo_box
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../gui/hardware_set/hardware_sets_view/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    hardware_sets_view
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../gui/images/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    images
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../gui/led_icon/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    led_icon
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../gui/logs_view/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    logs_view
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../gui/main_window/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    main_window
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1_4_12" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../gui/measure_script/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    measure_script
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_1_4_12" id="__nav_5_1_4_12_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_5_1_4_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1_4_12">
+            <span class="md-nav__icon md-icon"></span>
+            measure_script
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../gui/measure_script/count_widget/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    count_widget
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../gui/measure_script/script/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    script
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../gui/measure_script/script_edit_dialog/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    script_edit_dialog
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../gui/measure_script/script_run_dialog/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    script_run_dialog
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../gui/measure_script/script_view/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    script_view
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../gui/measure_script/sequence_widget/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    sequence_widget
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../gui/path_widget/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    path_widget
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../gui/spectrometer_view/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    spectrometer_view
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../gui/stepper_motor_view/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    stepper_motor_view
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../gui/temperature_controller_view/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    temperature_controller_view
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../gui/temperature_monitor_view/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    temperature_monitor_view
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../gui/temperature_plot/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    temperature_plot
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../gui/uncaught_exceptions/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    uncaught_exceptions
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1_5" checked>
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    hardware
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_1_5" id="__nav_5_1_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_5_1_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5_1_5">
+            <span class="md-nav__icon md-icon"></span>
+            hardware
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../data_file_writer/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    data_file_writer
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../device/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    device
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../http_requester/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    http_requester
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../manage_devices/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    manage_devices
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../noise_producer/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    noise_producer
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1_5_6" checked>
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    plugins
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_1_5_6" id="__nav_5_1_5_6_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_5_1_5_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5_1_5_6">
+            <span class="md-nav__icon md-icon"></span>
+            plugins
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1_5_6_1" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../decades/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    decades
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_1_5_6_1" id="__nav_5_1_5_6_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="5" aria-labelledby="__nav_5_1_5_6_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1_5_6_1">
+            <span class="md-nav__icon md-icon"></span>
+            decades
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../decades/decades/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    decades
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1_5_6_2" checked>
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    spectrometer
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_1_5_6_2" id="__nav_5_1_5_6_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="5" aria-labelledby="__nav_5_1_5_6_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5_1_5_6_2">
+            <span class="md-nav__icon md-icon"></span>
+            spectrometer
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dummy_em27_sensors/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    dummy_em27_sensors
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dummy_opus_interface/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    dummy_opus_interface
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    em27_sensors
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    em27_sensors
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#finesse.hardware.plugins.spectrometer.em27_sensors" class="md-nav__link">
+    <span class="md-ellipsis">
+      em27_sensors
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="em27_sensors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#finesse.hardware.plugins.spectrometer.em27_sensors-attributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Attributes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#finesse.hardware.plugins.spectrometer.em27_sensors-classes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Classes
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Classes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#finesse.hardware.plugins.spectrometer.em27_sensors.EM27Error" class="md-nav__link">
+    <span class="md-ellipsis">
+      EM27Error
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#finesse.hardware.plugins.spectrometer.em27_sensors.EM27Sensors" class="md-nav__link">
+    <span class="md-ellipsis">
+      EM27Sensors
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="EM27Sensors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#finesse.hardware.plugins.spectrometer.em27_sensors.EM27Sensors-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Functions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#finesse.hardware.plugins.spectrometer.em27_sensors.EM27Sensors.close" class="md-nav__link">
+    <span class="md-ellipsis">
+      close()
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#finesse.hardware.plugins.spectrometer.em27_sensors.EM27SensorsBase" class="md-nav__link">
+    <span class="md-ellipsis">
+      EM27SensorsBase
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="EM27SensorsBase">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#finesse.hardware.plugins.spectrometer.em27_sensors.EM27SensorsBase-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Functions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#finesse.hardware.plugins.spectrometer.em27_sensors.EM27SensorsBase.send_data" class="md-nav__link">
+    <span class="md-ellipsis">
+      send_data()
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#finesse.hardware.plugins.spectrometer.em27_sensors-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Functions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#finesse.hardware.plugins.spectrometer.em27_sensors.get_em27sensor_data" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_em27sensor_data()
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ftsw500_interface/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ftsw500_interface
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ftsw500_interface_base/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ftsw500_interface_base
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../opus_interface/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    opus_interface
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../opus_interface_base/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    opus_interface_base
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../spectrometer_base/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    spectrometer_base
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1_5_6_3" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../stepper_motor/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    stepper_motor
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_1_5_6_3" id="__nav_5_1_5_6_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="5" aria-labelledby="__nav_5_1_5_6_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1_5_6_3">
+            <span class="md-nav__icon md-icon"></span>
+            stepper_motor
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../stepper_motor/dummy/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    dummy
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../stepper_motor/st10_controller/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    st10_controller
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../stepper_motor/stepper_motor_base/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    stepper_motor_base
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1_5_6_4" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../temperature/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    temperature
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_1_5_6_4" id="__nav_5_1_5_6_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="5" aria-labelledby="__nav_5_1_5_6_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1_5_6_4">
+            <span class="md-nav__icon md-icon"></span>
+            temperature
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../temperature/dp9800/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    dp9800
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../temperature/dummy_temperature_controller/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    dummy_temperature_controller
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../temperature/dummy_temperature_monitor/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    dummy_temperature_monitor
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../temperature/senecak107/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    senecak107
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../temperature/tc4820/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    tc4820
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../temperature/temperature_controller_base/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    temperature_controller_base
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../temperature/temperature_monitor_base/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    temperature_monitor_base
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_1_5_6_5" >
+        
+          
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../time/" class="md-nav__link ">
+              
+  
+  <span class="md-ellipsis">
+    time
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5_1_5_6_5" id="__nav_5_1_5_6_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="5" aria-labelledby="__nav_5_1_5_6_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_1_5_6_5">
+            <span class="md-nav__icon md-icon"></span>
+            time
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../time/host_time/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    host_time
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../time/ntp_time/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    ntp_time
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../time/time_base/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    time_base
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../pubsub_decorators/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    pubsub_decorators
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../serial_device/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    serial_device
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../logger/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    logger
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../settings/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    settings
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../spectrometer_status/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    spectrometer_status
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#finesse.hardware.plugins.spectrometer.em27_sensors" class="md-nav__link">
+    <span class="md-ellipsis">
+      em27_sensors
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="em27_sensors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#finesse.hardware.plugins.spectrometer.em27_sensors-attributes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Attributes
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#finesse.hardware.plugins.spectrometer.em27_sensors-classes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Classes
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Classes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#finesse.hardware.plugins.spectrometer.em27_sensors.EM27Error" class="md-nav__link">
+    <span class="md-ellipsis">
+      EM27Error
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#finesse.hardware.plugins.spectrometer.em27_sensors.EM27Sensors" class="md-nav__link">
+    <span class="md-ellipsis">
+      EM27Sensors
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="EM27Sensors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#finesse.hardware.plugins.spectrometer.em27_sensors.EM27Sensors-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Functions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#finesse.hardware.plugins.spectrometer.em27_sensors.EM27Sensors.close" class="md-nav__link">
+    <span class="md-ellipsis">
+      close()
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#finesse.hardware.plugins.spectrometer.em27_sensors.EM27SensorsBase" class="md-nav__link">
+    <span class="md-ellipsis">
+      EM27SensorsBase
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="EM27SensorsBase">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#finesse.hardware.plugins.spectrometer.em27_sensors.EM27SensorsBase-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Functions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#finesse.hardware.plugins.spectrometer.em27_sensors.EM27SensorsBase.send_data" class="md-nav__link">
+    <span class="md-ellipsis">
+      send_data()
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#finesse.hardware.plugins.spectrometer.em27_sensors-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Functions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#finesse.hardware.plugins.spectrometer.em27_sensors.get_em27sensor_data" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_em27sensor_data()
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+  <h1>em27_sensors</h1>
+
+<div class="doc doc-object doc-module">
+
+
+
+
+<h2 id="finesse.hardware.plugins.spectrometer.em27_sensors" class="doc doc-heading">
+          <code>finesse.hardware.plugins.spectrometer.em27_sensors</code>
+
+
+<a href="#finesse.hardware.plugins.spectrometer.em27_sensors" class="headerlink" title="Permanent link">¤</a></h2>
+
+  <div class="doc doc-contents first">
+  
+      <p>This module provides an interface to the EM27 monitor.</p>
+<p>This is used to scrape the PSF27Sensor data table off the server.</p>
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+<h3 id="finesse.hardware.plugins.spectrometer.em27_sensors-attributes">Attributes<a href="#finesse.hardware.plugins.spectrometer.em27_sensors-attributes" class="headerlink" title="Permanent link">¤</a></h3>
+<h3 id="finesse.hardware.plugins.spectrometer.em27_sensors-classes">Classes<a href="#finesse.hardware.plugins.spectrometer.em27_sensors-classes" class="headerlink" title="Permanent link">¤</a></h3>
+
+<div class="doc doc-object doc-class">
+
+
+
+
+<h4 id="finesse.hardware.plugins.spectrometer.em27_sensors.EM27Error" class="doc doc-heading">
+          <code>EM27Error</code>
+
+
+<a href="#finesse.hardware.plugins.spectrometer.em27_sensors.EM27Error" class="headerlink" title="Permanent link">¤</a></h4>
+
+
+  <div class="doc doc-contents ">
+          <p class="doc doc-class-bases">
+            Bases: <code>Exception</code></p>
+
+  
+      <p>Indicates than an error occurred while parsing the webpage.</p>
+
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+
+<h4 id="finesse.hardware.plugins.spectrometer.em27_sensors.EM27Sensors" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">EM27Sensors</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="n">EM27_HOST</span><span class="p">,</span> <span class="n">poll_interval</span><span class="o">=</span><span class="n">EM27_SENSORS_POLL_INTERVAL</span><span class="p">)</span></code>
+
+<a href="#finesse.hardware.plugins.spectrometer.em27_sensors.EM27Sensors" class="headerlink" title="Permanent link">¤</a></h4>
+
+
+  <div class="doc doc-contents ">
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-internal" title="finesse.hardware.plugins.spectrometer.em27_sensors.EM27SensorsBase" href="#finesse.hardware.plugins.spectrometer.em27_sensors.EM27SensorsBase">EM27SensorsBase</a></code></p>
+
+  
+      <p>An interface for EM27 sensors on the real device.</p>
+  
+      <p>Create a new EM27Sensors.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>host</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The IP address or hostname of the EM27 device</p>
+            </div>
+          </td>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="finesse.config.EM27_HOST" href="../../../../config/#finesse.config.EM27_HOST">EM27_HOST</a></code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>poll_interval</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>How often to poll the sensors (seconds)</p>
+            </div>
+          </td>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="finesse.config.EM27_SENSORS_POLL_INTERVAL" href="../../../../config/#finesse.config.EM27_SENSORS_POLL_INTERVAL">EM27_SENSORS_POLL_INTERVAL</a></code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+                <details class="quote">
+                  <summary>Source code in <code>finesse/hardware/plugins/spectrometer/em27_sensors.py</code></summary>
+                  <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="bp">self</span><span class="p">,</span> <span class="n">host</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">EM27_HOST</span><span class="p">,</span> <span class="n">poll_interval</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">EM27_SENSORS_POLL_INTERVAL</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a new EM27Sensors.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        host: The IP address or hostname of the EM27 device</span>
+<span class="sd">        poll_interval: How often to poll the sensors (seconds)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">EM27_SENSORS_URL</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="n">host</span><span class="p">))</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_poll_timer</span> <span class="o">=</span> <span class="n">QTimer</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_poll_timer</span><span class="o">.</span><span class="n">timeout</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">send_data</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_poll_timer</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">poll_interval</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">))</span>
+</code></pre></div></td></tr></table></div>
+                </details>
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<h5 id="finesse.hardware.plugins.spectrometer.em27_sensors.EM27Sensors-functions">Functions<a href="#finesse.hardware.plugins.spectrometer.em27_sensors.EM27Sensors-functions" class="headerlink" title="Permanent link">¤</a></h5>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h6 id="finesse.hardware.plugins.spectrometer.em27_sensors.EM27Sensors.close" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">close</span><span class="p">()</span></code>
+
+<a href="#finesse.hardware.plugins.spectrometer.em27_sensors.EM27Sensors.close" class="headerlink" title="Permanent link">¤</a></h6>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Close the device.</p>
+
+          <details class="quote">
+            <summary>Source code in <code>finesse/hardware/plugins/spectrometer/em27_sensors.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Close the device.&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_poll_timer</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+
+<h4 id="finesse.hardware.plugins.spectrometer.em27_sensors.EM27SensorsBase" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">EM27SensorsBase</span><span class="p">(</span><span class="n">url</span><span class="p">)</span></code>
+
+<a href="#finesse.hardware.plugins.spectrometer.em27_sensors.EM27SensorsBase" class="headerlink" title="Permanent link">¤</a></h4>
+
+
+  <div class="doc doc-contents ">
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-internal" title="finesse.hardware.device.Device" href="../../../device/#finesse.hardware.device.Device">Device</a></code></p>
+
+  
+      <p>An interface for monitoring EM27 properties.</p>
+  
+      <p>Create a new EM27 property monitor.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>url</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Web address of the automation units diagnostics page.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+                <details class="quote">
+                  <summary>Source code in <code>finesse/hardware/plugins/spectrometer/em27_sensors.py</code></summary>
+                  <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">78</span>
+<span class="normal">79</span>
+<span class="normal">80</span>
+<span class="normal">81</span>
+<span class="normal">82</span>
+<span class="normal">83</span>
+<span class="normal">84</span>
+<span class="normal">85</span>
+<span class="normal">86</span>
+<span class="normal">87</span>
+<span class="normal">88</span>
+<span class="normal">89</span>
+<span class="normal">90</span>
+<span class="normal">91</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a new EM27 property monitor.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        url: Web address of the automation units diagnostics page.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">url</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_requester</span> <span class="o">=</span> <span class="n">HTTPRequester</span><span class="p">()</span>
+
+    <span class="c1"># Poll device once on open.</span>
+    <span class="c1"># TODO: Run this synchronously so we can check that things work before the</span>
+    <span class="c1"># device.opened message is sent</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">send_data</span><span class="p">()</span>
+</code></pre></div></td></tr></table></div>
+                </details>
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<h5 id="finesse.hardware.plugins.spectrometer.em27_sensors.EM27SensorsBase-functions">Functions<a href="#finesse.hardware.plugins.spectrometer.em27_sensors.EM27SensorsBase-functions" class="headerlink" title="Permanent link">¤</a></h5>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h6 id="finesse.hardware.plugins.spectrometer.em27_sensors.EM27SensorsBase.send_data" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">send_data</span><span class="p">()</span></code>
+
+<a href="#finesse.hardware.plugins.spectrometer.em27_sensors.EM27SensorsBase.send_data" class="headerlink" title="Permanent link">¤</a></h6>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Request the EM27 property data from the web server.</p>
+<p>The HTTP request is made on a background thread.</p>
+
+          <details class="quote">
+            <summary>Source code in <code>finesse/hardware/plugins/spectrometer/em27_sensors.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 93</span>
+<span class="normal"> 94</span>
+<span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">send_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Request the EM27 property data from the web server.</span>
+
+<span class="sd">    The HTTP request is made on a background thread.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_requester</span><span class="o">.</span><span class="n">make_request</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_url</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pubsub_broadcast</span><span class="p">(</span><span class="n">_on_reply_received</span><span class="p">,</span> <span class="s2">&quot;data.response&quot;</span><span class="p">,</span> <span class="s2">&quot;data&quot;</span><span class="p">),</span>
+    <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+<h3 id="finesse.hardware.plugins.spectrometer.em27_sensors-functions">Functions<a href="#finesse.hardware.plugins.spectrometer.em27_sensors-functions" class="headerlink" title="Permanent link">¤</a></h3>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
+<h4 id="finesse.hardware.plugins.spectrometer.em27_sensors.get_em27sensor_data" class="doc doc-heading">
+          <code class="highlight language-python"><span class="n">get_em27sensor_data</span><span class="p">(</span><span class="n">content</span><span class="p">)</span></code>
+
+<a href="#finesse.hardware.plugins.spectrometer.em27_sensors.get_em27sensor_data" class="headerlink" title="Permanent link">¤</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Search for the PSF27Sensor table and store the data.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>content</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>HTML content in which to search for PSF27Sensor table</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>data_table</code></td>          <td>
+                <code>list[<a class="autorefs autorefs-internal" title="finesse.em27_property.EM27Property" href="../../../../em27_property/#finesse.em27_property.EM27Property">EM27Property</a>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>a list of sensor properties and their values</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+          <details class="quote">
+            <summary>Source code in <code>finesse/hardware/plugins/spectrometer/em27_sensors.py</code></summary>
+            <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">21</span>
+<span class="normal">22</span>
+<span class="normal">23</span>
+<span class="normal">24</span>
+<span class="normal">25</span>
+<span class="normal">26</span>
+<span class="normal">27</span>
+<span class="normal">28</span>
+<span class="normal">29</span>
+<span class="normal">30</span>
+<span class="normal">31</span>
+<span class="normal">32</span>
+<span class="normal">33</span>
+<span class="normal">34</span>
+<span class="normal">35</span>
+<span class="normal">36</span>
+<span class="normal">37</span>
+<span class="normal">38</span>
+<span class="normal">39</span>
+<span class="normal">40</span>
+<span class="normal">41</span>
+<span class="normal">42</span>
+<span class="normal">43</span>
+<span class="normal">44</span>
+<span class="normal">45</span>
+<span class="normal">46</span>
+<span class="normal">47</span>
+<span class="normal">48</span>
+<span class="normal">49</span>
+<span class="normal">50</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">get_em27sensor_data</span><span class="p">(</span><span class="n">content</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">EM27Property</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Search for the PSF27Sensor table and store the data.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        content: HTML content in which to search for PSF27Sensor table</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        data_table: a list of sensor properties and their values</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">table_header</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">&quot;&lt;TR&gt;&lt;TH&gt;No&lt;/TH&gt;&lt;TH&gt;Name&lt;/TH&gt;&lt;TH&gt;Description&lt;/TH&gt;&quot;</span>
+        <span class="o">+</span> <span class="s2">&quot;&lt;TH&gt;Status&lt;/TH&gt;&lt;TH&gt;Value&lt;/TH&gt;&lt;TH&gt;Meas. Unit&lt;/TH&gt;&lt;/TR&gt;&quot;</span>
+    <span class="p">)</span>
+    <span class="n">table_start</span> <span class="o">=</span> <span class="n">content</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">table_header</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">table_start</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">EM27Error</span><span class="p">(</span><span class="s2">&quot;PSF27Sensor table not found&quot;</span><span class="p">)</span>
+
+    <span class="n">table_end</span> <span class="o">=</span> <span class="n">table_start</span> <span class="o">+</span> <span class="n">content</span><span class="p">[</span><span class="n">table_start</span><span class="p">:]</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;&lt;/TABLE&gt;&quot;</span><span class="p">)</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="n">content</span><span class="p">[</span><span class="n">table_start</span><span class="p">:</span><span class="n">table_end</span><span class="p">]</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
+    <span class="n">data_table</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">table</span><span class="p">)):</span>
+        <span class="n">data_table</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">EM27Property</span><span class="p">(</span>
+                <span class="n">table</span><span class="p">[</span><span class="n">row</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;&lt;TD&gt;&quot;</span><span class="p">)[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">&quot;&lt;/TD&gt;&quot;</span><span class="p">),</span>
+                <span class="n">Decimal</span><span class="p">(</span><span class="n">table</span><span class="p">[</span><span class="n">row</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;&lt;TD&gt;&quot;</span><span class="p">)[</span><span class="mi">5</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;&lt;/TD&gt;&quot;</span><span class="p">)),</span>
+                <span class="n">table</span><span class="p">[</span><span class="n">row</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;&lt;TD&gt;&quot;</span><span class="p">)[</span><span class="mi">6</span><span class="p">]</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">&quot;&lt;/TD&gt;&lt;/TR&quot;</span><span class="p">),</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">data_table</span>
+</code></pre></div></td></tr></table></div>
+          </details>
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../../../../../..", "features": [], "search": "../../../../../../assets/javascripts/workers/search.f886a092.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../../../../../assets/javascripts/bundle.d7c377c4.min.js"></script>
+      
+    
+  </body>
+</html>
