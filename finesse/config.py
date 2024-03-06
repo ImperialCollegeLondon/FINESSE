@@ -95,6 +95,18 @@ device takes to reply. This value then determines how often we wait before even 
 a request.
 """
 
+FTSW500_HOST = "127.0.0.1"
+"""The IP address or hostname of the machine running the FTSW500 software."""
+
+FTSW500_PORT = 7778
+"""The port on which the TCP server of FTSW500 is listening."""
+
+FTSW500_POLLING_INTERVAL = 1.0
+"""How long to wait between polls of FTSW500's status."""
+
+FTSW500_TIMEOUT = 5.0
+"""How long to wait for a response from FTSW500 for."""
+
 SPECTROMETER_TOPIC = "spectrometer"
 """The topic name to use for spectrometer-related messages."""
 
