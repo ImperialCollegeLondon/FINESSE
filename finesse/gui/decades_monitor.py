@@ -92,8 +92,8 @@ class DECADESMonitor(DevicePanel):
         """
         self._poll_light.flash()
         for prop in data:
-            lineedit = self._get_prop_lineedit(prop)
-            lineedit.setText(str(data[prop]))
+            lineedit = self._get_prop_lineedit(prop[0])
+            lineedit.setText(f"{prop[1]:.6f} {prop[2]}")
 
 
 if __name__ == "__main__":
