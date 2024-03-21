@@ -12,3 +12,5 @@ devices:
     class_name: spectrometer.dummy_em27_sensors.DummyEM27Sensors
   spectrometer:
     class_name: spectrometer.dummy_opus_interface.DummyOPUSInterface
+  time:
+    class_name: time.host_time.HostTime

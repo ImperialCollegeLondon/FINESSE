@@ -24,3 +24,5 @@ devices:
     class_name: spectrometer.em27_sensors.EM27Sensors
   spectrometer:
     class_name: spectrometer.opus_interface.OPUSInterface
+  time:
+    class_name: time.host_time.HostTime
