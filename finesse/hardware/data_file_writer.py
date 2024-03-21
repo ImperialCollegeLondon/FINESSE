@@ -2,7 +2,7 @@
 import logging
 import os
 import platform
-from datetime import datetime
+from datetime import UTC, datetime
 from decimal import Decimal
 from math import floor
 from pathlib import Path
@@ -14,6 +14,7 @@ from pubsub import pub
 from finesse import config
 from finesse.hardware.plugins.stepper_motor import get_stepper_motor_instance
 from finesse.hardware.plugins.temperature import get_temperature_controller_instance
+from finesse.hardware.plugins.time import get_time_instance
 from finesse.hardware.pubsub_decorators import pubsub_errors
 
 
@@ -29,10 +30,17 @@ def _get_platform_info() -> dict[str, str]:
 
 
 def _get_metadata(filename: str) -> dict[str, Any]:
+    time_device = get_time_instance()
+    if not time_device:
+        logging.warning("No time device connected. Using system time.")
+        time = datetime.now(tz=UTC)
+    else:
+        time = datetime.fromtimestamp(time_device.get_time(), tz=UTC)
+
     return {
         "encoding": "utf-8",
         "name": filename,
-        "datetime": datetime.now().astimezone().isoformat(),  # include timezone
+        "datetime": time.isoformat(),
         "system": {
             "app": {
                 "name": config.APP_NAME,
@@ -156,7 +164,7 @@ class DataFileWriter:
     def write(self, time: datetime, temperatures: list[Decimal]) -> None:
         """Write temperature readings to the CSV file."""
         # Also include timestamp as seconds since midnight
-        midnight = datetime(time.year, time.month, time.day)
+        midnight = datetime(time.year, time.month, time.day, tzinfo=UTC)
         secs_since_midnight = floor((time - midnight).total_seconds())
 
         angle, is_moving = _get_stepper_motor_angle()
