@@ -1,6 +1,6 @@
 """This module contains code for interfacing with different hardware devices."""
 from collections.abc import Sequence
-from datetime import datetime
+from datetime import UTC, datetime
 from decimal import Decimal
 
 from pubsub import pub
@@ -8,6 +8,23 @@ from pubsub import pub
 from finesse.config import NUM_TEMPERATURE_MONITOR_CHANNELS, TEMPERATURE_MONITOR_TOPIC
 from finesse.hardware import data_file_writer  # noqa: F401
 from finesse.hardware.plugins.temperature import get_temperature_monitor_instance
+from finesse.hardware.plugins.time import get_time_instance
+
+
+def _try_get_time() -> float | None:
+    """Try to read the current time from the time source.
+
+    iF the device is not connected or the operation fails, None is returned.
+    """
+    dev = get_time_instance()
+    if not dev:
+        return None
+
+    try:
+        return dev.get_time()
+    except Exception as error:
+        dev.send_error_message(error)
+        return None
 
 
 def _try_get_temperatures() -> Sequence | None:
@@ -35,7 +52,13 @@ def _send_temperatures() -> None:
     if temperatures is None:
         temperatures = _DEFAULT_TEMPS
 
-    time = datetime.utcnow()
+    # Get time from the time source.
+    epoch_time = _try_get_time()
+    if epoch_time is None:
+        # On failure, set time to the UNIX epoch.
+        epoch_time = 0.0
+    time = datetime.fromtimestamp(epoch_time, tz=UTC)
+
     pub.sendMessage(
         f"device.{TEMPERATURE_MONITOR_TOPIC}.data.response",
         temperatures=temperatures,
