@@ -11,10 +11,10 @@ from finesse.hardware.plugins.temperature import get_temperature_monitor_instanc
 from finesse.hardware.plugins.time import get_time_instance
 
 
-def _try_get_time() -> float | None:
+def _try_get_time() -> datetime | None:
     """Try to read the current time from the time source.
 
-    iF the device is not connected or the operation fails, None is returned.
+    If the device is not connected or the operation fails, None is returned.
     """
     dev = get_time_instance()
     if not dev:
@@ -53,11 +53,10 @@ def _send_temperatures() -> None:
         temperatures = _DEFAULT_TEMPS
 
     # Get time from the time source.
-    epoch_time = _try_get_time()
-    if epoch_time is None:
+    time = _try_get_time()
+    if time is None:
         # On failure, set time to the UNIX epoch.
-        epoch_time = 0.0
-    time = datetime.fromtimestamp(epoch_time)
+        time = datetime.fromtimestamp(0.0)
 
     pub.sendMessage(
         f"device.{TEMPERATURE_MONITOR_TOPIC}.data.response",

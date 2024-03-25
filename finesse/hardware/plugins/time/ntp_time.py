@@ -1,4 +1,6 @@
 """This module provides an interface for querying time from an NTP server."""
+from datetime import datetime
+
 from ntplib import NTPClient
 
 from finesse.config import (
@@ -51,11 +53,11 @@ class NTPTime(
     def close(self) -> None:
         """Close the connection to the device."""
 
-    def get_time(self) -> float:
+    def get_time(self) -> datetime:
         """Get the current time.
 
         Returns:
-            The current time in seconds since the epoch.
+            A datetime instance representing the current time.
         """
         try:
             response = self._client.request(
@@ -66,5 +68,6 @@ class NTPTime(
             )
         except Exception as e:
             raise NTPTimeError(f"Error querying NTP server: {e}")
+        new_time = response.dest_time + response.offset
 
-        return response.dest_time + response.offset
+        return datetime.fromtimestamp(new_time)

@@ -35,7 +35,7 @@ def _get_metadata(filename: str) -> dict[str, Any]:
         logging.warning("No time device connected. Using system time.")
         time = datetime.now()
     else:
-        time = datetime.fromtimestamp(time_device.get_time())
+        time = time_device.get_time()
 
     return {
         "encoding": "utf-8",

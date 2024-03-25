@@ -1,5 +1,5 @@
 """This module provides an interface for querying localhost system time."""
-from time import time
+from datetime import datetime
 
 from finesse.hardware.plugins.time.time_base import TimeBase
 
@@ -10,10 +10,10 @@ class HostTime(TimeBase, description="Host time"):
     def close(self) -> None:
         """Close the connection to the device."""
 
-    def get_time(self) -> float:
+    def get_time(self) -> datetime:
         """Get the current time.
 
         Returns:
-            The current time in seconds since the epoch.
+            A datetime instance representing the current time.
         """
-        return time()
+        return datetime.now()
