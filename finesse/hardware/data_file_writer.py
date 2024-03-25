@@ -2,7 +2,7 @@
 import logging
 import os
 import platform
-from datetime import UTC, datetime
+from datetime import datetime
 from decimal import Decimal
 from math import floor
 from pathlib import Path
@@ -33,9 +33,9 @@ def _get_metadata(filename: str) -> dict[str, Any]:
     time_device = get_time_instance()
     if not time_device:
         logging.warning("No time device connected. Using system time.")
-        time = datetime.now(tz=UTC)
+        time = datetime.now()
     else:
-        time = datetime.fromtimestamp(time_device.get_time(), tz=UTC)
+        time = datetime.fromtimestamp(time_device.get_time())
 
     return {
         "encoding": "utf-8",
@@ -164,7 +164,7 @@ class DataFileWriter:
     def write(self, time: datetime, temperatures: list[Decimal]) -> None:
         """Write temperature readings to the CSV file."""
         # Also include timestamp as seconds since midnight
-        midnight = datetime(time.year, time.month, time.day, tzinfo=UTC)
+        midnight = datetime(time.year, time.month, time.day)
         secs_since_midnight = floor((time - midnight).total_seconds())
 
         angle, is_moving = _get_stepper_motor_angle()

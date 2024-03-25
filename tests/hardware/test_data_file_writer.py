@@ -1,5 +1,5 @@
 """Tests for the DataFileWriter class."""
-from datetime import UTC, datetime
+from datetime import datetime
 from decimal import Decimal
 from pathlib import Path
 from unittest.mock import MagicMock, Mock, patch
@@ -115,7 +115,7 @@ def test_write(
     get_tc_mock.return_value = hot_bb = MagicMock()
     hot_bb.power = 10
 
-    time = datetime(2023, 4, 14, 0, 1, 0, tzinfo=UTC)  # one minute past midnight
+    time = datetime(2023, 4, 14, 0, 1, 0)  # one minute past midnight
     data = [Decimal(i) for i in range(3)]
 
     writer._writer = MagicMock()
@@ -139,7 +139,7 @@ def test_write_error(
     get_tc_mock.return_value = hot_bb = MagicMock()
     hot_bb.power = 10
 
-    time = datetime(2023, 4, 14, 0, 1, 0, tzinfo=UTC)  # one minute past midnight
+    time = datetime(2023, 4, 14, 0, 1, 0)  # one minute past midnight
     data = [Decimal(i) for i in range(3)]
 
     writer._writer = MagicMock()

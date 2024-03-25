@@ -1,6 +1,6 @@
 """This module contains code for interfacing with different hardware devices."""
 from collections.abc import Sequence
-from datetime import UTC, datetime
+from datetime import datetime
 from decimal import Decimal
 
 from pubsub import pub
@@ -57,7 +57,7 @@ def _send_temperatures() -> None:
     if epoch_time is None:
         # On failure, set time to the UNIX epoch.
         epoch_time = 0.0
-    time = datetime.fromtimestamp(epoch_time, tz=UTC)
+    time = datetime.fromtimestamp(epoch_time)
 
     pub.sendMessage(
         f"device.{TEMPERATURE_MONITOR_TOPIC}.data.response",
