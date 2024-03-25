@@ -30,7 +30,7 @@ def test_get_time_return_value(request_mock) -> None:
     ntp_time = NTPTime()
     request_mock.return_value.dest_time = 1234.5678
     request_mock.return_value.offset = 0.1234
-    assert ntp_time.get_time() == 1234.6912
+    assert ntp_time.get_time().timestamp() == 1234.6912
 
 
 @patch("ntplib.NTPClient.request", side_effect=Exception())
