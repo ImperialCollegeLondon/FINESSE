@@ -1,4 +1,5 @@
 """Tests for the SpectrometerBase class."""
+
 from unittest.mock import call, patch
 
 import pytest

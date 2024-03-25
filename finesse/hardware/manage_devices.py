@@ -1,4 +1,5 @@
 """This module contains code for interfacing with different hardware devices."""
+
 import logging
 from collections.abc import Mapping
 from importlib import import_module

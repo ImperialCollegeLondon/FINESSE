@@ -1,4 +1,5 @@
 """Tests for the EM27Sensors class."""
+
 from decimal import Decimal
 from importlib import resources
 from unittest.mock import MagicMock, Mock, patch

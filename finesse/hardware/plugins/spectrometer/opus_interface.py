@@ -5,6 +5,7 @@ Communication is based on a protocol using HTTP and HTML.
 The OPUS program must be running on the computer at OPUS_IP for the commands to work.
 Note that this is a separate machine from the EM27!
 """
+
 import logging
 
 from bs4 import BeautifulSoup

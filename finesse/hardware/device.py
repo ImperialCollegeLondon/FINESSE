@@ -4,6 +4,7 @@ The Device class is the top-level base class from which all devices ultimately i
 Concrete classes for devices must not inherit directly from this class, but instead
 should inherit from a device base class.
 """
+
 from __future__ import annotations
 
 import logging

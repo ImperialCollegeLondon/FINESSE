@@ -1,4 +1,5 @@
 """Provides a widget for interacting with temperature controllers."""
+
 from collections.abc import Sequence
 from datetime import datetime
 from decimal import Decimal

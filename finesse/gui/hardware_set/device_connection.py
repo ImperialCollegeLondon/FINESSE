@@ -1,4 +1,5 @@
 """Helper functions for managing connections to devices."""
+
 from collections.abc import Mapping
 from typing import Any
 

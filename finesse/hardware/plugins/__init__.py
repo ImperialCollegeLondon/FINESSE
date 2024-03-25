@@ -1,4 +1,5 @@
 """Plugins for the hardware module."""
+
 import sys
 from collections.abc import Iterable
 from importlib import import_module

@@ -1,4 +1,5 @@
 """Tests for the EventCounter class."""
+
 from collections.abc import Sequence
 from contextlib import nullcontext as does_not_raise
 from typing import Any

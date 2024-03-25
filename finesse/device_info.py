@@ -1,4 +1,5 @@
 """Provides common dataclasses about devices for using in backend and frontend."""
+
 from __future__ import annotations
 
 from collections.abc import Iterable, Mapping, Sequence

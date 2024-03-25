@@ -1,4 +1,5 @@
 """Panel showing a plot of temperatures."""
+
 from collections.abc import Sequence
 from datetime import datetime
 from functools import partial

@@ -1,4 +1,5 @@
 """Tests for the measure script code."""
+
 from contextlib import nullcontext as does_not_raise
 from itertools import chain
 from pathlib import Path

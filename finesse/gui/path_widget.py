@@ -1,4 +1,5 @@
 """Provides a widget for choosing the path to a measure script."""
+
 from abc import abstractmethod
 from pathlib import Path
 from typing import Any

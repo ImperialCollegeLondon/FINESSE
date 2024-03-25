@@ -1,4 +1,5 @@
 """Tests for the NoiseProducer class."""
+
 from decimal import Decimal
 from itertools import product
 from unittest.mock import MagicMock, Mock, patch

@@ -1,4 +1,5 @@
 """Tests for the DeviceParametersWidget class."""
+
 from collections.abc import Mapping
 from unittest.mock import Mock, patch
 

@@ -1,4 +1,5 @@
 """Tests for the DevicePanel."""
+
 from unittest.mock import MagicMock, patch
 
 import pytest

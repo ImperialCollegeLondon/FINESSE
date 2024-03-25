@@ -1,4 +1,5 @@
 """The HardwareSet dataclass and associated helper functions."""
+
 from __future__ import annotations
 
 import bisect

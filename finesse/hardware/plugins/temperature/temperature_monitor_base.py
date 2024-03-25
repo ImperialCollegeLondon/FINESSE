@@ -1,4 +1,5 @@
 """Provides a base class for temperature monitor devices or mock devices."""
+
 from abc import abstractmethod
 from collections.abc import Sequence
 

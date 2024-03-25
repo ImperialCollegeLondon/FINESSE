@@ -1,4 +1,5 @@
 """Provides a decorator for catching and forwarding errors via pubsub."""
+
 import logging
 import traceback
 from collections.abc import Callable

@@ -1,4 +1,5 @@
 """Tests for the DummyTemperatureController class."""
+
 from decimal import Decimal
 
 import pytest

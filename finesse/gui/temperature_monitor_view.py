@@ -1,4 +1,5 @@
 """Provides a widget to show the current temperatures."""
+
 from collections.abc import Sequence
 from datetime import datetime
 

@@ -1,4 +1,5 @@
 """Provides a dummy TC4820 device."""
+
 from __future__ import annotations
 
 from decimal import Decimal

@@ -1,4 +1,5 @@
 """Provides a control for viewing and connecting to devices."""
+
 from __future__ import annotations
 
 import logging
