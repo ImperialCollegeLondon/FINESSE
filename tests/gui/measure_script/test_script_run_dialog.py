@@ -1,4 +1,5 @@
 """Tests for ScriptRunDialog."""
+
 from pathlib import Path
 from typing import cast
 from unittest.mock import MagicMock, Mock, patch

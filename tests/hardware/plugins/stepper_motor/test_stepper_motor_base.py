@@ -1,4 +1,5 @@
 """Tests for the StepperMotorBase class."""
+
 from unittest.mock import MagicMock, patch
 
 import pytest

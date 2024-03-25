@@ -1,4 +1,5 @@
 """Class for LED Icons."""
+
 from __future__ import annotations
 
 from importlib import resources

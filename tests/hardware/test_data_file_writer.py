@@ -1,4 +1,5 @@
 """Tests for the DataFileWriter class."""
+
 from datetime import datetime
 from decimal import Decimal
 from pathlib import Path

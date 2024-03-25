@@ -1,4 +1,5 @@
 """Tests for manage_devices.py."""
+
 from collections.abc import Iterable
 from itertools import product
 from unittest.mock import MagicMock, Mock, call, patch

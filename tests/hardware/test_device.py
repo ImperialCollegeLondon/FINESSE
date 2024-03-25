@@ -1,4 +1,5 @@
 """Tests for device.py."""
+
 from collections.abc import Callable, Sequence
 from typing import Any
 from unittest.mock import MagicMock, Mock, patch

@@ -1,4 +1,5 @@
 """Panel and widgets related to the control of spectrometers."""
+
 from collections.abc import Mapping
 from functools import partial
 

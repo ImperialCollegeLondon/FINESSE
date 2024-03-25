@@ -1,4 +1,5 @@
 """Tests for the TemperatureControllerBase class."""
+
 from decimal import Decimal
 from unittest.mock import patch
 

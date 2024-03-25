@@ -2,6 +2,7 @@
 
 This is used to scrape the PSF27Sensor data table off the server.
 """
+
 from decimal import Decimal
 
 from PySide6.QtCore import QTimer, Slot

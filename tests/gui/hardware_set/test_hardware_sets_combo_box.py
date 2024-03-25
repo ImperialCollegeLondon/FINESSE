@@ -1,4 +1,5 @@
 """Tests for the HardwareSetsComboBox class."""
+
 from collections.abc import Sequence
 from pathlib import Path
 from unittest.mock import MagicMock, Mock, PropertyMock, call, patch

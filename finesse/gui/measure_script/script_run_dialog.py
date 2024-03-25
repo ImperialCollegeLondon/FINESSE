@@ -1,4 +1,5 @@
 """Provides a dialog to display the progress of a running measure script."""
+
 from pubsub import pub
 from PySide6.QtGui import QCloseEvent, QHideEvent
 from PySide6.QtWidgets import (

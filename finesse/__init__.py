@@ -1,4 +1,5 @@
 """The main module for the FINESSE program."""
+
 from finesse.config import APP_VERSION
 
 __version__ = APP_VERSION

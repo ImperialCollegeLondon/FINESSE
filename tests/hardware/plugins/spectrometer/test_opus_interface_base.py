@@ -1,4 +1,5 @@
 """Test the OPUSInterfaceBase class."""
+
 from unittest.mock import MagicMock
 
 import pytest

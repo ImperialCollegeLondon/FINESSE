@@ -1,4 +1,5 @@
 """Provides an enum representing the spectrometer's state."""
+
 from enum import Enum
 
 

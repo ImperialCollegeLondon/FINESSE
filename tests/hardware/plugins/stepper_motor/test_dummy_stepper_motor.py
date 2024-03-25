@@ -1,4 +1,5 @@
 """Tests for DummyStepperMotor."""
+
 from contextlib import nullcontext as does_not_raise
 from itertools import chain
 from typing import Any

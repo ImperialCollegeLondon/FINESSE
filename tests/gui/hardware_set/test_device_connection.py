@@ -1,4 +1,5 @@
 """Test the helper functions in device_connection.py."""
+
 from unittest.mock import MagicMock
 
 from finesse.device_info import DeviceInstanceRef

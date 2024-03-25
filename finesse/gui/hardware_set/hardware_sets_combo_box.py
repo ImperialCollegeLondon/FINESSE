@@ -1,4 +1,5 @@
 """Provides a combo box for choosing between hardware sets."""
+
 from pubsub import pub
 from PySide6.QtWidgets import QComboBox
 

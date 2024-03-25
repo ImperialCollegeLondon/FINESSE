@@ -1,4 +1,5 @@
 """Provides a panel for choosing between hardware sets and (dis)connecting."""
+
 from collections.abc import Mapping, Set
 from pathlib import Path
 from typing import Any, cast

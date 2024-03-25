@@ -1,4 +1,5 @@
 """Common constants used throughout the app."""
+
 from importlib.metadata import version
 from pathlib import Path
 

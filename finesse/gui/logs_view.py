@@ -1,4 +1,5 @@
 """Code for FINESSE's logs menu."""
+
 import os
 
 from PySide6.QtCore import QObject, QUrl

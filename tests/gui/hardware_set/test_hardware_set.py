@@ -1,4 +1,5 @@
 """Tests for the HardwareSet class and associated helper functions."""
+
 from collections.abc import Sequence
 from contextlib import nullcontext as does_not_raise
 from importlib import resources
