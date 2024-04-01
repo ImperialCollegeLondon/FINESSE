@@ -1,4 +1,5 @@
 """Tests for the interface to the EM27's OPUS control program."""
+
 from itertools import product
 from typing import Any
 from unittest.mock import MagicMock, Mock, patch

@@ -1,4 +1,5 @@
 """Tests for core serial device code."""
+
 from typing import Any
 from unittest.mock import MagicMock, Mock, call, patch
 

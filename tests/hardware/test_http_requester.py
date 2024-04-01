@@ -1,4 +1,5 @@
 """Tests for the HTTPRequester class."""
+
 from unittest.mock import MagicMock, Mock, patch
 
 from finesse.hardware.http_requester import HTTPRequester

@@ -1,4 +1,5 @@
 """Provides a class for producing random noise."""
+
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass

@@ -1,4 +1,5 @@
 """Configuration for hardware set tests."""
+
 from collections.abc import Sequence
 from pathlib import Path
 

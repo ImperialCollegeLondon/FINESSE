@@ -1,4 +1,5 @@
 """This module contains interfaces for temperature-related hardware."""
+
 from finesse.hardware.manage_devices import get_device_instance
 from finesse.hardware.plugins.temperature.temperature_controller_base import (
     TemperatureControllerBase,
