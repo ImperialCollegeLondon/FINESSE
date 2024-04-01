@@ -1,4 +1,5 @@
 """A simple wrapper for Qt's HTTP network request code."""
+
 from collections.abc import Callable
 from functools import partial
 from typing import Any

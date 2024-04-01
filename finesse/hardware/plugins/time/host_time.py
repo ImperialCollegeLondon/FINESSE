@@ -1,4 +1,5 @@
 """This module provides an interface for querying localhost system time."""
+
 from time import time
 
 from finesse.hardware.plugins.time.time_base import TimeBase

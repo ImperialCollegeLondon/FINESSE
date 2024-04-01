@@ -1,4 +1,5 @@
 """Provides a base class for interfacing with the OPUS program."""
+
 from __future__ import annotations
 
 from abc import abstractmethod

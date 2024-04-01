@@ -1,4 +1,5 @@
 """Tests for the ScriptPathWidget."""
+
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 

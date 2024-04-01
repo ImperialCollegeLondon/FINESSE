@@ -1,4 +1,5 @@
 """A module with a single settings object for the program settings."""
+
 from PySide6.QtCore import QSettings
 
 from finesse.config import APP_CONFIG_PATH

@@ -1,4 +1,5 @@
 """Provides a class for writing sensor data to a CSV file."""
+
 import logging
 import os
 import platform

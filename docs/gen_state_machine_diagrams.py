@@ -1,4 +1,5 @@
 """Make diagrams for all state machine classes."""
+
 import inspect
 from collections.abc import Iterable
 from importlib import import_module

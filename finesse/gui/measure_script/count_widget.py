@@ -2,6 +2,7 @@
 
 Used in ScriptEditDialog in a couple of places.
 """
+
 from PySide6.QtWidgets import QFormLayout, QSpinBox, QWidget
 
 

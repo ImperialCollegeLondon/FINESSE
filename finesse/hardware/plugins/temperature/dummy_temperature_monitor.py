@@ -1,4 +1,5 @@
 """This module provides an interface to dummy DP9800 temperature readers."""
+
 from collections.abc import Sequence
 from decimal import Decimal
 

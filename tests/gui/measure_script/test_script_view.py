@@ -1,4 +1,5 @@
 """Tests for ScriptControl."""
+
 from pathlib import Path
 from typing import cast
 from unittest.mock import MagicMock, Mock, call, patch

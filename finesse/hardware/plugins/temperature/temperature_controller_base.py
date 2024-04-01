@@ -1,4 +1,5 @@
 """Provides a base class for temperature controller devices or mock devices."""
+
 from abc import abstractmethod
 from decimal import Decimal
 from typing import Any

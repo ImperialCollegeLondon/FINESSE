@@ -1,4 +1,5 @@
 """Tests for the HardwareSetsControl class."""
+
 from collections.abc import Sequence
 from contextlib import nullcontext as does_not_raise
 from pathlib import Path
