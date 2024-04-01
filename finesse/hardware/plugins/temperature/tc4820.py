@@ -10,6 +10,7 @@ IO error occurred while communicating with the device (e.g. because a USB cable 
 become disconnected) and are unlikely to be recoverable. A SerialException is also
 raised if multiple attempts at a request have failed.
 """
+
 from __future__ import annotations
 
 import logging

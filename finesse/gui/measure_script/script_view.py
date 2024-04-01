@@ -1,4 +1,5 @@
 """Contains a panel for loading and editing measure scripts."""
+
 from pathlib import Path
 from typing import cast
 

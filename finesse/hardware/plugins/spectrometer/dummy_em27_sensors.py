@@ -1,4 +1,5 @@
 """This module provides an interface to a dummy EM27 monitor."""
+
 from importlib import resources
 from pathlib import Path
 

@@ -1,4 +1,5 @@
 """Provides a class for monitoring events such as device opening/closing."""
+
 from collections.abc import Callable, Sequence
 from typing import Any
 

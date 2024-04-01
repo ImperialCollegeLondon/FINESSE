@@ -1,4 +1,5 @@
 """Provides the base class for stepper motor implementations."""
+
 from abc import abstractmethod
 
 from finesse.config import ANGLE_PRESETS, STEPPER_MOTOR_TOPIC

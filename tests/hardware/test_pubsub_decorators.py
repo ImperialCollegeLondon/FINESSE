@@ -1,4 +1,5 @@
 """Tests for the pubsub_errors decorator."""
+
 from collections.abc import Callable
 from unittest.mock import MagicMock
 

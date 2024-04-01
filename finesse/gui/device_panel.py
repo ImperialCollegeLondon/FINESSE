@@ -1,4 +1,5 @@
 """Contains a panel which enables/disables child controls when device opens/closes."""
+
 from typing import Any
 
 from decorator import decorator

@@ -1,4 +1,5 @@
 """Provides common fixtures for measure script tests."""
+
 from collections.abc import Generator
 from pathlib import Path
 from unittest.mock import MagicMock

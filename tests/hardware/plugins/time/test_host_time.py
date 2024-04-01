@@ -1,4 +1,5 @@
 """Tests for the HostTime plugin."""
+
 from unittest.mock import patch
 
 from finesse.hardware.plugins.time.host_time import HostTime

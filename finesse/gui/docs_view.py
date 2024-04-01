@@ -1,4 +1,5 @@
 """Code for FINESSE's documentation viewer window."""
+
 from importlib import resources
 from pathlib import Path
 

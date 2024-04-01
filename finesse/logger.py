@@ -1,4 +1,5 @@
 """Set up the program's logger."""
+
 import logging
 import os
 from datetime import datetime

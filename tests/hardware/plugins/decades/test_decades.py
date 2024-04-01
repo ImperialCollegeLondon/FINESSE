@@ -1,4 +1,5 @@
 """Tests for the Decades class."""
+
 from unittest.mock import ANY, MagicMock, Mock, patch
 
 import pytest

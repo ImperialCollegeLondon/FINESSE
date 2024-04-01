@@ -1,4 +1,5 @@
 """Code for controlling the stepper motor which moves the mirror."""
+
 from pubsub import pub
 from PySide6.QtWidgets import QButtonGroup, QGridLayout, QPushButton, QSpinBox
 

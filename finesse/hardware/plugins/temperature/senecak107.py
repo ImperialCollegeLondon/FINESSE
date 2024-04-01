@@ -1,4 +1,5 @@
 """This module provides an interface to Seneca temperature readers."""
+
 import logging
 from collections.abc import Sequence
 

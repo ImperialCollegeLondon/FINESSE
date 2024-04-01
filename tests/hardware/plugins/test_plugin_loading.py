@@ -1,4 +1,5 @@
 """Tests for the plugin loading code."""
+
 import sys
 from unittest.mock import MagicMock, Mock, call, patch
 

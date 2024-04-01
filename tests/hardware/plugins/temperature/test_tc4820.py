@@ -1,4 +1,5 @@
 """Tests for the interface to the TC4820 device."""
+
 from contextlib import nullcontext as does_not_raise
 from decimal import Decimal
 from itertools import chain
