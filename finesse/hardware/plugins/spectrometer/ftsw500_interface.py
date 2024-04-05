@@ -29,37 +29,28 @@ from finesse.hardware.plugins.spectrometer.ftsw500_interface_base import (
 from finesse.spectrometer_status import SpectrometerStatus
 
 
-def parse_response(response: bytes) -> SpectrometerStatus | None:
+def _parse_response(response: str) -> str:
     """Parse FTSW500's response.
 
-    Querying the FTSW500 state yields one of the following values:
-    0: when disconnected
-    1: when in the process of connecting to an instrument
-    2: when acquiring data without saving it
-    3: when acquiring and saving data
-    -1: when in an intermediate state that should normally not last for a long time
-        (less than 500 ms) or when the FTSW500_SDK object is not well initialized
-
-    Args:
-        response: the byte sequence received from FTSW500
+    The response should be one of:
+        - ACK
+        - ACK&extra argument
+        - NAK&error message
 
     Returns:
-        SpectrometerStatus: the generic spectrometer device state of FTSW500
-    """
-    msg = response.decode()
-    if msg.startswith("ACK&"):
-        status = int(msg.split("&")[1])
-    elif msg.startswith("NAK&"):
-        raise FTSW500Error(msg.split("&")[1])
-    else:  # i.e. "ACK"
-        return None
+        Argument sent with ACK or empty string
 
-    if status == -1:
-        return SpectrometerStatus(1)
-    elif status in (0, 1, 2, 3):
-        return SpectrometerStatus(status)
-    else:
-        raise FTSW500Error("Unable to parse response")
+    Raises:
+        FTSW500Error if NAK received or response is unexpected
+    """
+    command, _, args = response.partition("&")
+    match command:
+        case "ACK":
+            return args
+        case "NAK":
+            raise FTSW500Error(args)
+        case _:
+            raise FTSW500Error(f"Unexpected response: {response}")
 
 
 class FTSW500Interface(FTSW500InterfaceBase, description="FTSW500 spectrometer"):
@@ -69,130 +60,141 @@ class FTSW500Interface(FTSW500InterfaceBase, description="FTSW500 spectrometer")
         """Create a new FTSW500Interface."""
         super().__init__()
 
-        self._requester = socket(AF_INET, SOCK_STREAM)
-        self._requester.settimeout(FTSW500_TIMEOUT)
+        sock = socket(AF_INET, SOCK_STREAM)
+        sock.settimeout(FTSW500_TIMEOUT)
+        sock.connect((FTSW500_HOST, FTSW500_PORT))
+        self._socket = sock
 
-        self._requester.connect((FTSW500_HOST, FTSW500_PORT))
-
-        self._status = SpectrometerStatus.UNDEFINED
-
+        # Timer to poll status
         self._status_timer = QTimer()
-        self._status_timer.timeout.connect(self._request_status)
+        self._status_timer.timeout.connect(self.pubsub_errors(self._update_status))
         self._status_timer.setInterval(int(FTSW500_POLLING_INTERVAL * 1000))
         self._status_timer.setSingleShot(True)
 
-        self._request_status()
-
-    def set_output_path_prefix(self, output_path_prefix: str) -> None:
-        """Set the output path prefix for FTSW500 data."""
-        self._requester.sendall(
-            f"setOutputPathPrefixField&{output_path_prefix}\n".encode()
-        )
-        self._requester.recv(1024)
-
-    def set_output_prefix(self, output_prefix: str) -> None:
-        """Set the output prefix for FTSW500 data."""
-        self._requester.sendall(f"setOutputPrefixOnlyField&{output_prefix}\n".encode())
-        self._requester.recv(1024)
-
-    def set_data_description(self, data_description: str) -> None:
-        """Set the description for FTSW500 data."""
-        self._requester.sendall(
-            f"setDataDescriptionField&{data_description}\n".encode()
-        )
-        self._requester.recv(1024)
-
-    def set_num_measurements(self, num_measurements: int) -> None:
-        """Set the number of measurements for FTSW500 to record."""
-        self._requester.sendall(
-            f"setNumberMeasurementField&{num_measurements}\n".encode()
-        )
-        self._requester.recv(1024)
-
-    def set_temperature(self, temperature: float) -> None:
-        """Set the temperature for FTSW500 data."""
-        self._requester.sendall(f"setTemperatureField&{temperature}\n".encode())
-        self._requester.recv(1024)
+        # Find out what the initial status is
+        self._status = SpectrometerStatus.UNDEFINED
+        self._update_status()
 
     def is_modal_dialog_open(self) -> bool:
         """Query whether FTSW500 has a modal dialog open."""
-        self._requester.sendall(b"isModalMessageDisplayed\n")
-        data = self._requester.recv(1024)
-        if data.decode().split("&")[1] == "true\n":
-            return True
-        else:
-            return False
+        return self._make_request("isModalMessageDisplayed") == "true"
 
     def is_nonmodal_dialog_open(self) -> bool:
         """Query whether FTSW500 has a non-modal dialog open."""
-        self._requester.sendall(b"isNonModalMessageDisplayed\n")
-        data = self._requester.recv(1024)
-        if data.decode().split("&")[1] == "true\n":
-            return True
-        else:
-            return False
+        return self._make_request("isNonModalMessageDisplayed") == "true"
 
     def _log_modal_dialog_message(self) -> None:
         """Obtain the last modal message displayed on FTSW500 and log it."""
         if self.is_modal_dialog_open():
-            self._requester.sendall(b"getLastModalMessageDisplayed\n")
-            data = self._requester.recv(1024)
-            logging.info(f"FTSW500: {data.decode().split('&')[1][:-1]}")
-            self._requester.sendall(b"closeModalDialogMessage\n")
-            self._requester.recv(1024)
+            msg = self._make_request("getLastModalMessageDisplayed")
+            logging.info(f"FTSW500: {msg}")
+            self._make_request("closeModalDialogMessage")
 
     def _log_nonmodal_dialog_message(self) -> None:
         """Obtain the last non-modal message displayed on FTSW500 and log it."""
         if self.is_nonmodal_dialog_open():
-            self._requester.sendall(b"getLastNonModalMessageDisplayed\n")
-            data = self._requester.recv(1024)
-            logging.info(f"FTSW500: {data.decode().split('&')[1][:-1]}")
-            self._requester.sendall(b"closeNonModalDialogMessage\n")
-            self._requester.recv(1024)
-
-    def close_FTSW500(self) -> None:
-        """Close the FTSW500 program."""
-        self._requester.sendall(b"closeFTSW500\n")
-
-    def disconnect(self) -> None:
-        """Disconnect from the spectrometer."""
-        self._requester.sendall(b"clickDisconnectButton\n")
-        self._requester.recv(1024)
+            msg = self._make_request("getLastNonModalMessageDisplayed")
+            logging.info(f"FTSW500: {msg}")
+            self._make_request("closeNonModalDialogMessage")
 
     def close(self) -> None:
         """Close the device."""
-        if self._status == SpectrometerStatus.CONNECTED:
-            self._log_nonmodal_dialog_message()
-        self._requester.close()
         self._status_timer.stop()
+
+        if self._socket.fileno() != -1:  # check if closed already
+            self._log_nonmodal_dialog_message()
+            self._socket.close()
+
         super().close()
 
-    def _on_reply_received(self, reply: bytes) -> None:
-        """Handle received reply.
+    def _get_status(self) -> SpectrometerStatus | None:
+        """Request the current status from FTSW500.
 
-        Args:
-            reply: the byte sequence received from the FTSW500 program
+        From the Java API documentation:
+
+        Querying the FTSW500 state yields one of the following values:
+            0: when disconnected
+            1: when in the process of connecting to an instrument
+            2: when acquiring data without saving it 3: when acquiring and saving data
+            -1: when in an intermediate state that should normally not last for a long
+                time (less than 500 ms) or when the FTSW500_SDK object is not well
+                initialized
+
+        Returns:
+            Spectrometer status or None if in intermediate state
         """
-        new_status = parse_response(reply)
-        if new_status is not None:
-            if new_status != self._status:
-                self._status = new_status
-                self.send_status_message(new_status)
+        retval = self._make_request("getFTSW500State")
 
+        try:
+            status_num = int(retval)
+
+            if status_num == -1:
+                # Try again later
+                return None
+            if 0 <= status_num <= 3:
+                return SpectrometerStatus(status_num)
+        except ValueError:
+            pass
+
+        raise FTSW500Error(f"Invalid value received for status: {retval}")
+
+    def _update_status(self) -> None:
+        """Update the current status.
+
+        The status polling timer is restarted to ensure that another status update will
+        happen soon. If the status is intermediate (-1), then it is ignored and we just
+        wait until the status is next requested.
+        """
+        new_status = self._get_status()
+
+        # If the status is not intermediate and has changed since we last checked
+        if new_status and new_status != self._status:
+            self._status = new_status
+            self.send_status_message(new_status)
+
+        # Request another status update soon
         self._status_timer.start()
 
-        self._log_nonmodal_dialog_message()
-        self._log_modal_dialog_message()
-
-    def _request_status(self) -> None:
-        """Request the current status from FTSW500."""
-        self.request_command("getFTSW500State")
-
-    def request_command(self, command: str) -> None:
+    def _make_request(self, command: str) -> str:
         """Request that FTSW500 run the specified command.
 
         Args:
             command: Name of command to run
         """
-        self._requester.sendall(f"{command}\n".encode())
-        self._on_reply_received(self._requester.recv(1024))
+        self._socket.sendall(f"{command}\n".encode())
+
+        # Read a single message, which should be terminated with a newline. As the
+        # protocol is simple we don't have to worry about what happens if more than or
+        # less than one line of text is received.
+        response = self._socket.recv(1024).decode()
+        if not response:
+            raise FTSW500Error("Connection terminated unexpectedly")
+
+        if not response.endswith("\n"):
+            raise FTSW500Error("Response not terminated with newline")
+
+        return _parse_response(response[:-1])
+
+    def request_command(self, command: str) -> None:
+        """Request that FTSW500 run the specified command.
+
+        The status is requested after sending the command so that we are immediately
+        notified if it has changed in response to the command (e.g. recording has
+        started). Contents of dialogs in FTSW500 are saved to the program log.
+
+        Args:
+            command: Name of command to run
+        """
+
+        def internal():
+            self._make_request(command)
+
+            # Request a status update
+            self._update_status()
+
+            # Log the contents of dialogs
+            self._log_nonmodal_dialog_message()
+            self._log_modal_dialog_message()
+
+        # Make the request, forwarding any errors raised to the frontend
+        self.pubsub_errors(internal)()
