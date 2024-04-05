@@ -83,14 +83,14 @@ class FTSW500Interface(FTSW500InterfaceBase, description="FTSW500 spectrometer")
 
         self._request_status()
 
-    def _set_output_path_prefix(self, output_path_prefix: str) -> None:
+    def set_output_path_prefix(self, output_path_prefix: str) -> None:
         """Set the output path prefix for FTSW500 data."""
         self._requester.sendall(
             f"setOutputPathPrefixField&{output_path_prefix}\n".encode()
         )
         self._requester.recv(1024)
 
-    def _set_output_prefix(self, output_prefix: str) -> None:
+    def set_output_prefix(self, output_prefix: str) -> None:
         """Set the output prefix for FTSW500 data."""
         self._requester.sendall(f"setOutputPrefixOnlyField&{output_prefix}\n".encode())
         self._requester.recv(1024)
@@ -114,7 +114,7 @@ class FTSW500Interface(FTSW500InterfaceBase, description="FTSW500 spectrometer")
         self._requester.sendall(f"setTemperatureField&{temperature}\n".encode())
         self._requester.recv(1024)
 
-    def _check_is_modal_dialog_open(self) -> bool:
+    def is_modal_dialog_open(self) -> bool:
         """Query whether FTSW500 has a modal dialog open."""
         self._requester.sendall(b"isModalMessageDisplayed\n")
         data = self._requester.recv(1024)
@@ -123,7 +123,7 @@ class FTSW500Interface(FTSW500InterfaceBase, description="FTSW500 spectrometer")
         else:
             return False
 
-    def _check_is_nonmodal_dialog_open(self) -> bool:
+    def is_nonmodal_dialog_open(self) -> bool:
         """Query whether FTSW500 has a non-modal dialog open."""
         self._requester.sendall(b"isNonModalMessageDisplayed\n")
         data = self._requester.recv(1024)
@@ -132,29 +132,29 @@ class FTSW500Interface(FTSW500InterfaceBase, description="FTSW500 spectrometer")
         else:
             return False
 
-    def _regurgitate_modal_dialog_message(self) -> None:
+    def _log_modal_dialog_message(self) -> None:
         """Obtain the last modal message displayed on FTSW500 and log it."""
-        if self._check_is_modal_dialog_open():
+        if self.is_modal_dialog_open():
             self._requester.sendall(b"getLastModalMessageDisplayed\n")
             data = self._requester.recv(1024)
             logging.info(f"FTSW500: {data.decode().split('&')[1][:-1]}")
             self._requester.sendall(b"closeModalDialogMessage\n")
             self._requester.recv(1024)
 
-    def _regurgitate_nonmodal_dialog_message(self) -> None:
+    def _log_nonmodal_dialog_message(self) -> None:
         """Obtain the last non-modal message displayed on FTSW500 and log it."""
-        if self._check_is_nonmodal_dialog_open():
+        if self.is_nonmodal_dialog_open():
             self._requester.sendall(b"getLastNonModalMessageDisplayed\n")
             data = self._requester.recv(1024)
             logging.info(f"FTSW500: {data.decode().split('&')[1][:-1]}")
             self._requester.sendall(b"closeNonModalDialogMessage\n")
             self._requester.recv(1024)
 
-    def _close_FTSW500(self) -> None:
+    def close_FTSW500(self) -> None:
         """Close the FTSW500 program."""
         self._requester.sendall(b"closeFTSW500\n")
 
-    def _disconnect(self) -> None:
+    def disconnect(self) -> None:
         """Disconnect from the spectrometer."""
         self._requester.sendall(b"clickDisconnectButton\n")
         self._requester.recv(1024)
@@ -162,8 +162,8 @@ class FTSW500Interface(FTSW500InterfaceBase, description="FTSW500 spectrometer")
     def close(self) -> None:
         """Close the device."""
         if self._status == SpectrometerStatus.CONNECTED:
-            self._disconnect()
-            self._regurgitate_nonmodal_dialog_message()
+            self.disconnect()
+            self._log_nonmodal_dialog_message()
         self._requester.close()
         self._status_timer.stop()
         super().close()
@@ -182,8 +182,8 @@ class FTSW500Interface(FTSW500InterfaceBase, description="FTSW500 spectrometer")
 
         self._status_timer.start()
 
-        self._regurgitate_nonmodal_dialog_message()
-        self._regurgitate_modal_dialog_message()
+        self._log_nonmodal_dialog_message()
+        self._log_modal_dialog_message()
 
     def _make_request(self, command) -> None:
         """Make a request."""
