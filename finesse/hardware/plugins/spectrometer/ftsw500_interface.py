@@ -47,7 +47,6 @@ def parse_response(response: bytes) -> SpectrometerStatus | None:
         SpectrometerStatus: the generic spectrometer device state of FTSW500
     """
     msg = response.decode()
-    print(msg[:-1])
     if msg.startswith("ACK&"):
         status = int(msg.split("&")[1])
     elif msg.startswith("NAK&"):
