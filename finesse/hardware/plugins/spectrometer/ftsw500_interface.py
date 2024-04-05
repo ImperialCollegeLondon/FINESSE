@@ -162,7 +162,6 @@ class FTSW500Interface(FTSW500InterfaceBase, description="FTSW500 spectrometer")
     def close(self) -> None:
         """Close the device."""
         if self._status == SpectrometerStatus.CONNECTED:
-            self.disconnect()
             self._log_nonmodal_dialog_message()
         self._requester.close()
         self._status_timer.stop()
