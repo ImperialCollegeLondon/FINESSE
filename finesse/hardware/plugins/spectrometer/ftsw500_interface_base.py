@@ -21,18 +21,18 @@ class FTSW500InterfaceBase(SpectrometerBase):
 
     def connect(self) -> None:
         """Connect to the spectrometer."""
-        self.request_command(b"clickConnectButton\n")
+        self.request_command("clickConnectButton")
 
     def start_measuring(self) -> None:
         """Start a new measurement."""
-        self.request_command(b"clickStartAcquisitionButton\n")
+        self.request_command("clickStartAcquisitionButton")
 
     def stop_measuring(self) -> None:
         """Stop the current measurement."""
-        self.request_command(b"clickStopAcquisitionButton\n")
+        self.request_command("clickStopAcquisitionButton")
 
     @abstractmethod
-    def request_command(self, command: bytes) -> None:
+    def request_command(self, command: str) -> None:
         """Request that FTSW500 run the specified command.
 
         Args:

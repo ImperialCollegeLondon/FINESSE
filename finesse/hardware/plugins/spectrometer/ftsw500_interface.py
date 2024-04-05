@@ -185,19 +185,15 @@ class FTSW500Interface(FTSW500InterfaceBase, description="FTSW500 spectrometer")
         self._log_nonmodal_dialog_message()
         self._log_modal_dialog_message()
 
-    def _make_request(self, command) -> None:
-        """Make a request."""
-        self._requester.sendall(command)
-        self._on_reply_received(self._requester.recv(1024))
-
     def _request_status(self) -> None:
         """Request the current status from FTSW500."""
-        self.request_command(b"getFTSW500State\n")
+        self.request_command("getFTSW500State")
 
-    def request_command(self, command: bytes) -> None:
+    def request_command(self, command: str) -> None:
         """Request that FTSW500 run the specified command.
 
         Args:
             command: Name of command to run
         """
-        self._make_request(command)
+        self._requester.sendall(f"{command}\n".encode())
+        self._on_reply_received(self._requester.recv(1024))
