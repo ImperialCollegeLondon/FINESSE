@@ -27,7 +27,7 @@ class EM27Monitor(DevicePanel):
 
         self._val_lineedits: dict[str, QLineEdit] = {}
 
-        self._poll_light = LEDIcon.create_poll_icon()
+        self._poll_light = LEDIcon.create_green_icon()
 
         self._create_layouts()
 
