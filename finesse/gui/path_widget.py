@@ -36,6 +36,7 @@ class PathWidget(QWidget):
         browse.clicked.connect(self._browse_clicked)
 
         layout = QHBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.line_edit)
         layout.addWidget(browse)
         self.setLayout(layout)
