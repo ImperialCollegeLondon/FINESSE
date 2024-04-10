@@ -5,7 +5,7 @@ from typing import cast
 from unittest.mock import MagicMock, Mock, call, patch
 
 import pytest
-from PySide6.QtWidgets import QPushButton, QWidget
+from PySide6.QtWidgets import QMessageBox, QPushButton, QWidget
 from pytestqt.qtbot import QtBot
 
 from finesse.config import DEFAULT_SCRIPT_PATH, SPECTROMETER_TOPIC
@@ -40,6 +40,7 @@ def test_init(settings_mock: Mock, subscribe_mock: Mock, qtbot: QtBot) -> None:
     settings_mock.value.return_value = "/my/path.yaml"
     script_control = ScriptControl()
     assert not script_control._spectrometer_ready
+    assert not script_control._data_file_recording
 
     # Check we are subscribed to the relevant pubsub messages
     subscribe_mock.assert_has_calls(
@@ -54,6 +55,8 @@ def test_init(settings_mock: Mock, subscribe_mock: Mock, qtbot: QtBot) -> None:
                 script_control._on_spectrometer_disconnect,
                 f"device.closed.{SPECTROMETER_TOPIC}",
             ),
+            call(script_control._on_recording_start, "data_file.open"),
+            call(script_control._on_recording_stop, "data_file.close"),
         ),
         any_order=True,
     )
@@ -71,6 +74,20 @@ def test_init_path_setting(settings_mock: Mock, prev_path: Path, qtbot: QtBot) -
 
     # Check that the initial path is correct
     assert script_control.script_path.line_edit.text() == str(prev_path)
+
+
+def test_on_recording_start(script_control: ScriptControl) -> None:
+    """Test the _on_recording_start() method."""
+    script_control._data_file_recording = False
+    script_control._on_recording_start(MagicMock())
+    assert script_control._data_file_recording
+
+
+def test_on_recording_stop(script_control: ScriptControl) -> None:
+    """Test the _on_recording_stop() method."""
+    script_control._data_file_recording = True
+    script_control._on_recording_stop()
+    assert not script_control._data_file_recording
 
 
 @patch("finesse.gui.measure_script.script_view.ScriptEditDialog")
@@ -167,6 +184,29 @@ def test_edit_button_success(
         dialog.show.assert_called_once_with()
 
 
+def test_check_data_file_already_recording(script_control: ScriptControl) -> None:
+    """Test the _check_data_file_recording() method when recording is happening."""
+    script_control._data_file_recording = True
+    assert script_control._check_data_file_recording()
+
+
+@pytest.mark.parametrize(
+    "button,output",
+    ((QMessageBox.StandardButton.Ok, True), (QMessageBox.StandardButton.Cancel, False)),
+)
+@patch.object(QMessageBox, "question")
+def test_check_data_file_not_recording(
+    question_mock: Mock,
+    button: QMessageBox.StandardButton,
+    output: bool,
+    script_control: ScriptControl,
+) -> None:
+    """Test the _check_data_file_recording() method when not recording."""
+    script_control._data_file_recording = False
+    question_mock.return_value = button
+    assert script_control._check_data_file_recording() == output
+
+
 def _run_script(script_control: ScriptControl) -> None:
     """Click the run button in the ScriptControl.
 
@@ -180,12 +220,14 @@ def _run_script(script_control: ScriptControl) -> None:
 
 @patch("finesse.gui.measure_script.script_view.settings")
 @patch("finesse.gui.measure_script.script_view.Script")
-def test_run_button_no_file_path(
+def test_run_button_recording_check_failed(
     script_mock: Mock, settings_mock: Mock, script_control: ScriptControl, qtbot: QtBot
 ) -> None:
-    """Test that the run button does nothing if no path selected."""
-    with patch.object(script_control.script_path, "try_get_path") as try_get_path_mock:
-        try_get_path_mock.return_value = None
+    """Test that the run button does nothing if the data file recording check fails."""
+    with patch.object(
+        script_control, "_check_data_file_recording"
+    ) as check_recording_mock:
+        check_recording_mock.return_value = False
         _run_script(script_control)
 
         # Check that function returns without loading script
@@ -197,15 +239,42 @@ def test_run_button_no_file_path(
 
 @patch("finesse.gui.measure_script.script_view.settings")
 @patch("finesse.gui.measure_script.script_view.Script")
+def test_run_button_no_file_path(
+    script_mock: Mock, settings_mock: Mock, script_control: ScriptControl, qtbot: QtBot
+) -> None:
+    """Test that the run button does nothing if no path selected."""
+    with patch.object(
+        script_control, "_check_data_file_recording"
+    ) as check_recording_mock:
+        check_recording_mock.return_value = True
+        with patch.object(
+            script_control.script_path, "try_get_path"
+        ) as try_get_path_mock:
+            try_get_path_mock.return_value = None
+            _run_script(script_control)
+
+            # Check that function returns without loading script
+            script_mock.try_load.assert_not_called()
+
+            # Check that settings weren't updated
+            settings_mock.setValue.assert_not_called()
+
+
+@patch("finesse.gui.measure_script.script_view.settings")
+@patch("finesse.gui.measure_script.script_view.Script")
 def test_run_button_bad_script(
     script_mock: Mock, settings_mock: Mock, script_control: ScriptControl, qtbot: QtBot
 ) -> None:
     """Test that the run button does nothing if script fails to load."""
-    script_mock.try_load.return_value = None
-    _run_script(script_control)
+    with patch.object(
+        script_control, "_check_data_file_recording"
+    ) as check_recording_mock:
+        check_recording_mock.return_value = True
+        script_mock.try_load.return_value = None
+        _run_script(script_control)
 
-    # Check that settings weren't updated
-    settings_mock.setValue.assert_not_called()
+        # Check that settings weren't updated
+        settings_mock.setValue.assert_not_called()
 
 
 @patch("finesse.gui.measure_script.script_view.settings")
@@ -214,19 +283,25 @@ def test_run_button_success(
     script_mock: Mock, settings_mock: Mock, script_control: ScriptControl, qtbot: QtBot
 ) -> None:
     """Test that the run button works if no error occurs."""
-    with patch.object(script_control.script_path, "try_get_path") as try_get_path_mock:
-        script_path = Path("/my/path.yaml")
-        try_get_path_mock.return_value = script_path
-        script = MagicMock()
-        script_mock.try_load.return_value = script
+    with patch.object(
+        script_control, "_check_data_file_recording"
+    ) as check_recording_mock:
+        check_recording_mock.return_value = True
+        with patch.object(
+            script_control.script_path, "try_get_path"
+        ) as try_get_path_mock:
+            script_path = Path("/my/path.yaml")
+            try_get_path_mock.return_value = script_path
+            script = MagicMock()
+            script_mock.try_load.return_value = script
 
-        _run_script(script_control)
+            _run_script(script_control)
 
-        # Check that settings were updated
-        settings_mock.setValue.assert_any_call("script/run_path", str(script_path))
+            # Check that settings were updated
+            settings_mock.setValue.assert_any_call("script/run_path", str(script_path))
 
-        # Check that the script was started
-        script.run.assert_called_once_with(script_control)
+            # Check that the script was started
+            script.run.assert_called_once_with(script_control)
 
 
 @patch("finesse.gui.measure_script.script_view.ScriptRunDialog")
