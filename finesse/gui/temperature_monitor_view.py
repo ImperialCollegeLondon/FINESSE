@@ -76,7 +76,7 @@ class TemperatureMonitorControl(DevicePanel):
         )
         layout.addWidget(poll_label, 0, 9, 2, 1)
 
-        self._poll_light = LEDIcon.create_poll_icon()
+        self._poll_light = LEDIcon.create_green_icon()
         self._poll_light.timer.setInterval(self._poll_interval)
         self._poll_light.timer.timeout.connect(self._poll_device)
         layout.addWidget(self._poll_light, 0, 10, 2, 1)

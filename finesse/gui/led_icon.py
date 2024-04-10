@@ -9,15 +9,15 @@ from PySide6.QtGui import QImage, QPixmap
 from PySide6.QtWidgets import QLabel
 
 _img_files = resources.files("finesse.gui.images")
-_poll_on_img_data = _img_files.joinpath("poll_on.png").read_bytes()
-_poll_off_img_data = _img_files.joinpath("poll_off.png").read_bytes()
-_alarm_on_img_data = _img_files.joinpath("alarm_on.png").read_bytes()
-_alarm_off_img_data = _img_files.joinpath("alarm_off.png").read_bytes()
+_green_on_img_data = _img_files.joinpath("green_on.png").read_bytes()
+_green_off_img_data = _img_files.joinpath("green_off.png").read_bytes()
+_red_on_img_data = _img_files.joinpath("red_on.png").read_bytes()
+_red_off_img_data = _img_files.joinpath("red_off.png").read_bytes()
 
-_poll_on_img = QImage.fromData(_poll_on_img_data)
-_poll_off_img = QImage.fromData(_poll_off_img_data)
-_alarm_on_img = QImage.fromData(_alarm_on_img_data)
-_alarm_off_img = QImage.fromData(_alarm_off_img_data)
+_green_on_img = QImage.fromData(_green_on_img_data)
+_green_off_img = QImage.fromData(_green_off_img_data)
+_red_on_img = QImage.fromData(_red_on_img_data)
+_red_off_img = QImage.fromData(_red_off_img_data)
 
 
 class LEDIcon(QLabel):
@@ -42,14 +42,14 @@ class LEDIcon(QLabel):
         self.timer.timeout.connect(self._turn_off)
 
     @classmethod
-    def create_poll_icon(cls) -> LEDIcon:
-        """Creates the LED icon for polling the server."""
-        return cls(on_img=_poll_on_img, off_img=_poll_off_img)
+    def create_green_icon(cls) -> LEDIcon:
+        """Creates a green LED icon."""
+        return cls(on_img=_green_on_img, off_img=_green_off_img)
 
     @classmethod
-    def create_alarm_icon(cls) -> LEDIcon:
-        """Creates the LED icon to indicate alarm status."""
-        return cls(on_img=_alarm_on_img, off_img=_alarm_off_img)
+    def create_red_icon(cls) -> LEDIcon:
+        """Creates a red LED icon."""
+        return cls(on_img=_red_on_img, off_img=_red_off_img)
 
     def _turn_on(self) -> None:
         """Turns the LED on."""
