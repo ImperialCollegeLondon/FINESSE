@@ -40,28 +40,28 @@ class DataFileControl(QGroupBox):
 
         layout = QGridLayout()
 
-        self.open_dir_widget = OpenDirectoryWidget(
+        self._open_dir_widget = OpenDirectoryWidget(
             parent=self,
             caption="Choose destination for data file",
             dir=str(DEFAULT_DATA_FILE_PATH),
         )
         """Lets the user choose the destination for data files."""
-        self.open_dir_widget.set_path(_get_previous_destination_dir())
+        self._open_dir_widget.set_path(_get_previous_destination_dir())
         layout.addWidget(QLabel("Destination directory:"), 0, 0)
-        layout.addWidget(self.open_dir_widget, 0, 1)
+        layout.addWidget(self._open_dir_widget, 0, 1)
 
         layout.addWidget(QLabel("Filename prefix:"), 1, 0)
 
         filename = QWidget()
         filename_layout = QHBoxLayout()
 
-        self.filename_prefix_widget = QLineEdit()
-        self.filename_prefix_widget.setText(_get_previous_filename_prefix())
-        self.record_btn = QPushButton("Start recording")
+        self._filename_prefix_widget = QLineEdit()
+        self._filename_prefix_widget.setText(_get_previous_filename_prefix())
+        self._record_btn = QPushButton("Start recording")
         """Toggles recording state."""
-        self.record_btn.clicked.connect(self._toggle_recording)
-        filename_layout.addWidget(self.filename_prefix_widget)
-        filename_layout.addWidget(self.record_btn)
+        self._record_btn.clicked.connect(self._toggle_recording)
+        filename_layout.addWidget(self._filename_prefix_widget)
+        filename_layout.addWidget(self._record_btn)
 
         filename.setLayout(filename_layout)
 
@@ -82,28 +82,30 @@ class DataFileControl(QGroupBox):
         pub.subscribe(self._show_error_message, "data_file.error")
 
     def _on_file_open(self, path: Path) -> None:
-        self.open_dir_widget.setEnabled(False)
-        self.filename_prefix_widget.setEnabled(False)
-        self.record_btn.setText("Stop recording")
+        self._open_dir_widget.setEnabled(False)
+        self._filename_prefix_widget.setEnabled(False)
+        self._record_btn.setText("Stop recording")
         self._save_file_path_settings()
 
     def _save_file_path_settings(self) -> None:
         """Save the current destination dir and filename prefix to program settings."""
-        settings.setValue("data/destination_dir", self.open_dir_widget.line_edit.text())
-        settings.setValue("data/filename_prefix", self.filename_prefix_widget.text())
+        settings.setValue(
+            "data/destination_dir", self._open_dir_widget.line_edit.text()
+        )
+        settings.setValue("data/filename_prefix", self._filename_prefix_widget.text())
 
     def _on_file_close(self) -> None:
-        self.open_dir_widget.setEnabled(True)
-        self.filename_prefix_widget.setEnabled(True)
-        self.record_btn.setText("Start recording")
+        self._open_dir_widget.setEnabled(True)
+        self._filename_prefix_widget.setEnabled(True)
+        self._record_btn.setText("Start recording")
 
     def _try_get_data_file_path(self) -> Path | None:
-        dest_dir = self.open_dir_widget.try_get_path()
+        dest_dir = self._open_dir_widget.try_get_path()
         if not dest_dir:
             # User cancelled
             return None
 
-        filename_prefix = self.filename_prefix_widget.text()
+        filename_prefix = self._filename_prefix_widget.text()
         if not filename_prefix:
             # Check that the user has added a prefix
             QMessageBox(
@@ -128,7 +130,7 @@ class DataFileControl(QGroupBox):
 
     def _toggle_recording(self) -> None:
         """Starts or stops recording as needed."""
-        if self.record_btn.text() == "Stop recording":
+        if self._record_btn.text() == "Stop recording":
             pub.sendMessage("data_file.close")
         elif path := self._try_get_data_file_path():
             pub.sendMessage("data_file.open", path=path)
