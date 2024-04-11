@@ -65,9 +65,10 @@ class Decades(
             poll_interval: How often to poll the sensors (seconds)
         """
         super().__init__(DECADES_URL.format(host=host))
+        self._poll_interval = poll_interval
         self._poll_timer = QTimer()
         self._poll_timer.timeout.connect(self.send_data)
-        self._poll_timer.start(int(poll_interval * 1000))
+        self._poll_timer.start(int(self._poll_interval * 1000))
 
         # Obtain full parameter list in order to parse received data
         self.send_params()
@@ -92,7 +93,7 @@ class Decades(
 
         The HTTP request is made on a background thread.
         """
-        epoch_time = str(int(time.time() - DECADES_POLL_INTERVAL))
+        epoch_time = str(int(time.time() - self._poll_interval))
         url = QUrlQuery(self._url + "/livedata?")
         url.addQueryItem("frm", epoch_time)
         url.addQueryItem("to", epoch_time)
