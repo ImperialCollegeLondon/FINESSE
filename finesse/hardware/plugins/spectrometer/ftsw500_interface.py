@@ -115,7 +115,8 @@ class FTSW500Interface(FTSW500InterfaceBase, description="FTSW500 spectrometer")
         Querying the FTSW500 state yields one of the following values:
             0: when disconnected
             1: when in the process of connecting to an instrument
-            2: when acquiring data without saving it 3: when acquiring and saving data
+            2: when acquiring data without saving it
+            3: when acquiring and saving data
             -1: when in an intermediate state that should normally not last for a long
                 time (less than 500 ms) or when the FTSW500_SDK object is not well
                 initialized
