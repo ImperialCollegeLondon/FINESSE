@@ -152,22 +152,26 @@ class FTSW500Interface(FTSW500InterfaceBase, description="FTSW500 spectrometer")
 
         return _parse_response(response[:-1])
 
+    def _request_command_internal(self, command: str) -> None:
+        """Request that FTSW500 run the specified command and update the status.
+
+        Internal function called by request_command(), which doesn't do error
+        forwarding via pubsub.
+        """
+        self._make_request(command)
+
+        # Request a status update
+        self._update_status()
+
     def request_command(self, command: str) -> None:
         """Request that FTSW500 run the specified command.
 
         The status is requested after sending the command so that we are immediately
         notified if it has changed in response to the command (e.g. recording has
-        started). Contents of dialogs in FTSW500 are saved to the program log.
+        started).
 
         Args:
             command: Name of command to run
         """
-
-        def internal():
-            self._make_request(command)
-
-            # Request a status update
-            self._update_status()
-
         # Make the request, forwarding any errors raised to the frontend
-        self.pubsub_errors(internal)()
+        self.pubsub_errors(lambda: self._request_command_internal(command))()
