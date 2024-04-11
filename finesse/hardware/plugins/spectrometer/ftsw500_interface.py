@@ -49,7 +49,7 @@ def _parse_response(response: str) -> str:
         case "NAK":
             raise FTSW500Error(args)
         case _:
-            raise FTSW500Error(f"Unexpected response: {response}")
+            raise ValueError(f"Unexpected response: {response}")
 
 
 class FTSW500Interface(FTSW500InterfaceBase, description="FTSW500 spectrometer"):
