@@ -93,7 +93,7 @@ class Decades(
 
         The HTTP request is made on a background thread.
         """
-        epoch_time = str(int(time.time() - self._poll_interval))
+        epoch_time = str(int(time.time()))
         url = QUrlQuery(self._url + "/livedata?")
         url.addQueryItem("frm", epoch_time)
         url.addQueryItem("to", epoch_time)
@@ -122,6 +122,7 @@ class Decades(
             ]
             for param in self._params
             if param["ParameterName"] in DECADES_QUERY_LIST
+            and content[param["ParameterName"]] != []
         ]
         return data
 
