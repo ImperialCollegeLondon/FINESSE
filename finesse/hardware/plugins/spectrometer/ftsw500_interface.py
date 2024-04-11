@@ -11,7 +11,6 @@ instrument is currently measuring data would yield a response "ACK&true\n" or
 "ACK&false\n".
 """
 
-import logging
 from socket import AF_INET, SOCK_STREAM, socket
 
 from PySide6.QtCore import QTimer
@@ -75,34 +74,11 @@ class FTSW500Interface(FTSW500InterfaceBase, description="FTSW500 spectrometer")
         self._status = SpectrometerStatus.UNDEFINED
         self._update_status()
 
-    def is_modal_dialog_open(self) -> bool:
-        """Query whether FTSW500 has a modal dialog open."""
-        return self._make_request("isModalMessageDisplayed") == "true"
-
-    def is_nonmodal_dialog_open(self) -> bool:
-        """Query whether FTSW500 has a non-modal dialog open."""
-        return self._make_request("isNonModalMessageDisplayed") == "true"
-
-    def _log_modal_dialog_message(self) -> None:
-        """Obtain the last modal message displayed on FTSW500 and log it."""
-        if self.is_modal_dialog_open():
-            msg = self._make_request("getLastModalMessageDisplayed")
-            logging.info(f"FTSW500: {msg}")
-            self._make_request("closeModalDialogMessage")
-
-    def _log_nonmodal_dialog_message(self) -> None:
-        """Obtain the last non-modal message displayed on FTSW500 and log it."""
-        if self.is_nonmodal_dialog_open():
-            msg = self._make_request("getLastNonModalMessageDisplayed")
-            logging.info(f"FTSW500: {msg}")
-            self._make_request("closeNonModalDialogMessage")
-
     def close(self) -> None:
         """Close the device."""
         self._status_timer.stop()
 
         if self._socket.fileno() != -1:  # check if closed already
-            self._log_nonmodal_dialog_message()
             self._socket.close()
 
         super().close()
@@ -192,10 +168,6 @@ class FTSW500Interface(FTSW500InterfaceBase, description="FTSW500 spectrometer")
 
             # Request a status update
             self._update_status()
-
-            # Log the contents of dialogs
-            self._log_nonmodal_dialog_message()
-            self._log_modal_dialog_message()
 
         # Make the request, forwarding any errors raised to the frontend
         self.pubsub_errors(internal)()
