@@ -167,6 +167,17 @@ def test_edit_button_success(
         dialog.show.assert_called_once_with()
 
 
+def _run_script(script_control: ScriptControl) -> None:
+    """Click the run button in the ScriptControl.
+
+    The button will be disabled as no devices are connected, so we have to enable it
+    before we can click it.
+    """
+    btn = get_button(script_control, "Run script")
+    btn.setEnabled(True)
+    btn.click()
+
+
 @patch("finesse.gui.measure_script.script_view.settings")
 @patch("finesse.gui.measure_script.script_view.Script")
 def test_run_button_no_file_path(
@@ -175,7 +186,7 @@ def test_run_button_no_file_path(
     """Test that the run button does nothing if no path selected."""
     with patch.object(script_control.script_path, "try_get_path") as try_get_path_mock:
         try_get_path_mock.return_value = None
-        click_button(script_control, "Run script")
+        _run_script(script_control)
 
         # Check that function returns without loading script
         script_mock.try_load.assert_not_called()
@@ -191,7 +202,7 @@ def test_run_button_bad_script(
 ) -> None:
     """Test that the run button does nothing if script fails to load."""
     script_mock.try_load.return_value = None
-    click_button(script_control, "Run script")
+    _run_script(script_control)
 
     # Check that settings weren't updated
     settings_mock.setValue.assert_not_called()
@@ -209,9 +220,7 @@ def test_run_button_success(
         script = MagicMock()
         script_mock.try_load.return_value = script
 
-        btn = get_button(script_control, "Run script")
-        btn.setEnabled(True)  # Will be disabled unless devices are connected
-        btn.click()
+        _run_script(script_control)
 
         # Check that settings were updated
         settings_mock.setValue.assert_any_call("script/run_path", str(script_path))
