@@ -16,11 +16,7 @@ def get_time() -> datetime:
     If the time device is not connected or the operation fails, local time is returned.
     """
     timestamp = datetime.now().timestamp()
-
     if dev := get_time_instance():
-        try:
-            timestamp += dev.get_time_offset()
-        except Exception as error:
-            dev.send_error_message(error)
+        timestamp += dev.get_time_offset()
 
     return datetime.fromtimestamp(timestamp)

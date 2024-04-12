@@ -151,3 +151,6 @@ TIME_NTP_PORT = "ntp"
 
 TIME_NTP_TIMEOUT = 5.0
 """The timeout for NTP queries."""
+
+TIME_NTP_POLL_INTERVAL = 600.0
+"""Poll rate for NTP updates."""
