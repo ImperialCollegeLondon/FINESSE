@@ -1,4 +1,5 @@
 """Tests for the Seneca K107 device."""
+
 from unittest.mock import MagicMock, patch
 
 import numpy

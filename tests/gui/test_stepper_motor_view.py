@@ -1,4 +1,5 @@
 """Tests for StepperMotorControl."""
+
 from typing import cast
 from unittest.mock import MagicMock, Mock, patch
 

@@ -1,4 +1,5 @@
 """Provides a base class for time source devices or mock devices."""
+
 from abc import abstractmethod
 
 from finesse.config import TIME_TOPIC

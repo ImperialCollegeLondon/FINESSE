@@ -1,4 +1,5 @@
 """This module contains code for interfacing with different hardware devices."""
+
 from collections.abc import Sequence
 from decimal import Decimal
 

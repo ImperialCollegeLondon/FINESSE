@@ -1,4 +1,5 @@
 """Provides a base class for USB serial devices."""
+
 from __future__ import annotations
 
 import logging

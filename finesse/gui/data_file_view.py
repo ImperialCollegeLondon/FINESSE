@@ -1,4 +1,5 @@
 """Provides a panel which lets the user start and stop recording of data files."""
+
 from pathlib import Path
 from typing import cast
 

@@ -1,4 +1,5 @@
 """Code for a fake stepper motor device."""
+
 import logging
 
 from PySide6.QtCore import QTimer

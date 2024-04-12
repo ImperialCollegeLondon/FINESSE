@@ -55,7 +55,7 @@ jobs:
 
       - name: Upload coverage to Codecov
         if: matrix.os == 'ubuntu-latest' && success()
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
 
       - name: Check for documentation errors with MkDocs
         if: matrix.os == 'ubuntu-latest'
@@ -71,7 +71,7 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: poetry run pyinstaller FINESSE.spec
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: success() && matrix.os == 'windows-latest'
         with:
           name: FINESSE
@@ -79,7 +79,7 @@ jobs:
 
       - name: Upload release artifacts
         if: startsWith(github.ref, 'refs/tags/') && matrix.os == 'windows-latest'
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: dist/FINESSE.exe
 

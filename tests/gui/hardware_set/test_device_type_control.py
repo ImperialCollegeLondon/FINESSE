@@ -1,4 +1,5 @@
 """Test the DeviceTypeControl class."""
+
 from collections.abc import Sequence
 from unittest.mock import MagicMock, Mock, PropertyMock, call, patch
 

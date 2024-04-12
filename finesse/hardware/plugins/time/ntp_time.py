@@ -1,4 +1,5 @@
 """This module provides an interface for querying time from an NTP server."""
+
 from ntplib import NTPClient
 from PySide6.QtCore import QTimer
 

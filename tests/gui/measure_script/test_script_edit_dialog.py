@@ -1,4 +1,5 @@
 """Tests for the ScriptEditDialog class and associated code."""
+
 from collections.abc import Sequence
 from contextlib import nullcontext
 from pathlib import Path

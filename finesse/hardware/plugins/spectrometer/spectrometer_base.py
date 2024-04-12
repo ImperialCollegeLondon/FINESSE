@@ -1,4 +1,5 @@
 """Provides a generic base class for spectrometers."""
+
 from abc import abstractmethod
 
 from finesse.config import SPECTROMETER_TOPIC

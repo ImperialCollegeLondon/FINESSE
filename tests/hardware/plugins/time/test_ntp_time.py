@@ -1,4 +1,5 @@
 """Tests for the NTPTime plugin."""
+
 from unittest.mock import patch
 
 from finesse.hardware.plugins.time.ntp_time import NTPTime
