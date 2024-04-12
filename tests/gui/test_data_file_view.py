@@ -1,13 +1,17 @@
 """Tests for DataFileControl."""
 
+from datetime import datetime
 from pathlib import Path
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
+from freezegun import freeze_time
 
 from finesse.gui.data_file_view import DataFileControl
 
 FILE_PATH = Path("/path/to/file.csv")
+TEST_DATETIME = datetime(2024, 1, 1)
+"""Fix system time for time-dependent unit tests."""
 
 
 @pytest.fixture
@@ -81,6 +85,53 @@ def test_on_file_close(data_file: DataFileControl, qtbot) -> None:
 
     assert data_file.record_btn.text() == "Start recording"
     assert data_file.open_dir_widget.isEnabled()
+
+
+@freeze_time(TEST_DATETIME)
+def test_try_get_data_file_path_success(
+    data_file: DataFileControl, tmp_path: Path, qtbot
+) -> None:
+    """Test the _try_get_data_path() method when everything succeeds."""
+    data_file.filename_prefix_widget.setText("some_prefix")
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    expected_path = tmp_path / f"some_prefix_{timestamp}.csv"
+
+    with patch.object(data_file.open_dir_widget, "try_get_path", return_value=tmp_path):
+        assert data_file._try_get_data_file_path() == expected_path
+
+
+def test_try_get_data_file_path_no_data_dir(data_file: DataFileControl, qtbot) -> None:
+    """Test the _try_get_data_path() method when data dir not chosen."""
+    data_file.filename_prefix_widget.setText("some_prefix")
+    with patch.object(data_file.open_dir_widget, "try_get_path", return_value=None):
+        assert data_file._try_get_data_file_path() is None
+
+
+@patch("finesse.gui.data_file_view.QMessageBox")
+def test_try_get_data_file_path_no_filename_prefix(
+    msgbox_mock: Mock, data_file: DataFileControl, tmp_path: Path, qtbot
+) -> None:
+    """Test the _try_get_data_path() method when filename prefix not entered."""
+    data_file.filename_prefix_widget.setText("")
+    with patch.object(data_file.open_dir_widget, "try_get_path", return_value=tmp_path):
+        assert data_file._try_get_data_file_path() is None
+        msgbox_mock.assert_called_once()
+
+
+@freeze_time(TEST_DATETIME)
+@patch("finesse.gui.data_file_view.QMessageBox")
+def test_try_get_data_file_path_file_exists(
+    msgbox_mock: Mock, data_file: DataFileControl, tmp_path: Path, qtbot
+) -> None:
+    """Test the _try_get_data_path() method when the file already exists."""
+    data_file.filename_prefix_widget.setText("some_prefix")
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    expected_path = tmp_path / f"some_prefix_{timestamp}.csv"
+    expected_path.open("a").close()  # create file
+
+    with patch.object(data_file.open_dir_widget, "try_get_path", return_value=tmp_path):
+        assert data_file._try_get_data_file_path() is None
+        msgbox_mock.assert_called_once()
 
 
 @patch("finesse.gui.data_file_view.QMessageBox")
