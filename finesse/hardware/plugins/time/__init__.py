@@ -1,4 +1,5 @@
 """This module contains interfaces for querying time sources."""
+
 from datetime import datetime
 
 from finesse.hardware.manage_devices import get_device_instance
