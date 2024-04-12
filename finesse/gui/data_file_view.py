@@ -1,5 +1,4 @@
 """Provides a panel which lets the user start and stop recording of data files."""
-from datetime import datetime
 from pathlib import Path
 from typing import cast
 
@@ -18,6 +17,7 @@ from PySide6.QtWidgets import (
 
 from finesse.config import DEFAULT_DATA_FILE_PATH
 from finesse.gui.path_widget import OpenDirectoryWidget
+from finesse.hardware.plugins.time import get_time
 from finesse.settings import settings
 
 
@@ -112,7 +112,7 @@ class DataFileControl(QGroupBox):
             ).exec()
             return None
 
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = get_time().strftime("%Y%m%d_%H%M%S")
         path = dest_dir / f"{filename_prefix}_{timestamp}.csv"
         if path.exists():
             # It's unlikely that the file will already exist, but let's make doubly sure
