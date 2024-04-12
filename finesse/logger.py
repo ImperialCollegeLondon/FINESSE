@@ -1,12 +1,12 @@
 """Set up the program's logger."""
 import logging
 import os
-from datetime import datetime
 from pathlib import Path
 
 from platformdirs import user_log_path
 
 from finesse import config
+from finesse.hardware.plugins.time import get_time
 
 log_file: Path
 
@@ -21,7 +21,7 @@ def get_log_path():
 def initialise_logging() -> None:
     """Configure the program's logger."""
     global log_file
-    log_file = get_log_path() / f"{datetime.now().strftime('%Y%m%d_%H-%M-%S')}.log"
+    log_file = get_log_path() / f"{get_time().strftime('%Y%m%d_%H-%M-%S')}.log"
 
     # Allow user to set log level with environment variable
     log_level = (os.environ.get("FINESSE_LOG_LEVEL") or "INFO").upper()
