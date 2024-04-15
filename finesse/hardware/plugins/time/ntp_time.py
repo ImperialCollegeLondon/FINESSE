@@ -84,3 +84,4 @@ class NTPTime(
     def close(self) -> None:
         """Close the device."""
         self._poll_timer.stop()
+        super().close()
