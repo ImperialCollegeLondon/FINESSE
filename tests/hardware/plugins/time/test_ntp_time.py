@@ -24,7 +24,9 @@ def test_init(request_mock) -> None:
     # Interval is in milliseconds, not seconds.
     assert ntp_time._poll_timer.interval() == 456000
 
-    request_mock.assert_called_once()
+    request_mock.assert_called_once_with(
+        "test.org", version=2, port="test_port", timeout=123.0
+    )
 
 
 @patch("ntplib.NTPClient.request")
