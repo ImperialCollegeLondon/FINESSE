@@ -108,7 +108,10 @@ def test_get_metadata() -> None:
 @patch("finesse.hardware.data_file_writer.get_temperature_controller_instance")
 @patch("finesse.hardware.data_file_writer.get_stepper_motor_instance")
 def test_write(
-    get_stepper_mock: Mock, get_tc_mock: Mock, writer: DataFileWriter
+    get_stepper_mock: Mock,
+    get_tc_mock: Mock,
+    writer: DataFileWriter,
+    sendmsg_mock: Mock,
 ) -> None:
     """Test the write() method."""
     get_stepper_mock.return_value = stepper = MagicMock()
@@ -124,6 +127,8 @@ def test_write(
     writer._writer.writerow.assert_called_once_with(
         ("20230414", "00:01:00", *data, 60, 90.0, False, 10)
     )
+
+    sendmsg_mock.assert_called_once_with("data_file.writing")
 
 
 @patch("finesse.hardware.data_file_writer.get_temperature_controller_instance")
