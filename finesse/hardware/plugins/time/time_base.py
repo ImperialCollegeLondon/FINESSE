@@ -11,7 +11,7 @@ class TimeBase(Device, name=TIME_TOPIC, description="Time source"):
 
     @abstractmethod
     def get_time_offset(self) -> float:
-        """Get the current time offset.
+        """Get the current time offset in seconds.
 
         Returns:
             A float representing the current time offset.

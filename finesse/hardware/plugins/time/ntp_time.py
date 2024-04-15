@@ -74,7 +74,7 @@ class NTPTime(
             self.send_error_message(error)
 
     def get_time_offset(self) -> float:
-        """Get the current time offset.
+        """Get the current time offset in seconds.
 
         Returns:
             A float representing the current time offset.
