@@ -11,7 +11,7 @@ def get_time_instance() -> TimeBase | None:
     return get_device_instance(TimeBase)
 
 
-def get_time() -> datetime:
+def get_current_time() -> datetime:
     """Read the current time, with optional time offset.
 
     If the time device is not connected or the operation fails, local time is returned.
