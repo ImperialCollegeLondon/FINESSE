@@ -174,6 +174,8 @@ class DataFileWriter:
         )
         self._writer._file.flush()
 
+        pub.sendMessage("data_file.writing")
+
 
 _data_file_writer = DataFileWriter()
 """The only instance of DataFileWriter."""
