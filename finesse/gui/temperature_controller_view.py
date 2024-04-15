@@ -119,9 +119,9 @@ class TemperatureControllerControl(DevicePanel):
         self._power_label.setReadOnly(True)
         layout.addWidget(self._power_label, 1, 4)
 
-        self._poll_light = LEDIcon.create_poll_icon()
+        self._poll_light = LEDIcon.create_green_icon()
         self._poll_light.timer.timeout.connect(self._poll_device)
-        self._alarm_light = LEDIcon.create_alarm_icon()
+        self._alarm_light = LEDIcon.create_red_icon()
         layout.addWidget(self._poll_light, 0, 5)
         layout.addWidget(self._alarm_light, 2, 5)
 
