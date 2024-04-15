@@ -1,6 +1,6 @@
 """This module contains interfaces for querying time sources."""
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from finesse.hardware.manage_devices import get_device_instance
 from finesse.hardware.plugins.time.time_base import TimeBase
@@ -16,8 +16,8 @@ def get_current_time() -> datetime:
 
     If the time device is not connected or the operation fails, local time is returned.
     """
-    timestamp = datetime.now().timestamp()
+    time = datetime.now()
     if dev := get_time_instance():
-        timestamp += dev.get_time_offset()
+        time += timedelta(seconds=dev.get_time_offset())
 
-    return datetime.fromtimestamp(timestamp)
+    return time
