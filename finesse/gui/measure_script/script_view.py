@@ -4,7 +4,13 @@ from pathlib import Path
 from typing import cast
 
 from pubsub import pub
-from PySide6.QtWidgets import QFileDialog, QGridLayout, QGroupBox, QPushButton
+from PySide6.QtWidgets import (
+    QFileDialog,
+    QGridLayout,
+    QGroupBox,
+    QMessageBox,
+    QPushButton,
+)
 
 from finesse.config import DEFAULT_SCRIPT_PATH, SPECTROMETER_TOPIC, STEPPER_MOTOR_TOPIC
 from finesse.device_info import DeviceInstanceRef
@@ -77,11 +83,24 @@ class ScriptControl(QGroupBox):
         pub.subscribe(self._show_run_dialog, "measure_script.begin")
         pub.subscribe(self._hide_run_dialog, "measure_script.end")
 
+        # Keep track of whether recording is taking place, so we can remind user to
+        # start recording
+        pub.subscribe(self._on_recording_start, "data_file.open")
+        pub.subscribe(self._on_recording_stop, "data_file.close")
+        self._data_file_recording = False
+        """Whether data file is currently being recorded."""
+
         self.edit_dialog: ScriptEditDialog
         """A dialog for editing the contents of a measure script."""
 
         self.run_dialog: ScriptRunDialog
         """A dialog showing the progress of a running measure script."""
+
+    def _on_recording_start(self, path: Path) -> None:
+        self._data_file_recording = True
+
+    def _on_recording_stop(self) -> None:
+        self._data_file_recording = False
 
     def _create_btn_clicked(self) -> None:
         self.edit_dialog = ScriptEditDialog(self.window())
@@ -108,8 +127,33 @@ class ScriptControl(QGroupBox):
         self.edit_dialog = ScriptEditDialog(self.window(), script)
         self.edit_dialog.show()
 
+    def _check_data_file_recording(self) -> bool:
+        """Check whether recording is in progress and user is happy to continue.
+
+        This reminds the user that they may want to start recording a data file before
+        running a script.
+
+        Returns:
+            True if data file is being recorded or user clicks ok in dialog box
+        """
+        if self._data_file_recording:
+            return True
+
+        ret = QMessageBox.question(
+            self,
+            "Data file not being recorded",
+            "Data is currently not being recorded. Are you sure you want to continue?",
+            QMessageBox.StandardButton.Ok,
+            QMessageBox.StandardButton.Cancel,
+        )
+        return ret == QMessageBox.StandardButton.Ok
+
     def _run_btn_clicked(self) -> None:
         """Try to run a measure script."""
+        if not self._check_data_file_recording():
+            # User forgot to start data recording
+            return
+
         file_path = self.script_path.try_get_path()
         if not file_path:
             # User cancelled
