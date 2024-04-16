@@ -65,7 +65,8 @@ def test_get_time_offset(request_mock) -> None:
 
 
 @patch("PySide6.QtCore.QTimer.stop")
-def test_close(stop_mock) -> None:
+@patch("ntplib.NTPClient.request")
+def test_close(request_mock, stop_mock) -> None:
     """Test the close method."""
     ntp_time = NTPTime()
     ntp_time.close()
