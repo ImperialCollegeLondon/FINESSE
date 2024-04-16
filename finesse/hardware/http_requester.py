@@ -4,6 +4,7 @@ from collections.abc import Callable
 from functools import partial
 from typing import Any
 
+from PySide6.QtCore import QUrl
 from PySide6.QtNetwork import QNetworkAccessManager, QNetworkReply, QNetworkRequest
 
 from finesse.config import DEFAULT_HTTP_TIMEOUT
@@ -20,7 +21,9 @@ class HTTPRequester:
         self._timeout = timeout
         self._manager = QNetworkAccessManager()
 
-    def make_request(self, url: str, callback: Callable[[QNetworkReply], Any]) -> None:
+    def make_request(
+        self, url: str | QUrl, callback: Callable[[QNetworkReply], Any]
+    ) -> None:
         """Make a new HTTP request in the background.
 
         Args:

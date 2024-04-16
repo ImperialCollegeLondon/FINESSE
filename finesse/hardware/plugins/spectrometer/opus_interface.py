@@ -9,10 +9,14 @@ Note that this is a separate machine from the EM27!
 import logging
 
 from bs4 import BeautifulSoup
-from PySide6.QtCore import QTimer, Slot
+from PySide6.QtCore import QTimer, QUrl, Slot
 from PySide6.QtNetwork import QNetworkReply
 
-from finesse.config import OPUS_IP, OPUS_POLLING_INTERVAL
+from finesse.config import (
+    DEFAULT_OPUS_HOST,
+    DEFAULT_OPUS_POLLING_INTERVAL,
+    DEFAULT_OPUS_PORT,
+)
 from finesse.hardware.http_requester import HTTPRequester
 from finesse.hardware.plugins.spectrometer.opus_interface_base import (
     OPUSError,
@@ -56,21 +60,49 @@ def parse_response(response: str) -> SpectrometerStatus:
     return status
 
 
-class OPUSInterface(OPUSInterfaceBase, description="OPUS spectrometer"):
+class OPUSInterface(
+    OPUSInterfaceBase,
+    description="OPUS spectrometer",
+    parameters={
+        "host": "The hostname or IP address for the machine running the OPUS software",
+        "port": "The port on which to make HTTP requests",
+        "polling_interval": (
+            "The minimum polling interval for status requests (seconds). "
+            "This is rate limited to around one request every two seconds by OPUS."
+        ),
+    },
+):
     """Interface for communicating with the OPUS program.
 
     HTTP requests are handled on a background thread.
     """
 
-    def __init__(self) -> None:
-        """Create a new OPUSInterface."""
+    def __init__(
+        self,
+        host: str = DEFAULT_OPUS_HOST,
+        port: int = DEFAULT_OPUS_PORT,
+        polling_interval: float = DEFAULT_OPUS_POLLING_INTERVAL,
+    ) -> None:
+        """Create a new OPUSInterface.
+
+        Args:
+            host: The hostname or IP address on which to make requests
+            port: The port on which to make requests
+            polling_interval: Minimum polling interval for status
+        """
         super().__init__()
         self._requester = HTTPRequester()
-        self._status = SpectrometerStatus.UNDEFINED
+        self._url = QUrl()
+        """URL to make requests."""
+        self._url.setScheme("http")
+        self._url.setHost(host)
+        self._url.setPort(port)
 
+        self._status = SpectrometerStatus.UNDEFINED
+        """The last known status of the spectrometer."""
         self._status_timer = QTimer()
         self._status_timer.timeout.connect(self._request_status)
-        self._status_timer.setInterval(int(OPUS_POLLING_INTERVAL * 1000))
+        self._status_timer.setInterval(int(polling_interval * 1000))
         self._status_timer.setSingleShot(True)
 
         self._request_status()
@@ -100,9 +132,9 @@ class OPUSInterface(OPUSInterfaceBase, description="OPUS spectrometer"):
 
     def _make_request(self, filename: str) -> None:
         """Make an HTTP request in the background."""
+        self._url.setPath(f"/opusrs/{filename}")
         self._requester.make_request(
-            f"http://{OPUS_IP}/opusrs/{filename}",
-            self.pubsub_errors(self._on_reply_received),
+            self._url, self.pubsub_errors(self._on_reply_received)
         )
 
     def _request_status(self) -> None:
