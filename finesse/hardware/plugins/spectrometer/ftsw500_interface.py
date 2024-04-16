@@ -16,9 +16,9 @@ from socket import AF_INET, SOCK_STREAM, socket
 from PySide6.QtCore import QTimer
 
 from finesse.config import (
-    FTSW500_HOST,
-    FTSW500_POLLING_INTERVAL,
-    FTSW500_PORT,
+    DEFAULT_FTSW500_HOST,
+    DEFAULT_FTSW500_POLLING_INTERVAL,
+    DEFAULT_FTSW500_PORT,
     FTSW500_TIMEOUT,
 )
 from finesse.hardware.plugins.spectrometer.ftsw500_interface_base import (
@@ -52,22 +52,41 @@ def _parse_response(response: str) -> str:
             raise ValueError(f"Unexpected response: {response}")
 
 
-class FTSW500Interface(FTSW500InterfaceBase, description="FTSW500 spectrometer"):
+class FTSW500Interface(
+    FTSW500InterfaceBase,
+    description="FTSW500 spectrometer",
+    parameters={
+        "host": "The hostname or IP of the machine running the FTSW500 software",
+        "port": "The port on which to make requests",
+        "polling_interval": "How often to poll the spectrometer's status (seconds)",
+    },
+):
     """Interface for communicating with the FTSW500 program."""
 
-    def __init__(self) -> None:
-        """Create a new FTSW500Interface."""
+    def __init__(
+        self,
+        host: str = DEFAULT_FTSW500_HOST,
+        port: int = DEFAULT_FTSW500_PORT,
+        polling_interval: float = DEFAULT_FTSW500_POLLING_INTERVAL,
+    ) -> None:
+        """Create a new FTSW500Interface.
+
+        Args:
+            host: The hostname or IP of the machine running the FTSW500 software
+            port: The port on which to make requests
+            polling_interval: How often to poll the spectrometer's status (seconds)
+        """
         super().__init__()
 
         sock = socket(AF_INET, SOCK_STREAM)
         sock.settimeout(FTSW500_TIMEOUT)
-        sock.connect((FTSW500_HOST, FTSW500_PORT))
+        sock.connect((host, port))
         self._socket = sock
 
         # Timer to poll status
         self._status_timer = QTimer()
         self._status_timer.timeout.connect(self.pubsub_errors(self._update_status))
-        self._status_timer.setInterval(int(FTSW500_POLLING_INTERVAL * 1000))
+        self._status_timer.setInterval(int(polling_interval * 1000))
         self._status_timer.setSingleShot(True)
 
         # Find out what the initial status is

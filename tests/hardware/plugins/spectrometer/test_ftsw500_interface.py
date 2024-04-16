@@ -9,9 +9,9 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 
 from finesse.config import (
-    FTSW500_HOST,
-    FTSW500_POLLING_INTERVAL,
-    FTSW500_PORT,
+    DEFAULT_FTSW500_HOST,
+    DEFAULT_FTSW500_POLLING_INTERVAL,
+    DEFAULT_FTSW500_PORT,
     FTSW500_TIMEOUT,
 )
 from finesse.hardware.plugins.spectrometer.ftsw500_interface import (
@@ -74,13 +74,17 @@ def test_init(status_mock: Mock, decorator_mock: Mock, qtbot) -> None:
         # Check socket is created correctly and connection is attempted
         socket_ctor.assert_called_once_with(AF_INET, SOCK_STREAM)
         sock.settimeout.assert_called_once_with(FTSW500_TIMEOUT)
-        sock.connect.assert_called_once_with((FTSW500_HOST, FTSW500_PORT))
+        sock.connect.assert_called_once_with(
+            (DEFAULT_FTSW500_HOST, DEFAULT_FTSW500_PORT)
+        )
 
         # Check that _update_status() is called to get initial status
         status_mock.assert_called_once_with()
 
         # Check that timer to poll status is configured correctly but not started
-        assert dev._status_timer.interval() == int(FTSW500_POLLING_INTERVAL * 1000)
+        assert dev._status_timer.interval() == int(
+            DEFAULT_FTSW500_POLLING_INTERVAL * 1000
+        )
         assert dev._status_timer.isSingleShot()
         decorator_mock.assert_called_with(status_mock)
         assert not dev._status_timer.isActive()
