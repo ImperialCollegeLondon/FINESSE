@@ -85,10 +85,13 @@ TEMPERATURE_MONITOR_TOPIC = "temperature_monitor"
 TEMPERATURE_CONTROLLER_TOPIC = "temperature_controller"
 """The topic name to use for temperature controller-related messages."""
 
-OPUS_IP = "10.10.0.2"
+DEFAULT_OPUS_HOST = "10.10.0.2"
 """The IP address of the machine running the OPUS software."""
 
-OPUS_POLLING_INTERVAL = 1.0
+DEFAULT_OPUS_PORT = 80
+"""The port for OPUS HTTP requests."""
+
+DEFAULT_OPUS_POLLING_INTERVAL = 1.0
 """How long to wait between polls of the EM27's status.
 
 Note that in reality the minimum poll interval is ~2s, because that's how long the
