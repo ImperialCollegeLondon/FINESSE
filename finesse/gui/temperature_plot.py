@@ -81,7 +81,7 @@ class TemperaturePlot(QGroupBox):
         hot_bb_temp: list[float | None] = [None] * self._figure_num_pts
         cold_bb_temp: list[float | None] = [None] * self._figure_num_pts
 
-        t[0] = 0.0
+        t[0] = None
         hot_bb_temp[0] = 25.0
         cold_bb_temp[0] = 25.0
 
