@@ -14,8 +14,8 @@ a = Analysis(
         ("finesse/gui/hardware_set/*.yaml", "finesse/gui/hardware_set"),
         ("finesse/gui/images/*.png", "finesse/gui/images"),
         (
-            "finesse/hardware/plugins/spectrometer/diag_autom.htm",
-            "finesse/hardware/plugins/spectrometer",
+            "finesse/hardware/plugins/sensors/diag_autom.htm",
+            "finesse/hardware/plugins/sensors",
         ),
         ("docs/user_guide.html", "docs"),
         ("docs/fallback.html", "docs"),
