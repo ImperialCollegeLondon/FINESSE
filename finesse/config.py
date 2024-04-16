@@ -85,8 +85,8 @@ TEMPERATURE_MONITOR_TOPIC = "temperature_monitor"
 TEMPERATURE_CONTROLLER_TOPIC = "temperature_controller"
 """The topic name to use for temperature controller-related messages."""
 
-DEFAULT_OPUS_HOST = "10.10.0.2"
-"""The IP address of the machine running the OPUS software."""
+DEFAULT_OPUS_HOST = "localhost"
+"""The IP address or hostname of the machine running the OPUS software."""
 
 DEFAULT_OPUS_PORT = 80
 """The port for OPUS HTTP requests."""

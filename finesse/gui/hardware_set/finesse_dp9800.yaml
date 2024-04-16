@@ -24,3 +24,6 @@ devices:
     class_name: spectrometer.em27_sensors.EM27Sensors
   spectrometer:
     class_name: spectrometer.opus_interface.OPUSInterface
+    params:
+      host: 10.10.0.2
+      port: 80
