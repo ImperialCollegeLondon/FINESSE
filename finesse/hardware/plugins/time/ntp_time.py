@@ -1,5 +1,7 @@
 """This module provides an interface for querying time from an NTP server."""
 
+import logging
+
 from ntplib import NTPClient
 from PySide6.QtCore import QTimer
 
@@ -62,6 +64,7 @@ class NTPTime(
 
     def poll_time_offset(self) -> None:
         """Query the NTP server for the current time offset."""
+        logging.info("Polling NTP server for time offset.")
         try:
             self._response = self._client.request(
                 self._ntp_host,
@@ -69,6 +72,7 @@ class NTPTime(
                 port=self._ntp_port,
                 timeout=self._ntp_timeout,
             )
+            logging.info(f"NTP time offset: {self._response.offset}")
         except Exception as e:
             raise NTPTimeError(f"Error querying NTP server: {e}")
 
