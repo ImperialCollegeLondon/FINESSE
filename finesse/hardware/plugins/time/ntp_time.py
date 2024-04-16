@@ -34,7 +34,7 @@ class NTPTime(
         self,
         ntp_host: str = TIME_NTP_HOST,
         ntp_version: int = TIME_NTP_VERSION,
-        ntp_port: str = TIME_NTP_PORT,
+        ntp_port: int = TIME_NTP_PORT,
         ntp_timeout: float = TIME_NTP_TIMEOUT,
         ntp_poll_interval: float = TIME_NTP_POLL_INTERVAL,
     ) -> None:
@@ -70,8 +70,7 @@ class NTPTime(
                 timeout=self._ntp_timeout,
             )
         except Exception as e:
-            error = NTPTimeError(e)
-            self.send_error_message(error)
+            raise NTPTimeError(f"Error querying NTP server: {e}")
 
     def get_time_offset(self) -> float:
         """Get the current time offset in seconds.
