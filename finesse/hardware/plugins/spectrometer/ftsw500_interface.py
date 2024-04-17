@@ -171,17 +171,6 @@ class FTSW500Interface(
 
         return _parse_response(response[:-1])
 
-    def _request_command_internal(self, command: str) -> None:
-        """Request that FTSW500 run the specified command and update the status.
-
-        Internal function called by request_command(), which doesn't do error
-        forwarding via pubsub.
-        """
-        self._make_request(command)
-
-        # Request a status update
-        self._update_status()
-
     def request_command(self, command: str) -> None:
         """Request that FTSW500 run the specified command.
 
@@ -192,5 +181,7 @@ class FTSW500Interface(
         Args:
             command: Name of command to run
         """
-        # Make the request, forwarding any errors raised to the frontend
-        self.pubsub_errors(lambda: self._request_command_internal(command))()
+        self._make_request(command)
+
+        # Request a status update
+        self._update_status()
