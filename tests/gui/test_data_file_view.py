@@ -29,7 +29,7 @@ def test_init(
     assert data_file._open_dir_widget.isEnabled()
     assert data_file._filename_prefix_widget.isEnabled()
 
-    subscribe_mock.assert_any_call(data_file._on_file_open, "data_file.open")
+    subscribe_mock.assert_any_call(data_file._on_file_open, "data_file.opened")
     subscribe_mock.assert_any_call(data_file._on_file_close, "data_file.close")
     subscribe_mock.assert_any_call(data_file._show_error_message, "data_file.error")
 
@@ -63,7 +63,7 @@ def test_on_file_open(data_file: DataFileControl, qtbot) -> None:
     with patch.object(data_file, "_save_file_path_settings") as save_mock:
         data_file._open_dir_widget.setEnabled(True)
         data_file._filename_prefix_widget.setEnabled(True)
-        data_file._on_file_open(FILE_PATH)
+        data_file._on_file_open()
         assert not data_file._open_dir_widget.isEnabled()
         assert not data_file._filename_prefix_widget.isEnabled()
         save_mock.assert_called_once_with()
