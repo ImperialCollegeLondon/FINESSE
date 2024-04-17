@@ -3,6 +3,7 @@
 import logging
 import traceback
 from collections.abc import Callable
+from typing import Any
 
 from decorator import decorator
 from pubsub import pub
@@ -19,17 +20,17 @@ def _error_occurred(error_topic: str, error: BaseException) -> None:
     pub.sendMessage(error_topic, error=error)
 
 
-def pubsub_errors(error_topic: str) -> Callable:
+@decorator
+def pubsub_errors(func: Callable, self: Any, *args, **kwargs):
     """Catch exceptions and broadcast via pubsub.
 
     Args:
-        error_topic: The topic name on which to broadcast errors
+        func: The function to decorate
+        self: The object providing the error_topic member
+        args: Arguments for func
+        kwargs: Keyword arguments for func
     """
-
-    def wrapped(func: Callable, *args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except Exception as error:
-            _error_occurred(error_topic, error)
-
-    return decorator(wrapped)
+    try:
+        return func(self, *args, **kwargs)
+    except Exception as error:
+        _error_occurred(self.error_topic, error)

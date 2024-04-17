@@ -113,6 +113,9 @@ class DataFileWriter:
     is reused.
     """
 
+    error_topic = "data_file.error"
+    """The pubsub topic on which to broadcast caught errors."""
+
     def __init__(self) -> None:
         """Create a new DataFileWriter."""
         self._writer: Writer
@@ -125,7 +128,7 @@ class DataFileWriter:
         # Close data file if GUI closes unexpectedly
         pub.subscribe(self.close, "window.closed")
 
-    @pubsub_errors("data_file.error")
+    @pubsub_errors
     def open(self, path: Path) -> None:
         """Open a file at the specified path for writing.
 
@@ -163,7 +166,7 @@ class DataFileWriter:
             self._writer.close()
             del self._writer
 
-    @pubsub_errors("data_file.error")
+    @pubsub_errors
     def write(self, time: datetime, temperatures: list[Decimal]) -> None:
         """Write temperature readings to the CSV file."""
         # Also include timestamp as seconds since midnight
