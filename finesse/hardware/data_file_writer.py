@@ -15,7 +15,7 @@ from pubsub import pub
 from finesse import config
 from finesse.hardware.plugins.stepper_motor import get_stepper_motor_instance
 from finesse.hardware.plugins.temperature import get_temperature_controller_instance
-from finesse.hardware.pubsub_decorators import pubsub_errors
+from finesse.hardware.pubsub_decorators import PubSubErrorWrapper, pubsub_errors
 
 
 def _on_error_occurred(error: BaseException) -> None:
@@ -106,18 +106,17 @@ def _get_hot_bb_power() -> float:
         return float("nan")
 
 
-class DataFileWriter:
+class DataFileWriter(PubSubErrorWrapper):
     """A class for writing sensor data to a CSV file.
 
     This class is a singleton. Every time a new file needs to be written this instance
     is reused.
     """
 
-    error_topic = "data_file.error"
-    """The pubsub topic on which to broadcast caught errors."""
-
     def __init__(self) -> None:
         """Create a new DataFileWriter."""
+        super().__init__(error_topic="data_file.error")
+
         self._writer: Writer
         """The CSV writer."""
 

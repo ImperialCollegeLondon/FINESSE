@@ -3,34 +3,52 @@
 import logging
 import traceback
 from collections.abc import Callable
-from typing import Any
 
 from decorator import decorator
+from frozendict import frozendict
 from pubsub import pub
 
 
-def _error_occurred(error_topic: str, error: BaseException) -> None:
-    """Signal that an error occurred."""
-    traceback_str = "".join(traceback.format_tb(error.__traceback__))
+class PubSubErrorWrapper:
+    """A class to help with catching errors and broadcasting them via pubsub.
 
-    # Write details including stack trace to program log
-    logging.error(f"Caught error ({error_topic}): {error!s}\n\n{traceback_str}")
+    Classes needing the pubsub_errors() decorator should inherit from this class.
+    """
 
-    # Notify listeners
-    pub.sendMessage(error_topic, error=error)
+    def __init__(self, error_topic: str, **extra_error_kwargs) -> None:
+        """Create a new ErrorWrapper.
+
+        Args:
+            error_topic: The topic on which to broadcast error messages
+            extra_error_kwargs: Extra arguments to pass via pub.sendMessage
+        """
+        self._error_topic = error_topic
+        self._extra_error_kwargs = frozendict(extra_error_kwargs)
+
+    def report_error(self, error: Exception) -> None:
+        """Signal that an error occurred."""
+        traceback_str = "".join(traceback.format_tb(error.__traceback__))
+
+        # Write details including stack trace to program log
+        logging.error(
+            f"Caught error ({self._error_topic}): {error!s}\n\n{traceback_str}"
+        )
+
+        # Notify listeners
+        pub.sendMessage(self._error_topic, error=error, **self._extra_error_kwargs)
 
 
 @decorator
-def pubsub_errors(func: Callable, self: Any, *args, **kwargs):
+def pubsub_errors(func: Callable, obj: PubSubErrorWrapper, *args, **kwargs):
     """Catch exceptions and broadcast via pubsub.
 
     Args:
         func: The function to decorate
-        self: The object providing the error_topic member
+        obj: The object from which the error will be sent
         args: Arguments for func
         kwargs: Keyword arguments for func
     """
     try:
-        return func(self, *args, **kwargs)
+        return func(obj, *args, **kwargs)
     except Exception as error:
-        _error_occurred(self.error_topic, error)
+        obj.report_error(error)
