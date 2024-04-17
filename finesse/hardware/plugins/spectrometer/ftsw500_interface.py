@@ -25,6 +25,7 @@ from finesse.hardware.plugins.spectrometer.ftsw500_interface_base import (
     FTSW500Error,
     FTSW500InterfaceBase,
 )
+from finesse.hardware.pubsub_decorators import pubsub_errors
 from finesse.spectrometer_status import SpectrometerStatus
 
 
@@ -85,7 +86,7 @@ class FTSW500Interface(
 
         # Timer to poll status
         self._status_timer = QTimer()
-        self._status_timer.timeout.connect(self.pubsub_errors(self._update_status))
+        self._status_timer.timeout.connect(pubsub_errors(self._update_status))
         self._status_timer.setInterval(int(polling_interval * 1000))
         self._status_timer.setSingleShot(True)
 

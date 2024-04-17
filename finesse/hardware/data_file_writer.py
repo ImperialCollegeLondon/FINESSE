@@ -84,7 +84,7 @@ def _get_stepper_motor_angle() -> tuple[float, bool]:
         else:
             return (angle, False)
     except Exception as error:
-        stepper.send_error_message(error)
+        stepper.report_error(error)
         return (float("nan"), False)
 
 
@@ -102,7 +102,7 @@ def _get_hot_bb_power() -> float:
     try:
         return hot_bb.power
     except Exception as error:
-        hot_bb.send_error_message(error)
+        hot_bb.report_error(error)
         return float("nan")
 
 

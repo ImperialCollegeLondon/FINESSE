@@ -22,6 +22,7 @@ from finesse.hardware.plugins.spectrometer.opus_interface_base import (
     OPUSError,
     OPUSInterfaceBase,
 )
+from finesse.hardware.pubsub_decorators import pubsub_errors
 from finesse.spectrometer_status import SpectrometerStatus
 
 STATUS_FILENAME = "stat.htm"
@@ -133,9 +134,7 @@ class OPUSInterface(
     def _make_request(self, filename: str) -> None:
         """Make an HTTP request in the background."""
         self._url.setPath(f"/opusrs/{filename}")
-        self._requester.make_request(
-            self._url, self.pubsub_errors(self._on_reply_received)
-        )
+        self._requester.make_request(self._url, pubsub_errors(self._on_reply_received))
 
     def _request_status(self) -> None:
         """Request the current status from OPUS."""

@@ -23,7 +23,7 @@ def _try_get_temperatures() -> Sequence | None:
     try:
         return dev.get_temperatures()
     except Exception as error:
-        dev.send_error_message(error)
+        dev.report_error(error)
         return None
 
 

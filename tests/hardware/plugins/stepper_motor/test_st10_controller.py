@@ -67,7 +67,7 @@ def test_init(subscribe_mock: MagicMock, serial_mock: MagicMock) -> None:
             r.async_read_completed.connect.assert_called_once_with(
                 st10._send_move_end_message
             )
-            r.read_error.connect.assert_called_once_with(st10.send_error_message)
+            r.read_error.connect.assert_called_once_with(st10.report_error)
             check_mock.assert_called_once()
             home_mock.assert_called_once()
 

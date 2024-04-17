@@ -58,7 +58,7 @@ def test_parse_response(response: str, ret, raises):
         assert _parse_response(response) == ret
 
 
-@patch.object(FTSW500Interface, "pubsub_errors")
+@patch("finesse.hardware.plugins.spectrometer.ftsw500_interface.pubsub_errors")
 @patch.object(FTSW500Interface, "_update_status")
 def test_init(status_mock: Mock, decorator_mock: Mock, qtbot) -> None:
     """Test FTSW500Interface's constructor."""

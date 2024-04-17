@@ -183,7 +183,7 @@ class ST10Controller(SerialDevice, StepperMotorBase, description="ST10 controlle
 
         self._reader = _SerialReader(self.serial, timeout)
         self._reader.async_read_completed.connect(self._send_move_end_message)
-        self._reader.read_error.connect(self.send_error_message)
+        self._reader.read_error.connect(self.report_error)
         self._reader.start()
 
         # Check that we are connecting to an ST10

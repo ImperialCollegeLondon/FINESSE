@@ -7,8 +7,6 @@ should inherit from a device base class.
 
 from __future__ import annotations
 
-import logging
-import traceback
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Mapping, Sequence
 from copy import deepcopy
@@ -27,6 +25,7 @@ from finesse.device_info import (
 )
 from finesse.hardware.plugins import __name__ as _plugins_name
 from finesse.hardware.plugins import load_all_plugins
+from finesse.hardware.pubsub_decorators import PubSubErrorWrapper, pubsub_errors
 
 _base_types: set[type[Device]] = set()
 """Registry of device base types."""
@@ -177,7 +176,7 @@ class DeviceClassType(Enum):
     """An intermediate class type that should not be added to either registry"""
 
 
-class Device(AbstractDevice):
+class Device(AbstractDevice, PubSubErrorWrapper):
     """A base class for device types.
 
     This class is the base class for device base types and (indirectly) concrete device
@@ -267,17 +266,20 @@ class Device(AbstractDevice):
         self._subscriptions: list[tuple[Callable, str]] = []
         """Store of wrapped functions which are subscribed to pubsub messages."""
 
-        if not self._device_base_type_info.names_short:
-            if name:
+        if name:
+            if not self._device_base_type_info.names_short:
                 raise RuntimeError(
                     "Name provided for device which cannot accept names."
                 )
-            return
+            if name not in self._device_base_type_info.names_short:
+                raise RuntimeError("Invalid name given for device")
 
-        if name not in self._device_base_type_info.names_short:
-            raise RuntimeError("Invalid name given for device")
+            self.topic += f".{name}"
 
-        self.topic += f".{name}"
+        instance = self.get_instance_ref()
+        PubSubErrorWrapper.__init__(
+            self, f"device.error.{instance!s}", instance=instance
+        )
 
     def close(self) -> None:
         """Close the device and clear any pubsub subscriptions."""
@@ -287,35 +289,6 @@ class Device(AbstractDevice):
     def get_instance_ref(self) -> DeviceInstanceRef:
         """Get the DeviceInstanceRef corresponding to this device."""
         return DeviceInstanceRef(self._device_base_type_info.name, self.name)
-
-    def send_error_message(self, error: Exception) -> None:
-        """Send an error message for this device."""
-        # Write to log
-        traceback_str = "".join(traceback.format_exception(error))
-        logging.error(f"Error with device {self.topic}: {traceback_str}")
-
-        # Send pubsub message
-        instance = self.get_instance_ref()
-        pub.sendMessage(
-            f"device.error.{instance!s}",
-            instance=instance,
-            error=error,
-        )
-
-    def pubsub_errors(self, func: Callable) -> Callable:
-        """Catch exceptions and broadcast via pubsub.
-
-        Args:
-            func: The function to wrap
-        """
-
-        def wrapped(func, *args, **kwargs):
-            try:
-                func(*args, **kwargs)
-            except Exception as error:
-                self.send_error_message(error)
-
-        return decorate(func, wrapped)
 
     def pubsub_broadcast(
         self, func: Callable, success_topic_suffix: str, *kwarg_names: str
@@ -335,7 +308,7 @@ class Device(AbstractDevice):
             try:
                 result = func(*args, **kwargs)
             except Exception as error:
-                self.send_error_message(error)
+                self.report_error(error)
             else:
                 # Convert result to a tuple of the right size
                 if result is None:
@@ -377,7 +350,7 @@ class Device(AbstractDevice):
                 func, success_topic_suffix, *kwarg_names
             )
         else:
-            wrapped_func = self.pubsub_errors(func)
+            wrapped_func = pubsub_errors(func)
 
         topic_name = f"{self.topic}.{topic_name_suffix}"
         self._subscriptions.append((wrapped_func, topic_name))

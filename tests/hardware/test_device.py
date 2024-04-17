@@ -220,26 +220,6 @@ def _wrapped_func_error_test(device: Device, wrapper: Callable, *args) -> None:
         error_mock.assert_called_once()
 
 
-def test_device_pubsub_errors_success(device: Device) -> None:
-    """Test Device's pubsub_errors() method when no exception is raised."""
-    has_run = False
-
-    def noop():
-        nonlocal has_run
-        has_run = True
-
-    with patch.object(device, "send_error_message") as error_mock:
-        wrapped_func = device.pubsub_errors(noop)
-        wrapped_func()
-        assert has_run
-        error_mock.assert_not_called()
-
-
-def test_device_pubsub_errors_fail(device: Device) -> None:
-    """Test Device's pubsub_errors() method when an exception is raised."""
-    _wrapped_func_error_test(device, device.pubsub_errors)
-
-
 @pytest.mark.parametrize(
     "return_val,kwarg_names,forwarded_args",
     (
@@ -280,15 +260,6 @@ def test_device_pubsub_broadcast_success(
 def test_device_pubsub_broadcast_fail(device: Device) -> None:
     """Test Device's pubsub_broadcast() method when an exception is raised."""
     _wrapped_func_error_test(device, device.pubsub_broadcast, "success")
-
-
-def test_device_send_error_message(device: Device, sendmsg_mock: MagicMock) -> None:
-    """Test Device's send_error_message() method."""
-    error = RuntimeError()
-    device.send_error_message(error)
-    sendmsg_mock.assert_called_once_with(
-        "device.error.mock", instance=device.get_instance_ref(), error=error
-    )
 
 
 def _device_subscribe_test(
