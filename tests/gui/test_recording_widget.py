@@ -1,6 +1,6 @@
 """Tests for the RecordingWidget class."""
 
-from unittest.mock import MagicMock, Mock, call
+from unittest.mock import Mock, call
 
 import pytest
 from pytestqt.qtbot import QtBot
@@ -24,7 +24,7 @@ def test_init(subscribe_mock: Mock, qtbot: QtBot) -> None:
     subscribe_mock.assert_has_calls(
         (
             call(widget._led.flash, "data_file.writing"),
-            call(widget._on_file_open, "data_file.open"),
+            call(widget._on_file_open, "data_file.opened"),
             call(widget._on_file_close, "data_file.close"),
         ),
         any_order=True,
@@ -33,7 +33,7 @@ def test_init(subscribe_mock: Mock, qtbot: QtBot) -> None:
 
 def test_on_file_open(widget: RecordingWidget) -> None:
     """Test the _on_file_open() method."""
-    widget._on_file_open(MagicMock())
+    widget._on_file_open()
     assert widget._is_recording
     assert widget._btn.text() == "Stop recording"
     assert (
@@ -44,7 +44,7 @@ def test_on_file_open(widget: RecordingWidget) -> None:
 def test_on_file_close(widget: RecordingWidget) -> None:
     """Test the _on_file_close() method."""
     # First, simulate opening the file
-    widget._on_file_open(MagicMock())
+    widget._on_file_open()
 
     # Now check that everything resets correctly
     widget._on_file_close()
