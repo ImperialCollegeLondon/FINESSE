@@ -129,3 +129,4 @@ class EM27Sensors(
     def close(self) -> None:
         """Close the device."""
         self._poll_timer.stop()
+        super().close()
