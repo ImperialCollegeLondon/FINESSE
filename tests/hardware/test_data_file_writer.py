@@ -3,7 +3,7 @@
 from datetime import datetime
 from decimal import Decimal
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, Mock, call, patch
 
 import pytest
 import yaml
@@ -21,8 +21,9 @@ def writer() -> DataFileWriter:
 def test_init(subscribe_mock: MagicMock) -> None:
     """Test DataFileWriter's constructor."""
     writer = DataFileWriter()
-    subscribe_mock.assert_any_call(writer.open, "data_file.open")
-    subscribe_mock.assert_any_call(writer.close, "data_file.close")
+    subscribe_mock.assert_has_calls(
+        (call(writer.open, "data_file.open"), call(writer.close, "data_file.close"))
+    )
 
 
 @patch("finesse.hardware.data_file_writer.config.NUM_TEMPERATURE_MONITOR_CHANNELS", 2)
@@ -55,7 +56,7 @@ def test_open(
             "TemperatureControllerPower",
         )
     )
-    subscribe_mock.assert_any_call(
+    subscribe_mock.assert_called_once_with(
         writer.write, f"device.{TEMPERATURE_MONITOR_TOPIC}.data.response"
     )
 
