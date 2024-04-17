@@ -4,8 +4,6 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from finesse.config import STEPPER_MOTOR_TOPIC
-from finesse.device_info import DeviceInstanceRef
 from finesse.hardware.plugins.stepper_motor.stepper_motor_base import StepperMotorBase
 
 
@@ -69,16 +67,3 @@ def test_angle(stepper: _MockStepperMotor) -> None:
     stepper._steps_per_rotation = 180
     stepper.step = 180
     assert stepper.angle == 360.0
-
-
-def test_send_error_message(
-    sendmsg_mock: MagicMock, stepper: _MockStepperMotor
-) -> None:
-    """Test the send_error_message() method."""
-    error = Exception()
-    stepper.send_error_message(error)
-    sendmsg_mock.assert_called_once_with(
-        f"device.error.{STEPPER_MOTOR_TOPIC}",
-        instance=DeviceInstanceRef(STEPPER_MOTOR_TOPIC),
-        error=error,
-    )
