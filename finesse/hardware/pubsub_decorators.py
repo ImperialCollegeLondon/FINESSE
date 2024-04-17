@@ -39,16 +39,21 @@ class PubSubErrorWrapper:
 
 
 @decorator
-def pubsub_errors(func: Callable, obj: PubSubErrorWrapper, *args, **kwargs):
+def pubsub_errors(func: Callable, *args, **kwargs):
     """Catch exceptions and broadcast via pubsub.
 
     Args:
         func: The function to decorate
-        obj: The object from which the error will be sent
         args: Arguments for func
         kwargs: Keyword arguments for func
     """
     try:
-        return func(obj, *args, **kwargs)
+        return func(*args, **kwargs)
     except Exception as error:
+        # **HACK**: Depending on how the decorator is used, func will either be a member
+        # function or a regular function whose first argument is self. Unfortunately it
+        # means that there doesn't seem to be a clean way to access the parent object,
+        # so we have to resort to this smelly hack to access the report_error() member
+        # function.
+        obj = getattr(func, "__self__", None) or args[0]
         obj.report_error(error)
