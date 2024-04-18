@@ -85,7 +85,7 @@ class ScriptControl(QGroupBox):
 
         # Keep track of whether recording is taking place, so we can remind user to
         # start recording
-        pub.subscribe(self._on_recording_start, "data_file.open")
+        pub.subscribe(self._on_recording_start, "data_file.opened")
         pub.subscribe(self._on_recording_stop, "data_file.close")
         self._data_file_recording = False
         """Whether data file is currently being recorded."""
@@ -96,7 +96,7 @@ class ScriptControl(QGroupBox):
         self.run_dialog: ScriptRunDialog
         """A dialog showing the progress of a running measure script."""
 
-    def _on_recording_start(self, path: Path) -> None:
+    def _on_recording_start(self) -> None:
         self._data_file_recording = True
 
     def _on_recording_stop(self) -> None:

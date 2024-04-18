@@ -55,7 +55,7 @@ def test_init(settings_mock: Mock, subscribe_mock: Mock, qtbot: QtBot) -> None:
                 script_control._on_spectrometer_disconnect,
                 f"device.closed.{SPECTROMETER_TOPIC}",
             ),
-            call(script_control._on_recording_start, "data_file.open"),
+            call(script_control._on_recording_start, "data_file.opened"),
             call(script_control._on_recording_stop, "data_file.close"),
         ),
         any_order=True,
@@ -79,7 +79,7 @@ def test_init_path_setting(settings_mock: Mock, prev_path: Path, qtbot: QtBot) -
 def test_on_recording_start(script_control: ScriptControl) -> None:
     """Test the _on_recording_start() method."""
     script_control._data_file_recording = False
-    script_control._on_recording_start(MagicMock())
+    script_control._on_recording_start()
     assert script_control._data_file_recording
 
 

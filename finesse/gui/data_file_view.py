@@ -75,10 +75,10 @@ class RecordingWidget(QWidget):
         """Whether data is being recorded."""
 
         # Update widget on file open/close
-        pub.subscribe(self._on_file_open, "data_file.open")
+        pub.subscribe(self._on_file_open, "data_file.opened")
         pub.subscribe(self._on_file_close, "data_file.close")
 
-    def _on_file_open(self, path: Path) -> None:
+    def _on_file_open(self) -> None:
         """Update widget when recording starts."""
         self._is_recording = True
         self._btn.setText("Stop recording")
@@ -140,13 +140,13 @@ class DataFileControl(QGroupBox):
         )
 
         # Update GUI on file open/close
-        pub.subscribe(self._on_file_open, "data_file.open")
+        pub.subscribe(self._on_file_open, "data_file.opened")
         pub.subscribe(self._on_file_close, "data_file.close")
 
         # Show an error message if writing fails
         pub.subscribe(self._show_error_message, "data_file.error")
 
-    def _on_file_open(self, path: Path) -> None:
+    def _on_file_open(self) -> None:
         self._open_dir_widget.setEnabled(False)
         self._filename_prefix_widget.setEnabled(False)
         self._save_file_path_settings()

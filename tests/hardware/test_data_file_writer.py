@@ -3,13 +3,17 @@
 from datetime import datetime
 from decimal import Decimal
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, Mock, call, patch
 
 import pytest
 import yaml
 
 from finesse.config import TEMPERATURE_MONITOR_TOPIC
-from finesse.hardware.data_file_writer import DataFileWriter, _get_metadata
+from finesse.hardware.data_file_writer import (
+    DataFileWriter,
+    _get_metadata,
+    _on_error_occurred,
+)
 
 
 @pytest.fixture
@@ -21,8 +25,9 @@ def writer() -> DataFileWriter:
 def test_init(subscribe_mock: MagicMock) -> None:
     """Test DataFileWriter's constructor."""
     writer = DataFileWriter()
-    subscribe_mock.assert_any_call(writer.open, "data_file.open")
-    subscribe_mock.assert_any_call(writer.close, "data_file.close")
+    subscribe_mock.assert_has_calls(
+        (call(writer.open, "data_file.open"), call(writer.close, "data_file.close"))
+    )
 
 
 @patch("finesse.hardware.data_file_writer.config.NUM_TEMPERATURE_MONITOR_CHANNELS", 2)
@@ -33,6 +38,7 @@ def test_open(
     get_metadata_mock: Mock,
     writer: DataFileWriter,
     subscribe_mock: MagicMock,
+    sendmsg_mock: MagicMock,
 ) -> None:
     """Test the open() method."""
     header = MagicMock()
@@ -55,9 +61,13 @@ def test_open(
             "TemperatureControllerPower",
         )
     )
-    subscribe_mock.assert_any_call(
-        writer.write, f"device.{TEMPERATURE_MONITOR_TOPIC}.data.response"
+    subscribe_mock.assert_has_calls(
+        (
+            call(writer.write, f"device.{TEMPERATURE_MONITOR_TOPIC}.data.response"),
+            call(_on_error_occurred, "data_file.error"),
+        )
     )
+    sendmsg_mock.assert_called_once_with("data_file.opened")
 
 
 @patch("finesse.hardware.data_file_writer.Writer")
@@ -89,8 +99,11 @@ def test_close(
     csv_writer._file.flush.assert_called_once_with()
     fsync_mock.assert_called_once_with(42)
     csv_writer.close.assert_called_once_with()
-    unsubscribe_mock.assert_called_once_with(
-        writer.write, f"device.{TEMPERATURE_MONITOR_TOPIC}.data.response"
+    unsubscribe_mock.assert_has_calls(
+        (
+            call(writer.write, f"device.{TEMPERATURE_MONITOR_TOPIC}.data.response"),
+            call(_on_error_occurred, "data_file.error"),
+        )
     )
 
 

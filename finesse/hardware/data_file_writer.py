@@ -45,6 +45,25 @@ def _get_metadata(filename: str) -> dict[str, Any]:
     }
 
 
+def _create_writer(path: Path) -> Writer:
+    writer = Writer(path, _get_metadata(path.name))
+
+    # Write column headers
+    writer.writerow(
+        (
+            "Date",
+            "Time",
+            *(f"Temp{i+1}" for i in range(config.NUM_TEMPERATURE_MONITOR_CHANNELS)),
+            "TimeAsSeconds",
+            "Angle",
+            "IsMoving",
+            "TemperatureControllerPower",
+        )
+    )
+
+    return writer
+
+
 def _get_stepper_motor_angle() -> tuple[float, bool]:
     """Get the current angle of the stepper motor.
 
@@ -106,9 +125,6 @@ class DataFileWriter:
         # Close data file if GUI closes unexpectedly
         pub.subscribe(self.close, "window.closed")
 
-        # Listen for error messages
-        pub.subscribe(_on_error_occurred, "data_file.error")
-
     @pubsub_errors("data_file.error")
     def open(self, path: Path) -> None:
         """Open a file at the specified path for writing.
@@ -117,31 +133,25 @@ class DataFileWriter:
             path: The path of the file to write to
         """
         logging.info(f"Opening data file at {path}")
-        self._writer = Writer(path, _get_metadata(path.name))
-
-        # Write column headers
-        self._writer.writerow(
-            (
-                "Date",
-                "Time",
-                *(f"Temp{i+1}" for i in range(config.NUM_TEMPERATURE_MONITOR_CHANNELS)),
-                "TimeAsSeconds",
-                "Angle",
-                "IsMoving",
-                "TemperatureControllerPower",
-            )
-        )
+        self._writer = _create_writer(path)
 
         # Listen to temperature monitor messages
         pub.subscribe(
             self.write, f"device.{config.TEMPERATURE_MONITOR_TOPIC}.data.response"
         )
 
+        # Call close() if writing errors occur
+        pub.subscribe(_on_error_occurred, "data_file.error")
+
+        # Send message to indicate that file has opened successfully
+        pub.sendMessage("data_file.opened")
+
     def close(self) -> None:
         """Close the current file handle."""
         pub.unsubscribe(
             self.write, f"device.{config.TEMPERATURE_MONITOR_TOPIC}.data.response"
         )
+        pub.unsubscribe(_on_error_occurred, "data_file.error")
 
         if hasattr(self, "_writer"):
             logging.info("Closing data file")
