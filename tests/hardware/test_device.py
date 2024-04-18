@@ -14,12 +14,28 @@ from finesse.hardware.device import (
     get_device_types,
 )
 
+MOCK_DEVICE_TOPIC = "mock"
 
-class _MockBaseClass(Device, name="mock", description="Mock base class"):
+
+class _MockBaseClass(Device, name=MOCK_DEVICE_TOPIC, description="Mock base class"):
     pass
 
 
 class _MockDevice(_MockBaseClass, description="Mock device"):
+    pass
+
+
+class _NamedMockBaseClass(
+    Device,
+    name=MOCK_DEVICE_TOPIC,
+    description="Mock base class with device names",
+    names_short=("name1", "name2"),
+    names_long=("First device", "Second device"),
+):
+    pass
+
+
+class _NamedMockDevice(_NamedMockBaseClass, description="Mock device with name"):
     pass
 
 
@@ -302,6 +318,42 @@ def test_device_subscribe_errors_only(
 def test_device_subscribe_broadcast(device: Device, subscribe_mock: MagicMock) -> None:
     """Test the subscribe() method with a message sent for error and success."""
     _device_subscribe_test(device, subscribe_mock, "pubsub_broadcast", "suffix", "name")
+
+
+def test_device_init() -> None:
+    """Test Device's constructor when no name is provided."""
+    device = _MockDevice()
+    assert device.topic == f"device.{MOCK_DEVICE_TOPIC}"
+    assert device.name is None
+
+
+def test_device_init_unexpected_name() -> None:
+    """Test Device's constructor when an unexpected name is provided.
+
+    Only device types whose base types define names_short and names_long can select a
+    name.
+    """
+    with pytest.raises(RuntimeError):
+        _MockDevice("name1")
+
+
+def test_device_init_with_name() -> None:
+    """Test Device's constructor when a name is provided."""
+    device = _NamedMockDevice("name1")
+    assert device.topic == f"device.{MOCK_DEVICE_TOPIC}.name1"
+    assert device.name == "name1"
+
+
+def test_device_init_with_invalid_name() -> None:
+    """Test Device's constructor when an invalid name is provided."""
+    with pytest.raises(RuntimeError):
+        _NamedMockDevice("name3")
+
+
+def test_device_init_missing_name():
+    """Test Device's constructor when a name should be provided but isn't."""
+    with pytest.raises(RuntimeError):
+        _NamedMockDevice()
 
 
 def test_device_close(device: Device, unsubscribe_mock: MagicMock) -> None:
