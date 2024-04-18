@@ -87,11 +87,6 @@ class AbstractDevice(ABC):
         """
         super().__init_subclass__()
 
-        # Every time we create a new class, create a new _device_parameters attribute,
-        # so that _add_parameters() and _update_parameter_defaults() don't clobber
-        # values for the parent class.
-        cls._device_parameters = deepcopy(cls._device_parameters)
-
         cls._add_parameters(parameters)
         cls._update_parameter_defaults()
 
@@ -102,6 +97,14 @@ class AbstractDevice(ABC):
     ) -> None:
         """Store extra device parameters in a class attribute."""
         arg_types = get_type_hints(cls.__init__)
+
+        # We want to copy device parameters from the parent class, but only if they are
+        # also present in this class's constructor
+        params = set(arg_types.keys()).intersection(cls._device_parameters.keys())
+        cls._device_parameters = {
+            name: deepcopy(cls._device_parameters[name]) for name in params
+        }
+
         for name, value in parameters.items():
             if isinstance(value, str):
                 # Only a description provided
