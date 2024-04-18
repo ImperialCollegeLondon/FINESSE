@@ -1,5 +1,6 @@
 """Tests for device.py."""
 
+from abc import abstractmethod
 from collections.abc import Callable, Sequence
 from typing import Any, ClassVar
 from unittest.mock import MagicMock, Mock, patch
@@ -318,6 +319,20 @@ def test_device_subscribe_errors_only(
 def test_device_subscribe_broadcast(device: Device, subscribe_mock: MagicMock) -> None:
     """Test the subscribe() method with a message sent for error and success."""
     _device_subscribe_test(device, subscribe_mock, "pubsub_broadcast", "suffix", "name")
+
+
+def test_device_ignored_class():
+    """Test that it is possible to create a class not saved to a device registry."""
+    with patch.object(Device, "_init_base_type") as init_base_mock:
+        with patch.object(Device, "_init_device_type") as init_device_mock:
+
+            class IgnoredMockClass(_MockBaseClass):
+                @abstractmethod
+                def some_method():
+                    pass
+
+            init_base_mock.assert_not_called()
+            init_device_mock.assert_not_called()
 
 
 def test_device_init() -> None:
