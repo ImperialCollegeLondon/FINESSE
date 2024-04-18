@@ -1,13 +1,18 @@
 """Tests for device.py."""
 
 from collections.abc import Callable, Sequence
-from typing import Any
+from typing import Any, ClassVar
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
 from finesse.device_info import DeviceParameter
-from finesse.hardware.device import AbstractDevice, Device, get_device_types
+from finesse.hardware.device import (
+    AbstractDevice,
+    Device,
+    DeviceTypeInfo,
+    get_device_types,
+)
 
 
 class _MockBaseClass(Device, name="mock", description="Mock base class"):
@@ -144,6 +149,43 @@ def test_abstract_device_get_device_base_type_info() -> None:
         _device_base_type_info = "INFO"  # type: ignore
 
     assert MyDevice.get_device_base_type_info() == "INFO"
+
+
+def test_abstract_device_get_device_type_info() -> None:
+    """Test the get_device_type_info() classmethod."""
+    from finesse.hardware.plugins import __name__ as plugins_name
+
+    description = "Some description"
+    module = "some_module"
+
+    class MyDevice(AbstractDevice):
+        __module__ = f"{plugins_name}.{module}"  # pretend module is in plugins dir
+        _device_base_type_info = "INFO"  # type: ignore
+        _device_description = description
+        _device_parameters: ClassVar[dict[str, DeviceParameter]] = {}
+
+    assert MyDevice.get_device_type_info() == DeviceTypeInfo(
+        f"{module}.MyDevice", description, {}
+    )
+
+
+def test_abstract_device_get_device_type_info_error() -> None:
+    """Test the get_device_type_info() classmethod throws an error.
+
+    This should occur if the class in not in the plugins folder or a submodule thereof.
+    """
+    params = MagicMock()
+    description = "Some description"
+    module = "some_module"
+
+    class MyDevice(AbstractDevice):
+        __module__ = module  # NB: module not in plugins dir!
+        _device_base_type_info = "INFO"  # type: ignore
+        _device_description = description
+        _device_parameters = params
+
+    with pytest.raises(RuntimeError):
+        MyDevice.get_device_type_info()
 
 
 def _wrapped_func_error_test(device: Device, wrapper: Callable, *args) -> None:
