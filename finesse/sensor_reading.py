@@ -5,16 +5,16 @@ from decimal import Decimal
 
 
 @dataclass
-class EM27Property:
+class SensorReading:
     """Class for representing EM27 monitored properties.
 
     Args:
-        name: name of the physical quantity
+        description: name of the physical quantity
         value: value of the physical quantity
         unit: unit in which the value is presented
     """
 
-    name: str
+    description: str
     value: Decimal
     unit: str
 
@@ -24,7 +24,7 @@ class EM27Property:
         Returns:
             str: The name, value and unit of a property.
         """
-        return f"{self.name} = {self.value:.6f} {self.unit}"
+        return f"{self.description} = {self.value:.6f} {self.unit}"
 
     def val_str(self) -> str:
         """Print a property's value and unit in required format.

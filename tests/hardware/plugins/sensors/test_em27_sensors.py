@@ -10,27 +10,27 @@ from PySide6.QtNetwork import QNetworkReply
 from finesse.config import EM27_SENSORS_URL
 from finesse.hardware.plugins.sensors.em27_sensors import (
     EM27Error,
-    EM27Property,
     EM27Sensors,
+    SensorReading,
     _on_reply_received,
     get_em27sensor_data,
 )
 
 
 @pytest.fixture
-def em27_property():
-    """Fixture for EM27Property."""
-    return EM27Property("Voltage", Decimal(1.23), "V")
+def sensor_reading():
+    """Fixture for SensorReading."""
+    return SensorReading("Voltage", Decimal(1.23), "V")
 
 
-def test_str(em27_property: EM27Property):
-    """Test EM27Property's __str__() method."""
-    assert str(em27_property) == "Voltage = 1.230000 V"
+def test_str(sensor_reading: SensorReading):
+    """Test SensorReading's __str__() method."""
+    assert str(sensor_reading) == "Voltage = 1.230000 V"
 
 
-def test_val_str(em27_property: EM27Property):
-    """Test EM27Property's val_str() method."""
-    assert em27_property.val_str() == "1.230000 V"
+def test_val_str(sensor_reading: SensorReading):
+    """Test SensorReading's val_str() method."""
+    assert sensor_reading.val_str() == "1.230000 V"
 
 
 @pytest.fixture
@@ -64,10 +64,10 @@ def test_on_reply_received_no_error(get_em27sensor_data_mock: Mock, qtbot) -> No
     reply.error.return_value = QNetworkReply.NetworkError.NoError
 
     # NB: This value is of the wrong type, but it doesn't matter here
-    get_em27sensor_data_mock.return_value = "EM27Properties"
+    get_em27sensor_data_mock.return_value = "sensor readings"
 
     # Check the correct pubsub message is sent
-    assert _on_reply_received(reply) == "EM27Properties"
+    assert _on_reply_received(reply) == "sensor readings"
 
 
 def test_on_reply_received_network_error(qtbot) -> None:
@@ -124,7 +124,7 @@ def test_get_em27sensor_data() -> None:
     data_table = get_em27sensor_data(content)
     assert len(data_table) == 7
     for entry in data_table:
-        assert isinstance(entry, EM27Property)
+        assert isinstance(entry, SensorReading)
 
 
 def test_get_em27sensor_data_no_table_found() -> None:

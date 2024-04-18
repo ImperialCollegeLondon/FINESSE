@@ -14,12 +14,12 @@ from finesse.config import (
     EM27_SENSORS_TOPIC,
     EM27_SENSORS_URL,
 )
-from finesse.em27_property import EM27Property
 from finesse.hardware.device import Device
 from finesse.hardware.http_requester import HTTPRequester
+from finesse.sensor_reading import SensorReading
 
 
-def get_em27sensor_data(content: str) -> list[EM27Property]:
+def get_em27sensor_data(content: str) -> list[SensorReading]:
     """Search for the PSF27Sensor table and store the data.
 
     Args:
@@ -41,7 +41,7 @@ def get_em27sensor_data(content: str) -> list[EM27Property]:
     data_table = []
     for row in range(1, len(table)):
         data_table.append(
-            EM27Property(
+            SensorReading(
                 table[row].split("<TD>")[2].rstrip("</TD>"),
                 Decimal(table[row].split("<TD>")[5].strip("</TD>")),
                 table[row].split("<TD>")[6].rstrip("</TD></TR"),
@@ -52,7 +52,7 @@ def get_em27sensor_data(content: str) -> list[EM27Property]:
 
 
 @Slot()
-def _on_reply_received(reply: QNetworkReply) -> list[EM27Property]:
+def _on_reply_received(reply: QNetworkReply) -> list[SensorReading]:
     """Handle received HTTP reply.
 
     Args:

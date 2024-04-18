@@ -1,5 +1,7 @@
 """Panel and widgets related to monitoring the interferometer."""
 
+from collections.abc import Sequence
+
 from pubsub import pub
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
@@ -13,9 +15,9 @@ from PySide6.QtWidgets import (
 )
 
 from finesse.config import EM27_SENSORS_TOPIC
-from finesse.em27_property import EM27Property
 from finesse.gui.device_panel import DevicePanel
 from finesse.gui.led_icon import LEDIcon
+from finesse.sensor_reading import SensorReading
 
 
 class EM27Monitor(DevicePanel):
@@ -58,7 +60,7 @@ class EM27Monitor(DevicePanel):
         self._layout.addWidget(top)
         self._layout.addWidget(bottom)
 
-    def _get_prop_lineedit(self, prop: EM27Property) -> QLineEdit:
+    def _get_prop_lineedit(self, prop: SensorReading) -> QLineEdit:
         """Create and populate the widgets for displaying a given property.
 
         Args:
@@ -67,8 +69,8 @@ class EM27Monitor(DevicePanel):
         Returns:
             QLineEdit: the QLineEdit widget corresponding to the property
         """
-        if prop.name not in self._val_lineedits:
-            prop_label = QLabel(prop.name)
+        if prop.description not in self._val_lineedits:
+            prop_label = QLabel(prop.description)
             prop_label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
             val_lineedit = QLineEdit()
             val_lineedit.setReadOnly(True)
@@ -77,15 +79,15 @@ class EM27Monitor(DevicePanel):
                 QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.Fixed
             )
 
-            self._val_lineedits[prop.name] = val_lineedit
+            self._val_lineedits[prop.description] = val_lineedit
 
             num_props = len(self._val_lineedits)
             self._prop_wid_layout.addWidget(prop_label, num_props, 0)
             self._prop_wid_layout.addWidget(val_lineedit, num_props, 1)
 
-        return self._val_lineedits[prop.name]
+        return self._val_lineedits[prop.description]
 
-    def _on_properties_received(self, data: list[EM27Property]):
+    def _on_properties_received(self, data: Sequence[SensorReading]):
         """Receive the data table from the server and update the GUI.
 
         Args:

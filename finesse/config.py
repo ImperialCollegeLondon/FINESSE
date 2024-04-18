@@ -158,3 +158,6 @@ TIME_NTP_TIMEOUT = 5.0
 
 TIME_NTP_POLL_INTERVAL = 600.0
 """Poll rate for NTP updates."""
+
+SENSORS_TOPIC = "sensors"
+"""The topic name to use for sensor-related messages."""
