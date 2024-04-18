@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from finesse.config import EM27_SENSORS_TOPIC
+from finesse.config import SENSORS_TOPIC
 from finesse.gui.device_panel import DevicePanel
 from finesse.gui.led_icon import LEDIcon
 from finesse.sensor_reading import SensorReading
@@ -25,7 +25,7 @@ class SensorsPanel(DevicePanel):
 
     def __init__(self) -> None:
         """Create a new SensorsPanel."""
-        super().__init__(EM27_SENSORS_TOPIC, "Sensor readings")
+        super().__init__(SENSORS_TOPIC, "Sensor readings")
 
         self._val_lineedits: dict[str, QLineEdit] = {}
 
@@ -42,9 +42,7 @@ class SensorsPanel(DevicePanel):
         self.setLayout(self._layout)
 
         # Listen for properties sent by backend
-        pub.subscribe(
-            self._on_properties_received, f"device.{EM27_SENSORS_TOPIC}.data.response"
-        )
+        pub.subscribe(self._on_properties_received, f"device.{SENSORS_TOPIC}.data")
 
     def _create_layouts(self) -> None:
         """Creates layouts to house the widgets."""
@@ -87,13 +85,13 @@ class SensorsPanel(DevicePanel):
 
         return self._val_lineedits[prop.description]
 
-    def _on_properties_received(self, data: Sequence[SensorReading]):
-        """Receive the data table from the server and update the GUI.
+    def _on_properties_received(self, readings: Sequence[SensorReading]):
+        """Receive the data table from the backend and update the GUI.
 
         Args:
-            data: the properties received from the server
+            readings: the latest sensor readings received
         """
         self._poll_light.flash()
-        for prop in data:
+        for prop in readings:
             lineedit = self._get_prop_lineedit(prop)
             lineedit.setText(prop.val_str())

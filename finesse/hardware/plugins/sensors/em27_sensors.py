@@ -5,21 +5,17 @@ This is used to scrape the PSF27Sensor data table off the server.
 
 from decimal import Decimal
 
-from PySide6.QtCore import QTimer, Slot
+from PySide6.QtCore import Slot
 from PySide6.QtNetwork import QNetworkReply
 
-from finesse.config import (
-    EM27_HOST,
-    EM27_SENSORS_POLL_INTERVAL,
-    EM27_SENSORS_TOPIC,
-    EM27_SENSORS_URL,
-)
-from finesse.hardware.device import Device
+from finesse.config import EM27_HOST, EM27_SENSORS_POLL_INTERVAL, EM27_SENSORS_URL
+from finesse.hardware.device import DeviceClassType
 from finesse.hardware.http_requester import HTTPRequester
+from finesse.hardware.plugins.sensors.sensors_base import SensorsBase
 from finesse.sensor_reading import SensorReading
 
 
-def get_em27sensor_data(content: str) -> list[SensorReading]:
+def get_em27_sensor_data(content: str) -> list[SensorReading]:
     """Search for the PSF27Sensor table and store the data.
 
     Args:
@@ -51,64 +47,58 @@ def get_em27sensor_data(content: str) -> list[SensorReading]:
     return data_table
 
 
-@Slot()
-def _on_reply_received(reply: QNetworkReply) -> list[SensorReading]:
-    """Handle received HTTP reply.
-
-    Args:
-        reply: the response from the server
-    """
-    if reply.error() != QNetworkReply.NetworkError.NoError:
-        raise EM27Error(f"Network error: {reply.errorString()}")
-
-    content = reply.readAll().data().decode()
-    return get_em27sensor_data(content)
-
-
 class EM27Error(Exception):
     """Indicates than an error occurred while parsing the webpage."""
 
 
 class EM27SensorsBase(
-    Device,
-    name=EM27_SENSORS_TOPIC,
+    SensorsBase,
+    class_type=DeviceClassType.IGNORE,
     description="EM27 sensors",
 ):
     """An interface for monitoring EM27 properties."""
 
-    def __init__(self, url: str) -> None:
+    def __init__(self, url: str, poll_interval: float = float("nan")) -> None:
         """Create a new EM27 property monitor.
 
         Args:
             url: Web address of the automation units diagnostics page.
+            poll_interval: How often to poll the device (seconds)
         """
-        super().__init__()
         self._url: str = url
         self._requester = HTTPRequester()
 
-        # Poll device once on open.
-        # TODO: Run this synchronously so we can check that things work before the
-        # device.opened message is sent
-        self.send_data()
+        super().__init__(poll_interval)
 
-    def send_data(self) -> None:
+    def request_readings(self) -> None:
         """Request the EM27 property data from the web server.
 
         The HTTP request is made on a background thread.
         """
         self._requester.make_request(
             self._url,
-            self.pubsub_broadcast(_on_reply_received, "data.response", "data"),
+            self.pubsub_errors(self._on_reply_received),
         )
+
+    @Slot()
+    def _on_reply_received(self, reply: QNetworkReply) -> None:
+        """Handle received HTTP reply.
+
+        Args:
+            reply: the response from the server
+        """
+        if reply.error() != QNetworkReply.NetworkError.NoError:
+            raise EM27Error(f"Network error: {reply.errorString()}")
+
+        content = reply.readAll().data().decode()
+        readings = get_em27_sensor_data(content)
+        self.send_readings_message(readings)
 
 
 class EM27Sensors(
     EM27SensorsBase,
     description="EM27 sensors",
-    parameters={
-        "host": "The IP address or hostname of the EM27 device",
-        "poll_interval": "How often to poll the device in seconds",
-    },
+    parameters={"host": "The IP address or hostname of the EM27 device"},
 ):
     """An interface for EM27 sensors on the real device."""
 
@@ -121,12 +111,4 @@ class EM27Sensors(
             host: The IP address or hostname of the EM27 device
             poll_interval: How often to poll the sensors (seconds)
         """
-        super().__init__(EM27_SENSORS_URL.format(host=host))
-        self._poll_timer = QTimer()
-        self._poll_timer.timeout.connect(self.send_data)
-        self._poll_timer.start(int(poll_interval * 1000))
-
-    def close(self) -> None:
-        """Close the device."""
-        self._poll_timer.stop()
-        super().close()
+        super().__init__(EM27_SENSORS_URL.format(host=host), poll_interval)

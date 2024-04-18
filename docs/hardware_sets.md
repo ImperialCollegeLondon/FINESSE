@@ -15,7 +15,7 @@ devices:
   stepper_motor:
     class_name: stepper_motor.st10_controller.ST10Controller
     params:
-      port: "0403:6011 (4)"
+      port: "0403:6011"
       baudrate: 9600
   temperature_controller.hot_bb:
     class_name: temperature.tc4820.TC4820
@@ -32,8 +32,13 @@ devices:
     params:
       port: "0403:6001"
       baudrate: 38400
-  em27_sensors:
-    class_name: em27.em27_sensors.EM27Sensors
+  sensors:
+    class_name: sensors.em27_sensors.EM27Sensors
+  spectrometer:
+    class_name: spectrometer.opus_interface.OPUSInterface
+    params:
+      host: 10.10.0.2
+      port: 80
 ```
 
 The `name` property defines a human-readable name for the hardware set, to be displayed

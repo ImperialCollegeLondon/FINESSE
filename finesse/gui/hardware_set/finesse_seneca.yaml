@@ -20,7 +20,7 @@ devices:
     params:
       port: "0403:6001"
       baudrate: 57600
-  em27_sensors:
+  sensors:
     class_name: sensors.em27_sensors.EM27Sensors
   spectrometer:
     class_name: spectrometer.opus_interface.OPUSInterface
