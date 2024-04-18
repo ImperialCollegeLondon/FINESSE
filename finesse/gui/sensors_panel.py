@@ -20,12 +20,12 @@ from finesse.gui.led_icon import LEDIcon
 from finesse.sensor_reading import SensorReading
 
 
-class EM27Monitor(DevicePanel):
-    """Panel containing widgets to view the EM27 properties."""
+class SensorsPanel(DevicePanel):
+    """Panel containing widgets to view sensor readings."""
 
     def __init__(self) -> None:
-        """Creates the attributes required to view properties monitored by the EM27."""
-        super().__init__(EM27_SENSORS_TOPIC, "EM27 SOH Monitor")
+        """Create a new SensorsPanel."""
+        super().__init__(EM27_SENSORS_TOPIC, "Sensor readings")
 
         self._val_lineedits: dict[str, QLineEdit] = {}
 
@@ -41,7 +41,7 @@ class EM27Monitor(DevicePanel):
 
         self.setLayout(self._layout)
 
-        # Listen for properties sent by EM27Sensors backend
+        # Listen for properties sent by backend
         pub.subscribe(
             self._on_properties_received, f"device.{EM27_SENSORS_TOPIC}.data.response"
         )
@@ -64,7 +64,7 @@ class EM27Monitor(DevicePanel):
         """Create and populate the widgets for displaying a given property.
 
         Args:
-            prop: the EM27 property to display
+            prop: the property to display
 
         Returns:
             QLineEdit: the QLineEdit widget corresponding to the property
