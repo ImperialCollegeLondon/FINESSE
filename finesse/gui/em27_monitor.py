@@ -97,18 +97,3 @@ class EM27Monitor(DevicePanel):
         for prop in data:
             lineedit = self._get_prop_lineedit(prop)
             lineedit.setText(prop.val_str())
-
-
-if __name__ == "__main__":
-    import sys
-
-    from PySide6.QtWidgets import QApplication, QMainWindow
-
-    app = QApplication(sys.argv)
-
-    window = QMainWindow()
-    em27_monitor = EM27Monitor()
-
-    window.setCentralWidget(em27_monitor)
-    window.show()
-    app.exec()
