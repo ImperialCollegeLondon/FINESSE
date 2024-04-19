@@ -147,11 +147,14 @@ TIME_TOPIC = "time"
 TIME_NTP_HOST = "localhost"
 """The IP address or hostname of the NTP time server."""
 
-TIME_NTP_VERSION = 3
+TIME_NTP_VERSION = 4
 """The version of the NTP protocol to use."""
 
-TIME_NTP_PORT = "ntp"
+TIME_NTP_PORT = 123
 """The port to use for NTP queries."""
 
 TIME_NTP_TIMEOUT = 5.0
 """The timeout for NTP queries."""
+
+TIME_NTP_POLL_INTERVAL = 600.0
+"""Poll rate for NTP updates."""

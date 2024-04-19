@@ -1,7 +1,6 @@
 """This module contains code for interfacing with different hardware devices."""
 
 from collections.abc import Sequence
-from datetime import datetime
 from decimal import Decimal
 
 from pubsub import pub
@@ -9,6 +8,7 @@ from pubsub import pub
 from finesse.config import NUM_TEMPERATURE_MONITOR_CHANNELS, TEMPERATURE_MONITOR_TOPIC
 from finesse.hardware import data_file_writer  # noqa: F401
 from finesse.hardware.plugins.temperature import get_temperature_monitor_instance
+from finesse.hardware.plugins.time import get_current_time
 
 
 def _try_get_temperatures() -> Sequence | None:
@@ -36,7 +36,9 @@ def _send_temperatures() -> None:
     if temperatures is None:
         temperatures = _DEFAULT_TEMPS
 
-    time = datetime.utcnow()
+    # Get time from the time source.
+    time = get_current_time()
+
     pub.sendMessage(
         f"device.{TEMPERATURE_MONITOR_TOPIC}.data.response",
         temperatures=temperatures,
