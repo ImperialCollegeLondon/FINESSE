@@ -81,10 +81,6 @@ class TemperaturePlot(QGroupBox):
         hot_bb_temp: list[float | None] = [None] * self._figure_num_pts
         cold_bb_temp: list[float | None] = [None] * self._figure_num_pts
 
-        t[0] = None
-        hot_bb_temp[0] = 25.0
-        cold_bb_temp[0] = 25.0
-
         hot_colour = "r"
         cold_colour = "b"
 
@@ -157,7 +153,7 @@ class TemperaturePlot(QGroupBox):
         Returns:
             formatted string to display as x tick label
         """
-        return datetime.fromtimestamp(val).strftime("%H:%M:%S")
+        return datetime.fromtimestamp(max(val, 0)).strftime("%H:%M:%S")
 
     def _make_axes_sensible(self) -> None:
         """Rescales the y axes for the the blackbody temperatures."""
