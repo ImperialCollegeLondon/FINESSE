@@ -12,6 +12,7 @@ import traceback
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Mapping, Sequence
 from copy import deepcopy
+from enum import Enum
 from inspect import isabstract, signature
 from typing import Any, ClassVar, get_type_hints
 
@@ -86,11 +87,6 @@ class AbstractDevice(ABC):
         """
         super().__init_subclass__()
 
-        # Every time we create a new class, create a new _device_parameters attribute,
-        # so that _add_parameters() and _update_parameter_defaults() don't clobber
-        # values for the parent class.
-        cls._device_parameters = deepcopy(cls._device_parameters)
-
         cls._add_parameters(parameters)
         cls._update_parameter_defaults()
 
@@ -101,6 +97,15 @@ class AbstractDevice(ABC):
     ) -> None:
         """Store extra device parameters in a class attribute."""
         arg_types = get_type_hints(cls.__init__)
+
+        # We want to copy device parameters from the parent class, but only if they are
+        # also present in this class's constructor
+        cls._device_parameters = {
+            k: deepcopy(v)
+            for k, v in cls._device_parameters.items()
+            if k in arg_types.keys()
+        }
+
         for name, value in parameters.items():
             if isinstance(value, str):
                 # Only a description provided
@@ -161,6 +166,17 @@ class AbstractDevice(ABC):
         )
 
 
+class DeviceClassType(Enum):
+    """The type of a class inheriting directly or indirectly from Device."""
+
+    BASE_TYPE = 0
+    """A base device type (e.g. stepper motor)"""
+    DEVICE_TYPE = 1
+    """A device type (e.g. ST10 stepper motor controller)"""
+    IGNORE = 2
+    """An intermediate class type that should not be added to either registry"""
+
+
 class Device(AbstractDevice):
     """A base class for device types.
 
@@ -170,16 +186,38 @@ class Device(AbstractDevice):
     defined as device base types or not.
     """
 
-    def __init_subclass__(cls, **kwargs: Any) -> None:
-        """Initialise a device type class."""
+    @classmethod
+    def _infer_device_class_type(cls) -> DeviceClassType:
         if _base_types.isdisjoint(cls.__mro__):
             # If the class doesn't inherit from a base type it must be a base type
             # itself
-            cls._init_base_type(**kwargs)
-        elif not isabstract(cls):
+            return DeviceClassType.BASE_TYPE
+        if not isabstract(cls):
             # All *concrete* device classes which inherit from a base type are treated
             # as device types. Abstract ones are ignored.
-            cls._init_device_type(**kwargs)
+            return DeviceClassType.DEVICE_TYPE
+
+        # Neither; ignore
+        return DeviceClassType.IGNORE
+
+    def __init_subclass__(
+        cls, class_type: DeviceClassType | None = None, **kwargs: Any
+    ) -> None:
+        """Initialise a device type class.
+
+        Args:
+            class_type: Optionally override the default heuristic for determining
+                        whether this is a base type, device type or neither
+            **kwargs: Class arguments for either base type or device type initialisation
+        """
+        if class_type is None:
+            class_type = cls._infer_device_class_type()
+
+        match class_type:
+            case DeviceClassType.BASE_TYPE:
+                cls._init_base_type(**kwargs)
+            case DeviceClassType.DEVICE_TYPE:
+                cls._init_device_type(**kwargs)
 
     @classmethod
     def _init_base_type(

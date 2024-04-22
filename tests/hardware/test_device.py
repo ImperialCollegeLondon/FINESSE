@@ -1,20 +1,42 @@
 """Tests for device.py."""
 
+from abc import abstractmethod
 from collections.abc import Callable, Sequence
-from typing import Any
+from typing import Any, ClassVar
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
 from finesse.device_info import DeviceParameter
-from finesse.hardware.device import AbstractDevice, Device, get_device_types
+from finesse.hardware.device import (
+    AbstractDevice,
+    Device,
+    DeviceTypeInfo,
+    get_device_types,
+)
+
+MOCK_DEVICE_TOPIC = "mock"
 
 
-class _MockBaseClass(Device, name="mock", description="Mock base class"):
+class _MockBaseClass(Device, name=MOCK_DEVICE_TOPIC, description="Mock base class"):
     pass
 
 
 class _MockDevice(_MockBaseClass, description="Mock device"):
+    pass
+
+
+class _NamedMockBaseClass(
+    Device,
+    name=MOCK_DEVICE_TOPIC,
+    description="Mock base class with device names",
+    names_short=("name1", "name2"),
+    names_long=("First device", "Second device"),
+):
+    pass
+
+
+class _NamedMockDevice(_NamedMockBaseClass, description="Mock device with name"):
     pass
 
 
@@ -146,6 +168,43 @@ def test_abstract_device_get_device_base_type_info() -> None:
     assert MyDevice.get_device_base_type_info() == "INFO"
 
 
+def test_abstract_device_get_device_type_info() -> None:
+    """Test the get_device_type_info() classmethod."""
+    from finesse.hardware.plugins import __name__ as plugins_name
+
+    description = "Some description"
+    module = "some_module"
+
+    class MyDevice(AbstractDevice):
+        __module__ = f"{plugins_name}.{module}"  # pretend module is in plugins dir
+        _device_base_type_info = "INFO"  # type: ignore
+        _device_description = description
+        _device_parameters: ClassVar[dict[str, DeviceParameter]] = {}
+
+    assert MyDevice.get_device_type_info() == DeviceTypeInfo(
+        f"{module}.MyDevice", description, {}
+    )
+
+
+def test_abstract_device_get_device_type_info_error() -> None:
+    """Test the get_device_type_info() classmethod throws an error.
+
+    This should occur if the class in not in the plugins folder or a submodule thereof.
+    """
+    params = MagicMock()
+    description = "Some description"
+    module = "some_module"
+
+    class MyDevice(AbstractDevice):
+        __module__ = module  # NB: module not in plugins dir!
+        _device_base_type_info = "INFO"  # type: ignore
+        _device_description = description
+        _device_parameters = params
+
+    with pytest.raises(RuntimeError):
+        MyDevice.get_device_type_info()
+
+
 def _wrapped_func_error_test(device: Device, wrapper: Callable, *args) -> None:
     has_run = False
 
@@ -260,6 +319,56 @@ def test_device_subscribe_errors_only(
 def test_device_subscribe_broadcast(device: Device, subscribe_mock: MagicMock) -> None:
     """Test the subscribe() method with a message sent for error and success."""
     _device_subscribe_test(device, subscribe_mock, "pubsub_broadcast", "suffix", "name")
+
+
+def test_device_ignored_class():
+    """Test that it is possible to create a class not saved to a device registry."""
+    with patch.object(Device, "_init_base_type") as init_base_mock:
+        with patch.object(Device, "_init_device_type") as init_device_mock:
+
+            class IgnoredMockClass(_MockBaseClass):
+                @abstractmethod
+                def some_method():
+                    pass
+
+            init_base_mock.assert_not_called()
+            init_device_mock.assert_not_called()
+
+
+def test_device_init() -> None:
+    """Test Device's constructor when no name is provided."""
+    device = _MockDevice()
+    assert device.topic == f"device.{MOCK_DEVICE_TOPIC}"
+    assert device.name is None
+
+
+def test_device_init_unexpected_name() -> None:
+    """Test Device's constructor when an unexpected name is provided.
+
+    Only device types whose base types define names_short and names_long can select a
+    name.
+    """
+    with pytest.raises(RuntimeError):
+        _MockDevice("name1")
+
+
+def test_device_init_with_name() -> None:
+    """Test Device's constructor when a name is provided."""
+    device = _NamedMockDevice("name1")
+    assert device.topic == f"device.{MOCK_DEVICE_TOPIC}.name1"
+    assert device.name == "name1"
+
+
+def test_device_init_with_invalid_name() -> None:
+    """Test Device's constructor when an invalid name is provided."""
+    with pytest.raises(RuntimeError):
+        _NamedMockDevice("name3")
+
+
+def test_device_init_missing_name():
+    """Test Device's constructor when a name should be provided but isn't."""
+    with pytest.raises(RuntimeError):
+        _NamedMockDevice()
 
 
 def test_device_close(device: Device, unsubscribe_mock: MagicMock) -> None:

@@ -243,28 +243,10 @@ def test_update_status_try_again(ftsw: FTSW500Interface) -> None:
             ftsw._status_timer.start.assert_called_once_with()
 
 
-def test_request_command_internal(ftsw: FTSW500Interface) -> None:
-    """Test the _request_command_internal() method."""
+def test_request_command(ftsw: FTSW500Interface) -> None:
+    """Test the request_command() method."""
     with patch.object(ftsw, "_make_request") as request_mock:
         with patch.object(ftsw, "_update_status") as status_mock:
-            ftsw._request_command_internal("madeUpCommand")
-            request_mock.assert_called_once_with("madeUpCommand")
-            status_mock.assert_called_once_with()
-
-
-def test_request_command_success(ftsw: FTSW500Interface) -> None:
-    """Test the request_command() method when the command succeeds."""
-    with patch.object(ftsw, "_request_command_internal") as request_mock:
-        ftsw.request_command("madeUpCommand")
-        request_mock.assert_called_once_with("madeUpCommand")
-
-
-def test_request_command_fail(ftsw: FTSW500Interface) -> None:
-    """Test the request_command() method when the command fails."""
-    with patch.object(ftsw, "_request_command_internal") as request_mock:
-        with patch.object(ftsw, "send_error_message") as error_mock:
-            error = FTSW500Error()
-            request_mock.side_effect = error
             ftsw.request_command("madeUpCommand")
             request_mock.assert_called_once_with("madeUpCommand")
-            error_mock.assert_called_once_with(error)
+            status_mock.assert_called_once_with()
