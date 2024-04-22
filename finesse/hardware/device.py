@@ -100,9 +100,10 @@ class AbstractDevice(ABC):
 
         # We want to copy device parameters from the parent class, but only if they are
         # also present in this class's constructor
-        params = set(arg_types.keys()).intersection(cls._device_parameters.keys())
         cls._device_parameters = {
-            name: deepcopy(cls._device_parameters[name]) for name in params
+            k: deepcopy(v)
+            for k, v in cls._device_parameters.items()
+            if k in arg_types.keys()
         }
 
         for name, value in parameters.items():
