@@ -38,14 +38,14 @@ def test_close(decades: Decades) -> None:
 @patch("json.loads")
 @patch("finesse.hardware.plugins.decades.decades.Decades._get_decades_data")
 def test_on_reply_received_no_error(
-    _get_decades_data_mock: Mock, json_loads_mock: Mock, decades: Decades, qtbot
+    get_decades_data_mock: Mock, json_loads_mock: Mock, decades: Decades, qtbot
 ) -> None:
     """Test the _on_reply_received() method works when no error occurs."""
     reply = MagicMock()
     reply.error.return_value = QNetworkReply.NetworkError.NoError
 
     # NB: This value is of the wrong type, but it doesn't matter for here
-    _get_decades_data_mock.return_value = "cool_sensor_data"
+    get_decades_data_mock.return_value = "cool_sensor_data"
 
     # Check the correct pubsub message is sent
     assert decades._on_reply_received(reply) == "cool_sensor_data"
@@ -66,7 +66,7 @@ def test_on_reply_received_network_error(decades: Decades, qtbot) -> None:
 @patch("json.loads")
 @patch("finesse.hardware.plugins.decades.decades.Decades._get_decades_data")
 def test_on_reply_received_exception(
-    _get_decades_data_mock: Mock, json_loads_mock: Mock, decades: Decades, qtbot
+    get_decades_data_mock: Mock, json_loads_mock: Mock, decades: Decades, qtbot
 ) -> None:
     """Tests the _on_reply_received() method works when an exception is raised."""
     reply = MagicMock()
@@ -74,7 +74,7 @@ def test_on_reply_received_exception(
 
     # Make get_decades_data() raise an exception
     error = Exception()
-    _get_decades_data_mock.side_effect = error
+    get_decades_data_mock.side_effect = error
 
     with pytest.raises(Exception):
         # Check the correct pubsub message is sent
