@@ -9,8 +9,6 @@ from finesse.config import DECADES_QUERY_LIST, DECADES_URL
 from finesse.hardware.plugins.sensors.decades import (
     Decades,
     DecadesError,
-    _on_reply_received,
-    get_decades_data,
 )
 
 
@@ -38,9 +36,9 @@ def test_close(decades: Decades) -> None:
 
 
 @patch("json.loads")
-@patch("finesse.hardware.plugins.sensors.decades.get_decades_data")
+@patch("finesse.hardware.plugins.sensors.decades.Decades._get_decades_data")
 def test_on_reply_received_no_error(
-    get_decades_data_mock: Mock, json_loads_mock: Mock, qtbot
+    get_decades_data_mock: Mock, json_loads_mock: Mock, decades: Decades, qtbot
 ) -> None:
     """Test the _on_reply_received() method works when no error occurs."""
     reply = MagicMock()
@@ -50,11 +48,11 @@ def test_on_reply_received_no_error(
     get_decades_data_mock.return_value = "cool_sensor_data"
 
     # Check the correct pubsub message is sent
-    assert _on_reply_received(reply) == "cool_sensor_data"
+    assert decades._on_reply_received(reply) == "cool_sensor_data"
     json_loads_mock.assert_called_once_with(reply.readAll().data().decode())
 
 
-def test_on_reply_received_network_error(qtbot) -> None:
+def test_on_reply_received_network_error(decades: Decades, qtbot) -> None:
     """Tests the _on_reply_received() method works when a network error occurs."""
     reply = MagicMock()
     reply.error.return_value = QNetworkReply.NetworkError.HostNotFoundError
@@ -62,13 +60,13 @@ def test_on_reply_received_network_error(qtbot) -> None:
 
     with pytest.raises(DecadesError):
         # Check the correct pubsub message is sent
-        _on_reply_received(reply)
+        decades._on_reply_received(reply)
 
 
 @patch("json.loads")
-@patch("finesse.hardware.plugins.sensors.decades.get_decades_data")
+@patch("finesse.hardware.plugins.sensors.decades.Decades._get_decades_data")
 def test_on_reply_received_exception(
-    get_decades_data_mock: Mock, json_loads_mock: Mock, qtbot
+    get_decades_data_mock: Mock, json_loads_mock: Mock, decades: Decades, qtbot
 ) -> None:
     """Tests the _on_reply_received() method works when an exception is raised."""
     reply = MagicMock()
@@ -80,7 +78,19 @@ def test_on_reply_received_exception(
 
     with pytest.raises(Exception):
         # Check the correct pubsub message is sent
-        _on_reply_received(reply)
+        decades._on_reply_received(reply)
+
+
+def test_send_params(decades: Decades, qtbot) -> None:
+    """Tests the send_data() method."""
+    with patch.object(decades, "_requester") as requester_mock:
+        with patch.object(decades, "pubsub_broadcast") as broadcast_mock:
+            broadcast_mock.return_value = "WRAPPED_FUNC"
+            decades.send_params()
+            broadcast_mock.assert_called_once_with(
+                decades._on_params_received, "params.response"
+            )
+            requester_mock.make_request.assert_called_once_with(ANY, "WRAPPED_FUNC")
 
 
 def test_send_data(decades: Decades, qtbot) -> None:
@@ -90,7 +100,7 @@ def test_send_data(decades: Decades, qtbot) -> None:
             broadcast_mock.return_value = "WRAPPED_FUNC"
             decades.send_data()
             broadcast_mock.assert_called_once_with(
-                _on_reply_received, "data.response", "data"
+                decades._on_reply_received, "data.response", "data"
             )
             requester_mock.make_request.assert_called_once_with(ANY, "WRAPPED_FUNC")
 
@@ -105,23 +115,21 @@ def test_send_data_query(time_mock: Mock, decades: Decades, qtbot) -> None:
         DECADES_QUERY_LIST.append("a")
         DECADES_QUERY_LIST.append("b")
         decades.send_data()
-        query = decades._url + "?&frm=999&to=999&para=a&para=b"
+        query = decades._url + "/livedata?&frm=999&to=999&para=a&para=b"
         requester_mock.make_request.assert_called_once_with(query, ANY)
 
 
-def test_get_decades_data() -> None:
+def test_get_decades_data(decades: Decades) -> None:
     """Tests the get_decades_data() function on normal data."""
-    data = get_decades_data({"a": [1], "b": [2]})
-    assert isinstance(data, dict)
+    DECADES_QUERY_LIST.clear()
+    DECADES_QUERY_LIST.append("a")
+    DECADES_QUERY_LIST.append("b")
+    decades._params = [
+        {"ParameterName": "a", "DisplayText": "A", "DisplayUnits": ""},
+        {"ParameterName": "b", "DisplayText": "B", "DisplayUnits": ""},
+    ]
+    data = decades._get_decades_data({"a": [1], "b": [2]})
+    assert isinstance(data, list)
     assert len(data) == 2
-    assert "a" in data
-    assert data["a"] == 1
-    assert "b" in data
-    assert data["b"] == 2
-
-
-def test_get_decades_unexpected_data() -> None:
-    """Tests the get_decades_data() function on unexpected data."""
-    with pytest.raises(DecadesError):
-        get_decades_data({"a": []})
-        get_decades_data({"b": [1, 2]})
+    assert ["A", 1, ""] in data
+    assert ["B", 2, ""] in data

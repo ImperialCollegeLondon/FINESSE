@@ -19,6 +19,7 @@ from finesse.config import (
     TEMPERATURE_MONITOR_HOT_BB_IDX,
 )
 from finesse.gui.data_file_view import DataFileControl
+from finesse.gui.decades_monitor import DECADESMonitor
 from finesse.gui.docs_view import DocsViewer
 from finesse.gui.hardware_set.hardware_sets_view import HardwareSetsControl
 from finesse.gui.logs_view import LogLocationOpen, LogOpen
@@ -74,6 +75,9 @@ class MainWindow(QMainWindow):
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
         )
 
+        # Setup for aircraft data monitor
+        decades_monitor = DECADESMonitor()
+
         # Setup for data file widgets
         data_file = DataFileControl()
 
@@ -81,7 +85,8 @@ class MainWindow(QMainWindow):
         layout_left.addWidget(measure_script, 1, 0, 1, 2)
         layout_left.addWidget(stepper_motor, 2, 0, 1, 1)
         layout_left.addWidget(spectrometer, 2, 1, 1, 1)
-        layout_left.addWidget(sensors, 3, 0, 1, 2)
+        layout_left.addWidget(sensors, 3, 0, 1, 1)
+        layout_left.addWidget(decades_monitor, 3, 1, 1, 1)
         layout_left.addWidget(data_file, 4, 0, 1, 2)
 
         layout_right = QGridLayout()

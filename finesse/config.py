@@ -54,7 +54,7 @@ EM27_SENSORS_POLL_INTERVAL = 60.0
 DECADES_HOST = "localhost"
 """The IP address or hostname of the DECADES server."""
 
-DECADES_URL = "http://{host}/decades/livedata"
+DECADES_URL = "http://{host}/decades"
 """The URL of the DECADES sensor data endpoint."""
 
 DECADES_POLL_INTERVAL = 60.0
