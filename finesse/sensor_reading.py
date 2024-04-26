@@ -6,7 +6,7 @@ from decimal import Decimal
 
 @dataclass
 class SensorReading:
-    """Class for representing EM27 monitored properties.
+    """Class for representing physical quantities monitored by sensors.
 
     Args:
         description: name of the physical quantity
