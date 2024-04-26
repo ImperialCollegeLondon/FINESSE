@@ -41,16 +41,16 @@ class SensorsPanel(DevicePanel):
 
         self.setLayout(self._layout)
 
-        # Listen for properties sent by backend
-        pub.subscribe(self._on_properties_received, f"device.{SENSORS_TOPIC}.data")
+        # Listen for readings sent by backend
+        pub.subscribe(self._on_readings_received, f"device.{SENSORS_TOPIC}.data")
 
     def _create_layouts(self) -> None:
         """Creates layouts to house the widgets."""
         self._poll_wid_layout = QHBoxLayout()
-        self._prop_wid_layout = QGridLayout()
+        self._reading_wid_layout = QGridLayout()
 
         top = QWidget()
-        top.setLayout(self._prop_wid_layout)
+        top.setLayout(self._reading_wid_layout)
         bottom = QWidget()
         bottom.setLayout(self._poll_wid_layout)
 
@@ -58,18 +58,18 @@ class SensorsPanel(DevicePanel):
         self._layout.addWidget(top)
         self._layout.addWidget(bottom)
 
-    def _get_prop_lineedit(self, prop: SensorReading) -> QLineEdit:
-        """Create and populate the widgets for displaying a given property.
+    def _get_reading_lineedit(self, reading: SensorReading) -> QLineEdit:
+        """Get or create the QLineEdit for a given sensor.
 
         Args:
-            prop: the property to display
+            reading: The sensor reading to display
 
         Returns:
-            QLineEdit: the QLineEdit widget corresponding to the property
+            QLineEdit: the QLineEdit widget corresponding to the reading
         """
-        if prop.description not in self._val_lineedits:
-            prop_label = QLabel(prop.description)
-            prop_label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        if reading.description not in self._val_lineedits:
+            label = QLabel(reading.description)
+            label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
             val_lineedit = QLineEdit()
             val_lineedit.setReadOnly(True)
             val_lineedit.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -77,21 +77,21 @@ class SensorsPanel(DevicePanel):
                 QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.Fixed
             )
 
-            self._val_lineedits[prop.description] = val_lineedit
+            self._val_lineedits[reading.description] = val_lineedit
 
-            num_props = len(self._val_lineedits)
-            self._prop_wid_layout.addWidget(prop_label, num_props, 0)
-            self._prop_wid_layout.addWidget(val_lineedit, num_props, 1)
+            num_readings = len(self._val_lineedits)
+            self._reading_wid_layout.addWidget(label, num_readings, 0)
+            self._reading_wid_layout.addWidget(val_lineedit, num_readings, 1)
 
-        return self._val_lineedits[prop.description]
+        return self._val_lineedits[reading.description]
 
-    def _on_properties_received(self, readings: Sequence[SensorReading]):
-        """Receive the data table from the backend and update the GUI.
+    def _on_readings_received(self, readings: Sequence[SensorReading]):
+        """Receive sensor readings from the backend and update the GUI.
 
         Args:
             readings: the latest sensor readings received
         """
         self._poll_light.flash()
-        for prop in readings:
-            lineedit = self._get_prop_lineedit(prop)
-            lineedit.setText(prop.val_str())
+        for reading in readings:
+            lineedit = self._get_reading_lineedit(reading)
+            lineedit.setText(reading.val_str())

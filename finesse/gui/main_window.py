@@ -69,8 +69,8 @@ class MainWindow(QMainWindow):
         spectrometer: QGroupBox = SpectrometerControl()
 
         # Setup for interferometer monitor
-        em27_monitor = SensorsPanel()
-        em27_monitor.setSizePolicy(
+        sensors = SensorsPanel()
+        sensors.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
         )
 
@@ -81,7 +81,7 @@ class MainWindow(QMainWindow):
         layout_left.addWidget(measure_script, 1, 0, 1, 2)
         layout_left.addWidget(stepper_motor, 2, 0, 1, 1)
         layout_left.addWidget(spectrometer, 2, 1, 1, 1)
-        layout_left.addWidget(em27_monitor, 3, 0, 1, 2)
+        layout_left.addWidget(sensors, 3, 0, 1, 2)
         layout_left.addWidget(data_file, 4, 0, 1, 2)
 
         layout_right = QGridLayout()
