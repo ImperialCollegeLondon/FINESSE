@@ -9,12 +9,12 @@ class SensorReading:
     """Class for representing physical quantities monitored by sensors.
 
     Args:
-        description: name of the physical quantity
+        name: human-readable name of the physical quantity
         value: value of the physical quantity
         unit: unit in which the value is presented
     """
 
-    description: str
+    name: str
     value: Decimal
     unit: str
 
@@ -24,7 +24,7 @@ class SensorReading:
         Returns:
             str: The name, value and unit of a property.
         """
-        return f"{self.description} = {self.value:.6f} {self.unit}"
+        return f"{self.name} = {self.value:.6f} {self.unit}"
 
     def val_str(self) -> str:
         """Print a property's value and unit in required format.

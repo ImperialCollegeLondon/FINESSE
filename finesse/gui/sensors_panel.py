@@ -67,8 +67,8 @@ class SensorsPanel(DevicePanel):
         Returns:
             QLineEdit: the QLineEdit widget corresponding to the reading
         """
-        if reading.description not in self._val_lineedits:
-            label = QLabel(reading.description)
+        if reading.name not in self._val_lineedits:
+            label = QLabel(reading.name)
             label.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
             val_lineedit = QLineEdit()
             val_lineedit.setReadOnly(True)
@@ -77,13 +77,13 @@ class SensorsPanel(DevicePanel):
                 QSizePolicy.Policy.MinimumExpanding, QSizePolicy.Policy.Fixed
             )
 
-            self._val_lineedits[reading.description] = val_lineedit
+            self._val_lineedits[reading.name] = val_lineedit
 
             num_readings = len(self._val_lineedits)
             self._reading_wid_layout.addWidget(label, num_readings, 0)
             self._reading_wid_layout.addWidget(val_lineedit, num_readings, 1)
 
-        return self._val_lineedits[reading.description]
+        return self._val_lineedits[reading.name]
 
     def _on_readings_received(self, readings: Sequence[SensorReading]):
         """Receive sensor readings from the backend and update the GUI.
