@@ -31,32 +31,37 @@ class SensorsPanel(DevicePanel):
 
         self._poll_light = LEDIcon.create_green_icon()
 
-        self._create_layouts()
+        self._poll_layout = QHBoxLayout()
+        self._reading_layout = QFormLayout()
 
-        self._poll_wid_layout.addWidget(QLabel("POLL Server"))
-        self._poll_wid_layout.addWidget(self._poll_light)
+        self._reading_widget = QWidget()
+        self._reading_widget.setLayout(self._reading_layout)
+        poll_widget = QWidget()
+        poll_widget.setLayout(self._poll_layout)
+
+        self._layout = QVBoxLayout()
+        self._layout.addWidget(self._reading_widget)
+        self._layout.addWidget(poll_widget)
+
+        self._poll_layout.addWidget(QLabel("POLL Server"))
+        self._poll_layout.addWidget(self._poll_light)
         self._poll_light.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
         )
 
         self.setLayout(self._layout)
 
+        # Remove any existing sensor readings from panel
+        pub.subscribe(self._remove_readings_widgets, f"device.opened.{SENSORS_TOPIC}")
+
         # Listen for readings sent by backend
         pub.subscribe(self._on_readings_received, f"device.{SENSORS_TOPIC}.data")
 
-    def _create_layouts(self) -> None:
-        """Creates layouts to house the widgets."""
-        self._poll_wid_layout = QHBoxLayout()
-        self._reading_wid_layout = QFormLayout()
-
-        top = QWidget()
-        top.setLayout(self._reading_wid_layout)
-        bottom = QWidget()
-        bottom.setLayout(self._poll_wid_layout)
-
-        self._layout = QVBoxLayout()
-        self._layout.addWidget(top)
-        self._layout.addWidget(bottom)
+    def _remove_readings_widgets(self) -> None:
+        """Remove all of the widgets for sensor readings."""
+        self._val_lineedits.clear()
+        while self._reading_layout.rowCount() > 0:
+            self._reading_layout.removeRow(0)
 
     def _get_reading_lineedit(self, reading: SensorReading) -> QLineEdit:
         """Get or create the QLineEdit for a given sensor.
@@ -78,7 +83,7 @@ class SensorsPanel(DevicePanel):
             )
 
             self._val_lineedits[reading.name] = val_lineedit
-            self._reading_wid_layout.addRow(reading.name, val_lineedit)
+            self._reading_layout.addRow(reading.name, val_lineedit)
 
         return self._val_lineedits[reading.name]
 
