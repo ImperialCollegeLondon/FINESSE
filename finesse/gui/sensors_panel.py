@@ -9,8 +9,10 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QLineEdit,
+    QScrollArea,
     QSizePolicy,
     QVBoxLayout,
+    QWidget,
 )
 
 from finesse.config import SENSORS_TOPIC
@@ -30,9 +32,15 @@ class SensorsPanel(DevicePanel):
 
         self._poll_light = LEDIcon.create_green_icon()
 
-        poll_layout = QHBoxLayout()
+        # As there may be many sensor readings, make the area scrollable
         self._reading_layout = QFormLayout()
+        reading_widget = QWidget()
+        reading_widget.setLayout(self._reading_layout)
+        reading_area = QScrollArea()
+        reading_area.setWidget(reading_widget)
+        reading_area.setWidgetResizable(True)
 
+        poll_layout = QHBoxLayout()
         poll_layout.addWidget(QLabel("POLL Server"))
         poll_layout.addWidget(self._poll_light)
         self._poll_light.setSizePolicy(
@@ -40,7 +48,7 @@ class SensorsPanel(DevicePanel):
         )
 
         layout = QVBoxLayout()
-        layout.addLayout(self._reading_layout)
+        layout.addWidget(reading_area)
         layout.addLayout(poll_layout)
         self.setLayout(layout)
 
