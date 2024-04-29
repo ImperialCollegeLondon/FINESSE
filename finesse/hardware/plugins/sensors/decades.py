@@ -53,7 +53,8 @@ class Decades(
         # Obtain full parameter list in order to parse received data
         self.obtain_parameter_list()
 
-        super().__init__(poll_interval)
+        # We only want to start polling after we have loaded the parameter list
+        super().__init__(poll_interval, start_polling=False)
 
     def obtain_parameter_list(self) -> None:
         """Request the parameter list from the DECADES server and wait for response."""
@@ -71,8 +72,8 @@ class Decades(
         url = QUrlQuery(self._url + "/livedata?")
         url.addQueryItem("frm", epoch_time)
         url.addQueryItem("to", epoch_time)
-        for sensor in DECADES_QUERY_LIST:
-            url.addQueryItem("para", sensor)
+        for param in self._params:
+            url.addQueryItem("para", param["ParameterName"])
 
         self._requester.make_request(
             url.toString(), self.pubsub_errors(self._on_reply_received)
@@ -123,3 +124,6 @@ class Decades(
         self._params = [
             param for param in content if param["ParameterName"] in DECADES_QUERY_LIST
         ]
+
+        # Now we have enough information to start parsing sensor readings
+        self.start_polling()

@@ -1,11 +1,13 @@
 """Tests for the Decades class."""
 
+import json
 from unittest.mock import ANY, MagicMock, Mock, patch
 
 import pytest
+from freezegun import freeze_time
 from PySide6.QtNetwork import QNetworkReply
 
-from finesse.config import DECADES_QUERY_LIST, DECADES_URL
+from finesse.config import DECADES_URL
 from finesse.hardware.plugins.sensors.decades import (
     Decades,
     DecadesError,
@@ -24,6 +26,13 @@ def test_init(qtbot) -> None:
     """Test the Decades constructor."""
     sensors = Decades("1.2.3.4", 2.0)
     assert sensors._url == DECADES_URL.format(host="1.2.3.4")
+
+
+PARAMS = [
+    {"ParameterName": "a", "DisplayText": "A", "DisplayUnits": "m"},
+    {"ParameterName": "b", "DisplayText": "B", "DisplayUnits": "J"},
+]
+"""Example parameters."""
 
 
 @patch("json.loads")
@@ -52,7 +61,6 @@ def test_on_reply_received_network_error(decades: Decades) -> None:
     reply.errorString.return_value = "Host not found"
 
     with pytest.raises(DecadesError):
-        # Check the correct pubsub message is sent
         decades._on_reply_received(reply)
 
 
@@ -70,12 +78,11 @@ def test_on_reply_received_exception(
     get_decades_data_mock.side_effect = error
 
     with pytest.raises(Exception):
-        # Check the correct pubsub message is sent
         decades._on_reply_received(reply)
 
 
-def test_send_params(decades: Decades) -> None:
-    """Tests the send_data() method."""
+def test_obtain_parameter_list(decades: Decades) -> None:
+    """Tests the obtain_parameter_list() method."""
     with patch.object(decades, "_requester") as requester_mock:
         with patch.object(decades, "pubsub_errors") as wrapper_mock:
             wrapper_mock.return_value = "WRAPPED_FUNC"
@@ -84,38 +91,45 @@ def test_send_params(decades: Decades) -> None:
             requester_mock.make_request.assert_called_once_with(ANY, "WRAPPED_FUNC")
 
 
-def test_send_data(decades: Decades) -> None:
-    """Tests the send_data() method."""
+@patch("finesse.hardware.plugins.sensors.decades.DECADES_QUERY_LIST", ["a", "b"])
+def test_on_params_received_no_error(decades: Decades) -> None:
+    """Test the _on_params_received() method."""
+    assert not hasattr(decades, "_params")
+    reply = MagicMock()
+    reply.error.return_value = QNetworkReply.NetworkError.NoError
+    reply.readAll().data.return_value = json.dumps(PARAMS).encode()
+
+    with patch.object(decades, "start_polling") as start_mock:
+        decades._on_params_received(reply)
+        assert decades._params == PARAMS
+        start_mock.assert_called_once_with()
+
+
+def test_on_params_received_network_error(decades: Decades) -> None:
+    """Test the _on_params_received() method when a network error occurs."""
+    reply = MagicMock()
+    reply.error.return_value = QNetworkReply.NetworkError.HostNotFoundError
+    reply.errorString.return_value = "Host not found"
+
+    with pytest.raises(DecadesError):
+        decades._on_params_received(reply)
+
+
+@freeze_time("1970-01-01 00:01:00")
+def test_request_readings(decades: Decades) -> None:
+    """Tests the request_readings() method."""
+    decades._params = PARAMS
     with patch.object(decades, "_requester") as requester_mock:
         with patch.object(decades, "pubsub_errors") as wrapper_mock:
             wrapper_mock.return_value = "WRAPPED_FUNC"
             decades.request_readings()
             wrapper_mock.assert_called_once_with(decades._on_reply_received)
-            requester_mock.make_request.assert_called_once_with(ANY, "WRAPPED_FUNC")
-
-
-@patch("time.time")
-def test_send_data_query(time_mock: Mock, decades: Decades) -> None:
-    """Tests the send_data() method."""
-    with patch.object(decades, "_requester") as requester_mock:
-        decades._url = "http://localhost/test"
-        time_mock.return_value = 999
-        DECADES_QUERY_LIST.clear()
-        DECADES_QUERY_LIST.append("a")
-        DECADES_QUERY_LIST.append("b")
-        decades.request_readings()
-        query = decades._url + "/livedata?&frm=999&to=999&para=a&para=b"
-        requester_mock.make_request.assert_called_once_with(query, ANY)
+            query = decades._url + "/livedata?&frm=60&to=60&para=a&para=b"
+            requester_mock.make_request.assert_called_once_with(query, "WRAPPED_FUNC")
 
 
 def test_get_decades_data(decades: Decades) -> None:
     """Tests the get_decades_data() function on normal data."""
-    DECADES_QUERY_LIST.clear()
-    DECADES_QUERY_LIST.append("a")
-    DECADES_QUERY_LIST.append("b")
-    decades._params = [
-        {"ParameterName": "a", "DisplayText": "A", "DisplayUnits": ""},
-        {"ParameterName": "b", "DisplayText": "B", "DisplayUnits": ""},
-    ]
+    decades._params = PARAMS
     data = decades._get_decades_data({"a": [1.0], "b": [2.0]})
-    assert data == [SensorReading("A", 1.0, ""), SensorReading("B", 2.0, "")]
+    assert data == [SensorReading("A", 1.0, "m"), SensorReading("B", 2.0, "J")]
