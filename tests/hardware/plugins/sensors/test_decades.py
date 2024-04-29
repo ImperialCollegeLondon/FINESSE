@@ -41,14 +41,12 @@ def test_on_reply_received_no_error(
     """Test the _on_reply_received() method works when no error occurs."""
     reply = MagicMock()
     reply.error.return_value = QNetworkReply.NetworkError.NoError
+    get_decades_data_mock.return_value = range(3)
 
-    # NB: This value is of the wrong type, but it doesn't matter for here
-    get_decades_data_mock.return_value = "cool_sensor_data"
-
-    # Check the correct pubsub message is sent
+    # Check send_readings_message() is called
     with patch.object(decades, "send_readings_message") as send_readings_mock:
         decades._on_reply_received(reply)
-        send_readings_mock.assert_called_once_with("cool_sensor_data")
+        send_readings_mock.assert_called_once_with((0, 1, 2))
         json_loads_mock.assert_called_once_with(reply.readAll().data().decode())
 
 
@@ -89,15 +87,30 @@ def test_obtain_parameter_list(decades: Decades) -> None:
             requester_mock.make_request.assert_called_once_with(ANY, "WRAPPED_FUNC")
 
 
-@patch("finesse.hardware.plugins.sensors.decades.DECADES_QUERY_LIST", ["a", "b"])
 def test_on_params_received_no_error(decades: Decades) -> None:
     """Test the _on_params_received() method."""
     assert not hasattr(decades, "_params")
     reply = MagicMock()
     reply.error.return_value = QNetworkReply.NetworkError.NoError
     raw_params = (
-        {"ParameterName": "a", "DisplayText": "A", "DisplayUnits": "m"},
-        {"ParameterName": "b", "DisplayText": "B", "DisplayUnits": "J"},
+        {
+            "ParameterName": "a",
+            "DisplayText": "A",
+            "DisplayUnits": "m",
+            "available": True,
+        },
+        {
+            "ParameterName": "b",
+            "DisplayText": "B",
+            "DisplayUnits": "J",
+            "available": True,
+        },
+        {
+            "ParameterName": "c",
+            "DisplayText": "C",
+            "DisplayUnits": "V",
+            "available": False,
+        },
     )
     reply.readAll().data.return_value = json.dumps(raw_params).encode()
 
@@ -133,5 +146,5 @@ def test_request_readings(decades: Decades) -> None:
 def test_get_decades_data(decades: Decades) -> None:
     """Tests the get_decades_data() function on normal data."""
     decades._params = PARAMS
-    data = decades._get_decades_data({"a": [1.0], "b": [2.0]})
-    assert data == [SensorReading("A", 1.0, "m"), SensorReading("B", 2.0, "J")]
+    data = tuple(decades._get_decades_data({"a": [1.0], "b": [2.0]}))
+    assert data == (SensorReading("A", 1.0, "m"), SensorReading("B", 2.0, "J"))

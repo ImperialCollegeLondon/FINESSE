@@ -6,19 +6,16 @@ This is used to query the DECADES server for aircraft sensor data.
 from __future__ import annotations
 
 import json
+import logging
 import time
+from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Any
 
 from PySide6.QtCore import QUrlQuery, Slot
 from PySide6.QtNetwork import QNetworkReply
 
-from finesse.config import (
-    DECADES_HOST,
-    DECADES_POLL_INTERVAL,
-    DECADES_QUERY_LIST,
-    DECADES_URL,
-)
+from finesse.config import DECADES_HOST, DECADES_POLL_INTERVAL, DECADES_URL
 from finesse.hardware.http_requester import HTTPRequester
 from finesse.hardware.plugins.sensors.sensors_base import SensorsBase
 from finesse.sensor_reading import SensorReading
@@ -83,7 +80,7 @@ class Decades(
     def obtain_parameter_list(self) -> None:
         """Request the parameter list from the DECADES server and wait for response."""
         self._requester.make_request(
-            self._url + "/params",
+            self._url + "/params/availability",
             self.pubsub_errors(self._on_params_received),
         )
 
@@ -103,7 +100,7 @@ class Decades(
             url.toString(), self.pubsub_errors(self._on_reply_received)
         )
 
-    def _get_decades_data(self, content: dict[str, list]) -> list[SensorReading]:
+    def _get_decades_data(self, content: dict[str, list]) -> Iterable[SensorReading]:
         """Parse and return sensor data from a DECADES server query.
 
         Args:
@@ -112,11 +109,14 @@ class Decades(
         Returns:
             A list of sensor readings.
         """
-        return [
-            param.get_sensor_reading(content[param.name][-1])
-            for param in self._params
-            if content[param.name] != []
-        ]
+        for param in self._params:
+            try:
+                if values := content[param.name]:
+                    yield param.get_sensor_reading(values[-1])
+            except KeyError:
+                logging.warn(
+                    f"DECADES: Server did not return data for parameter {param.name}"
+                )
 
     @Slot()
     def _on_reply_received(self, reply: QNetworkReply) -> None:
@@ -128,7 +128,7 @@ class Decades(
         if reply.error() != QNetworkReply.NetworkError.NoError:
             raise DecadesError(f"Error: {reply.errorString()}")
         content = json.loads(reply.readAll().data().decode())
-        readings = self._get_decades_data(content)
+        readings = tuple(self._get_decades_data(content))
         self.send_readings_message(readings)
 
     def _on_params_received(self, reply: QNetworkReply) -> None:
@@ -142,9 +142,7 @@ class Decades(
 
         content = json.loads(reply.readAll().data().decode())
         self._params = [
-            DecadesParameter.from_dict(param)
-            for param in content
-            if param["ParameterName"] in DECADES_QUERY_LIST
+            DecadesParameter.from_dict(param) for param in content if param["available"]
         ]
 
         # Now we have enough information to start parsing sensor readings
