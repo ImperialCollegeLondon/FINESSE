@@ -5,7 +5,7 @@ from collections.abc import Sequence
 from pubsub import pub
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QGridLayout,
+    QFormLayout,
     QHBoxLayout,
     QLabel,
     QLineEdit,
@@ -47,7 +47,7 @@ class SensorsPanel(DevicePanel):
     def _create_layouts(self) -> None:
         """Creates layouts to house the widgets."""
         self._poll_wid_layout = QHBoxLayout()
-        self._reading_wid_layout = QGridLayout()
+        self._reading_wid_layout = QFormLayout()
 
         top = QWidget()
         top.setLayout(self._reading_wid_layout)
@@ -78,10 +78,7 @@ class SensorsPanel(DevicePanel):
             )
 
             self._val_lineedits[reading.name] = val_lineedit
-
-            num_readings = len(self._val_lineedits)
-            self._reading_wid_layout.addWidget(label, num_readings, 0)
-            self._reading_wid_layout.addWidget(val_lineedit, num_readings, 1)
+            self._reading_wid_layout.addRow(reading.name, val_lineedit)
 
         return self._val_lineedits[reading.name]
 
