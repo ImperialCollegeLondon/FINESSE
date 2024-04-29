@@ -2,7 +2,7 @@
 
 from itertools import product
 from typing import Any
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import ANY, MagicMock, Mock, patch
 
 import pytest
 from PySide6.QtNetwork import QNetworkReply
@@ -33,9 +33,7 @@ def test_init(timer_mock: Mock, subscribe_mock: Mock) -> None:
 
     with patch.object(OPUSInterface, "_request_status") as status_mock:
         opus = OPUSInterface()
-        assert opus._url.scheme() == "http"
-        assert opus._url.host() == DEFAULT_OPUS_HOST
-        assert opus._url.port() == DEFAULT_OPUS_PORT
+        assert opus._url == f"http://{DEFAULT_OPUS_HOST}:{DEFAULT_OPUS_PORT}/opusrs"
         status_mock.assert_called_once_with()
 
         assert opus._status == SpectrometerStatus.UNDEFINED
@@ -63,10 +61,8 @@ def test_make_request(opus: OPUSInterface, qtbot) -> None:
     """Test OPUSInterface's request_command() method."""
     with patch.object(opus, "_requester") as requester_mock:
         opus._make_request("hello.htm")
-        assert requester_mock.make_request.call_count == 1
-        assert (
-            requester_mock.make_request.call_args[0][0].toString()
-            == f"http://{DEFAULT_OPUS_HOST}:{DEFAULT_OPUS_PORT}/opusrs/hello.htm"
+        requester_mock.make_request.assert_called_once_with(
+            f"http://{DEFAULT_OPUS_HOST}:{DEFAULT_OPUS_PORT}/opusrs/hello.htm", ANY
         )
 
 

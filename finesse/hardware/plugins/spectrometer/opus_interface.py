@@ -9,7 +9,7 @@ Note that this is a separate machine from the EM27!
 import logging
 
 from bs4 import BeautifulSoup
-from PySide6.QtCore import QTimer, QUrl, Slot
+from PySide6.QtCore import QTimer, Slot
 from PySide6.QtNetwork import QNetworkReply
 
 from finesse.config import (
@@ -92,11 +92,8 @@ class OPUSInterface(
         """
         super().__init__()
         self._requester = HTTPRequester()
-        self._url = QUrl()
+        self._url = f"http://{host}:{port}/opusrs"
         """URL to make requests."""
-        self._url.setScheme("http")
-        self._url.setHost(host)
-        self._url.setPort(port)
 
         self._status = SpectrometerStatus.UNDEFINED
         """The last known status of the spectrometer."""
@@ -132,9 +129,8 @@ class OPUSInterface(
 
     def _make_request(self, filename: str) -> None:
         """Make an HTTP request in the background."""
-        self._url.setPath(f"/opusrs/{filename}")
         self._requester.make_request(
-            self._url, self.pubsub_errors(self._on_reply_received)
+            f"{self._url}/{filename}", self.pubsub_errors(self._on_reply_received)
         )
 
     def _request_status(self) -> None:
