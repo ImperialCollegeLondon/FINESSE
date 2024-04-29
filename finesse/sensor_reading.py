@@ -1,15 +1,15 @@
-"""Provides a class for describing EM27 properties."""
+"""Provides a class for representing physical quantities monitored by sensors."""
 
 from dataclasses import dataclass
 from decimal import Decimal
 
 
 @dataclass
-class EM27Property:
-    """Class for representing EM27 monitored properties.
+class SensorReading:
+    """Class for representing physical quantities monitored by sensors.
 
     Args:
-        name: name of the physical quantity
+        name: human-readable name of the physical quantity
         value: value of the physical quantity
         unit: unit in which the value is presented
     """

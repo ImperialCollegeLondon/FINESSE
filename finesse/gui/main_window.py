@@ -21,10 +21,10 @@ from finesse.config import (
 from finesse.gui.data_file_view import DataFileControl
 from finesse.gui.decades_monitor import DECADESMonitor
 from finesse.gui.docs_view import DocsViewer
-from finesse.gui.em27_monitor import EM27Monitor
 from finesse.gui.hardware_set.hardware_sets_view import HardwareSetsControl
 from finesse.gui.logs_view import LogLocationOpen, LogOpen
 from finesse.gui.measure_script.script_view import ScriptControl
+from finesse.gui.sensors_panel import SensorsPanel
 from finesse.gui.spectrometer_view import SpectrometerControl
 from finesse.gui.stepper_motor_view import StepperMotorControl
 from finesse.gui.temperature_controller_view import TemperatureControllerControl
@@ -70,8 +70,8 @@ class MainWindow(QMainWindow):
         spectrometer: QGroupBox = SpectrometerControl()
 
         # Setup for interferometer monitor
-        em27_monitor = EM27Monitor()
-        em27_monitor.setSizePolicy(
+        sensors = SensorsPanel()
+        sensors.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
         )
 
@@ -85,7 +85,7 @@ class MainWindow(QMainWindow):
         layout_left.addWidget(measure_script, 1, 0, 1, 2)
         layout_left.addWidget(stepper_motor, 2, 0, 1, 1)
         layout_left.addWidget(spectrometer, 2, 1, 1, 1)
-        layout_left.addWidget(em27_monitor, 3, 0, 1, 1)
+        layout_left.addWidget(sensors, 3, 0, 1, 1)
         layout_left.addWidget(decades_monitor, 3, 1, 1, 1)
         layout_left.addWidget(data_file, 4, 0, 1, 2)
 

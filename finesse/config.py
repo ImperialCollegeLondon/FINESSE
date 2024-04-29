@@ -51,9 +51,6 @@ EM27_SENSORS_URL = "http://{host}/diag_autom.htm"
 EM27_SENSORS_POLL_INTERVAL = 60.0
 """Poll rate for EM27 properties."""
 
-EM27_SENSORS_TOPIC = "em27_sensors"
-"""The topic name to use for EM27 sensor-related messages."""
-
 DECADES_HOST = "localhost"
 """The IP address or hostname of the DECADES server."""
 
@@ -158,3 +155,6 @@ TIME_NTP_TIMEOUT = 5.0
 
 TIME_NTP_POLL_INTERVAL = 600.0
 """Poll rate for NTP updates."""
+
+SENSORS_TOPIC = "sensors"
+"""The topic name to use for sensor-related messages."""
