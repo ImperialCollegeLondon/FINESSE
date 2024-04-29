@@ -1,4 +1,4 @@
-"""Provides a class for describing EM27 properties."""
+"""Provides a class for representing physical quantities monitored by sensors."""
 
 from dataclasses import dataclass
 from decimal import Decimal
