@@ -15,7 +15,7 @@ class SensorReading:
     """
 
     name: str
-    value: Decimal
+    value: Decimal | float
     unit: str
 
     def __str__(self) -> str:
