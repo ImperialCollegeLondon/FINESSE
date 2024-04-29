@@ -11,7 +11,6 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QSizePolicy,
     QVBoxLayout,
-    QWidget,
 )
 
 from finesse.config import SENSORS_TOPIC
@@ -31,25 +30,19 @@ class SensorsPanel(DevicePanel):
 
         self._poll_light = LEDIcon.create_green_icon()
 
-        self._poll_layout = QHBoxLayout()
+        poll_layout = QHBoxLayout()
         self._reading_layout = QFormLayout()
 
-        self._reading_widget = QWidget()
-        self._reading_widget.setLayout(self._reading_layout)
-        poll_widget = QWidget()
-        poll_widget.setLayout(self._poll_layout)
-
-        self._layout = QVBoxLayout()
-        self._layout.addWidget(self._reading_widget)
-        self._layout.addWidget(poll_widget)
-
-        self._poll_layout.addWidget(QLabel("POLL Server"))
-        self._poll_layout.addWidget(self._poll_light)
+        poll_layout.addWidget(QLabel("POLL Server"))
+        poll_layout.addWidget(self._poll_light)
         self._poll_light.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
         )
 
-        self.setLayout(self._layout)
+        layout = QVBoxLayout()
+        layout.addLayout(self._reading_layout)
+        layout.addLayout(poll_layout)
+        self.setLayout(layout)
 
         # Remove any existing sensor readings from panel
         pub.subscribe(self._remove_readings_widgets, f"device.opened.{SENSORS_TOPIC}")
