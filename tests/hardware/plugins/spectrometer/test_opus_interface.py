@@ -57,12 +57,13 @@ def test_request_command(command: str, opus: OPUSInterface, qtbot) -> None:
         request_mock.assert_called_once_with(f"cmd.htm?opusrs{command}")
 
 
-def test_make_request(opus: OPUSInterface, qtbot) -> None:
+@pytest.mark.parametrize("filename", ("hello.htm", "hello.htm?somequery"))
+def test_make_request(opus: OPUSInterface, filename: str, qtbot) -> None:
     """Test OPUSInterface's request_command() method."""
     with patch.object(opus, "_requester") as requester_mock:
-        opus._make_request("hello.htm")
+        opus._make_request(filename)
         requester_mock.make_request.assert_called_once_with(
-            f"http://{DEFAULT_OPUS_HOST}:{DEFAULT_OPUS_PORT}/opusrs/hello.htm", ANY
+            f"http://{DEFAULT_OPUS_HOST}:{DEFAULT_OPUS_PORT}/opusrs/{filename}", ANY
         )
 
 
