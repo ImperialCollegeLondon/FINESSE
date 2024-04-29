@@ -10,6 +10,7 @@ from finesse.hardware.plugins.sensors.decades import (
     Decades,
     DecadesError,
 )
+from finesse.sensor_reading import SensorReading
 
 
 @pytest.fixture
@@ -18,21 +19,10 @@ def decades(qtbot, subscribe_mock) -> Decades:
     return Decades()
 
 
-@patch("finesse.hardware.plugins.sensors.decades.QTimer")
-def test_init(qtimer_class_mock: Mock) -> None:
+def test_init(qtbot) -> None:
     """Test the Decades constructor."""
     sensors = Decades("1.2.3.4", 2.0)
     assert sensors._url == DECADES_URL.format(host="1.2.3.4")
-    qtimer_mock = qtimer_class_mock.return_value
-    qtimer_mock.timeout.connect.assert_called_once_with(sensors.send_data)
-    qtimer_mock.start.assert_called_once_with(2000)
-
-
-def test_close(decades: Decades) -> None:
-    """Test the Decades close() method."""
-    with patch.object(decades, "_poll_timer") as qtimer_mock:
-        decades.close()
-        qtimer_mock.stop.assert_called_once_with()
 
 
 @patch("json.loads")
@@ -48,8 +38,10 @@ def test_on_reply_received_no_error(
     get_decades_data_mock.return_value = "cool_sensor_data"
 
     # Check the correct pubsub message is sent
-    assert decades._on_reply_received(reply) == "cool_sensor_data"
-    json_loads_mock.assert_called_once_with(reply.readAll().data().decode())
+    with patch.object(decades, "send_readings_message") as send_readings_mock:
+        decades._on_reply_received(reply)
+        send_readings_mock.assert_called_once_with("cool_sensor_data")
+        json_loads_mock.assert_called_once_with(reply.readAll().data().decode())
 
 
 def test_on_reply_received_network_error(decades: Decades, qtbot) -> None:
@@ -84,24 +76,20 @@ def test_on_reply_received_exception(
 def test_send_params(decades: Decades, qtbot) -> None:
     """Tests the send_data() method."""
     with patch.object(decades, "_requester") as requester_mock:
-        with patch.object(decades, "pubsub_broadcast") as broadcast_mock:
-            broadcast_mock.return_value = "WRAPPED_FUNC"
-            decades.send_params()
-            broadcast_mock.assert_called_once_with(
-                decades._on_params_received, "params.response"
-            )
+        with patch.object(decades, "pubsub_errors") as wrapper_mock:
+            wrapper_mock.return_value = "WRAPPED_FUNC"
+            decades.obtain_parameter_list()
+            wrapper_mock.assert_called_once_with(decades._on_params_received)
             requester_mock.make_request.assert_called_once_with(ANY, "WRAPPED_FUNC")
 
 
 def test_send_data(decades: Decades, qtbot) -> None:
     """Tests the send_data() method."""
     with patch.object(decades, "_requester") as requester_mock:
-        with patch.object(decades, "pubsub_broadcast") as broadcast_mock:
-            broadcast_mock.return_value = "WRAPPED_FUNC"
-            decades.send_data()
-            broadcast_mock.assert_called_once_with(
-                decades._on_reply_received, "data.response", "data"
-            )
+        with patch.object(decades, "pubsub_errors") as wrapper_mock:
+            wrapper_mock.return_value = "WRAPPED_FUNC"
+            decades.request_readings()
+            wrapper_mock.assert_called_once_with(decades._on_reply_received)
             requester_mock.make_request.assert_called_once_with(ANY, "WRAPPED_FUNC")
 
 
@@ -114,7 +102,7 @@ def test_send_data_query(time_mock: Mock, decades: Decades, qtbot) -> None:
         DECADES_QUERY_LIST.clear()
         DECADES_QUERY_LIST.append("a")
         DECADES_QUERY_LIST.append("b")
-        decades.send_data()
+        decades.request_readings()
         query = decades._url + "/livedata?&frm=999&to=999&para=a&para=b"
         requester_mock.make_request.assert_called_once_with(query, ANY)
 
@@ -128,8 +116,5 @@ def test_get_decades_data(decades: Decades) -> None:
         {"ParameterName": "a", "DisplayText": "A", "DisplayUnits": ""},
         {"ParameterName": "b", "DisplayText": "B", "DisplayUnits": ""},
     ]
-    data = decades._get_decades_data({"a": [1], "b": [2]})
-    assert isinstance(data, list)
-    assert len(data) == 2
-    assert ["A", 1, ""] in data
-    assert ["B", 2, ""] in data
+    data = decades._get_decades_data({"a": [1.0], "b": [2.0]})
+    assert data == [SensorReading("A", 1.0, ""), SensorReading("B", 2.0, "")]

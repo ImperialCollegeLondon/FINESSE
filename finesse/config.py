@@ -60,9 +60,6 @@ DECADES_URL = "http://{host}/decades"
 DECADES_POLL_INTERVAL = 60.0
 """Poll rate for DECADES sensors."""
 
-DECADES_TOPIC = "decades"
-"""The topic name to use for DECADES sensor-related messages."""
-
 DECADES_QUERY_LIST = [
     "static_pressure",
     "gin_altitude",
