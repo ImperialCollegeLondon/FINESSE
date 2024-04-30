@@ -6,7 +6,6 @@ from pubsub import pub
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QFormLayout,
-    QHBoxLayout,
     QLabel,
     QLineEdit,
     QScrollArea,
@@ -40,9 +39,8 @@ class SensorsPanel(DevicePanel):
         reading_area.setWidget(reading_widget)
         reading_area.setWidgetResizable(True)
 
-        poll_layout = QHBoxLayout()
-        poll_layout.addWidget(QLabel("POLL Server"))
-        poll_layout.addWidget(self._poll_light)
+        poll_layout = QFormLayout()
+        poll_layout.addRow("POLL SERVER", self._poll_light)
         self._poll_light.setSizePolicy(
             QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
         )
