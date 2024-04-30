@@ -14,7 +14,8 @@ from finesse.sensor_reading import SensorReading
 
 
 @pytest.fixture
-def decades(qtbot, subscribe_mock) -> Decades:
+@patch("finesse.hardware.plugins.sensors.decades.HTTPRequester")
+def decades(requester_mock, qtbot, subscribe_mock) -> Decades:
     """Fixture for Decades."""
     return Decades()
 
@@ -28,7 +29,7 @@ def test_init(qtbot) -> None:
 @patch("json.loads")
 @patch("finesse.hardware.plugins.sensors.decades.Decades._get_decades_data")
 def test_on_reply_received_no_error(
-    get_decades_data_mock: Mock, json_loads_mock: Mock, decades: Decades, qtbot
+    get_decades_data_mock: Mock, json_loads_mock: Mock, decades: Decades
 ) -> None:
     """Test the _on_reply_received() method works when no error occurs."""
     reply = MagicMock()
@@ -44,7 +45,7 @@ def test_on_reply_received_no_error(
         json_loads_mock.assert_called_once_with(reply.readAll().data().decode())
 
 
-def test_on_reply_received_network_error(decades: Decades, qtbot) -> None:
+def test_on_reply_received_network_error(decades: Decades) -> None:
     """Tests the _on_reply_received() method works when a network error occurs."""
     reply = MagicMock()
     reply.error.return_value = QNetworkReply.NetworkError.HostNotFoundError
@@ -58,7 +59,7 @@ def test_on_reply_received_network_error(decades: Decades, qtbot) -> None:
 @patch("json.loads")
 @patch("finesse.hardware.plugins.sensors.decades.Decades._get_decades_data")
 def test_on_reply_received_exception(
-    get_decades_data_mock: Mock, json_loads_mock: Mock, decades: Decades, qtbot
+    get_decades_data_mock: Mock, json_loads_mock: Mock, decades: Decades
 ) -> None:
     """Tests the _on_reply_received() method works when an exception is raised."""
     reply = MagicMock()
@@ -73,7 +74,7 @@ def test_on_reply_received_exception(
         decades._on_reply_received(reply)
 
 
-def test_send_params(decades: Decades, qtbot) -> None:
+def test_send_params(decades: Decades) -> None:
     """Tests the send_data() method."""
     with patch.object(decades, "_requester") as requester_mock:
         with patch.object(decades, "pubsub_errors") as wrapper_mock:
@@ -83,7 +84,7 @@ def test_send_params(decades: Decades, qtbot) -> None:
             requester_mock.make_request.assert_called_once_with(ANY, "WRAPPED_FUNC")
 
 
-def test_send_data(decades: Decades, qtbot) -> None:
+def test_send_data(decades: Decades) -> None:
     """Tests the send_data() method."""
     with patch.object(decades, "_requester") as requester_mock:
         with patch.object(decades, "pubsub_errors") as wrapper_mock:
@@ -94,7 +95,7 @@ def test_send_data(decades: Decades, qtbot) -> None:
 
 
 @patch("time.time")
-def test_send_data_query(time_mock: Mock, decades: Decades, qtbot) -> None:
+def test_send_data_query(time_mock: Mock, decades: Decades) -> None:
     """Tests the send_data() method."""
     with patch.object(decades, "_requester") as requester_mock:
         decades._url = "http://localhost/test"
