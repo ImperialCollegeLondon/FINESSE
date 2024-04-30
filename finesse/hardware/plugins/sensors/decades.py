@@ -3,8 +3,11 @@
 This is used to query the DECADES server for aircraft sensor data.
 """
 
+from __future__ import annotations
+
 import json
 import time
+from dataclasses import dataclass
 from typing import Any
 
 from PySide6.QtCore import QUrlQuery, Slot
@@ -23,6 +26,27 @@ from finesse.sensor_reading import SensorReading
 
 class DecadesError(Exception):
     """Indicates that an error occurred while querying the DECADES server."""
+
+
+@dataclass
+class DecadesParameter:
+    """Represents a parameter returned from the DECADES server."""
+
+    name: str
+    """Short name for the parameter."""
+    readable_name: str
+    """Human-readable name."""
+    unit: str
+    """Unit for the value."""
+
+    def get_sensor_reading(self, value: float) -> SensorReading:
+        """Get a SensorReading object with specified value for this parameter."""
+        return SensorReading(self.readable_name, value, self.unit)
+
+    @classmethod
+    def from_dict(cls, d: dict[str, Any]) -> DecadesParameter:
+        """Create a DecadesParameter from a dict."""
+        return DecadesParameter(d["ParameterName"], d["DisplayText"], d["DisplayUnits"])
 
 
 class Decades(
@@ -47,7 +71,7 @@ class Decades(
         """
         self._url: str = DECADES_URL.format(host=host)
         self._requester = HTTPRequester()
-        self._params: list[dict[str, Any]]
+        self._params: list[DecadesParameter]
         """Parameters returned by the server."""
 
         # Obtain full parameter list in order to parse received data
@@ -73,7 +97,7 @@ class Decades(
         url.addQueryItem("frm", epoch_time)
         url.addQueryItem("to", epoch_time)
         for param in self._params:
-            url.addQueryItem("para", param["ParameterName"])
+            url.addQueryItem("para", param.name)
 
         self._requester.make_request(
             url.toString(), self.pubsub_errors(self._on_reply_received)
@@ -89,13 +113,9 @@ class Decades(
             A list of sensor readings.
         """
         return [
-            SensorReading(
-                param["DisplayText"],
-                content[param["ParameterName"]][-1],
-                param["DisplayUnits"],
-            )
+            param.get_sensor_reading(content[param.name][-1])
             for param in self._params
-            if content[param["ParameterName"]] != []
+            if content[param.name] != []
         ]
 
     @Slot()
@@ -122,7 +142,9 @@ class Decades(
 
         content = json.loads(reply.readAll().data().decode())
         self._params = [
-            param for param in content if param["ParameterName"] in DECADES_QUERY_LIST
+            DecadesParameter.from_dict(param)
+            for param in content
+            if param["ParameterName"] in DECADES_QUERY_LIST
         ]
 
         # Now we have enough information to start parsing sensor readings

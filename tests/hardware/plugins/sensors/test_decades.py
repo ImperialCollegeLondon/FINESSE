@@ -11,6 +11,7 @@ from finesse.config import DECADES_URL
 from finesse.hardware.plugins.sensors.decades import (
     Decades,
     DecadesError,
+    DecadesParameter,
 )
 from finesse.sensor_reading import SensorReading
 
@@ -28,10 +29,7 @@ def test_init(qtbot) -> None:
     assert sensors._url == DECADES_URL.format(host="1.2.3.4")
 
 
-PARAMS = [
-    {"ParameterName": "a", "DisplayText": "A", "DisplayUnits": "m"},
-    {"ParameterName": "b", "DisplayText": "B", "DisplayUnits": "J"},
-]
+PARAMS = [DecadesParameter("a", "A", "m"), DecadesParameter("b", "B", "J")]
 """Example parameters."""
 
 
@@ -97,7 +95,11 @@ def test_on_params_received_no_error(decades: Decades) -> None:
     assert not hasattr(decades, "_params")
     reply = MagicMock()
     reply.error.return_value = QNetworkReply.NetworkError.NoError
-    reply.readAll().data.return_value = json.dumps(PARAMS).encode()
+    raw_params = (
+        {"ParameterName": "a", "DisplayText": "A", "DisplayUnits": "m"},
+        {"ParameterName": "b", "DisplayText": "B", "DisplayUnits": "J"},
+    )
+    reply.readAll().data.return_value = json.dumps(raw_params).encode()
 
     with patch.object(decades, "start_polling") as start_mock:
         decades._on_params_received(reply)
