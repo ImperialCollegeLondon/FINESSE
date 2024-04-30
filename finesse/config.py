@@ -57,7 +57,7 @@ DECADES_HOST = "localhost"
 DECADES_URL = "http://{host}/decades"
 """The URL of the DECADES sensor data endpoint."""
 
-DECADES_POLL_INTERVAL = 60.0
+DECADES_POLL_INTERVAL = 5.0
 """Poll rate for DECADES sensors."""
 
 DEFAULT_HTTP_TIMEOUT = 2.0
