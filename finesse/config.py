@@ -57,18 +57,16 @@ DECADES_HOST = "localhost"
 DECADES_URL = "http://{host}/decades"
 """The URL of the DECADES sensor data endpoint."""
 
-DECADES_POLL_INTERVAL = 60.0
+DECADES_POLL_INTERVAL = 5.0
 """Poll rate for DECADES sensors."""
 
-DECADES_TOPIC = "decades"
-"""The topic name to use for DECADES sensor-related messages."""
-
-DECADES_QUERY_LIST = [
+DEFAULT_DECADES_PARAMETERS = (
     "static_pressure",
     "gin_altitude",
     "deiced_true_air_temp_c",
-]
-"""List of DECADES sensor queries to make."""
+)
+"""Default DECADES parameters to request."""
+
 
 DEFAULT_HTTP_TIMEOUT = 2.0
 """How long to wait for a response from a server for."""
