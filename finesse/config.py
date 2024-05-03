@@ -60,6 +60,14 @@ DECADES_URL = "http://{host}/decades"
 DECADES_POLL_INTERVAL = 5.0
 """Poll rate for DECADES sensors."""
 
+DEFAULT_DECADES_PARAMETERS = (
+    "static_pressure",
+    "gin_altitude",
+    "deiced_true_air_temp_c",
+)
+"""Default DECADES parameters to request."""
+
+
 DEFAULT_HTTP_TIMEOUT = 2.0
 """How long to wait for a response from a server for."""
 
