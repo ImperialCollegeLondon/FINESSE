@@ -93,7 +93,8 @@ class Decades(
         "host": "The IP address or hostname of the DECADES server",
         "params": (
             "Comma-separated list of parameters to request from the DECADES server "
-            "(leave empty for all)"
+            "(leave empty for all). For a list of possible parameters, consult the "
+            "documentation."
         ),
     },
 ):
