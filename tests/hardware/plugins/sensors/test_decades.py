@@ -143,8 +143,24 @@ def test_request_readings(decades: Decades) -> None:
             requester_mock.make_request.assert_called_once_with(query, "WRAPPED_FUNC")
 
 
-def test_get_decades_data(decades: Decades) -> None:
+@patch("finesse.hardware.plugins.sensors.decades.logging.warn")
+def test_get_decades_data(warn_mock: Mock, decades: Decades) -> None:
     """Tests the get_decades_data() function on normal data."""
     decades._params = PARAMS
     data = tuple(decades._get_decades_data({"a": [1.0], "b": [2.0]}))
     assert data == (SensorReading("A", 1.0, "m"), SensorReading("B", 2.0, "J"))
+    warn_mock.assert_not_called()
+
+
+@patch("finesse.hardware.plugins.sensors.decades.logging.warn")
+def test_get_decades_data_missing(warn_mock: Mock, decades: Decades) -> None:
+    """Tests the get_decades_data() function for when there are missing data."""
+    params = [
+        DecadesParameter("a", "A", "m"),
+        DecadesParameter("b", "B", "J"),
+        DecadesParameter("c", "C", "V"),
+    ]
+    decades._params = params
+    data = tuple(decades._get_decades_data({"a": [1.0], "b": [2.0]}))
+    assert data == (SensorReading("A", 1.0, "m"), SensorReading("B", 2.0, "J"))
+    warn_mock.assert_called_once()
