@@ -15,7 +15,7 @@ authors = [
 python = ">=3.11,<3.12"
 PySide6 = "^6.6.1"
 matplotlib = "^3.8.4"
-platformdirs = "^4.2.0"
+platformdirs = "^4.2.1"
 pypubsub = "^4.0.3"
 pyyaml = "^6.0"
 schema = "^0.7.5"
