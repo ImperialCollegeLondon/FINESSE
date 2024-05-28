@@ -19,8 +19,7 @@ Technical documentation is available on [FINESSE's GitHub Pages site](https://im
 
 This is a Python application that uses [poetry](https://python-poetry.org) for packaging
 and dependency management. It also provides [pre-commit](https://pre-commit.com/) hooks
-(for [Black](https://black.readthedocs.io/en/stable/) and
-[Flake8](https://flake8.pycqa.org/en/latest/)) and automated tests using
+for various linters and formatters and automated tests using
 [pytest](https://pytest.org/) and [GitHub Actions](https://github.com/features/actions).
 Pre-commit hooks are automatically kept updated with a dedicated GitHub Action.
 
