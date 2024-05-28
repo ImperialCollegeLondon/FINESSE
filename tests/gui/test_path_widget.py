@@ -13,7 +13,7 @@ class DummyWidget(PathWidget):
 
     def try_get_path_from_dialog(self) -> Path | None:
         """Try to get the file name by raising a dialog."""
-        return super().try_get_path_from_dialog()
+        return None
 
 
 @pytest.fixture()
