@@ -52,7 +52,9 @@ jobs:
           sudo apt install libegl1
 
       - name: Install dependencies
-        run: poetry install
+        run: |
+          poetry env use "${{ matrix.python-version }}"
+          poetry install
 
       - name: Run tests
         run: poetry run pytest --cov-report=xml
