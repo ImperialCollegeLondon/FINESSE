@@ -1,6 +1,11 @@
 name: Test and build
 
-on: [push, pull_request, release]
+on:
+  push:
+    branches: [main]
+  pull_request:
+  release:
+  workflow_dispatch:
 
 jobs:
   check-links:
@@ -25,9 +30,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v2.3.0
+        with:
+          poetry-version: 1.8.3
+
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+          cache: poetry
 
       - name: Install system dependencies in Linux
         if: matrix.os == 'ubuntu-latest'
@@ -40,13 +51,10 @@ jobs:
           # Without this, PySide6 gives an ImportError
           sudo apt install libegl1
 
-      - name: Install Poetry
-        uses: abatilo/actions-poetry@v2.3.0
-        with:
-          poetry-version: 1.2.2
-
       - name: Install dependencies
-        run: poetry install
+        run: |
+          poetry env use "${{ matrix.python-version }}"
+          poetry install
 
       - name: Run tests
         run: poetry run pytest --cov-report=xml
