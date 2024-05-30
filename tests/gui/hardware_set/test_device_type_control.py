@@ -92,7 +92,7 @@ def test_init(
         ]
     )
 
-    assert len(widget.findChildren(DeviceParametersWidget)) == 1
+    assert len(list(widget.findChildren(DeviceParametersWidget))) == 1
 
 
 def test_init_no_device_types(qtbot) -> None:

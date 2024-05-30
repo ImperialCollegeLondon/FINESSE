@@ -116,7 +116,8 @@ class OPUSInterface(
             raise OPUSError(f"Network error: {reply.errorString()}")
 
         # Parse the received message
-        response = reply.readAll().data().decode()
+        data: bytes = reply.readAll().data()
+        response = data.decode()
         new_status = parse_response(response)
 
         # If the status has changed, notify listeners

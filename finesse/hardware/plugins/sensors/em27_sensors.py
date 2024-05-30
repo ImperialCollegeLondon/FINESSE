@@ -90,7 +90,8 @@ class EM27SensorsBase(
         if reply.error() != QNetworkReply.NetworkError.NoError:
             raise EM27Error(f"Network error: {reply.errorString()}")
 
-        content = reply.readAll().data().decode()
+        data: bytes = reply.readAll().data()
+        content = data.decode()
         readings = get_em27_sensor_data(content)
         self.send_readings_message(readings)
 
