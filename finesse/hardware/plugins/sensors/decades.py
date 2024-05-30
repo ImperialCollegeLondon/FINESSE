@@ -177,7 +177,8 @@ class Decades(
         """
         if reply.error() != QNetworkReply.NetworkError.NoError:
             raise DecadesError(f"Error: {reply.errorString()}")
-        content = json.loads(reply.readAll().data().decode())
+        data: bytes = reply.readAll().data()
+        content = json.loads(data.decode())
         readings = tuple(self._get_decades_data(content))
         self.send_readings_message(readings)
 
@@ -191,9 +192,8 @@ class Decades(
         if reply.error() != QNetworkReply.NetworkError.NoError:
             raise DecadesError(f"Error: {reply.errorString()}")
 
-        all_params_info: list[dict[str, Any]] = json.loads(
-            reply.readAll().data().decode()
-        )
+        data: bytes = reply.readAll().data()
+        all_params_info: list[dict[str, Any]] = json.loads(data.decode())
 
         if not params:
             # User wants all params
