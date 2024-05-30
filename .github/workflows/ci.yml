@@ -30,9 +30,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install Poetry
+        uses: abatilo/actions-poetry@v2.3.0
+        with:
+          poetry-version: 1.8.3
+
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+          cache: poetry
 
       - name: Install system dependencies in Linux
         if: matrix.os == 'ubuntu-latest'
@@ -44,11 +50,6 @@ jobs:
 
           # Without this, PySide6 gives an ImportError
           sudo apt install libegl1
-
-      - name: Install Poetry
-        uses: abatilo/actions-poetry@v2.3.0
-        with:
-          poetry-version: 1.8.3
 
       - name: Install dependencies
         run: poetry install
