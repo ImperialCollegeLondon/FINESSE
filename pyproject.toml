@@ -42,7 +42,7 @@ pytest-qt = "^4.4.0"
 types-decorator = "^5.1.8.20240310"
 pydot = "^2.0.0"
 ruff = "^0.4.2"
-freezegun = "^1.4.0"
+freezegun = "^1.5.1"
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = "^1.6.0"
