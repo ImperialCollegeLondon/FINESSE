@@ -11,9 +11,9 @@ from finesse.gui.path_widget import PathWidget
 class DummyWidget(PathWidget):
     """Override abstract member functions so we can create an instance."""
 
-    def try_get_path_from_dialog(self) -> Path | None:
+    def try_get_path_from_dialog(self) -> None:
         """Try to get the file name by raising a dialog."""
-        return super().try_get_path_from_dialog()
+        return None
 
 
 @pytest.fixture()
