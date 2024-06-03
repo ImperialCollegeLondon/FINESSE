@@ -64,6 +64,8 @@ jobs:
       - name: Upload coverage to Codecov
         if: matrix.os == 'ubuntu-latest' && success()
         uses: codecov/codecov-action@v4
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Check for documentation errors with MkDocs
         if: matrix.os == 'ubuntu-latest'

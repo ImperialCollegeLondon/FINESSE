@@ -68,7 +68,7 @@ DEFAULT_DECADES_PARAMETERS = (
 """Default DECADES parameters to request."""
 
 
-DEFAULT_HTTP_TIMEOUT = 2.0
+DEFAULT_HTTP_TIMEOUT = 10.0
 """How long to wait for a response from a server for."""
 
 STEPPER_MOTOR_TOPIC = "stepper_motor"

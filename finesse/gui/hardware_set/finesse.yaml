@@ -1,4 +1,4 @@
-name: FINESSE (with Seneca K107)
+name: FINESSE
 devices:
   stepper_motor:
     class_name: stepper_motor.st10_controller.ST10Controller

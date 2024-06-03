@@ -42,17 +42,17 @@ class MainWindow(QMainWindow):
 
         set_uncaught_exception_handler(self)
 
-        docs_viewer = DocsViewer(self)
-        helpmenu = QMenu("Help", self)
-        helpmenu.addAction(docs_viewer)
-        self.menuBar().addMenu(helpmenu)
-
         open_log = LogOpen(self)
         open_log_location = LogLocationOpen(self)
         logsmenu = QMenu("Logs", self)
         logsmenu.addAction(open_log)
         logsmenu.addAction(open_log_location)
         self.menuBar().addMenu(logsmenu)
+
+        docs_viewer = DocsViewer(self)
+        helpmenu = QMenu("Help", self)
+        helpmenu.addAction(docs_viewer)
+        self.menuBar().addMenu(helpmenu)
 
         layout_left = QGridLayout()
 
