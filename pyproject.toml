@@ -1,57 +1,59 @@
-[tool.poetry]
+[project]
 name = "FINESSE"
 version = "2.0.0"
 description = "A graphical user interface for controlling and monitoring an interferometer device."
 authors = [
-    "Alex Dewar <a.dewar@imperial.ac.uk>",
-    "Diego Alonso Álvarez <d.alonso-alvarez@imperial.ac.uk>",
-    "Dan Cummins <daniel.cummins17@imperial.ac.uk>",
-    "Callum West <c.west@imperial.ac.uk>",
-    "James Turner <james.turner@imperial.ac.uk>",
-    "Imperial College London RSE Team <ict-rse-team@imperial.ac.uk>",
+    { name = "Alex Dewar", email = "a.dewar@imperial.ac.uk" },
+    { name = "Diego Alonso Álvarez", email = "d.alonso-alvarez@imperial.ac.uk" },
+    { name = "Dan Cummins", email = "daniel.cummins17@imperial.ac.uk" },
+    { name = "Callum West", email = "c.west@imperial.ac.uk" },
+    { name = "James Turner", email = "james.turner@imperial.ac.uk" },
+    { name = "Imperial College London RSE Team", email = "ict-rse-team@imperial.ac.uk" },
+]
+readme = "README.md"
+requires-python = ">=3.11,<3.12"
+dependencies = [
+    "PySide6~=6.7.1",
+    "matplotlib~=3.8.4",
+    "platformdirs~=4.2.2",
+    "pypubsub~=4.0.3",
+    "pyyaml~=6.0",
+    "schema~=0.7.7",
+    "pyserial~=3.5",
+    "beautifulsoup4~=4.12.3",
+    "python-statemachine~=2.1.2",
+    "numpy~=1.26.4",
+    "decorator~=5.1.1",
+    "pycsvy~=0.2.2",
+    "frozendict~=2.4.4",
+    "crc~=7.0.0",
+    "ntplib~=0.4.0",
 ]
 
-[tool.poetry.dependencies]
-python = ">=3.11,<3.12"
-PySide6 = "^6.7.1"
-matplotlib = "^3.8.4"
-platformdirs = "^4.2.2"
-pypubsub = "^4.0.3"
-pyyaml = "^6.0"
-schema = "^0.7.7"
-pyserial = "^3.5"
-beautifulsoup4 = "^4.12.3"
-python-statemachine = "^2.1.2"
-numpy = "^1.26.4"
-decorator = "^5.1.1"
-pycsvy = "^0.2.2"
-frozendict = "^2.4.4"
-crc = "^7.0.0"
-ntplib = "^0.4.0"
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.1"
-pytest-cov = "^5.0.0"
-pytest-mypy = "^0.10.1"
-pytest-mock = "^3.14.0"
-pre-commit = "^3.7.1"
-pyinstaller = "^6.6.0"
-types-pyyaml = "^6.0.12.20240311"
-types-beautifulsoup4 = "^4.12.0.20240511"
-pytest-qt = "^4.4.0"
-types-decorator = "^5.1.8.20240310"
-pydot = "^2.0.0"
-ruff = "^0.4.2"
-freezegun = "^1.5.1"
-
-[tool.poetry.group.docs.dependencies]
-mkdocs = "^1.6.0"
-mkdocstrings = "^0.25.1"
-mkdocstrings-python = "^1.10.0"
-mkdocs-material = "^9.5.25"
-mkdocs-gen-files = "^0.5.0"
-mkdocs-literate-nav = "^0.6.1"
-mkdocs-section-index = "^0.3.9"
+[tool.rye]
+dev-dependencies = [
+    "pytest~=8.1",
+    "pytest-cov~=5.0.0",
+    "pytest-mypy~=0.10.1",
+    "pytest-mock~=3.14.0",
+    "pre-commit~=3.7.1",
+    "pyinstaller~=6.6.0",
+    "types-pyyaml~=6.0.12.20240311",
+    "types-beautifulsoup4~=4.12.0.20240511",
+    "pytest-qt~=4.4.0",
+    "types-decorator~=5.1.8.20240310",
+    "pydot~=2.0.0",
+    "ruff~=0.4.2",
+    "freezegun~=1.5.1",
+    "mkdocs~=1.6.0",
+    "mkdocstrings~=0.25.1",
+    "mkdocstrings-python~=1.10.0",
+    "mkdocs-material~=9.5.25",
+    "mkdocs-gen-files~=0.5.0",
+    "mkdocs-literate-nav~=0.6.1",
+    "mkdocs-section-index~=0.3.9",
+]
+managed = true
 
 [tool.ruff]
 target-version = "py311"
@@ -79,5 +81,11 @@ addopts = "-v --mypy -p no:warnings --cov=finesse --cov-report=html:htmlcov/cove
 exclude_lines = ["if __name__ == .__main__.:"]
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["finesse"]
