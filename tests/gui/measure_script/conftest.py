@@ -19,7 +19,6 @@ def runner(subscribe_mock: MagicMock, sendmsg_mock: MagicMock) -> ScriptRunner:
     runner = ScriptRunner(script)
     subscribe_mock.reset_mock()
     sendmsg_mock.reset_mock()
-    runner._check_status_timer = MagicMock()
     return runner
 
 
