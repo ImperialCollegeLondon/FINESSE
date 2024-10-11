@@ -25,7 +25,7 @@ def test_power() -> None:
     dev = DummyTemperatureController("hot_bb", power_params=params)
     assert dev._power_producer.mean == params.mean
     assert dev._power_producer.standard_deviation == params.standard_deviation
-    assert dev._power_producer.type == int
+    assert dev._power_producer.type is int
 
 
 @pytest.mark.parametrize("alarm_status", range(2))
