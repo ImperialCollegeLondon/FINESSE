@@ -25,7 +25,7 @@ def test_init_defaults(rng_mock: Mock) -> None:
     noise = NoiseProducer()
     assert noise.mean == 0.0
     assert noise.standard_deviation == 1.0
-    assert noise.type == float
+    assert noise.type is float
     rng_mock.assert_called_once_with(42)
     assert noise.rng is mock2
 
