@@ -1571,14 +1571,17 @@ six = ">=1.5"
 
 [[package]]
 name = "python-statemachine"
-version = "2.1.2"
+version = "2.3.6"
 description = "Python Finite State Machines made easy."
 optional = false
-python-versions = ">=3.7,<3.13"
+python-versions = ">=3.7"
 files = [
-    {file = "python_statemachine-2.1.2-py3-none-any.whl", hash = "sha256:d7e369d5da5b9007cc7cf5eb7a1b169081e2f4b7d30b6415fc122858fb7696ec"},
-    {file = "python_statemachine-2.1.2.tar.gz", hash = "sha256:0b0dd8b28738b53f14391b06d5072cd5e72259da5ae23574d3d4f5e6dd366663"},
+    {file = "python_statemachine-2.3.6-py3-none-any.whl", hash = "sha256:0001b02cbe2f5b2420c423b5b3e3a33915447ac6d9735219c929e2378d454f5f"},
+    {file = "python_statemachine-2.3.6.tar.gz", hash = "sha256:9cb4040ca7f2158d3cd46f36a77b420b6ef95a90223928a7f3cab232a70bd560"},
 ]
+
+[package.extras]
+diagrams = ["pydot (>=2.0.0)"]
 
 [[package]]
 name = "pywin32-ctypes"
@@ -1980,4 +1983,4 @@ watchmedo = ["PyYAML (>=3.10)"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.12"
-content-hash = "0fc4eebe15ee7f0a290a9051f38ff9806986d5cf1b6a398d3170b7f185e72c4d"
+content-hash = "bf92e53ad2a3bdccb9f215c608d0f96409771db5322e5f6e94da155b14979b8c"
