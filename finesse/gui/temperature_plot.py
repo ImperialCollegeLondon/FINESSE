@@ -6,6 +6,7 @@ from functools import partial
 
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
+import numpy as np
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from pubsub import pub
 from PySide6.QtCore import QSize
@@ -77,14 +78,13 @@ class TemperaturePlot(QGroupBox):
         self._figure_num_pts = int(
             TEMPERATURE_PLOT_TIME_RANGE / TEMPERATURE_MONITOR_POLL_INTERVAL
         )
-        t: list[float | None] = [None] * self._figure_num_pts
-        hot_bb_temp: list[float | None] = [None] * self._figure_num_pts
-        cold_bb_temp: list[float | None] = [None] * self._figure_num_pts
+
+        nans = np.full([self._figure_num_pts], np.nan)
 
         hot_colour = "r"
         cold_colour = "b"
 
-        self._ax["hot"].plot(t, hot_bb_temp, color=hot_colour, linestyle="-")
+        self._ax["hot"].plot(nans, nans, color=hot_colour, linestyle="-")
         self._ax["hot"].set_ylabel("HOT BB", color=hot_colour)
 
         max_ticks = 8
@@ -94,7 +94,7 @@ class TemperaturePlot(QGroupBox):
         )
 
         self._ax["cold"] = self._ax["hot"].twinx()
-        self._ax["cold"].plot(t, cold_bb_temp, color=cold_colour, linestyle="-")
+        self._ax["cold"].plot(nans, nans, color=cold_colour, linestyle="-")
         self._ax["cold"].set_ylabel("COLD BB", color=cold_colour)
 
         self._canvas.draw()
@@ -122,17 +122,14 @@ class TemperaturePlot(QGroupBox):
             new_hot_data: the new temperature of the hot blackbody
             new_cold_data: the new temperature of the cold blackbody
         """
-        time = list(self._ax["hot"].lines[0].get_xdata())
-        hot_data = list(self._ax["hot"].lines[0].get_ydata())
-        cold_data = list(self._ax["cold"].lines[0].get_ydata())
+        time = np.array(self._ax["hot"].lines[0].get_xdata())
+        hot_data = np.array(self._ax["hot"].lines[0].get_ydata())
+        cold_data = np.array(self._ax["cold"].lines[0].get_ydata())
 
-        time.pop(0)
-        hot_data.pop(0)
-        cold_data.pop(0)
-
-        time.append(new_time)
-        hot_data.append(new_hot_data)
-        cold_data.append(new_cold_data)
+        # Remove first element and append a new one
+        time = np.array([*time[1:], new_time])
+        hot_data = np.array([*hot_data[1:], new_hot_data])
+        cold_data = np.array([*cold_data[1:], new_cold_data])
 
         self._ax["hot"].lines[0].set_xdata(time)
         self._ax["hot"].lines[0].set_ydata(hot_data)
