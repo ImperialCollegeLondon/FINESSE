@@ -1,0 +1,34 @@
+name: Set up
+description: Set up Python environment and install dependencies
+inputs:
+  python-version:
+    description: The Python version to use
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install Poetry
+      shell: bash
+      run: pipx install poetry
+
+    - uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+        cache: poetry
+
+    - name: Install system dependencies in Linux
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        sudo apt update
+
+        # For documentation
+        sudo apt install graphviz
+
+        # Without this, PySide6 gives an ImportError
+        sudo apt install libegl1
+
+    - name: Install dependencies
+      shell: bash
+      run: poetry install
