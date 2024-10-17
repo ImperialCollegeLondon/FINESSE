@@ -67,7 +67,6 @@ DEFAULT_DECADES_PARAMETERS = (
 )
 """Default DECADES parameters to request."""
 
-
 DEFAULT_HTTP_TIMEOUT = 10.0
 """How long to wait for a response from a server for."""
 
