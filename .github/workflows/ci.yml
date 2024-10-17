@@ -31,11 +31,9 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
-      - name: Check for documentation errors with MkDocs
+      - name: Check documentation builds correctly
         if: matrix.os == 'ubuntu-latest'
-        run: |
-          poetry run python docs/gen_state_machine_diagrams.py
-          poetry run mkdocs build -s
+        uses: ./.github/actions/build-docs
 
       - name: Install Pandoc
         if: matrix.os == 'windows-latest'
@@ -56,18 +54,3 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: dist/FINESSE.exe
-
-  docs:
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup
-        with:
-          python-version: "3.11"
-
-      - name: Deploy Docs
-        run: |
-          poetry run python docs/gen_state_machine_diagrams.py
-          poetry run mkdocs gh-deploy --force
