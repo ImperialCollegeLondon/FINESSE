@@ -26,21 +26,21 @@ jobs:
         run: poetry run pytest --cov-report=xml
 
       - name: Upload coverage to Codecov
-        if: matrix.os == 'ubuntu-latest' && success()
+        if: runner.os == 'Linux' && success()
         uses: codecov/codecov-action@v4
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Check documentation builds correctly
-        if: matrix.os == 'ubuntu-latest'
+        if: runner.os == 'Linux'
         uses: ./.github/actions/build-docs
 
       - name: Build exe
-        if: matrix.os == 'windows-latest'
+        if: runner.os == 'Windows'
         uses: ./.github/actions/build-win-exe
 
       - uses: actions/upload-artifact@v4
-        if: success() && matrix.os == 'windows-latest'
+        if: success() && runner.os == 'Windows'
         with:
           name: FINESSE
           path: dist/FINESSE.exe
