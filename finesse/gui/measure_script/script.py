@@ -164,7 +164,7 @@ class ScriptRunner(StateMachine):
 
     The state diagram looks like this:
 
-    ![](../../../../ScriptRunner.png)
+    ![](ScriptRunner.png)
     """
 
     not_running = State("Not running", initial=True)

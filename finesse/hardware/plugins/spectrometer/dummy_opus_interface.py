@@ -63,7 +63,7 @@ class OPUSStateMachine(StateMachine):
 
         The state diagram looks like this:
 
-        ![](../../../../../OPUSStateMachine.png)
+        ![](OPUSStateMachine.png)
 
         Args:
             measure_duration: How long a single measurement takes (seconds)

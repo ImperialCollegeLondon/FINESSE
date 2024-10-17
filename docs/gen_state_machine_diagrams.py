@@ -7,12 +7,11 @@ from pathlib import Path
 from pkgutil import iter_modules
 from types import ModuleType
 
+import mkdocs_gen_files
 from statemachine import StateMachine
 from statemachine.contrib.diagram import DotGraphMachine
 
 import finesse
-
-DIAGRAM_DIR = Path(__file__).parent
 
 
 def get_all_modules(module: ModuleType) -> Iterable[ModuleType]:
@@ -28,8 +27,14 @@ def get_all_modules(module: ModuleType) -> Iterable[ModuleType]:
 
 def write_diagram(sm: type[StateMachine]):
     """Write state machine diagram to disk."""
+    dir = Path("reference") / sm.__module__.replace(".", "/")
+
+    # **HACK**: Use this private function to get the path for the file as write_png()
+    # can't take a file handle
+    file_path = mkdocs_gen_files._get_file(str(dir / f"{sm.__name__}.png"), new=True)
+
     graph = DotGraphMachine(sm)
-    graph().write_png(str(DIAGRAM_DIR / f"{sm.__name__}.png"))
+    graph().write_png(file_path)
 
 
 def get_all_state_machines() -> Iterable[type[StateMachine]]:
