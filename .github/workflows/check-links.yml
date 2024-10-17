@@ -1,5 +1,9 @@
 name: Check links in Markdown files
 on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
   schedule:
     - cron: "0 0 * * 1" # midnight every Monday
 

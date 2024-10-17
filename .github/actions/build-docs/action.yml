@@ -1,0 +1,16 @@
+name: Build documentation
+description: Build documentation with MkDocs
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install dot for generating diagrams
+      if: runner.os == 'Linux'
+      shell: bash
+      run: sudo apt install graphviz
+
+    - name: Build documentation with MkDocs
+      shell: bash
+      run: |
+        poetry run python docs/gen_state_machine_diagrams.py
+        poetry run mkdocs build --strict
