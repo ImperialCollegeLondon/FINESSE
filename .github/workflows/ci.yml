@@ -68,7 +68,6 @@ jobs:
       - name: Check for documentation errors with MkDocs
         if: matrix.os == 'ubuntu-latest'
         run: |
-          poetry run python docs/gen_state_machine_diagrams.py
           poetry run mkdocs build -s
 
       - name: Install Pandoc
@@ -122,5 +121,4 @@ jobs:
 
       - name: Deploy Docs
         run: |
-          poetry run python docs/gen_state_machine_diagrams.py
           poetry run mkdocs gh-deploy --force
