@@ -45,8 +45,6 @@ jobs:
 
       - name: Run tests
         run: poetry run pytest --cov-report=xml
-        env:
-          QT_QPA_PLATFORM: offscreen
 
       - name: Upload coverage to Codecov
         if: matrix.os == 'ubuntu-latest' && success()
