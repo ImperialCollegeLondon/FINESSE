@@ -19,7 +19,6 @@ repos:
     rev: v0.42.0
     hooks:
       - id: markdownlint
-        args: ["--disable", "MD013", "MD041", "--"]
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.6.9
     hooks:
