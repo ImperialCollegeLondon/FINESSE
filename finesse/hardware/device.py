@@ -76,19 +76,26 @@ class AbstractDevice(ABC):
 
     The key represents the parameter name and the value is a list of possible values.
     """
+    _device_async_open: ClassVar[bool | None] = None
+    """Whether the device opens asynchronously (i.e. completes after __init__)."""
 
     def __init_subclass__(
-        cls, parameters: Mapping[str, str | tuple[str, Sequence]] = {}
+        cls,
+        parameters: Mapping[str, str | tuple[str, Sequence]] = {},
+        async_open: bool | None = None,
     ) -> None:
         """Initialise a device class.
 
         Args:
             parameters: Extra device parameters that this class requires
+            async_open: Whether the device should be opened in the background
         """
         super().__init_subclass__()
 
         cls._add_parameters(parameters)
         cls._update_parameter_defaults()
+        if async_open is not None:
+            cls._device_async_open = async_open
 
     @classmethod
     def _add_parameters(
