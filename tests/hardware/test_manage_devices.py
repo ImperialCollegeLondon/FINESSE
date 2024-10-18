@@ -68,14 +68,19 @@ def test_open_device(
         if not raise_error:
             assert devices_dict == {instance: device_mock}
 
-            # Two separate messages are sent on device open
+            # Three separate messages are sent on device open
             sendmsg_mock.assert_has_calls(
                 [
+                    call(
+                        f"device.before_opening.{instance!s}",
+                        instance=instance,
+                        class_name=class_name,
+                        params=params,
+                    ),
                     call(
                         f"device.after_opening.{instance!s}",
                         instance=instance,
                         class_name=class_name,
-                        params=params,
                     ),
                     call(f"device.opened.{instance!s}"),
                 ]
@@ -85,8 +90,16 @@ def test_open_device(
             logging_mock.warn.assert_not_called()
         else:
             assert not devices_dict
-            sendmsg_mock.assert_called_once_with(
-                f"device.error.{instance!s}", instance=instance, error=error
+            sendmsg_mock.assert_has_calls(
+                [
+                    call(
+                        f"device.before_opening.{instance!s}",
+                        instance=instance,
+                        class_name=class_name,
+                        params=params,
+                    ),
+                    call(f"device.error.{instance!s}", instance=instance, error=error),
+                ]
             )
             logging_mock.error.assert_called()
 
