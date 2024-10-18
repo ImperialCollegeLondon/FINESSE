@@ -195,7 +195,7 @@ def test_update_control_state(
     ) as hw_set_mock:
         hw_set_mock.return_value = _get_devices(hardware_set)
         with patch.object(
-            hw_control, "_connected_devices", _get_devices(connected_devices)
+            hw_control, "_active_devices", _get_devices(connected_devices)
         ):
             with patch.object(
                 hw_control._connect_btn, "setEnabled"
@@ -229,7 +229,7 @@ def test_connect_btn(
         combo_mock.current_hardware_set_devices = _get_devices(hardware_set)
         combo_mock.current_hardware_set.file_path = file_path
         with patch.object(
-            hw_control, "_connected_devices", _get_devices(connected_devices)
+            hw_control, "_active_devices", _get_devices(connected_devices)
         ):
             hw_control._connect_btn.click()
 
@@ -252,7 +252,7 @@ def test_disconnect_button(
 ) -> None:
     """Test the disconnect button."""
     with patch.object(hw_control, "_update_control_state") as update_mock:
-        with patch.object(hw_control, "_connected_devices", DEVICES):
+        with patch.object(hw_control, "_active_devices", DEVICES):
             hw_control._disconnect_btn.setEnabled(True)
             hw_control._disconnect_btn.click()
             close_mock.assert_has_calls([call(device.instance) for device in DEVICES])
@@ -265,12 +265,12 @@ def test_on_device_opened(
 ) -> None:
     """Test the _on_device_opened() method."""
     device = DEVICES[0]
-    assert not hw_control._connected_devices
+    assert not hw_control._active_devices
     with patch.object(hw_control, "_update_control_state") as update_mock:
         hw_control._on_device_opened(
             instance=device.instance, class_name=device.class_name, params=device.params
         )
-        assert hw_control._connected_devices == {device}
+        assert hw_control._active_devices == {device}
         update_mock.assert_called_once_with()
         settings_mock.setValue.assert_has_calls(
             [
@@ -283,18 +283,18 @@ def test_on_device_opened(
 def test_on_device_closed(hw_control: HardwareSetsControl, qtbot) -> None:
     """Test the _on_device_closed() method."""
     device = DEVICES[0]
-    assert not hw_control._connected_devices
+    assert not hw_control._active_devices
     with patch.object(hw_control, "_update_control_state") as update_mock:
-        hw_control._connected_devices.add(device)
+        hw_control._active_devices.add(device)
         hw_control._on_device_closed(device.instance)
-        assert not hw_control._connected_devices
+        assert not hw_control._active_devices
         update_mock.assert_called_once_with()
 
 
 def test_on_device_closed_not_found(hw_control: HardwareSetsControl, qtbot) -> None:
     """Test that _on_device_closed() does not raise an error if device is not found."""
     device = DEVICES[0]
-    assert not hw_control._connected_devices
+    assert not hw_control._active_devices
     with does_not_raise():
         hw_control._on_device_closed(device.instance)
 
