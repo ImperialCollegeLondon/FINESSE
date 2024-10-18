@@ -80,6 +80,10 @@ class TextParameterWidget(QLineEdit):
         self.setText(str(new_value))
 
 
+ParameterWidget = ComboParameterWidget | TextParameterWidget
+"""A type alias for a widget which supports getting and setting a parameter."""
+
+
 class DeviceParametersWidget(QWidget):
     """A widget containing controls for setting a device's parameters."""
 
@@ -99,14 +103,14 @@ class DeviceParametersWidget(QWidget):
         self.setLayout(layout)
 
         # Make a widget for each parameter
-        self._param_widgets: dict[str, ComboParameterWidget | TextParameterWidget] = {}
+        self._param_widgets: dict[str, ParameterWidget] = {}
         for name, param in device_type.parameters.items():
-            cls = (
-                ComboParameterWidget
-                if isinstance(param.possible_values, Sequence)
-                else TextParameterWidget
-            )
-            widget = cls(param.possible_values)
+            widget: ParameterWidget
+            if isinstance(param.possible_values, Sequence):
+                widget = ComboParameterWidget(param.possible_values)
+            else:
+                widget = TextParameterWidget(param.possible_values)
+
             widget.setToolTip(param.description)
 
             if param.default_value is not None:
