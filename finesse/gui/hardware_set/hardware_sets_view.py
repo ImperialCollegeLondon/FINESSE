@@ -198,7 +198,8 @@ class HardwareSetsControl(QGroupBox):
         all_connected = connected_devices.issuperset(
             self._combo.current_hardware_set_devices
         )
-        self._connect_btn.setEnabled(not all_connected)
+        any_devices_connecting = len(connected_devices) < len(self._active_devices)
+        self._connect_btn.setEnabled(not any_devices_connecting and not all_connected)
 
         # Enable the "Disconnect all" button if there are *any* devices connected at all
         self._disconnect_btn.setEnabled(bool(connected_devices))
@@ -242,9 +243,12 @@ class HardwareSetsControl(QGroupBox):
     def _on_device_open_start(
         self, instance: DeviceInstanceRef, class_name: str, params: Mapping[str, Any]
     ) -> None:
+        """Store device open parameters and update GUI."""
         args = OpenDeviceArgs(instance, class_name, frozendict(params))
         dev_props = ActiveDeviceProperties(args, ActiveDeviceState.CONNECTING)
         self._active_devices[instance] = dev_props
+
+        self._update_control_state()
 
     def _on_device_open_end(self, instance: DeviceInstanceRef, class_name: str) -> None:
         """Add instance to _connected_devices and update GUI."""
