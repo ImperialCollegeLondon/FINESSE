@@ -219,7 +219,8 @@ class DeviceTypeControl(QGroupBox):
         self._device_combo.currentIndexChanged.connect(self._on_device_selected)
 
         # pubsub subscriptions
-        pub.subscribe(self._on_device_opened, f"device.after_opening.{instance!s}")
+        pub.subscribe(self._on_device_open_start, f"device.before_opening.{instance!s}")
+        pub.subscribe(self._on_device_open_end, f"device.after_opening.{instance!s}")
         pub.subscribe(self._on_device_closed, f"device.closed.{instance!s}")
 
     def _update_open_btn_enabled_state(self) -> None:
@@ -257,11 +258,19 @@ class DeviceTypeControl(QGroupBox):
         self._device_combo.setEnabled(enabled)
         self.current_device_type_widget.setEnabled(enabled)
 
+    def _set_device_opening(self, class_name: str) -> None:
+        """Update the GUI for when the device is opened."""
+        self._select_device(class_name)
+        self._set_combos_enabled(False)
+        self._open_close_btn.setText("Opening...")
+        self._open_close_btn.setEnabled(False)
+
     def _set_device_opened(self, class_name: str) -> None:
         """Update the GUI for when the device is opened."""
         self._select_device(class_name)
         self._set_combos_enabled(False)
         self._open_close_btn.setText("Close")
+        self._open_close_btn.setEnabled(True)
 
     def _select_device(self, class_name: str) -> None:
         """Select the device from the combo box which matches class_name."""
@@ -283,6 +292,7 @@ class DeviceTypeControl(QGroupBox):
         """Update the GUI for when the device is opened."""
         self._set_combos_enabled(True)
         self._open_close_btn.setText("Open")
+        self._open_close_btn.setEnabled(True)
 
     def _open_device(self) -> None:
         """Open the currently selected device."""
@@ -299,7 +309,13 @@ class DeviceTypeControl(QGroupBox):
         else:
             open_device(widget.device_type.class_name, self._device_instance, params)
 
-    def _on_device_opened(self, instance: DeviceInstanceRef, class_name: str) -> None:
+    def _on_device_open_start(
+        self, instance: DeviceInstanceRef, class_name: str, params: Mapping[str, Any]
+    ) -> None:
+        """Update the GUI when device opening starts."""
+        self._set_device_opening(class_name)
+
+    def _on_device_open_end(self, instance: DeviceInstanceRef, class_name: str) -> None:
         """Update the GUI on device open."""
         self._set_device_opened(class_name)
 
