@@ -1,6 +1,8 @@
 """Provides a panel for choosing between hardware sets and (dis)connecting."""
 
 from collections.abc import Mapping, Set
+from dataclasses import dataclass
+from enum import Enum
 from pathlib import Path
 from typing import Any, cast
 
@@ -27,6 +29,27 @@ from finesse.gui.hardware_set.hardware_set import (
 )
 from finesse.gui.hardware_set.hardware_sets_combo_box import HardwareSetsComboBox
 from finesse.settings import settings
+
+
+class ActiveDeviceState(Enum):
+    """The state of a device that has begun connecting or is already connected.
+
+    Note that there is no DISCONNECTED state, as we do not need to represent
+    disconnected devices.
+    """
+
+    CONNECTING = 0
+    CONNECTED = 1
+
+
+@dataclass
+class ActiveDeviceProperties:
+    """The properties of a device that is connecting or connected."""
+
+    args: OpenDeviceArgs
+    """Arguments used to open the device."""
+    state: ActiveDeviceState
+    """Whether the device is connecting or connected."""
 
 
 def _get_last_selected_hardware_set() -> HardwareSet | None:
@@ -71,8 +94,9 @@ class HardwareSetsControl(QGroupBox):
         """Create a new HardwareSetsControl."""
         super().__init__("Hardware set")
 
-        self._active_devices: set[OpenDeviceArgs] = set()
-        pub.subscribe(self._on_device_opened, "device.after_opening")
+        self._active_devices: dict[DeviceInstanceRef, ActiveDeviceProperties] = {}
+        pub.subscribe(self._on_device_open_start, "device.before_opening")
+        pub.subscribe(self._on_device_open_end, "device.after_opening")
         pub.subscribe(self._on_device_closed, "device.closed")
         pub.subscribe(self._on_device_error, "device.error")
 
@@ -123,6 +147,14 @@ class HardwareSetsControl(QGroupBox):
 
         self._combo.currentIndexChanged.connect(self._update_control_state)
 
+    def _get_connected_devices(self) -> set[OpenDeviceArgs]:
+        """Get active devices which are connected (not connecting)."""
+        return set(
+            props.args
+            for props in self._active_devices.values()
+            if props.state == ActiveDeviceState.CONNECTED
+        )
+
     def _import_hardware_set(self) -> None:
         """Import a hardware set from a file."""
         file_path, _ = QFileDialog.getOpenFileName(
@@ -153,7 +185,7 @@ class HardwareSetsControl(QGroupBox):
         """
         if not hasattr(self, "_manage_devices_dialog"):
             self._manage_devices_dialog = ManageDevicesDialog(
-                self.window(), self._active_devices
+                self.window(), self._get_connected_devices()
             )
 
         self._manage_devices_dialog.show()
@@ -162,13 +194,14 @@ class HardwareSetsControl(QGroupBox):
         """Enable or disable the connect and disconnect buttons as appropriate."""
         # Enable the "Connect" button if there are any devices left to connect for this
         # hardware set
-        all_connected = self._active_devices.issuperset(
+        connected_devices = self._get_connected_devices()
+        all_connected = connected_devices.issuperset(
             self._combo.current_hardware_set_devices
         )
         self._connect_btn.setEnabled(not all_connected)
 
         # Enable the "Disconnect all" button if there are *any* devices connected at all
-        self._disconnect_btn.setEnabled(bool(self._active_devices))
+        self._disconnect_btn.setEnabled(bool(connected_devices))
 
         # Enable the "Remove" button only if the hardware set is not a built in one
         hw_set = self._combo.current_hardware_set
@@ -200,24 +233,29 @@ class HardwareSetsControl(QGroupBox):
 
     def _on_disconnect_btn_pressed(self) -> None:
         """Disconnect from all devices in current hardware set."""
-        # We need to copy the set because its size will change as we close devices
-        for device in self._active_devices.copy():
-            device.close()
+        # We need to make a copy because keys will be removed as we close devices
+        for device in list(self._active_devices.keys()):
+            pub.sendMessage("device.close", instance=device)
 
         self._update_control_state()
 
-    def _on_device_opened(
+    def _on_device_open_start(
         self, instance: DeviceInstanceRef, class_name: str, params: Mapping[str, Any]
     ) -> None:
+        args = OpenDeviceArgs(instance, class_name, frozendict(params))
+        dev_props = ActiveDeviceProperties(args, ActiveDeviceState.CONNECTING)
+        self._active_devices[instance] = dev_props
+
+    def _on_device_open_end(self, instance: DeviceInstanceRef, class_name: str) -> None:
         """Add instance to _connected_devices and update GUI."""
-        self._active_devices.add(
-            OpenDeviceArgs(instance, class_name, frozendict(params))
-        )
+        dev_props = self._active_devices[instance]
+        dev_props.state = ActiveDeviceState.CONNECTED
+        assert dev_props.args.class_name == class_name
 
         # Remember last opened device
         settings.setValue(f"device/type/{instance!s}", class_name)
-        if params:
-            settings.setValue(f"device/params/{class_name}", params)
+        if dev_props.args.params:
+            settings.setValue(f"device/params/{class_name}", dev_props.args.params)
 
         self._update_control_state()
 
@@ -225,18 +263,12 @@ class HardwareSetsControl(QGroupBox):
         """Remove instance from _connected devices and update GUI."""
         try:
             # Remove the device matching this instance type (there should be only one)
-            self._active_devices.remove(
-                next(
-                    device
-                    for device in self._active_devices
-                    if device.instance == instance
-                )
-            )
-
-            self._update_control_state()
-        except StopIteration:
+            del self._active_devices[instance]
+        except KeyError:
             # No device of this type found
             pass
+        else:
+            self._update_control_state()
 
     def _on_device_error(
         self, instance: DeviceInstanceRef, error: BaseException

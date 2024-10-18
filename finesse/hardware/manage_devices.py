@@ -57,6 +57,12 @@ def _open_device(
     if instance.name:
         params_with_name["name"] = instance.name
 
+    pub.sendMessage(
+        f"device.before_opening.{instance!s}",
+        instance=instance,
+        class_name=class_name,
+        params=params,
+    )
     try:
         _devices[instance] = cls(**params_with_name)
     except Exception as error:
@@ -72,7 +78,6 @@ def _open_device(
             f"device.after_opening.{instance!s}",
             instance=instance,
             class_name=class_name,
-            params=params,
         )
         pub.sendMessage(f"device.opened.{instance!s}")
 
