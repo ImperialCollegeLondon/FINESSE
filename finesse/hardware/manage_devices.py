@@ -64,15 +64,10 @@ def _open_device(
         params=params,
     )
     try:
-        device = cls(**params_with_name)
+        _devices[instance] = cls(**params_with_name)
     except Exception as error:
         logging.error(f"Failed to open {instance!s} device: {error!s}")
         pub.sendMessage(f"device.error.{instance!s}", instance=instance, error=error)
-    else:
-        _devices[instance] = device
-
-        # Signal that the device is available to be used
-        device._signal_is_opened()
 
 
 def _try_close_device(device: Device) -> None:

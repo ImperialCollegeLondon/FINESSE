@@ -24,7 +24,8 @@ class _MockBaseClass(Device, name=MOCK_DEVICE_TOPIC, description="Mock base clas
 
 
 class _MockDevice(_MockBaseClass, description="Mock device"):
-    pass
+    def _signal_is_opened(self):
+        """Make this a no-op to simplify testing."""
 
 
 class _NamedMockBaseClass(
@@ -358,7 +359,9 @@ def test_device_signal_on_opened(device: Device, sendmsg_mock: MagicMock) -> Non
 
     # We need to patch the class name as classes outside the plugin dir are disallowed
     with patch.object(device, "get_device_type_info", return_value=type_info):
-        device._signal_is_opened()
+        # Call Device's member function directly because we've patched it out for
+        # _MockDevice
+        Device._signal_is_opened(device)
         instance = device.get_instance_ref()
         class_name = device.get_device_type_info().class_name
 

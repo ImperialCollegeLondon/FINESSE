@@ -75,8 +75,6 @@ def test_open_device(
                 params=params,
             )
 
-            device_mock._signal_is_opened.assert_called_once_with()
-
             logging_mock.error.assert_not_called()
             logging_mock.warn.assert_not_called()
         else:
@@ -93,7 +91,6 @@ def test_open_device(
                 ]
             )
             logging_mock.error.assert_called()
-            device_mock._signal_is_opened.assert_not_called()
 
 
 @patch("finesse.hardware.manage_devices._try_close_device")
