@@ -68,23 +68,14 @@ def test_open_device(
         if not raise_error:
             assert devices_dict == {instance: device_mock}
 
-            # Three separate messages are sent on device open
-            sendmsg_mock.assert_has_calls(
-                [
-                    call(
-                        f"device.before_opening.{instance!s}",
-                        instance=instance,
-                        class_name=class_name,
-                        params=params,
-                    ),
-                    call(
-                        f"device.after_opening.{instance!s}",
-                        instance=instance,
-                        class_name=class_name,
-                    ),
-                    call(f"device.opened.{instance!s}"),
-                ]
+            sendmsg_mock.assert_called_once_with(
+                f"device.before_opening.{instance!s}",
+                instance=instance,
+                class_name=class_name,
+                params=params,
             )
+
+            device_mock._signal_is_opened.assert_called_once_with()
 
             logging_mock.error.assert_not_called()
             logging_mock.warn.assert_not_called()
@@ -102,6 +93,7 @@ def test_open_device(
                 ]
             )
             logging_mock.error.assert_called()
+            device_mock._signal_is_opened.assert_not_called()
 
 
 @patch("finesse.hardware.manage_devices._try_close_device")

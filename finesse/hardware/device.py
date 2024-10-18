@@ -279,6 +279,23 @@ class Device(AbstractDevice):
 
         self.topic += f".{name}"
 
+    def _signal_is_opened(self) -> None:
+        """Signal that the device is now open."""
+        instance = self.get_instance_ref()
+        class_name = self.get_device_type_info().class_name
+        _, _, class_name_short = class_name.rpartition(".")
+        logging.info(f"Opened device {instance!s}: {class_name_short}")
+
+        # Signal that device is now open. The reason for the two different topics is
+        # because we want to ensure that some listeners always run before others, in
+        # case an error occurs and we have to undo the work.
+        pub.sendMessage(
+            f"device.after_opening.{instance!s}",
+            instance=instance,
+            class_name=class_name,
+        )
+        pub.sendMessage(f"device.opened.{instance!s}")
+
     def close(self) -> None:
         """Close the device and clear any pubsub subscriptions."""
         for sub in self._subscriptions:
