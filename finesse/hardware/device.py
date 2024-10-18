@@ -172,6 +172,11 @@ class AbstractDevice(ABC):
             cls.get_device_parameters(),
         )
 
+    @classmethod
+    def has_async_open(cls) -> bool:
+        """Whether the device opens asynchronously (i.e. completes after __init__)."""
+        return cls._device_async_open
+
 
 class DeviceClassType(Enum):
     """The type of a class inheriting directly or indirectly from Device."""
