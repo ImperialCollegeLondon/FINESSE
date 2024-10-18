@@ -28,7 +28,7 @@ jobs:
       - name: Run mypy
         # run even if tests fail
         if: always()
-        run: poetry run mypy finesse
+        run: poetry run mypy .
 
       - name: Upload coverage to Codecov
         if: runner.os == 'Linux' && success()

@@ -66,6 +66,9 @@ lint.select = [
 lint.pydocstyle.convention = "google"
 
 [tool.mypy]
+# Some of the docs scripts give errors, but we don't care
+exclude = "docs"
+
 ignore_missing_imports = true
 
 # Allows Type[T] to refer to abstract classes, which is not otherwise supported.
