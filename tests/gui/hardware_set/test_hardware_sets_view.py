@@ -9,10 +9,13 @@ from unittest.mock import MagicMock, Mock, PropertyMock, call, patch
 import pytest
 
 from finesse.device_info import DeviceInstanceRef
-from finesse.gui.hardware_set.hardware_set import HardwareSet, OpenDeviceArgs
+from finesse.gui.hardware_set.hardware_set import (
+    ActiveDeviceState,
+    HardwareSet,
+    OpenDeviceArgs,
+)
 from finesse.gui.hardware_set.hardware_sets_view import (
     ActiveDeviceProperties,
-    ActiveDeviceState,
     HardwareSetsControl,
     _get_last_selected_hardware_set,
 )
