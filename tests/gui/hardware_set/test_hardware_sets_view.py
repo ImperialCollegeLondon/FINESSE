@@ -2,6 +2,7 @@
 
 from collections.abc import Sequence
 from contextlib import nullcontext as does_not_raise
+from itertools import chain
 from pathlib import Path
 from unittest.mock import MagicMock, Mock, PropertyMock, call, patch
 
@@ -171,17 +172,21 @@ def _get_devices(indexes: Sequence[int]) -> set[OpenDeviceArgs]:
 
 
 @pytest.mark.parametrize(
-    "connect_enabled,disconnect_enabled,connected_devices,hardware_set",
-    (
-        (True, False, (), range(2)),
-        (False, True, range(2), range(2)),
-        (True, True, (1,), range(2)),
-        (False, False, (), ()),
+    "connect_enabled,disconnect_enabled,connecting_devices,connected_devices,hardware_set",
+    chain.from_iterable(
+        (
+            (True, False, connecting, (), range(2)),
+            (False, True, connecting, range(2), range(2)),
+            (True, True, connecting, (1,), range(2)),
+            (False, False, connecting, (), ()),
+        )
+        for connecting in map(range, range(3))
     ),
 )
 def test_update_control_state(
     connect_enabled: bool,
     disconnect_enabled: bool,
+    connecting_devices: Sequence[int],
     connected_devices: Sequence[int],
     hardware_set: Sequence[int],
     hw_control: HardwareSetsControl,
@@ -189,6 +194,14 @@ def test_update_control_state(
     qtbot,
 ) -> None:
     """Test the _update_control_state() method."""
+    # The connect button should never be enabled while any devices are still connecting
+    if connecting_devices:
+        connect_enabled = False
+
+    hw_control._connecting_devices = dict(
+        (dev.instance, frozendict()) for dev in _get_devices(connecting_devices)
+    )
+
     with patch(
         "finesse.gui.hardware_set.hardware_sets_view"
         ".HardwareSetsComboBox.current_hardware_set_devices",

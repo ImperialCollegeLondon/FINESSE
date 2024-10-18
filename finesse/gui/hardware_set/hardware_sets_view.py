@@ -165,11 +165,11 @@ class HardwareSetsControl(QGroupBox):
     def _update_control_state(self) -> None:
         """Enable or disable the connect and disconnect buttons as appropriate."""
         # Enable the "Connect" button if there are any devices left to connect for this
-        # hardware set
+        # hardware set, *unless* some devices are still connecting
         all_connected = self._connected_devices.issuperset(
             self._combo.current_hardware_set_devices
         )
-        self._connect_btn.setEnabled(not all_connected)
+        self._connect_btn.setEnabled(not self._connecting_devices and not all_connected)
 
         # Enable the "Disconnect all" button if there are *any* devices connected at all
         self._disconnect_btn.setEnabled(bool(self._connected_devices))
@@ -217,8 +217,10 @@ class HardwareSetsControl(QGroupBox):
     def _on_device_open_start(
         self, instance: DeviceInstanceRef, class_name: str, params: Mapping[str, Any]
     ) -> None:
-        """Store device open parameters."""
+        """Store device open parameters and update GUI."""
         self._connecting_devices[instance] = frozendict(params)
+
+        self._update_control_state()
 
     def _on_device_open_end(self, instance: DeviceInstanceRef, class_name: str) -> None:
         """Add instance to _connected_devices and update GUI."""
