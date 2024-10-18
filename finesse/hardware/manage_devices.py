@@ -64,22 +64,15 @@ def _open_device(
         params=params,
     )
     try:
-        _devices[instance] = cls(**params_with_name)
+        device = cls(**params_with_name)
     except Exception as error:
         logging.error(f"Failed to open {instance!s} device: {error!s}")
         pub.sendMessage(f"device.error.{instance!s}", instance=instance, error=error)
     else:
-        logging.info("Opened device")
+        _devices[instance] = device
 
-        # Signal that device is now open. The reason for the two different topics is
-        # because we want to ensure that some listeners always run before others, in
-        # case an error occurs and we have to undo the work.
-        pub.sendMessage(
-            f"device.after_opening.{instance!s}",
-            instance=instance,
-            class_name=class_name,
-        )
-        pub.sendMessage(f"device.opened.{instance!s}")
+        # Signal that the device is available to be used
+        device._signal_is_opened()
 
 
 def _try_close_device(device: Device) -> None:

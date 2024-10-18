@@ -3,7 +3,7 @@
 from abc import abstractmethod
 from collections.abc import Callable, Sequence
 from typing import Any, ClassVar
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, Mock, call, patch
 
 import pytest
 
@@ -14,6 +14,7 @@ from finesse.hardware.device import (
     DeviceTypeInfo,
     get_device_types,
 )
+from finesse.hardware.plugins import __name__ as plugins_name
 
 MOCK_DEVICE_TOPIC = "mock"
 
@@ -170,8 +171,6 @@ def test_abstract_device_get_device_base_type_info() -> None:
 
 def test_abstract_device_get_device_type_info() -> None:
     """Test the get_device_type_info() classmethod."""
-    from finesse.hardware.plugins import __name__ as plugins_name
-
     description = "Some description"
     module = "some_module"
 
@@ -369,6 +368,29 @@ def test_device_init_missing_name():
     """Test Device's constructor when a name should be provided but isn't."""
     with pytest.raises(RuntimeError):
         _NamedMockDevice()
+
+
+def test_device_signal_on_opened(device: Device, sendmsg_mock: MagicMock) -> None:
+    """Test the _signal_on_opened() method."""
+    class_name = "my_class_name"
+    type_info = DeviceTypeInfo(class_name, "Class description", {})
+
+    # We need to patch the class name as classes outside the plugin dir are disallowed
+    with patch.object(device, "get_device_type_info", return_value=type_info):
+        device._signal_is_opened()
+        instance = device.get_instance_ref()
+        class_name = device.get_device_type_info().class_name
+
+    sendmsg_mock.assert_has_calls(
+        [
+            call(
+                f"device.after_opening.{instance!s}",
+                instance=instance,
+                class_name=class_name,
+            ),
+            call(f"device.opened.{instance!s}"),
+        ]
+    )
 
 
 def test_device_close(device: Device, unsubscribe_mock: MagicMock) -> None:
