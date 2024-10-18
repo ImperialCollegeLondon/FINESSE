@@ -16,7 +16,7 @@ from enum import Enum
 from inspect import isabstract, signature
 from typing import Any, ClassVar, get_type_hints
 
-from decorator import decorate
+from decorator import decorate, decorator
 from pubsub import pub
 
 from finesse.device_info import (
@@ -250,6 +250,13 @@ class Device(AbstractDevice):
         # Add the class to the registry of base types
         _base_types.add(cls)
 
+    @staticmethod
+    @decorator
+    def _init_and_signal(previous_init, self: Device, *args, **kwargs):
+        """Run previous_init method then _signal_is_opened()."""
+        previous_init(self, *args, **kwargs)
+        self._signal_is_opened()
+
     @classmethod
     def _init_device_type(
         cls,
@@ -263,6 +270,11 @@ class Device(AbstractDevice):
 
         # Add the class to the registry of device types
         _device_types.add(cls)
+
+        # Patch __init__ for non-async-opening devices so that _signal_is_opened() is
+        # called immediately afterwards
+        if not cls._device_async_open:
+            cls.__init__ = cls._init_and_signal(cls.__init__)  # type: ignore[method-assign]
 
     def __init__(self, name: str | None = None) -> None:
         """Create a new Device.
