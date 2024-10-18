@@ -71,7 +71,7 @@ class HardwareSetsControl(QGroupBox):
         """Create a new HardwareSetsControl."""
         super().__init__("Hardware set")
 
-        self._connected_devices: set[OpenDeviceArgs] = set()
+        self._active_devices: set[OpenDeviceArgs] = set()
         pub.subscribe(self._on_device_opened, "device.after_opening")
         pub.subscribe(self._on_device_closed, "device.closed")
         pub.subscribe(self._on_device_error, "device.error")
@@ -153,7 +153,7 @@ class HardwareSetsControl(QGroupBox):
         """
         if not hasattr(self, "_manage_devices_dialog"):
             self._manage_devices_dialog = ManageDevicesDialog(
-                self.window(), self._connected_devices
+                self.window(), self._active_devices
             )
 
         self._manage_devices_dialog.show()
@@ -162,13 +162,13 @@ class HardwareSetsControl(QGroupBox):
         """Enable or disable the connect and disconnect buttons as appropriate."""
         # Enable the "Connect" button if there are any devices left to connect for this
         # hardware set
-        all_connected = self._connected_devices.issuperset(
+        all_connected = self._active_devices.issuperset(
             self._combo.current_hardware_set_devices
         )
         self._connect_btn.setEnabled(not all_connected)
 
         # Enable the "Disconnect all" button if there are *any* devices connected at all
-        self._disconnect_btn.setEnabled(bool(self._connected_devices))
+        self._disconnect_btn.setEnabled(bool(self._active_devices))
 
         # Enable the "Remove" button only if the hardware set is not a built in one
         hw_set = self._combo.current_hardware_set
@@ -192,7 +192,7 @@ class HardwareSetsControl(QGroupBox):
 
         # Open each of the devices in turn
         for device in self._combo.current_hardware_set_devices.difference(
-            self._connected_devices
+            self._active_devices
         ):
             device.open()
 
@@ -201,7 +201,7 @@ class HardwareSetsControl(QGroupBox):
     def _on_disconnect_btn_pressed(self) -> None:
         """Disconnect from all devices in current hardware set."""
         # We need to copy the set because its size will change as we close devices
-        for device in self._connected_devices.copy():
+        for device in self._active_devices.copy():
             device.close()
 
         self._update_control_state()
@@ -210,7 +210,7 @@ class HardwareSetsControl(QGroupBox):
         self, instance: DeviceInstanceRef, class_name: str, params: Mapping[str, Any]
     ) -> None:
         """Add instance to _connected_devices and update GUI."""
-        self._connected_devices.add(
+        self._active_devices.add(
             OpenDeviceArgs(instance, class_name, frozendict(params))
         )
 
@@ -225,10 +225,10 @@ class HardwareSetsControl(QGroupBox):
         """Remove instance from _connected devices and update GUI."""
         try:
             # Remove the device matching this instance type (there should be only one)
-            self._connected_devices.remove(
+            self._active_devices.remove(
                 next(
                     device
-                    for device in self._connected_devices
+                    for device in self._active_devices
                     if device.instance == instance
                 )
             )
