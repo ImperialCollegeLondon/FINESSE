@@ -66,11 +66,17 @@ def _get_message(len: int) -> tuple[int, bytes, Any]:
     )
 
 
-_TERM_CHARS = set("*^")
-"""Some random ASCII characters, plus the correct start and terminator chars."""
+def _get_term_chars() -> list[str]:
+    chars = set("*^")
 
-for c in range(0, 128, 10):
-    _TERM_CHARS.add(chr(c))
+    for c in range(0, 128, 10):
+        chars.add(chr(c))
+
+    return sorted(chars)
+
+
+_TERM_CHARS = _get_term_chars()
+"""Some random ASCII characters, plus the correct start and terminator chars."""
 
 
 @pytest.mark.parametrize(
