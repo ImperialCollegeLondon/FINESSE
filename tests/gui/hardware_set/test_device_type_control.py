@@ -87,7 +87,7 @@ def test_init(
 
     subscribe_mock.assert_has_calls(
         [
-            call(widget._on_device_opened, f"device.opening.{instance!s}"),
+            call(widget._on_device_opened, f"device.after_opening.{instance!s}"),
             call(widget._on_device_closed, f"device.closed.{instance!s}"),
         ]
     )

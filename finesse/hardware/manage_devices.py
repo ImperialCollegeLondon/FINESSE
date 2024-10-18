@@ -69,7 +69,7 @@ def _open_device(
         # because we want to ensure that some listeners always run before others, in
         # case an error occurs and we have to undo the work.
         pub.sendMessage(
-            f"device.opening.{instance!s}",
+            f"device.after_opening.{instance!s}",
             instance=instance,
             class_name=class_name,
             params=params,

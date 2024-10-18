@@ -219,7 +219,7 @@ class DeviceTypeControl(QGroupBox):
         self._device_combo.currentIndexChanged.connect(self._on_device_selected)
 
         # pubsub subscriptions
-        pub.subscribe(self._on_device_opened, f"device.opening.{instance!s}")
+        pub.subscribe(self._on_device_opened, f"device.after_opening.{instance!s}")
         pub.subscribe(self._on_device_closed, f"device.closed.{instance!s}")
 
     def _update_open_btn_enabled_state(self) -> None:

@@ -61,7 +61,7 @@ def test_init(
         cur_hw_set_mock.assert_not_called()
 
     # HardwareSetsComboBox's constructor will also call pub.subscribe
-    subscribe_mock.assert_any_call(hw_sets._on_device_opened, "device.opening")
+    subscribe_mock.assert_any_call(hw_sets._on_device_opened, "device.after_opening")
     subscribe_mock.assert_any_call(hw_sets._on_device_closed, "device.closed")
 
 
