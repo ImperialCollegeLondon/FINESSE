@@ -6,6 +6,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, Mock, PropertyMock, call, patch
 
 import pytest
+from frozendict import frozendict
 
 from finesse.device_info import DeviceInstanceRef
 from finesse.gui.hardware_set.hardware_set import HardwareSet, OpenDeviceArgs
@@ -61,7 +62,7 @@ def test_init(
         cur_hw_set_mock.assert_not_called()
 
     # HardwareSetsComboBox's constructor will also call pub.subscribe
-    subscribe_mock.assert_any_call(hw_sets._on_device_opened, "device.after_opening")
+    subscribe_mock.assert_any_call(hw_sets._on_device_open_end, "device.after_opening")
     subscribe_mock.assert_any_call(hw_sets._on_device_closed, "device.closed")
 
 
@@ -246,7 +247,7 @@ def test_connect_btn(
             )
 
 
-@patch("finesse.gui.hardware_set.hardware_set.close_device")
+@patch("finesse.gui.hardware_set.hardware_sets_view.close_device")
 def test_disconnect_button(
     close_mock: Mock, hw_control: HardwareSetsControl, qtbot
 ) -> None:
@@ -259,16 +260,29 @@ def test_disconnect_button(
             update_mock.assert_called_once_with()
 
 
+def test_on_device_open_start(hw_control: HardwareSetsControl, qtbot) -> None:
+    """Test the _on_device_open_start() method."""
+    device = DEVICES[0]
+    assert not hw_control._connecting_devices
+    hw_control._on_device_open_start(device.instance, device.class_name, device.params)
+    assert hw_control._connecting_devices == {
+        device.instance: frozendict(device.params)
+    }
+
+
 @patch("finesse.gui.hardware_set.hardware_sets_view.settings")
-def test_on_device_opened(
+def test_on_device_open_end(
     settings_mock: Mock, hw_control: HardwareSetsControl, qtbot
 ) -> None:
-    """Test the _on_device_opened() method."""
+    """Test the _on_device_open_end() method."""
     device = DEVICES[0]
+    assert not hw_control._connecting_devices
+    hw_control._connecting_devices = {device.instance: device.params}
+
     assert not hw_control._connected_devices
     with patch.object(hw_control, "_update_control_state") as update_mock:
-        hw_control._on_device_opened(
-            instance=device.instance, class_name=device.class_name, params=device.params
+        hw_control._on_device_open_end(
+            instance=device.instance, class_name=device.class_name
         )
         assert hw_control._connected_devices == {device}
         update_mock.assert_called_once_with()

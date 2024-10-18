@@ -299,9 +299,7 @@ class DeviceTypeControl(QGroupBox):
         else:
             open_device(widget.device_type.class_name, self._device_instance, params)
 
-    def _on_device_opened(
-        self, instance: DeviceInstanceRef, class_name: str, params: Mapping[str, Any]
-    ) -> None:
+    def _on_device_opened(self, instance: DeviceInstanceRef, class_name: str) -> None:
         """Update the GUI on device open."""
         self._set_device_opened(class_name)
 

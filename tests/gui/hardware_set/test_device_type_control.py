@@ -235,7 +235,7 @@ def test_close_device(
 def test_on_device_opened(widget: DeviceTypeControl, qtbot) -> None:
     """Test the _on_device_opened() method."""
     with patch.object(widget, "_set_device_opened") as open_mock:
-        widget._on_device_opened(DeviceInstanceRef("base_type"), "some_class", {})
+        widget._on_device_opened(DeviceInstanceRef("base_type"), "some_class")
         open_mock.assert_called_once_with("some_class")
 
 

@@ -1,6 +1,7 @@
 """Provides a panel for choosing between hardware sets and (dis)connecting."""
 
 from collections.abc import Mapping, Set
+from itertools import chain
 from pathlib import Path
 from typing import Any, cast
 
@@ -19,6 +20,7 @@ from PySide6.QtWidgets import (
 
 from finesse.device_info import DeviceInstanceRef
 from finesse.gui.error_message import show_error_message
+from finesse.gui.hardware_set.device_connection import close_device
 from finesse.gui.hardware_set.device_view import DeviceControl
 from finesse.gui.hardware_set.hardware_set import (
     HardwareSet,
@@ -71,8 +73,10 @@ class HardwareSetsControl(QGroupBox):
         """Create a new HardwareSetsControl."""
         super().__init__("Hardware set")
 
+        self._connecting_devices: dict[DeviceInstanceRef, frozendict[str, Any]] = {}
         self._connected_devices: set[OpenDeviceArgs] = set()
-        pub.subscribe(self._on_device_opened, "device.after_opening")
+        pub.subscribe(self._on_device_open_start, "device.before_opening")
+        pub.subscribe(self._on_device_open_end, "device.after_opening")
         pub.subscribe(self._on_device_closed, "device.closed")
         pub.subscribe(self._on_device_error, "device.error")
 
@@ -200,19 +204,26 @@ class HardwareSetsControl(QGroupBox):
 
     def _on_disconnect_btn_pressed(self) -> None:
         """Disconnect from all devices in current hardware set."""
-        # We need to copy the set because its size will change as we close devices
-        for device in self._connected_devices.copy():
-            device.close()
+        connecting = self._connecting_devices.keys()
+        connected = (args.instance for args in self._connected_devices)
+
+        # We need to copy the structures as their size will change as devices are
+        # removed
+        for device in list(chain(connecting, connected)):
+            close_device(device)
 
         self._update_control_state()
 
-    def _on_device_opened(
+    def _on_device_open_start(
         self, instance: DeviceInstanceRef, class_name: str, params: Mapping[str, Any]
     ) -> None:
+        """Store device open parameters."""
+        self._connecting_devices[instance] = frozendict(params)
+
+    def _on_device_open_end(self, instance: DeviceInstanceRef, class_name: str) -> None:
         """Add instance to _connected_devices and update GUI."""
-        self._connected_devices.add(
-            OpenDeviceArgs(instance, class_name, frozendict(params))
-        )
+        params = self._connecting_devices.pop(instance)
+        self._connected_devices.add(OpenDeviceArgs(instance, class_name, params))
 
         # Remember last opened device
         settings.setValue(f"device/type/{instance!s}", class_name)
@@ -224,19 +235,25 @@ class HardwareSetsControl(QGroupBox):
     def _on_device_closed(self, instance: DeviceInstanceRef) -> None:
         """Remove instance from _connected devices and update GUI."""
         try:
-            # Remove the device matching this instance type (there should be only one)
-            self._connected_devices.remove(
-                next(
-                    device
-                    for device in self._connected_devices
-                    if device.instance == instance
+            del self._connecting_devices[instance]
+        except KeyError:
+            # Device is not connecting
+            try:
+                # Remove the device matching this instance type (there should be only
+                # one)
+                self._connected_devices.remove(
+                    next(
+                        device
+                        for device in self._connected_devices
+                        if device.instance == instance
+                    )
                 )
-            )
+            except StopIteration:
+                # No device of this type found
+                return
 
-            self._update_control_state()
-        except StopIteration:
-            # No device of this type found
-            pass
+        # Either a connecting or connected device was removed, so update GUI
+        self._update_control_state()
 
     def _on_device_error(
         self, instance: DeviceInstanceRef, error: BaseException
