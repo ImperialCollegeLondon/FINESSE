@@ -25,6 +25,11 @@ jobs:
       - name: Run tests
         run: poetry run pytest --cov-report=xml
 
+      - name: Run mypy
+        # run even if tests fail
+        if: always()
+        run: poetry run mypy finesse
+
       - name: Upload coverage to Codecov
         if: runner.os == 'Linux' && success()
         uses: codecov/codecov-action@v4
