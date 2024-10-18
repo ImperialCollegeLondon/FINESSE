@@ -6,6 +6,7 @@ import bisect
 import logging
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
+from enum import Enum
 from importlib import resources
 from pathlib import Path
 from typing import Any
@@ -48,6 +49,17 @@ class OpenDeviceArgs:
     ) -> OpenDeviceArgs:
         """Create an OpenDeviceArgs using basic types."""
         return cls(DeviceInstanceRef.from_str(instance), class_name, frozendict(params))
+
+
+class ActiveDeviceState(Enum):
+    """The state of a device that has begun connecting or is already connected.
+
+    Note that there is no DISCONNECTED state, as we do not need to represent
+    disconnected devices.
+    """
+
+    CONNECTING = 0
+    CONNECTED = 1
 
 
 def _device_to_plain_data(device: OpenDeviceArgs) -> tuple[str, dict[str, Any]]:

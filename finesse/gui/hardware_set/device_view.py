@@ -21,7 +21,7 @@ from PySide6.QtWidgets import (
 from finesse.device_info import DeviceBaseTypeInfo, DeviceInstanceRef, DeviceTypeInfo
 from finesse.gui.error_message import show_error_message
 from finesse.gui.hardware_set.device_connection import close_device, open_device
-from finesse.gui.hardware_set.hardware_set import OpenDeviceArgs
+from finesse.gui.hardware_set.hardware_set import ActiveDeviceState, OpenDeviceArgs
 from finesse.settings import settings
 
 
@@ -151,7 +151,8 @@ class DeviceTypeControl(QGroupBox):
         description: str,
         instance: DeviceInstanceRef,
         device_types: Sequence[DeviceTypeInfo],
-        connected_device_type: str | None,
+        active_device_type: str | None,
+        active_device_state: ActiveDeviceState | None,
     ) -> None:
         """Create a new DeviceTypeControl.
 
@@ -159,7 +160,8 @@ class DeviceTypeControl(QGroupBox):
             description: A description of the device type
             instance: The device instance this panel is for
             device_types: The available devices for this base device type
-            connected_device_type: The class name for this device type, if opened
+            active_device_type: The class name for this device type, if opened
+            active_device_state: If the device is connecting or connected, if opened
         """
         if not device_types:
             raise RuntimeError("At least one device type must be specified")
@@ -208,8 +210,12 @@ class DeviceTypeControl(QGroupBox):
         )
         self._open_close_btn.clicked.connect(self._on_open_close_clicked)
         layout.addWidget(self._open_close_btn)
-        if connected_device_type:
-            self._set_device_opened(connected_device_type)
+        if active_device_type:
+            if active_device_state == ActiveDeviceState.CONNECTING:
+                self._set_device_opening(active_device_type)
+            else:
+                self._set_device_opened(active_device_type)
+
         else:
             self._set_device_closed()
 
@@ -219,7 +225,8 @@ class DeviceTypeControl(QGroupBox):
         self._device_combo.currentIndexChanged.connect(self._on_device_selected)
 
         # pubsub subscriptions
-        pub.subscribe(self._on_device_opened, f"device.after_opening.{instance!s}")
+        pub.subscribe(self._on_device_open_start, f"device.before_opening.{instance!s}")
+        pub.subscribe(self._on_device_open_end, f"device.after_opening.{instance!s}")
         pub.subscribe(self._on_device_closed, f"device.closed.{instance!s}")
 
     def _update_open_btn_enabled_state(self) -> None:
@@ -257,11 +264,19 @@ class DeviceTypeControl(QGroupBox):
         self._device_combo.setEnabled(enabled)
         self.current_device_type_widget.setEnabled(enabled)
 
+    def _set_device_opening(self, class_name: str) -> None:
+        """Update the GUI for when the device is opened."""
+        self._select_device(class_name)
+        self._set_combos_enabled(False)
+        self._open_close_btn.setText("Opening...")
+        self._open_close_btn.setEnabled(False)
+
     def _set_device_opened(self, class_name: str) -> None:
         """Update the GUI for when the device is opened."""
         self._select_device(class_name)
         self._set_combos_enabled(False)
         self._open_close_btn.setText("Close")
+        self._open_close_btn.setEnabled(True)
 
     def _select_device(self, class_name: str) -> None:
         """Select the device from the combo box which matches class_name."""
@@ -283,6 +298,7 @@ class DeviceTypeControl(QGroupBox):
         """Update the GUI for when the device is opened."""
         self._set_combos_enabled(True)
         self._open_close_btn.setText("Open")
+        self._open_close_btn.setEnabled(True)
 
     def _open_device(self) -> None:
         """Open the currently selected device."""
@@ -299,7 +315,13 @@ class DeviceTypeControl(QGroupBox):
         else:
             open_device(widget.device_type.class_name, self._device_instance, params)
 
-    def _on_device_opened(self, instance: DeviceInstanceRef, class_name: str) -> None:
+    def _on_device_open_start(
+        self, instance: DeviceInstanceRef, class_name: str, params: Mapping[str, Any]
+    ) -> None:
+        """Update the GUI when device opening starts."""
+        self._set_device_opening(class_name)
+
+    def _on_device_open_end(self, instance: DeviceInstanceRef, class_name: str) -> None:
         """Update the GUI on device open."""
         self._set_device_opened(class_name)
 
@@ -360,5 +382,7 @@ class DeviceControl(QGroupBox):
                         instance,
                         types,
                         self._get_connected_device(instance),
+                        # all devices in list are connected
+                        ActiveDeviceState.CONNECTED,
                     )
                 )

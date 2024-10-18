@@ -2,7 +2,6 @@
 
 from collections.abc import Mapping, Set
 from dataclasses import dataclass
-from enum import Enum
 from pathlib import Path
 from typing import Any, cast
 
@@ -23,23 +22,13 @@ from finesse.device_info import DeviceInstanceRef
 from finesse.gui.error_message import show_error_message
 from finesse.gui.hardware_set.device_view import DeviceControl
 from finesse.gui.hardware_set.hardware_set import (
+    ActiveDeviceState,
     HardwareSet,
     OpenDeviceArgs,
     get_hardware_sets,
 )
 from finesse.gui.hardware_set.hardware_sets_combo_box import HardwareSetsComboBox
 from finesse.settings import settings
-
-
-class ActiveDeviceState(Enum):
-    """The state of a device that has begun connecting or is already connected.
-
-    Note that there is no DISCONNECTED state, as we do not need to represent
-    disconnected devices.
-    """
-
-    CONNECTING = 0
-    CONNECTED = 1
 
 
 @dataclass
