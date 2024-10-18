@@ -72,7 +72,7 @@ def test_open_device(
             sendmsg_mock.assert_has_calls(
                 [
                     call(
-                        f"device.opening.{instance!s}",
+                        f"device.after_opening.{instance!s}",
                         instance=instance,
                         class_name=class_name,
                         params=params,

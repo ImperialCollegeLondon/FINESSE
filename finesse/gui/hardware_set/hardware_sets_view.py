@@ -72,7 +72,7 @@ class HardwareSetsControl(QGroupBox):
         super().__init__("Hardware set")
 
         self._connected_devices: set[OpenDeviceArgs] = set()
-        pub.subscribe(self._on_device_opened, "device.opening")
+        pub.subscribe(self._on_device_opened, "device.after_opening")
         pub.subscribe(self._on_device_closed, "device.closed")
         pub.subscribe(self._on_device_error, "device.error")
 
