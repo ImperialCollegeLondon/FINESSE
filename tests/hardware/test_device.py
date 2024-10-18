@@ -185,25 +185,6 @@ def test_abstract_device_get_device_type_info() -> None:
     )
 
 
-def test_abstract_device_get_device_type_info_error() -> None:
-    """Test the get_device_type_info() classmethod throws an error.
-
-    This should occur if the class in not in the plugins folder or a submodule thereof.
-    """
-    params = MagicMock()
-    description = "Some description"
-    module = "some_module"
-
-    class MyDevice(AbstractDevice):
-        __module__ = module  # NB: module not in plugins dir!
-        _device_base_type_info = "INFO"  # type: ignore
-        _device_description = description
-        _device_parameters = params
-
-    with pytest.raises(RuntimeError):
-        MyDevice.get_device_type_info()
-
-
 def _wrapped_func_error_test(device: Device, wrapper: Callable, *args) -> None:
     has_run = False
 

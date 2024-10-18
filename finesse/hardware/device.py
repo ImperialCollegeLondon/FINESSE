@@ -163,8 +163,11 @@ class AbstractDevice(ABC):
         """Get information about this device type."""
         class_name_full = f"{cls.__module__}.{cls.__name__}"
         class_name = class_name_full.removeprefix(f"{_plugins_name}.")
+
         if len(class_name) == len(class_name_full):
-            raise RuntimeError(f"Plugins must be in {_plugins_name}")
+            logging.warning(
+                f"Plugin found outside of {_plugins_name}. This probably won't work."
+            )
 
         return DeviceTypeInfo(
             class_name,
