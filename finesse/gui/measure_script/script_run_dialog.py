@@ -105,8 +105,10 @@ class ScriptRunDialog(QDialog):
         if self._pause_btn.text() == "Pause":
             pub.sendMessage("measure_script.pause")
             self._pause_btn.setText("Unpause")
+            self._progress_bar.setFormat("PAUSED (%p%)")
         else:
             pub.sendMessage("measure_script.unpause")
+            self._progress_bar.setFormat("%p%")
             self._pause_btn.setText("Pause")
 
     def closeEvent(self, event: QCloseEvent) -> None:

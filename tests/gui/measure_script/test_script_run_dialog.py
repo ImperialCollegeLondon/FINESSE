@@ -143,3 +143,39 @@ def test_on_start_measuring(
             f"Carrying out measurement {runner_measuring.current_measurement_count + 1}"
             f" of {runner_measuring.current_measurement.measurements}",
         )
+
+
+def test_toggle_paused(
+    run_dialog: ScriptRunDialog,
+    runner: ScriptRunner,
+    sendmsg_mock: MagicMock,
+    qtbot: QtBot,
+) -> None:
+    """Test the widgets update correctly when paused/unpaused."""
+    with patch.object(run_dialog, "_progress_bar") as progress_bar_mock:
+        with patch.object(run_dialog, "_pause_btn") as pause_btn_mock:
+            pause_btn_mock.text.return_value = "Pause"  # Start off in unpaused state
+            # Pause
+            run_dialog._toggle_paused()
+
+            # Check "pause" broadcast
+            sendmsg_mock.assert_any_call("measure_script.pause")
+
+            # Check progress bar string format is updated to display "PAUSED"
+            progress_bar_mock.setFormat.assert_called_with("PAUSED (%p%)")
+
+            # Check pause button text is updated
+            pause_btn_mock.setText.assert_called_once_with("Unpause")
+
+            pause_btn_mock.text.return_value = "Unpause"  # Now in paused state
+            # Unpause
+            run_dialog._toggle_paused()
+
+            # Check "unpause" broadcast
+            sendmsg_mock.assert_any_call("measure_script.unpause")
+
+            # Check progress bar string format is reverted to display percentage
+            progress_bar_mock.setFormat.assert_called_with("%p%")
+
+            # Check pause button text is updated
+            pause_btn_mock.setText.assert_called_with("Pause")
