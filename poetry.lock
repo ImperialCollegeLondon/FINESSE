@@ -498,13 +498,13 @@ dev = ["flake8", "markdown", "twine", "wheel"]
 
 [[package]]
 name = "griffe"
-version = "0.44.0"
+version = "1.5.1"
 description = "Signatures for entire Python programs. Extract the structure, the frame, the skeleton of your project, to generate API documentation or find breaking changes in your API."
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.9"
 files = [
-    {file = "griffe-0.44.0-py3-none-any.whl", hash = "sha256:8a4471c469ba980b87c843f1168850ce39d0c1d0c7be140dca2480f76c8e5446"},
-    {file = "griffe-0.44.0.tar.gz", hash = "sha256:34aee1571042f9bf00529bc715de4516fb6f482b164e90d030300601009e0223"},
+    {file = "griffe-1.5.1-py3-none-any.whl", hash = "sha256:ad6a7980f8c424c9102160aafa3bcdf799df0e75f7829d75af9ee5aef656f860"},
+    {file = "griffe-1.5.1.tar.gz", hash = "sha256:72964f93e08c553257706d6cd2c42d1c172213feb48b2be386f243380b405d4b"},
 ]
 
 [package.dependencies]
@@ -833,17 +833,18 @@ min-versions = ["babel (==2.9.0)", "click (==7.0)", "colorama (==0.4)", "ghp-imp
 
 [[package]]
 name = "mkdocs-autorefs"
-version = "0.4.1"
+version = "1.2.0"
 description = "Automatically link across pages in MkDocs."
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.8"
 files = [
-    {file = "mkdocs-autorefs-0.4.1.tar.gz", hash = "sha256:70748a7bd025f9ecd6d6feeba8ba63f8e891a1af55f48e366d6d6e78493aba84"},
-    {file = "mkdocs_autorefs-0.4.1-py3-none-any.whl", hash = "sha256:a2248a9501b29dc0cc8ba4c09f4f47ff121945f6ce33d760f145d6f89d313f5b"},
+    {file = "mkdocs_autorefs-1.2.0-py3-none-any.whl", hash = "sha256:d588754ae89bd0ced0c70c06f58566a4ee43471eeeee5202427da7de9ef85a2f"},
+    {file = "mkdocs_autorefs-1.2.0.tar.gz", hash = "sha256:a86b93abff653521bda71cf3fc5596342b7a23982093915cb74273f67522190f"},
 ]
 
 [package.dependencies]
 Markdown = ">=3.3"
+markupsafe = ">=2.0.1"
 mkdocs = ">=1.1"
 
 [[package]]
@@ -972,18 +973,19 @@ python-legacy = ["mkdocstrings-python-legacy (>=0.2.1)"]
 
 [[package]]
 name = "mkdocstrings-python"
-version = "1.10.0"
+version = "1.10.9"
 description = "A Python handler for mkdocstrings."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "mkdocstrings_python-1.10.0-py3-none-any.whl", hash = "sha256:ba833fbd9d178a4b9d5cb2553a4df06e51dc1f51e41559a4d2398c16a6f69ecc"},
-    {file = "mkdocstrings_python-1.10.0.tar.gz", hash = "sha256:71678fac657d4d2bb301eed4e4d2d91499c095fd1f8a90fa76422a87a5693828"},
+    {file = "mkdocstrings_python-1.10.9-py3-none-any.whl", hash = "sha256:cbe98710a6757dfd4dff79bf36cb9731908fb4c69dd2736b15270ae7a488243d"},
+    {file = "mkdocstrings_python-1.10.9.tar.gz", hash = "sha256:f344aaa47e727d8a2dc911e063025e58e2b7fb31a41110ccc3902aa6be7ca196"},
 ]
 
 [package.dependencies]
-griffe = ">=0.44"
-mkdocstrings = ">=0.24.2"
+griffe = ">=0.49"
+mkdocs-autorefs = ">=1.0"
+mkdocstrings = ">=0.25"
 
 [[package]]
 name = "mypy"
@@ -2023,4 +2025,4 @@ watchmedo = ["PyYAML (>=3.10)"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<3.12"
-content-hash = "6fe35ebdb5b5841702dc0570f56b970b0e24cf4eb50354267bd63c252f460f9a"
+content-hash = "fbb717aa1210c0d3735c6c384528916ee892eb8ee17c55ee547c2d904b25b46c"
