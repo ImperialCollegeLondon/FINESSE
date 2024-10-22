@@ -8,17 +8,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  check-links:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: gaurav-nelson/github-action-markdown-link-check@v1
-        name: Check links in markdown files
-        with:
-          use-quiet-mode: "yes"
-          use-verbose-mode: "yes"
-          config-file: .mlc_config.json
-
   test:
     runs-on: ${{ matrix.os }}
     strategy:
@@ -29,98 +18,29 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install Poetry
-        run: pipx install poetry
-
-      - uses: actions/setup-python@v5
+      - uses: ./.github/actions/setup
         with:
           python-version: ${{ matrix.python-version }}
-          cache: poetry
-
-      - name: Install system dependencies in Linux
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          sudo apt update
-
-          # For documentation
-          sudo apt install graphviz
-
-          # Without this, PySide6 gives an ImportError
-          sudo apt install libegl1
-
-      - name: Install dependencies
-        run: |
-          poetry env use "${{ matrix.python-version }}"
-          poetry install
 
       - name: Run tests
         run: poetry run pytest --cov-report=xml
-        env:
-          QT_QPA_PLATFORM: offscreen
 
       - name: Upload coverage to Codecov
-        if: matrix.os == 'ubuntu-latest' && success()
+        if: runner.os == 'Linux' && success()
         uses: codecov/codecov-action@v4
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
-      - name: Check for documentation errors with MkDocs
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          poetry run python docs/gen_state_machine_diagrams.py
-          poetry run mkdocs build -s
+      - name: Check documentation builds correctly
+        if: runner.os == 'Linux'
+        uses: ./.github/actions/build-docs
 
-      - name: Install Pandoc
-        if: matrix.os == 'windows-latest'
-        run: choco install pandoc
-
-      - name: Build package
-        if: matrix.os == 'windows-latest'
-        run: poetry run pyinstaller FINESSE.spec
+      - name: Build exe
+        if: runner.os == 'Windows'
+        uses: ./.github/actions/build-win-exe
 
       - uses: actions/upload-artifact@v4
-        if: success() && matrix.os == 'windows-latest'
+        if: runner.os == 'Windows' && success()
         with:
           name: FINESSE
           path: dist/FINESSE.exe
-
-      - name: Upload release artifacts
-        if: startsWith(github.ref, 'refs/tags/') && matrix.os == 'windows-latest'
-        uses: softprops/action-gh-release@v2
-        with:
-          files: dist/FINESSE.exe
-
-  docs:
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install system dependencies in Linux
-        run: |
-          sudo apt update
-
-          # For documentation
-          sudo apt install graphviz
-
-          # Without this, PySide6 gives an ImportError
-          sudo apt install libegl1
-
-      - name: Install Poetry
-        uses: abatilo/actions-poetry@v3.0.0
-        with:
-          poetry-version: 1.2.2
-
-      - name: Install dependencies
-        run: poetry install
-
-      - name: Deploy Docs
-        run: |
-          poetry run python docs/gen_state_machine_diagrams.py
-          poetry run mkdocs gh-deploy --force

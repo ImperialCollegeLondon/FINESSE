@@ -1,0 +1,13 @@
+name: Build Windows executable
+description: Create bundled executable with pyinstaller
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install Pandoc
+      shell: bash
+      run: choco install pandoc
+
+    - name: Build package
+      shell: bash
+      run: poetry run pyinstaller FINESSE.spec
