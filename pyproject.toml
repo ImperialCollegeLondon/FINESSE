@@ -41,7 +41,7 @@ types-beautifulsoup4 = "^4.12.0.20240511"
 pytest-qt = "^4.4.0"
 types-decorator = "^5.1.8.20240310"
 pydot = "^2.0.0"
-ruff = "^0.6.9"
+ruff = "^0.7.0"
 freezegun = "^1.5.1"
 
 [tool.poetry.group.docs.dependencies]
