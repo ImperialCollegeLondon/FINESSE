@@ -9,6 +9,7 @@ from finesse.gui.hardware_set.hardware_set import HardwareSet, OpenDeviceArgs
 
 _HW_SETS = (
     HardwareSet(
+        1,
         "Test 1",
         frozenset(
             (
@@ -24,6 +25,7 @@ _HW_SETS = (
         False,
     ),
     HardwareSet(
+        1,
         "Test 2",
         frozenset(
             (

@@ -47,6 +47,7 @@ def test_load_hardware_set_list(
 
 
 _HW_SET = HardwareSet(
+    1,
     "Test 1",
     frozenset(
         (
@@ -90,11 +91,11 @@ def test_add_hardware_set(
     """Test the _add_hardware_set() method."""
     combo.clear()
     for hw_set in existing_hw_sets:
-        hw_set = HardwareSet(hw_set.name, hw_set.devices, hw_set.file_path, built_in)
+        hw_set = HardwareSet(1, hw_set.name, hw_set.devices, hw_set.file_path, built_in)
         combo._add_hardware_set(hw_set)
 
     with patch.object(combo, "addItem") as add_mock:
-        hw_set = HardwareSet(hw_set_name, frozenset(), Path(), built_in)
+        hw_set = HardwareSet(1, hw_set_name, frozenset(), Path(), built_in)
         combo._add_hardware_set(hw_set)
         add_mock.assert_called_once_with(expected_name, hw_set)
 

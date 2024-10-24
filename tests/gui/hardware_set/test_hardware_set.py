@@ -73,9 +73,9 @@ def test_hardware_set_save(dump_mock: Mock, to_plain_mock: Mock) -> None:
         for i in range(2)
     )
     to_plain_mock.side_effect = ((f"key{i}", i) for i in range(2))
-    hw_set = HardwareSet(NAME, frozenset(devices), FILE_PATH, False)
+    hw_set = HardwareSet(1, NAME, frozenset(devices), FILE_PATH, False)
     hw_set.save(file_path)
-    expected = {"name": NAME, "devices": {"key0": 0, "key1": 1}}
+    expected = {"version": 1, "name": NAME, "devices": {"key0": 0, "key1": 1}}
     assert dump_mock.call_count == 1
     assert dump_mock.mock_calls[0].args[0] == expected
 
@@ -87,7 +87,7 @@ def test_hardware_set_save_and_load(tmp_path: Path) -> None:
         for i in range(2)
     )
     save_path = tmp_path / "file.yaml"
-    hw_set1 = HardwareSet(NAME, frozenset(devices), save_path, False)
+    hw_set1 = HardwareSet(1, NAME, frozenset(devices), save_path, False)
     hw_set1.save(save_path)
     hw_set2 = HardwareSet.load(save_path, False)
     assert hw_set1 == hw_set2
@@ -98,18 +98,18 @@ def test_hardware_set_save_and_load(tmp_path: Path) -> None:
     (
         # Built-in HardwareSets come before user ones
         (
-            HardwareSet("B", frozenset(), Path("b.yaml"), True),
-            HardwareSet("A", frozenset(), Path("a.yaml"), False),
+            HardwareSet(1, "B", frozenset(), Path("b.yaml"), True),
+            HardwareSet(1, "A", frozenset(), Path("a.yaml"), False),
         ),
         # Then sort by name
         (
-            HardwareSet("A", frozenset(), Path("2.yaml"), True),
-            HardwareSet("B", frozenset(), Path("1.yaml"), True),
+            HardwareSet(1, "A", frozenset(), Path("2.yaml"), True),
+            HardwareSet(1, "B", frozenset(), Path("1.yaml"), True),
         ),
         # Lastly, sort by file name
         (
-            HardwareSet(NAME, frozenset(), Path("a.yaml"), True),
-            HardwareSet(NAME, frozenset(), Path("b.yaml"), True),
+            HardwareSet(1, NAME, frozenset(), Path("a.yaml"), True),
+            HardwareSet(1, NAME, frozenset(), Path("b.yaml"), True),
         ),
     ),
 )
@@ -126,10 +126,12 @@ def test_hardware_set_lt(hw_set1: HardwareSet, hw_set2: HardwareSet) -> None:
         # Device given without params
         (
             {
+                "version": 1,
                 "name": NAME,
                 "devices": {"stepper_motor": {"class_name": "MyStepperMotor"}},
             },
             HardwareSet(
+                1,
                 NAME,
                 frozenset((OpenDeviceArgs.create("stepper_motor", "MyStepperMotor"),)),
                 FILE_PATH,
@@ -139,6 +141,7 @@ def test_hardware_set_lt(hw_set1: HardwareSet, hw_set2: HardwareSet) -> None:
         # Device given with params
         (
             {
+                "version": 1,
                 "name": NAME,
                 "devices": {
                     "stepper_motor": {
@@ -148,6 +151,7 @@ def test_hardware_set_lt(hw_set1: HardwareSet, hw_set2: HardwareSet) -> None:
                 },
             },
             HardwareSet(
+                1,
                 NAME,
                 frozenset(
                     (
@@ -184,6 +188,7 @@ def test_load(validate_mock: Mock, data: dict[str, Any], expected: HardwareSet) 
 def test_load_validates_data(validate_mock: Mock) -> None:
     """Check that HardwareSet.load() validates data against the schema."""
     data = {
+        "version": 1,
         "name": NAME,
         "devices": {"stepper_motor": {"class_name": "MyStepperMotor"}},
     }
@@ -202,6 +207,7 @@ def test_load_validates_data(validate_mock: Mock) -> None:
         # Valid, no params
         (
             {
+                "version": 1,
                 "name": NAME,
                 "devices": {"stepper_motor": {"class_name": "MyStepperMotor"}},
             },
@@ -210,6 +216,7 @@ def test_load_validates_data(validate_mock: Mock) -> None:
         # Valid, with params
         (
             {
+                "version": 1,
                 "name": NAME,
                 "devices": {
                     "stepper_motor": {
@@ -359,7 +366,7 @@ def test_add_hardware_set_success(
     get_path_mock.return_value = out_path
     hw_set_list: list = []
     with patch("finesse.gui.hardware_set.hardware_set._hw_sets", hw_set_list):
-        hw_set_new = HardwareSet(NAME, hw_sets[0].devices, out_path, built_in=False)
+        hw_set_new = HardwareSet(1, NAME, hw_sets[0].devices, out_path, built_in=False)
         _add_hardware_set(hw_set)
         get_path_mock.assert_called_once_with(in_path.stem)
         hw_set.save.assert_called_once_with(out_path)
@@ -465,7 +472,7 @@ def test_remove_hardware_set_fail(
 
 def test_remove_hardware_set_fail_built_in(hw_sets: Sequence[HardwareSet]) -> None:
     """Test with a built-in hardware set as argument."""
-    hw_set = HardwareSet(NAME, hw_sets[0].devices, FILE_PATH, built_in=True)
+    hw_set = HardwareSet(1, NAME, hw_sets[0].devices, FILE_PATH, built_in=True)
     with pytest.raises(ValueError):
         _remove_hardware_set(hw_set)
 
