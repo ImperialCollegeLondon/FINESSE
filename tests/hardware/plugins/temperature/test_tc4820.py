@@ -66,17 +66,8 @@ def _get_message(len: int) -> tuple[int, bytes, Any]:
     )
 
 
-def _get_term_chars() -> list[str]:
-    chars = set("*^")
-
-    for c in range(0, 128, 10):
-        chars.add(chr(c))
-
-    return sorted(chars)
-
-
-_TERM_CHARS = _get_term_chars()
-"""Some random ASCII characters, plus the correct start and terminator chars."""
+_TERM_CHARS = sorted(set("*^").intersection(map(chr, range(0, 128, 10))))
+"""The correct start and end chars along with some other arbitrary ASCII chars."""
 
 
 @pytest.mark.parametrize(
