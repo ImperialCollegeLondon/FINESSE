@@ -119,13 +119,12 @@ class Decades(
         self._params: list[DecadesParameter]
         """Parameters returned by the server."""
 
+        super().__init__(poll_interval, start_polling=False)
+
         # Obtain full parameter list in order to parse received data
         self.obtain_parameter_list(
             frozenset(params.split(",")) if params else frozenset()
         )
-
-        # We only want to start polling after we have loaded the parameter list
-        super().__init__(poll_interval, start_polling=False)
 
     def obtain_parameter_list(self, params: Set[str]) -> None:
         """Request the parameter list from the DECADES server and wait for response."""
