@@ -69,7 +69,7 @@ class EM27SensorsBase(
         self._requester = HTTPRequester()
         self._connected = False
 
-        super().__init__(poll_interval, start_polling=False)
+        super().__init__(poll_interval)
 
         self.request_readings()
 

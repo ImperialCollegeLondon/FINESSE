@@ -120,7 +120,7 @@ class Decades(
         self._params: list[DecadesParameter]
         """Parameters returned by the server."""
 
-        super().__init__(poll_interval, start_polling=False)
+        super().__init__(poll_interval)
 
         # Obtain full parameter list in order to parse received data
         self.obtain_parameter_list(
