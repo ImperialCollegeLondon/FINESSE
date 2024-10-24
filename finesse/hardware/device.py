@@ -253,9 +253,9 @@ class Device(AbstractDevice):
     @staticmethod
     @decorator
     def _init_and_signal(previous_init, self: Device, *args, **kwargs):
-        """Run previous_init method then _signal_is_opened()."""
+        """Run previous_init method then signal_is_opened()."""
         previous_init(self, *args, **kwargs)
-        self._signal_is_opened()
+        self.signal_is_opened()
 
     @classmethod
     def _init_device_type(
@@ -271,7 +271,7 @@ class Device(AbstractDevice):
         # Add the class to the registry of device types
         _device_types.add(cls)
 
-        # Patch __init__ for non-async-opening devices so that _signal_is_opened() is
+        # Patch __init__ for non-async-opening devices so that signal_is_opened() is
         # called immediately afterwards
         if not cls._device_async_open:
             cls.__init__ = cls._init_and_signal(cls.__init__)  # type: ignore[method-assign]
@@ -303,7 +303,7 @@ class Device(AbstractDevice):
 
         self.topic += f".{name}"
 
-    def _signal_is_opened(self) -> None:
+    def signal_is_opened(self) -> None:
         """Signal that the device is now open."""
         instance = self.get_instance_ref()
         class_name = self.get_device_type_info().class_name

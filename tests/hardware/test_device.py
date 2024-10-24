@@ -24,7 +24,7 @@ class _MockBaseClass(Device, name=MOCK_DEVICE_TOPIC, description="Mock base clas
 
 
 class _MockDevice(_MockBaseClass, description="Mock device"):
-    def _signal_is_opened(self):
+    def signal_is_opened(self):
         """Make this a no-op to simplify testing."""
 
 
@@ -352,8 +352,8 @@ def test_device_init_missing_name():
         _NamedMockDevice()
 
 
-def test_device_signal_on_opened(device: Device, sendmsg_mock: MagicMock) -> None:
-    """Test the _signal_on_opened() method."""
+def test_device_signal_is_opened(device: Device, sendmsg_mock: MagicMock) -> None:
+    """Test the signal_is_opened() method."""
     class_name = "my_class_name"
     type_info = DeviceTypeInfo(class_name, "Class description", {})
 
@@ -361,7 +361,7 @@ def test_device_signal_on_opened(device: Device, sendmsg_mock: MagicMock) -> Non
     with patch.object(device, "get_device_type_info", return_value=type_info):
         # Call Device's member function directly because we've patched it out for
         # _MockDevice
-        Device._signal_is_opened(device)
+        Device.signal_is_opened(device)
         instance = device.get_instance_ref()
         class_name = device.get_device_type_info().class_name
 
