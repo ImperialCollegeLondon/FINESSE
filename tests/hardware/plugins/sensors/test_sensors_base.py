@@ -46,7 +46,6 @@ def test_start_polling_oneshot(timer_mock: Mock) -> None:
     device = _MockSensorsDevice(start_polling=False)
 
     device.start_polling()
-    device.request_readings_mock.assert_called_once_with()
     timer = cast(Mock, device._poll_timer)
     timer.start.assert_not_called()
 
@@ -57,7 +56,6 @@ def test_start_polling_repeated(timer_mock: Mock) -> None:
     device = _MockSensorsDevice(1.0, start_polling=False)
 
     device.start_polling()
-    device.request_readings_mock.assert_called_once_with()
     timer = cast(Mock, device._poll_timer)
     timer.start.assert_called_once_with(1000)
 
@@ -68,7 +66,6 @@ def test_init_no_timer(timer_mock: Mock) -> None:
     device = _MockSensorsDevice()
     timer = cast(Mock, device._poll_timer)
     timer.start.assert_not_called()
-    device.request_readings_mock.assert_called_once_with()
 
 
 def test_send_readings_message(device: SensorsBase) -> None:

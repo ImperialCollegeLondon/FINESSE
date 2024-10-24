@@ -207,3 +207,4 @@ class Decades(
 
         # Now we have enough information to start parsing sensor readings
         self.start_polling()
+        self.request_readings()
