@@ -10,7 +10,7 @@ The specification is available online:
 import logging
 from queue import Queue
 
-from PySide6.QtCore import QThread, Signal, Slot
+from PySide6.QtCore import QThread, QTimer, Signal, Slot
 from serial import Serial, SerialException, SerialTimeoutException
 
 from finesse.hardware.plugins.stepper_motor.stepper_motor_base import StepperMotorBase
@@ -153,7 +153,9 @@ class _SerialReader(QThread):
         return response
 
 
-class ST10Controller(SerialDevice, StepperMotorBase, description="ST10 controller"):
+class ST10Controller(
+    SerialDevice, StepperMotorBase, description="ST10 controller", async_open=True
+):
     """An interface for the ST10-Q-NN stepper motor controller.
 
     This class allows for moving the mirror to arbitrary positions and retrieving its
@@ -182,9 +184,19 @@ class ST10Controller(SerialDevice, StepperMotorBase, description="ST10 controlle
         SerialDevice.__init__(self, port, baudrate)
 
         self._reader = _SerialReader(self.serial, timeout)
-        self._reader.async_read_completed.connect(self._send_move_end_message)
+        self._reader.async_read_completed.connect(self._on_initial_move_end)
         self._reader.read_error.connect(self.send_error_message)
         self._reader.start()
+
+        self._init_error_timer = QTimer()
+        """A timer to raise an error if the motor takes too long to move."""
+        self._init_error_timer.setInterval(10000)  # 10 seconds
+        self._init_error_timer.setSingleShot(True)
+        self._init_error_timer.timeout.connect(
+            lambda: self.send_error_message(
+                RuntimeError("Timed out waiting for motor to move")
+            )
+        )
 
         # Check that we are connecting to an ST10
         self._check_device_id()
@@ -216,6 +228,18 @@ class ST10Controller(SerialDevice, StepperMotorBase, description="ST10 controlle
         # If _reader is blocking on a read (which is likely), we could end up waiting
         # forever, so close the socket so that the read operation will terminate
         SerialDevice.close(self)
+
+    def _on_initial_move_end(self) -> None:
+        """Perform setup after motor's initial move has completed successfully."""
+        # Move completed within time allotted
+        self._init_error_timer.stop()
+
+        # For future move end messages, use a different handler
+        self._reader.async_read_completed.disconnect(self._on_initial_move_end)
+        self._reader.async_read_completed.connect(self._send_move_end_message)
+
+        # Signal that this device is ready to be used
+        self.signal_is_opened()
 
     @Slot()
     def _send_move_end_message(self) -> None:
@@ -279,10 +303,13 @@ class ST10Controller(SerialDevice, StepperMotorBase, description="ST10 controlle
         # Tell the controller that this is step 0 ("set variable SP to 0")
         self._write_check("SP0")
 
-        # Make sure the motor has stopped. Note that the move commands are not run
-        # synchronously, so this time is the time taken for all of these commands to
-        # finish.
-        self.wait_until_stopped(10.0)
+        # Receive a notification when motor has finished moving
+        self.notify_on_stopped()
+
+        # Use a timer to show an error if the motor doesn't finish moving within the
+        # given timeframe. (Note that the move commands are not run synchronously, so
+        # this time is the time taken for all of these commands to finish.)
+        self._init_error_timer.start()
 
     def _relative_move(self, steps: int) -> None:
         """Move the stepper motor to the specified relative position.

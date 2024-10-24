@@ -66,7 +66,7 @@ def test_init(subscribe_mock: MagicMock, serial_mock: MagicMock) -> None:
             st10 = ST10Controller(*_SERIAL_ARGS)
             r = cast(MagicMock, st10._reader)
             r.async_read_completed.connect.assert_called_once_with(
-                st10._send_move_end_message
+                st10._on_initial_move_end
             )
             r.read_error.connect.assert_called_once_with(st10.send_error_message)
             check_mock.assert_called_once()
