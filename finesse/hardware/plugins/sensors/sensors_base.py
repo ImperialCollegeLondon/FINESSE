@@ -23,24 +23,18 @@ class SensorsBase(
     calling send_readings_message() with new sensor values (at some point).
     """
 
-    def __init__(
-        self, poll_interval: float = float("nan"), start_polling: bool = True
-    ) -> None:
+    def __init__(self, poll_interval: float = float("nan")) -> None:
         """Create a new SensorsBase.
 
         Args:
             poll_interval: How often to poll the sensor device (seconds). If set to nan,
                            the device will only be polled once on device open
-            start_polling: Whether to start polling the device immediately
         """
         super().__init__()
 
         self._poll_timer = QTimer()
         self._poll_timer.timeout.connect(self.request_readings)
         self._poll_interval = poll_interval
-
-        if start_polling:
-            self.start_polling()
 
     def start_polling(self) -> None:
         """Begin polling the device."""
