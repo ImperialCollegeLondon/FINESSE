@@ -21,7 +21,7 @@ def dlg(qtbot: QtBot):
     yield ScriptEditDialog(parent)
 
 
-_TEST_SCRIPT = Script(Path("/my/path"), 2, ({"angle": "nadir", "measurements": 3},))
+_TEST_SCRIPT = Script(Path("/my/path"), 1, 2, ({"angle": "nadir", "measurements": 3},))
 
 
 @pytest.mark.parametrize(

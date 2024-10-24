@@ -39,16 +39,18 @@ class Script:
     """Represents a measure script, including its file path and data."""
 
     def __init__(
-        self, path: Path, repeats: int, sequence: Sequence[dict[str, Any]]
+        self, path: Path, version: int, repeats: int, sequence: Sequence[dict[str, Any]]
     ) -> None:
         """Create a new Script.
 
         Args:
             path: The file path to this measure script
+            version: The version of the measure script format
             repeats: The number of times to repeat the sequence of measurements
             sequence: Different measurements (i.e. angle + num measurements) to record
         """
         self.path = path
+        self.version = version
         self.repeats = repeats
         self.sequence = [Measurement(**val) for val in sequence]
         self.runner: ScriptRunner | None = None
@@ -106,6 +108,7 @@ def parse_script(script: str | TextIOBase) -> dict[str, Any]:
 
     schema = Schema(
         {
+            "version": int,
             "repeats": measurements_type,
             "sequence": And(
                 nonempty_list,

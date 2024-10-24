@@ -15,7 +15,7 @@ from finesse.spectrometer_status import SpectrometerStatus
 
 def test_init(subscribe_mock: MagicMock, sendmsg_mock: MagicMock) -> None:
     """Test ScriptRunner's constructor."""
-    script = Script(Path(), 1, ())
+    script = Script(Path(), 1, 1, ())
     runner = ScriptRunner(script)
 
     # Check we're stopping the motor
@@ -82,7 +82,7 @@ def test_finish_moving(
     sendmsg_mock: MagicMock,
 ):
     """Test that the ScriptRunner terminates after n repeats."""
-    script = Script(Path(), repeats, ({"angle": 0.0, "measurements": 1},))
+    script = Script(Path(), 1, repeats, ({"angle": 0.0, "measurements": 1},))
     script_runner = ScriptRunner(script)
     assert script_runner.current_state == ScriptRunner.not_running
 
