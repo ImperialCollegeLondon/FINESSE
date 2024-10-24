@@ -47,11 +47,6 @@ class SensorsBase(
         if not isnan(self._poll_interval):
             self._poll_timer.start(int(self._poll_interval * 1000))
 
-        # Poll device once on open.
-        # TODO: Run this synchronously so we can check that things work before the
-        # device.opened message is sent
-        self.request_readings()
-
     @abstractmethod
     def request_readings(self) -> None:
         """Request new sensor readings from the device."""
