@@ -97,6 +97,7 @@ class Decades(
             "documentation."
         ),
     },
+    async_open=True,
 ):
     """A class for monitoring a DECADES sensor server."""
 
@@ -203,6 +204,9 @@ class Decades(
             ]
         else:
             self._params = list(_get_selected_params(all_params_info, params))
+
+        # Tell the frontend that the device is ready
+        self.signal_is_opened()
 
         # Now we have enough information to start parsing sensor readings
         self.start_polling()
