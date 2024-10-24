@@ -8,6 +8,7 @@ These files are written in [YAML](https://yaml.org/) format, with certain proper
 Here is an example:
 
 ```yaml
+version: 1
 repeats: 10
 sequence:
 - angle: zenith
@@ -16,6 +17,8 @@ sequence:
   measurements: 3
 ```
 
+The `version` defines the version of the schema that should be used for validating the
+hardware set file.
 First is the `repeats` property, which specifies how many times *the entire sequence* is
 run. The `sequence` property specifies which angles the mirror should move to (`angle`)
 and how many measurements should be recorded at each of these positions

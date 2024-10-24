@@ -18,7 +18,7 @@ from finesse.gui.measure_script.script_run_dialog import (
 @pytest.mark.parametrize("repeats", range(1, 4))
 def test_get_total_steps_single(repeats: int) -> None:
     """Test the get_total_steps() function for a single measurement."""
-    script = Script(Path(), 1, ({"angle": 90, "measurements": repeats},))
+    script = Script(Path(), 1, 1, ({"angle": 90, "measurements": repeats},))
     assert get_total_steps(script) == 1 + repeats
 
 
@@ -31,7 +31,7 @@ def test_get_total_steps_multi(measurements_count: int) -> None:
     measurements = [
         {"angle": 90, "measurements": m} for m in _MEASUREMENTS[:measurements_count]
     ]
-    script = Script(Path(), 1, measurements)
+    script = Script(Path(), 1, 1, measurements)
     assert get_total_steps(script) == measurements_count + sum(
         _MEASUREMENTS[:measurements_count]
     )
@@ -41,7 +41,7 @@ def test_get_total_steps_multi(measurements_count: int) -> None:
 def test_get_total_steps_with_repeats(repeats: int) -> None:
     """Test the get_total_steps() function works with multiple repeats."""
     measurements = [{"angle": 90, "measurements": m} for m in _MEASUREMENTS]
-    script = Script(Path(), repeats, measurements)
+    script = Script(Path(), 1, repeats, measurements)
     assert get_total_steps(script) == repeats * (
         len(_MEASUREMENTS) + sum(_MEASUREMENTS)
     )

@@ -15,7 +15,7 @@ from finesse.gui.measure_script.script_run_dialog import ScriptRunDialog
 @pytest.fixture
 def runner(subscribe_mock: MagicMock, sendmsg_mock: MagicMock) -> ScriptRunner:
     """Fixture for a ScriptRunner in its initial state."""
-    script = Script(Path(), 1, ({"angle": 0.0, "measurements": 3},))
+    script = Script(Path(), 1, 1, ({"angle": 0.0, "measurements": 3},))
     runner = ScriptRunner(script)
     subscribe_mock.reset_mock()
     sendmsg_mock.reset_mock()

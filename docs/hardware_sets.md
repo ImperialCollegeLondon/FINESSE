@@ -10,6 +10,7 @@ Hardware sets are represented in a [YAML](https://yaml.org) format. Custom hardw
 can be created and imported into FINESSE. Here is an example:
 
 ```yaml
+version: 1
 name: My hardware set
 devices:
   stepper_motor:
@@ -41,16 +42,17 @@ devices:
       port: 80
 ```
 
-The `name` property defines a human-readable name for the hardware set, to be displayed
-in the GUI and the `devices` property contains information about the devices in this
-hardware set. The `devices` array consists of key-value pairs, with the keys
-corresponding to device base types (see [Hardware]). The values are YAML objects with a
-`class_name` property and (optionally) a `params` property. `class_name` is a string
-corresponding to the Python class name, along with the last part of the module name (all
-plugins are in the `finesse.hardware.plugins` module, so this part is omitted). `params`
-is also a YAML object, containing key-value pairs for each of the device parameters (see
-[Hardware] again). If any of the parameters are omitted, their default values will be
-used.
+The `version` defines the version of the schema that should be used for validating the
+hardware set file. The `name` property defines a human-readable name for the hardware
+set, to be displayed in the GUI and the `devices` property contains information about
+the devices in this hardware set. The `devices` array consists of key-value pairs, with
+the keys corresponding to device base types (see [Hardware]). The values are YAML
+objects with a `class_name` property and (optionally) a `params` property. `class_name`
+is a string corresponding to the Python class name, along with the last part of the
+module name (all plugins are in the `finesse.hardware.plugins` module, so this part is
+omitted). `params` is also a YAML object, containing key-value pairs for each of the
+device parameters (see [Hardware] again). If any of the parameters are omitted, their
+default values will be used.
 
 Note that the port names are in a FINESSE-specific format. The string is composed of the
 USB vendor and product IDs and (optionally) a number to distinguish ports which share

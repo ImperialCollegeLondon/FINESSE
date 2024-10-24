@@ -82,6 +82,7 @@ def _non_empty(x: Any) -> bool:
 
 _hw_set_schema = Schema(
     {
+        "version": int,
         "name": str,
         "devices": And(
             _non_empty,
@@ -101,6 +102,7 @@ _hw_set_schema = Schema(
 class HardwareSet:
     """Represents a collection of devices for a particular hardware configuration."""
 
+    version: int
     name: str
     devices: frozenset[OpenDeviceArgs]
     file_path: Path
@@ -128,7 +130,7 @@ class HardwareSet:
         """Save this hardware set as a YAML file."""
         with file_path.open("w") as file:
             devices = dict(map(_device_to_plain_data, self.devices))
-            data = dict(name=self.name, devices=devices)
+            data = dict(version=self.version, name=self.name, devices=devices)
             yaml.dump(data, file, sort_keys=False)
 
     @classmethod
@@ -146,7 +148,9 @@ class HardwareSet:
             OpenDeviceArgs.create(k, **v)
             for k, v in plain_data.get("devices", {}).items()
         )
-        return cls(plain_data["name"], devices, file_path, built_in)
+        return cls(
+            plain_data["version"], plain_data["name"], devices, file_path, built_in
+        )
 
 
 def _get_new_hardware_set_path(
@@ -184,7 +188,9 @@ def _add_hardware_set(hw_set: HardwareSet) -> None:
         )
     else:
         # We need to create a new object because the file path has changed
-        new_hw_set = HardwareSet(hw_set.name, hw_set.devices, file_path, built_in=False)
+        new_hw_set = HardwareSet(
+            1, hw_set.name, hw_set.devices, file_path, built_in=False
+        )
 
         # Insert into store, keeping it sorted
         bisect.insort(_hw_sets, new_hw_set)

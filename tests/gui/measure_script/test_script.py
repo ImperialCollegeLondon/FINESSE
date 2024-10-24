@@ -43,6 +43,7 @@ def get_data(repeats: int, angle: Any, num_attributes: int) -> dict[str, Any]:
             {"angle": 4.0, "measurements": 1},
         ]
     data = {
+        "version": 1,
         "repeats": repeats,
         "sequence": angles,
         "extra_attribute": "hello",
@@ -57,7 +58,7 @@ def get_data(repeats: int, angle: Any, num_attributes: int) -> dict[str, Any]:
         (
             get_data(repeats, angle, num_attributes),
             does_not_raise()
-            if repeats > 0 and is_valid_angle(angle) and num_attributes == 2
+            if repeats > 0 and is_valid_angle(angle) and num_attributes == 3
             else pytest.raises(ParseError),
         )
         for repeats in range(-5, 5)
@@ -65,7 +66,7 @@ def get_data(repeats: int, angle: Any, num_attributes: int) -> dict[str, Any]:
             (float(i) for i in range(-180, 541, 60)),
             (4, "nadir", "NADIR", "badger", "kevin", "", ()),
         )
-        for num_attributes in range(3)
+        for num_attributes in range(4)
     ],
 )
 def test_parse_script(data: dict[str, Any], raises: Any) -> None:
@@ -125,7 +126,7 @@ _MEASUREMENTS = [Measurement(float(i), i) for i in range(1, 4)]
 )
 def test_script_iterator(num_measurements: int, repeats: int) -> None:
     """Test the ScriptIterator class."""
-    script = Script(Path(), repeats, [])
+    script = Script(Path(), 1, repeats, [])
     script.sequence = _MEASUREMENTS[:num_measurements]
     it = iter(script)
     assert it.current_repeat == 0
@@ -152,7 +153,7 @@ def test_script_run(script_runner_mock: Mock) -> None:
     """Test Script's run() method."""
     mock2 = MagicMock()
     script_runner_mock.return_value = mock2
-    script = Script(Path(), 1, ())
+    script = Script(Path(), 1, 1, ())
     script.run()
     script_runner_mock.assert_called_once()
     mock2.start_moving.assert_called_once()
