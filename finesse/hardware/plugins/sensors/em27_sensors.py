@@ -51,11 +51,7 @@ class EM27Error(Exception):
     """Indicates than an error occurred while parsing the webpage."""
 
 
-class EM27SensorsBase(
-    SensorsBase,
-    class_type=DeviceClassType.IGNORE,
-    description="EM27 sensors",
-):
+class EM27SensorsBase(SensorsBase, class_type=DeviceClassType.IGNORE):
     """An interface for monitoring EM27 properties."""
 
     def __init__(self, url: str, poll_interval: float = float("nan")) -> None:

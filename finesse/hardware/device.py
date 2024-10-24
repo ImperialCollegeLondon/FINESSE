@@ -218,6 +218,8 @@ class Device(AbstractDevice):
                 cls._init_base_type(**kwargs)
             case DeviceClassType.DEVICE_TYPE:
                 cls._init_device_type(**kwargs)
+            case DeviceClassType.IGNORE:
+                super().__init_subclass__(**kwargs)
 
     @classmethod
     def _init_base_type(
