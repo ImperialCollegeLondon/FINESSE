@@ -201,9 +201,6 @@ class ST10Controller(
         """
         StepperMotorBase.close(self)
 
-        # Set flag that indicates the thread should quit
-        self._reader.quit()
-
         if not self.serial.is_open:
             return
 
@@ -212,6 +209,9 @@ class ST10Controller(
             self.move_to("nadir")
         except Exception as e:
             logging.error(f"Failed to reset mirror to downward position: {e}")
+
+        # Set flag that indicates the thread should quit
+        self._reader.quit()
 
         # If _reader is blocking on a read (which is likely), we could end up waiting
         # forever, so close the socket so that the read operation will terminate
