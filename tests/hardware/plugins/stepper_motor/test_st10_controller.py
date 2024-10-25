@@ -30,10 +30,10 @@ class MockSerialReader(_SerialReader):
     def run(self) -> None:
         """Override the run method to make the thread do nothing."""
 
-    def read_sync(self, timeout: float | None = None) -> str:
+    def read_sync(self) -> str:
         """Read synchronously (mocked)."""
         self._process_read()
-        return super().read_sync(timeout)
+        return super().read_sync()
 
 
 @pytest.fixture

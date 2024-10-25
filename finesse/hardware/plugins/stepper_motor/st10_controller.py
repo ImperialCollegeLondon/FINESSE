@@ -133,17 +133,10 @@ class _SerialReader(QThread):
         while self._process_read():
             pass
 
-    def read_sync(self, timeout: float | None = None) -> str:
-        """Read synchronously from the serial device.
-
-        Args:
-            timeout: Amount of time to wait for a response (None==default)
-        """
-        if timeout is None:
-            timeout = self.sync_timeout
-
+    def read_sync(self) -> str:
+        """Read synchronously from the serial device."""
         try:
-            response = self.out_queue.get(timeout=timeout)
+            response = self.out_queue.get(timeout=self.sync_timeout)
         except Exception:
             raise SerialTimeoutException()
 
@@ -390,18 +383,14 @@ class ST10Controller(
         # "Send string"
         self._write_check(f"SS{string}")
 
-    def _read_sync(self, timeout: float | None = None) -> str:
+    def _read_sync(self) -> str:
         """Read the next message from the device synchronously.
-
-        Args:
-            timeout: Amount of time to wait for a response (None==default)
 
         Raises:
             SerialException: Error communicating with device
-            SerialTimeoutException: Timed out waiting for response from device
             ST10ControllerError: Malformed message received from device
         """
-        return self._reader.read_sync(timeout)
+        return self._reader.read_sync()
 
     def _write(self, message: str) -> None:
         """Send the specified message to the device.
