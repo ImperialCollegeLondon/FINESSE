@@ -68,11 +68,6 @@ class _SerialReader(QThread):
         self.out_queue: Queue[str | BaseException] = Queue()
         self.stopping = False
 
-    def __del__(self) -> None:
-        """Wait for the thread to stop on exit."""
-        self.quit()
-        self.wait()
-
     def quit(self) -> None:
         """Flag that the thread is stopping so we can ignore exceptions."""
         self.stopping = True
