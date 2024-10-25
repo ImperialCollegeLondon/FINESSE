@@ -86,15 +86,6 @@ class DummyStepperMotor(
         self._move_end_timer.stop()
         self._on_move_end()
 
-    def wait_until_stopped(self, timeout: float | None = None) -> None:
-        """Wait until the motor has stopped moving.
-
-        For this dummy class, this is a no-op.
-
-        Args:
-            timeout: Time to wait for motor to finish moving (None == forever)
-        """
-
     def notify_on_stopped(self) -> None:
         """Wait until the motor has stopped moving and send a message when done.
 

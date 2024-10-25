@@ -491,24 +491,6 @@ class ST10Controller(
         """Immediately stop moving the motor."""
         self._write_check("ST")
 
-    def wait_until_stopped(self, timeout: float | None = None) -> None:
-        """Wait until the motor has stopped moving.
-
-        Args:
-            timeout: Time to wait for motor to finish moving (None == forever)
-
-        Raises:
-            SerialException: Error communicating with device
-            SerialTimeoutException: Timed out waiting for motor to finish moving
-            ST10ControllerError: Malformed message received from device
-        """
-        # Tell device to send "X" when current operations are complete
-        self._send_string("X")
-
-        # Wait for expected response
-        if self._read_sync(timeout) != "X":
-            raise ST10ControllerError("Invalid response received when waiting for X")
-
     def notify_on_stopped(self) -> None:
         """Wait until the motor has stopped moving and send a message when done."""
         self._send_string(_SEND_STRING_MAGIC)
