@@ -37,8 +37,8 @@ class _SerialReader(QThread):
     The one exception is the send string command ("SS"), which, in addition to eliciting
     an immediate ack (or nack) response, also leads to another response being sent when
     the motor has finished moving. Note that while the motor is moving, other commands
-    can be sent and even processed, e.g. you can request the motor's current position
-    while it is moving.
+    can be sent and even processed, e.g. you can request that another move happens after
+    the first is complete.
 
     All of the reading we do from the device goes via this class, as conceivably the
     magic send string response could be sent at any point after the send string command
