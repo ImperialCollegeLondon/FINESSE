@@ -12,6 +12,7 @@ from PySide6.QtWidgets import QWidget
 
 from finesse.config import ANGLE_PRESETS
 from finesse.gui.measure_script.script import (
+    CURRENT_SCRIPT_VERSION,
     Measurement,
     ParseError,
     Script,
@@ -43,6 +44,7 @@ def get_data(repeats: int, angle: Any, num_attributes: int) -> dict[str, Any]:
             {"angle": 4.0, "measurements": 1},
         ]
     data = {
+        "version": CURRENT_SCRIPT_VERSION,
         "repeats": repeats,
         "sequence": angles,
         "extra_attribute": "hello",
@@ -57,7 +59,7 @@ def get_data(repeats: int, angle: Any, num_attributes: int) -> dict[str, Any]:
         (
             get_data(repeats, angle, num_attributes),
             does_not_raise()
-            if repeats > 0 and is_valid_angle(angle) and num_attributes == 2
+            if repeats > 0 and is_valid_angle(angle) and num_attributes == 3
             else pytest.raises(ParseError),
         )
         for repeats in range(-5, 5)
@@ -65,7 +67,7 @@ def get_data(repeats: int, angle: Any, num_attributes: int) -> dict[str, Any]:
             (float(i) for i in range(-180, 541, 60)),
             (4, "nadir", "NADIR", "badger", "kevin", "", ()),
         )
-        for num_attributes in range(3)
+        for num_attributes in range(4)
     ],
 )
 def test_parse_script(data: dict[str, Any], raises: Any) -> None:

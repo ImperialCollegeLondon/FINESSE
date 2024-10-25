@@ -23,6 +23,9 @@ from finesse.device_info import DeviceInstanceRef
 from finesse.gui.error_message import show_error_message
 from finesse.spectrometer_status import SpectrometerStatus
 
+CURRENT_SCRIPT_VERSION = 1
+"""The current version of the measure script format."""
+
 
 @dataclass(frozen=True)
 class Measurement:
@@ -106,6 +109,7 @@ def parse_script(script: str | TextIOBase) -> dict[str, Any]:
 
     schema = Schema(
         {
+            "version": CURRENT_SCRIPT_VERSION,
             "repeats": measurements_type,
             "sequence": And(
                 nonempty_list,
@@ -120,7 +124,9 @@ def parse_script(script: str | TextIOBase) -> dict[str, Any]:
     )
 
     try:
-        return schema.validate(yaml.safe_load(script))
+        output = schema.validate(yaml.safe_load(script))
+        output.pop("version")
+        return output
     except (yaml.YAMLError, SchemaError) as e:
         raise ParseError() from e
 
