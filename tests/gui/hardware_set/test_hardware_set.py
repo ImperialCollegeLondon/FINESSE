@@ -519,6 +519,11 @@ def test_load_builtin_hardware_sets(load_mock: Mock) -> None:
     load_mock.assert_has_calls([call(file, built_in=True) for file in yaml_files])
 
 
+def test_builtin_hardware_sets_valid() -> None:
+    """Test that the built-in hardware set YAML files are all valid."""
+    list(_load_builtin_hardware_sets())
+
+
 @patch("finesse.gui.hardware_set.hardware_set._load_hardware_sets")
 def test_load_all_hardware_sets(load_mock: Mock) -> None:
     """Test _load_all_hardware_sets()."""
