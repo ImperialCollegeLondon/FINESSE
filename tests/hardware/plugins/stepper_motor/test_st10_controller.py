@@ -77,11 +77,64 @@ def test_init(subscribe_mock: MagicMock, serial_mock: MagicMock) -> None:
 @patch("finesse.hardware.plugins.stepper_motor.st10_controller.StepperMotorBase")
 def test_close(stepper_cls: Mock, serial_dev_cls: Mock, dev: ST10Controller) -> None:
     """Test the close() method."""
-    dev.close()
+    with patch.object(dev, "stop_moving") as stop_moving_mock:
+        with patch.object(dev, "move_to") as move_mock:
+            dev.close()
+            stop_moving_mock.assert_called_once_with()
+            move_mock.assert_called_once_with("nadir")
 
     # Check that both parents' close() methods are called
     stepper_cls.close.assert_called_once_with(dev)
     serial_dev_cls.close.assert_called_once_with(dev)
+
+
+@patch("finesse.hardware.plugins.stepper_motor.st10_controller.SerialDevice")
+@patch("finesse.hardware.plugins.stepper_motor.st10_controller.StepperMotorBase")
+def test_close_move_fails(
+    stepper_cls: Mock, serial_dev_cls: Mock, dev: ST10Controller
+) -> None:
+    """Test the close() method if the final move fails.
+
+    We don't want to raise an exception in this case, just warn.
+    """
+    with patch.object(dev, "stop_moving"):
+        with patch.object(dev, "move_to") as move_mock:
+            move_mock.side_effect = SerialTimeoutException
+            dev.close()
+
+    # Check that both parents' close() methods are called
+    stepper_cls.close.assert_called_once_with(dev)
+    serial_dev_cls.close.assert_called_once_with(dev)
+
+
+@patch("finesse.hardware.plugins.stepper_motor.st10_controller.SerialDevice")
+@patch("finesse.hardware.plugins.stepper_motor.st10_controller.StepperMotorBase")
+def test_close_already_closed(
+    stepper_cls: Mock, serial_dev_cls: Mock, dev: ST10Controller
+) -> None:
+    """Test the close() method if the serial device is already closed."""
+    dev.serial.is_open = False
+    with patch.object(dev, "stop_moving") as stop_moving_mock:
+        with patch.object(dev, "move_to") as move_mock:
+            dev.close()
+            stop_moving_mock.assert_not_called()
+            move_mock.assert_not_called()
+
+
+def test_on_initial_move_end(dev: ST10Controller) -> None:
+    """Test the _on_initial_move_end() method."""
+    with patch.object(dev, "_init_error_timer") as timer_mock:
+        with patch.object(dev, "_reader") as reader_mock:
+            with patch.object(dev, "signal_is_opened") as signal_mock:
+                dev._on_initial_move_end()
+                reader_mock.async_read_completed.disconnect.assert_called_once_with(
+                    dev._on_initial_move_end
+                )
+                reader_mock.async_read_completed.connect.assert_called_once_with(
+                    dev._send_move_end_message
+                )
+                timer_mock.stop.assert_called_once_with()
+                signal_mock.assert_called_once_with()
 
 
 def test_send_move_end_message(sendmsg_mock: MagicMock, dev: ST10Controller) -> None:
@@ -209,6 +262,81 @@ def test_check_device_id(dev: ST10Controller) -> None:
             dev._check_device_id()
 
 
+_ALL_BITS = 0b101
+
+
+@pytest.mark.parametrize(
+    "all_bits,index,expected",
+    ((_ALL_BITS, i, ((1 << i) & _ALL_BITS != 0)) for i in range(3)),
+)
+def test_get_input_status(
+    dev: ST10Controller,
+    all_bits: int,
+    index: int,
+    expected: bool,
+) -> None:
+    """Test the _get_input_status() method."""
+    with patch.object(dev, "_request_value") as request_mock:
+        request_mock.return_value = f"{all_bits:3b}"
+        assert dev._get_input_status(index) == expected
+        request_mock.assert_called_once_with("IS")
+
+
+def test_steps_per_rotation(dev: ST10Controller) -> None:
+    """Test the steps_per_rotation property."""
+    assert dev.steps_per_rotation == 50800
+
+
+@pytest.mark.parametrize("in_position", (True, False))
+def test_home_and_reset(dev: ST10Controller, in_position: bool) -> None:
+    """Test the _home_and_reset() method."""
+    with patch.object(dev, "stop_moving") as stop_mock:
+        with patch.object(dev, "_relative_move"):
+            with patch.object(dev, "_write_check"):
+                with patch.object(dev, "_init_error_timer") as timer_mock:
+                    with patch.object(dev, "_get_input_status") as status_mock:
+                        # Let's not bother checking everything as we can't ensure the
+                        # sequence is correct in any case
+                        status_mock.return_value = in_position
+                        dev._home_and_reset()
+                        stop_mock.assert_called_once_with()
+                        timer_mock.start.assert_called_once_with()
+
+
+@pytest.mark.parametrize("steps", range(0, 40, 7))
+def test_relative_move(dev: ST10Controller, steps: int) -> None:
+    """Test the _relative_move() method."""
+    with patch.object(dev, "_write_check") as write_mock:
+        dev._relative_move(steps)
+        write_mock.assert_called_once_with(f"FL{steps}")
+
+
+_STATUS_CODES = range(0, 0xFFFF, 272)
+"""Some arbitrary status codes in the correct range."""
+
+
+@pytest.mark.parametrize("status", _STATUS_CODES)
+def test_status_code(dev: ST10Controller, status: int) -> None:
+    """Test the status_code property."""
+    with patch.object(dev, "_request_value") as request_mock:
+        request_mock.return_value = f"{status:04x}"
+        assert dev.status_code == status
+
+
+@pytest.mark.parametrize("status", _STATUS_CODES)
+@patch(
+    "finesse.hardware.plugins.stepper_motor.st10_controller.ST10Controller.status_code",
+    new_callable=PropertyMock,
+)
+def test_is_moving(
+    status_code_mock: PropertyMock, dev: ST10Controller, status: int
+) -> None:
+    """Test the is_moving property."""
+    status_code_mock.return_value = status
+    expected = status & 0x0010 != 0  # check moving bit is set
+    assert dev.is_moving == expected
+
+
 @pytest.mark.parametrize(
     "step,response,raises",
     chain(
@@ -220,18 +348,54 @@ def test_check_device_id(dev: ST10Controller) -> None:
     "finesse.hardware.plugins.stepper_motor.st10_controller.ST10Controller.is_moving",
     new_callable=PropertyMock,
 )
-def test_get_step(
+def test_get_step_not_moving(
     is_moving_mock: PropertyMock,
     step: int,
     response: str,
     raises: Any,
     dev: ST10Controller,
 ) -> None:
-    """Test getting the step property."""
+    """Test getting the step property when the motor is stationary."""
     is_moving_mock.return_value = False
     with read_mock(dev, response):
         with raises:
             assert dev.step == step
+
+
+@patch(
+    "finesse.hardware.plugins.stepper_motor.st10_controller.ST10Controller.is_moving",
+    new_callable=PropertyMock,
+)
+def test_get_step_moving(
+    is_moving_mock: PropertyMock,
+    dev: ST10Controller,
+) -> None:
+    """Test getting the step property when the motor is moving."""
+    is_moving_mock.return_value = True
+    assert dev.step is None
+
+
+@pytest.mark.parametrize("step", range(0, 40, 7))
+def test_set_step(dev: ST10Controller, step: int) -> None:
+    """Test setting the step property."""
+    with patch.object(dev, "_write_check") as write_mock:
+        dev.step = step
+        write_mock.assert_called_once_with(f"FP{step}")
+
+
+@pytest.mark.parametrize("string", ("a", "A", "Z", "hello"))
+def test_send_string(dev: ST10Controller, string: str) -> None:
+    """Test the _send_string() method."""
+    with patch.object(dev, "_write_check") as write_mock:
+        dev._send_string(string)
+        write_mock.assert_called_once_with(f"SS{string}")
+
+
+def test_stop_moving(dev: ST10Controller) -> None:
+    """Test the stop_moving() method."""
+    with patch.object(dev, "_write_check") as write_mock:
+        dev.stop_moving()
+        write_mock.assert_called_once_with("ST")
 
 
 def test_notify_on_stopped(dev: ST10Controller) -> None:
