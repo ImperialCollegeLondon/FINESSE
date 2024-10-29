@@ -85,7 +85,7 @@ def _non_empty(x: Any) -> bool:
 
 _hw_set_schema = Schema(
     {
-        "version": Const(1, "Version number must be 1"),
+        "version": Const(CURRENT_HW_SET_VERSION, "Version number must be 1"),
         "name": str,
         "devices": And(
             _non_empty,
