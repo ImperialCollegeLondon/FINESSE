@@ -26,6 +26,7 @@ class _MockBaseClass(Device, name=MOCK_DEVICE_TOPIC, description="Mock base clas
 class _MockDevice(_MockBaseClass, description="Mock device"):
     def signal_is_opened(self):
         """Make this a no-op to simplify testing."""
+        self._is_open = True
 
 
 class _NamedMockBaseClass(
@@ -352,18 +353,29 @@ def test_device_init_missing_name():
         _NamedMockDevice()
 
 
-def test_device_signal_is_opened(device: Device, sendmsg_mock: MagicMock) -> None:
+def test_device_signal_is_opened(
+    device: Device, subscribe_mock: MagicMock, sendmsg_mock: MagicMock
+) -> None:
     """Test the signal_is_opened() method."""
     class_name = "my_class_name"
     type_info = DeviceTypeInfo(class_name, "Class description", {})
 
     # We need to patch the class name as classes outside the plugin dir are disallowed
     with patch.object(device, "get_device_type_info", return_value=type_info):
+        device._is_open = False
+        assert not device._subscriptions
+        func1 = MagicMock()
+        func2 = MagicMock()
+        subscriptions = [(func1, "topic1"), (func2, "topic2")]
+        device._subscriptions = subscriptions.copy()  # type: ignore
+
         # Call Device's member function directly because we've patched it out for
         # _MockDevice
         Device.signal_is_opened(device)
         instance = device.get_instance_ref()
         class_name = device.get_device_type_info().class_name
+
+    subscribe_mock.assert_has_calls([call(*args) for args in subscriptions])
 
     sendmsg_mock.assert_has_calls(
         [
@@ -375,6 +387,23 @@ def test_device_signal_is_opened(device: Device, sendmsg_mock: MagicMock) -> Non
             call(f"device.opened.{instance!s}"),
         ]
     )
+
+
+def test_device_signal_is_opened_fail_already_open(
+    device: Device, sendmsg_mock: MagicMock
+) -> None:
+    """Test the signal_is_opened() method fails if already open."""
+    class_name = "my_class_name"
+    type_info = DeviceTypeInfo(class_name, "Class description", {})
+
+    # We need to patch the class name as classes outside the plugin dir are disallowed
+    with patch.object(device, "get_device_type_info", return_value=type_info):
+        device._is_open = True
+
+        with pytest.raises(Exception):
+            # Call Device's member function directly because we've patched it out for
+            # _MockDevice
+            Device.signal_is_opened(device)
 
 
 def test_device_close(device: Device, unsubscribe_mock: MagicMock) -> None:

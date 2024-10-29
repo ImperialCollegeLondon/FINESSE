@@ -291,6 +291,9 @@ class Device(AbstractDevice):
         self._subscriptions: list[tuple[Callable, str]] = []
         """Store of wrapped functions which are subscribed to pubsub messages."""
 
+        self._is_open = False
+        """Whether the device has finished opening."""
+
         if not self._device_base_type_info.names_short:
             if name:
                 raise RuntimeError(
@@ -305,6 +308,15 @@ class Device(AbstractDevice):
 
     def signal_is_opened(self) -> None:
         """Signal that the device is now open."""
+        if self._is_open:
+            raise RuntimeError("Device is already open")
+
+        self._is_open = True
+
+        # Subscribe to topics now that device is ready
+        for args in self._subscriptions:
+            pub.subscribe(*args)
+
         instance = self.get_instance_ref()
         class_name = self.get_device_type_info().class_name
         _, _, class_name_short = class_name.rpartition(".")
@@ -422,7 +434,10 @@ class Device(AbstractDevice):
 
         topic_name = f"{self.topic}.{topic_name_suffix}"
         self._subscriptions.append((wrapped_func, topic_name))
-        pub.subscribe(wrapped_func, topic_name)
+
+        # If the device isn't ready, defer subscription so callers don't try to use it
+        if self._is_open:
+            pub.subscribe(wrapped_func, topic_name)
 
     def send_message(self, topic_suffix: str, **kwargs: Any) -> None:
         """Send a pubsub message for this device.
