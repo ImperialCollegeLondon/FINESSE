@@ -3,8 +3,5 @@
         {
             "pattern": "^\\.\\./reference/"
         }
-    ],
-    "MD001": {
-        "line_length": 88
-    }
+    ]
 }

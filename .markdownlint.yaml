@@ -1,2 +1,4 @@
 MD013: false
 MD041: false
+MD001:
+  "line_length": 88
