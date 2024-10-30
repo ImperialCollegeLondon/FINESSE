@@ -180,9 +180,9 @@ class TemperatureControllerControl(DevicePanel):
         self._power_label.setText(f"{round(properties['power'])}")
         self._set_sbox.setValue(int(properties["set_point"]))
         if properties["alarm_status"] != 0:
-            self._alarm_light._turn_on()
+            self._alarm_light.turn_on()
         elif self._alarm_light._is_on:
-            self._alarm_light._turn_off()
+            self._alarm_light.turn_off()
 
     def _update_pt100(self, temperatures: Sequence, time: datetime):
         """Show the latest blackbody temperature.
