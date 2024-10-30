@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from finesse.gui.hardware_set.hardware_set import HardwareSet, OpenDeviceArgs
+from finesse.gui.hardware_set import HardwareSet, OpenDeviceArgs
 
 _HW_SETS = (
     HardwareSet(

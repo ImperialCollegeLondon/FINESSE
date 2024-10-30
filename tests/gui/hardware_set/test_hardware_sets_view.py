@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, Mock, PropertyMock, call, patch
 import pytest
 
 from finesse.device_info import DeviceInstanceRef
-from finesse.gui.hardware_set.hardware_set import HardwareSet, OpenDeviceArgs
+from finesse.gui.hardware_set import HardwareSet, OpenDeviceArgs
 from finesse.gui.hardware_set.hardware_sets_view import (
     HardwareSetsControl,
     _get_last_selected_hardware_set,
@@ -213,7 +213,7 @@ def test_update_control_state(
     (((), range(2), range(2)), (range(2), range(2), ()), ((0,), range(2), (1,))),
 )
 @patch("finesse.gui.hardware_set.hardware_sets_view.settings")
-@patch("finesse.gui.hardware_set.hardware_set.open_device")
+@patch("finesse.gui.hardware_set.open_device")
 def test_connect_btn(
     open_mock: Mock,
     settings_mock: Mock,
@@ -246,7 +246,7 @@ def test_connect_btn(
             )
 
 
-@patch("finesse.gui.hardware_set.hardware_set.close_device")
+@patch("finesse.gui.hardware_set.close_device")
 def test_disconnect_button(
     close_mock: Mock, hw_control: HardwareSetsControl, qtbot
 ) -> None:

@@ -20,8 +20,8 @@ from PySide6.QtWidgets import (
 
 from finesse.device_info import DeviceBaseTypeInfo, DeviceInstanceRef, DeviceTypeInfo
 from finesse.gui.error_message import show_error_message
+from finesse.gui.hardware_set import OpenDeviceArgs
 from finesse.gui.hardware_set.device_connection import close_device, open_device
-from finesse.gui.hardware_set.hardware_set import OpenDeviceArgs
 from finesse.settings import settings
 
 

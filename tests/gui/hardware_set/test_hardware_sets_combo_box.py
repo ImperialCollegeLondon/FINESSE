@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, Mock, PropertyMock, call, patch
 
 import pytest
 
-from finesse.gui.hardware_set.hardware_set import HardwareSet, OpenDeviceArgs
+from finesse.gui.hardware_set import HardwareSet, OpenDeviceArgs
 from finesse.gui.hardware_set.hardware_sets_combo_box import HardwareSetsComboBox
 
 
