@@ -319,9 +319,28 @@ def test_device_ignored_class():
 
 def test_device_init() -> None:
     """Test Device's constructor when no name is provided."""
-    device = _MockDevice()
-    assert device.topic == f"device.{MOCK_DEVICE_TOPIC}"
-    assert device.name is None
+    with patch.object(_MockDevice, "signal_is_opened") as signal_mock:
+        device = _MockDevice()
+        assert device.topic == f"device.{MOCK_DEVICE_TOPIC}"
+        assert device.name is None
+        signal_mock.assert_called_once_with()
+
+
+def test_device_init_async() -> None:
+    """Test Device's constructor for devices with async open."""
+
+    class _MockDeviceAsync(
+        _MockBaseClass, description="Mock device with async open", async_open=True
+    ):
+        pass
+
+    assert _MockDeviceAsync._device_async_open
+
+    with patch.object(_MockDevice, "signal_is_opened") as signal_mock:
+        device = _MockDeviceAsync()
+        assert device.topic == f"device.{MOCK_DEVICE_TOPIC}"
+        assert device.name is None
+        signal_mock.assert_not_called()
 
 
 def test_device_init_unexpected_name() -> None:
