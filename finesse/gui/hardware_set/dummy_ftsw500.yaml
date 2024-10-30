@@ -1,3 +1,4 @@
+version: 1
 name: "Dummy devices + FTSW500 spectrometer"
 devices:
   stepper_motor:

@@ -10,6 +10,7 @@ Hardware sets are represented in a [YAML](https://yaml.org) format. Custom hardw
 can be created and imported into FINESSE. Here is an example:
 
 ```yaml
+version: 1
 name: My hardware set
 devices:
   stepper_motor:
@@ -41,6 +42,7 @@ devices:
       port: 80
 ```
 
+The `version` indicates the version number of the hardware set definition, currently 1.
 The `name` property defines a human-readable name for the hardware set, to be displayed
 in the GUI and the `devices` property contains information about the devices in this
 hardware set. The `devices` array consists of key-value pairs, with the keys

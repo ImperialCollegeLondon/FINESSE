@@ -15,12 +15,15 @@ from frozendict import frozendict
 from pubsub import pub
 from PySide6.QtCore import QFile
 from PySide6.QtWidgets import QMessageBox
-from schema import And, Optional, Schema
+from schema import And, Const, Optional, Schema
 
 from finesse.config import HARDWARE_SET_USER_PATH
 from finesse.device_info import DeviceInstanceRef
 from finesse.gui.error_message import show_error_message
 from finesse.gui.hardware_set.device_connection import close_device, open_device
+
+CURRENT_HW_SET_VERSION = 1
+"""The current version of the hardware set schema."""
 
 
 @dataclass(frozen=True)
@@ -82,6 +85,9 @@ def _non_empty(x: Any) -> bool:
 
 _hw_set_schema = Schema(
     {
+        "version": Const(
+            CURRENT_HW_SET_VERSION, f"Version number must be {CURRENT_HW_SET_VERSION}"
+        ),
         "name": str,
         "devices": And(
             _non_empty,
@@ -128,7 +134,7 @@ class HardwareSet:
         """Save this hardware set as a YAML file."""
         with file_path.open("w") as file:
             devices = dict(map(_device_to_plain_data, self.devices))
-            data = dict(name=self.name, devices=devices)
+            data = dict(version=CURRENT_HW_SET_VERSION, name=self.name, devices=devices)
             yaml.dump(data, file, sort_keys=False)
 
     @classmethod

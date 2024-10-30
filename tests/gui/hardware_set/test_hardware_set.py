@@ -18,6 +18,7 @@ from finesse.config import HARDWARE_SET_USER_PATH
 from finesse.device_info import DeviceInstanceRef
 from finesse.gui.hardware_set import hardware_set
 from finesse.gui.hardware_set.hardware_set import (
+    CURRENT_HW_SET_VERSION,
     HardwareSet,
     HardwareSetLoadError,
     OpenDeviceArgs,
@@ -75,7 +76,11 @@ def test_hardware_set_save(dump_mock: Mock, to_plain_mock: Mock) -> None:
     to_plain_mock.side_effect = ((f"key{i}", i) for i in range(2))
     hw_set = HardwareSet(NAME, frozenset(devices), FILE_PATH, False)
     hw_set.save(file_path)
-    expected = {"name": NAME, "devices": {"key0": 0, "key1": 1}}
+    expected = {
+        "version": CURRENT_HW_SET_VERSION,
+        "name": NAME,
+        "devices": {"key0": 0, "key1": 1},
+    }
     assert dump_mock.call_count == 1
     assert dump_mock.mock_calls[0].args[0] == expected
 
@@ -202,6 +207,7 @@ def test_load_validates_data(validate_mock: Mock) -> None:
         # Valid, no params
         (
             {
+                "version": CURRENT_HW_SET_VERSION,
                 "name": NAME,
                 "devices": {"stepper_motor": {"class_name": "MyStepperMotor"}},
             },
@@ -210,6 +216,7 @@ def test_load_validates_data(validate_mock: Mock) -> None:
         # Valid, with params
         (
             {
+                "version": CURRENT_HW_SET_VERSION,
                 "name": NAME,
                 "devices": {
                     "stepper_motor": {

@@ -1,3 +1,4 @@
+version: 1
 repeats: 1
 sequence:
   - angle: zenith

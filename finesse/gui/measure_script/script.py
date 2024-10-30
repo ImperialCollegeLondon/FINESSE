@@ -15,13 +15,16 @@ from typing import Any
 import yaml
 from pubsub import pub
 from PySide6.QtWidgets import QWidget
-from schema import And, Or, Schema, SchemaError
+from schema import And, Const, Or, Schema, SchemaError
 from statemachine import State, StateMachine
 
 from finesse.config import ANGLE_PRESETS, SPECTROMETER_TOPIC, STEPPER_MOTOR_TOPIC
 from finesse.device_info import DeviceInstanceRef
 from finesse.gui.error_message import show_error_message
 from finesse.spectrometer_status import SpectrometerStatus
+
+CURRENT_SCRIPT_VERSION = 1
+"""The current version of the measure script format."""
 
 
 @dataclass(frozen=True)
@@ -106,6 +109,10 @@ def parse_script(script: str | TextIOBase) -> dict[str, Any]:
 
     schema = Schema(
         {
+            "version": Const(
+                CURRENT_SCRIPT_VERSION,
+                f"Current script version number must be {CURRENT_SCRIPT_VERSION}",
+            ),
             "repeats": measurements_type,
             "sequence": And(
                 nonempty_list,
@@ -120,7 +127,9 @@ def parse_script(script: str | TextIOBase) -> dict[str, Any]:
     )
 
     try:
-        return schema.validate(yaml.safe_load(script))
+        output = schema.validate(yaml.safe_load(script))
+        output.pop("version")
+        return output
     except (yaml.YAMLError, SchemaError) as e:
         raise ParseError() from e
 
