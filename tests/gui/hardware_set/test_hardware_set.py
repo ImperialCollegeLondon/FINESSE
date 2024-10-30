@@ -30,7 +30,9 @@ from finesse.gui.hardware_set import (
     _load_hardware_sets,
     _load_user_hardware_sets,
     _remove_hardware_set,
+    close_device,
     get_hardware_sets,
+    open_device,
 )
 
 FILE_PATH = Path("test/file.yaml")
@@ -612,3 +614,21 @@ def test_get_hardware_sets(load_mock: Mock, hw_sets: Sequence[HardwareSet]) -> N
         ret = list(get_hardware_sets())
         load_mock.assert_called_once_with()
         assert ret == hw_set_list
+
+
+def test_open_device(sendmsg_mock: MagicMock) -> None:
+    """Test open_device()."""
+    class_name = "MyDevice"
+    instance = DeviceInstanceRef("my_base_type")
+    params = {"my_param": "my_value"}
+    open_device(class_name, instance, params)
+    sendmsg_mock.assert_called_once_with(
+        "device.open", class_name=class_name, instance=instance, params=params
+    )
+
+
+def test_close_device(sendmsg_mock: MagicMock) -> None:
+    """Test close_device()."""
+    instance = DeviceInstanceRef("my_base_type")
+    close_device(instance)
+    sendmsg_mock.assert_called_once_with("device.close", instance=instance)

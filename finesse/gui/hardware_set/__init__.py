@@ -23,7 +23,6 @@ from schema import And, Const, Optional, Schema
 from finesse.config import HARDWARE_SET_USER_PATH
 from finesse.device_info import DeviceInstanceRef
 from finesse.gui.error_message import show_error_message
-from finesse.gui.hardware_set.device_connection import close_device, open_device
 
 CURRENT_HW_SET_VERSION = 1
 """The current version of the hardware set schema."""
@@ -300,6 +299,20 @@ def get_hardware_sets() -> Iterable[HardwareSet]:
         _load_all_hardware_sets()
 
     yield from _hw_sets
+
+
+def open_device(
+    class_name: str, instance: DeviceInstanceRef, params: Mapping[str, Any]
+) -> None:
+    """Open a connection to a device."""
+    pub.sendMessage(
+        "device.open", class_name=class_name, instance=instance, params=params
+    )
+
+
+def close_device(instance: DeviceInstanceRef) -> None:
+    """Close a connection to a device."""
+    pub.sendMessage("device.close", instance=instance)
 
 
 _hw_sets: list[HardwareSet] = []
