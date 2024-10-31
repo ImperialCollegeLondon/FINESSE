@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, Mock, PropertyMock, call, patch
 import pytest
 
 from finesse.device_info import DeviceInstanceRef, DeviceParameter, DeviceTypeInfo
-from finesse.gui.hardware_set.device import ActiveDeviceState
+from finesse.gui.hardware_set.device import ConnectionStatus
 from finesse.gui.hardware_set.device_view import (
     DeviceParametersWidget,
     DeviceTypeControl,
@@ -36,8 +36,8 @@ def widget(subscribe_mock: MagicMock, qtbot) -> DeviceTypeControl:
         )
         for active, state in (
             (None, None),
-            (DEVICE_TYPES[0], ActiveDeviceState.CONNECTING),
-            (DEVICE_TYPES[0], ActiveDeviceState.CONNECTED),
+            (DEVICE_TYPES[0], ConnectionStatus.CONNECTING),
+            (DEVICE_TYPES[0], ConnectionStatus.CONNECTED),
         )
     ),
 )
@@ -55,7 +55,7 @@ def test_init(
     update_btn_mock: Mock,
     load_saved_mock: Mock,
     active_device: DeviceTypeInfo | None,
-    active_device_state: ActiveDeviceState,
+    active_device_state: ConnectionStatus,
     previous_device: DeviceTypeInfo | None,
     expected_device: DeviceTypeInfo,
     subscribe_mock: MagicMock,
@@ -84,7 +84,7 @@ def test_init(
     assert widget._device_combo.currentText() == expected_device.description
 
     if (
-        active_device_state == ActiveDeviceState.CONNECTED
+        active_device_state == ConnectionStatus.CONNECTED
         and active_device.class_name == expected_device.class_name  # type: ignore[union-attr]
     ):
         assert widget._open_close_btn.text() == "Close"

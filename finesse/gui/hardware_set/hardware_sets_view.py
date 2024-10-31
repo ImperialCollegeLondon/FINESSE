@@ -20,7 +20,7 @@ from PySide6.QtWidgets import (
 
 from finesse.device_info import DeviceInstanceRef
 from finesse.gui.error_message import show_error_message
-from finesse.gui.hardware_set.device import ActiveDeviceState, OpenDeviceArgs
+from finesse.gui.hardware_set.device import ConnectionStatus, OpenDeviceArgs
 from finesse.gui.hardware_set.device_view import DeviceControl
 from finesse.gui.hardware_set.hardware_set import (
     HardwareSet,
@@ -36,7 +36,7 @@ class ActiveDeviceProperties:
 
     args: OpenDeviceArgs
     """Arguments used to open the device."""
-    state: ActiveDeviceState
+    state: ConnectionStatus
     """Whether the device is connecting or connected."""
 
 
@@ -140,7 +140,7 @@ class HardwareSetsControl(QGroupBox):
         return set(
             props.args
             for props in self._active_devices.values()
-            if props.state == ActiveDeviceState.CONNECTED
+            if props.state == ConnectionStatus.CONNECTED
         )
 
     def _import_hardware_set(self) -> None:
@@ -233,7 +233,7 @@ class HardwareSetsControl(QGroupBox):
     ) -> None:
         """Store device open parameters and update GUI."""
         args = OpenDeviceArgs(instance, class_name, frozendict(params))
-        dev_props = ActiveDeviceProperties(args, ActiveDeviceState.CONNECTING)
+        dev_props = ActiveDeviceProperties(args, ConnectionStatus.CONNECTING)
         self._active_devices[instance] = dev_props
 
         self._update_control_state()
@@ -241,7 +241,7 @@ class HardwareSetsControl(QGroupBox):
     def _on_device_open_end(self, instance: DeviceInstanceRef, class_name: str) -> None:
         """Add instance to _connected_devices and update GUI."""
         dev_props = self._active_devices[instance]
-        dev_props.state = ActiveDeviceState.CONNECTED
+        dev_props.state = ConnectionStatus.CONNECTED
         assert dev_props.args.class_name == class_name
 
         # Remember last opened device

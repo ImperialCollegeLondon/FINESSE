@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, Mock, PropertyMock, call, patch
 import pytest
 
 from finesse.device_info import DeviceInstanceRef
-from finesse.gui.hardware_set.device import ActiveDeviceState, OpenDeviceArgs
+from finesse.gui.hardware_set.device import ConnectionStatus, OpenDeviceArgs
 from finesse.gui.hardware_set.hardware_set import (
     HardwareSet,
 )
@@ -43,7 +43,7 @@ def _dev_to_connected(
     devices: Iterable[OpenDeviceArgs],
 ) -> dict[DeviceInstanceRef, ActiveDeviceProperties]:
     return {
-        d.instance: ActiveDeviceProperties(d, ActiveDeviceState.CONNECTED)
+        d.instance: ActiveDeviceProperties(d, ConnectionStatus.CONNECTED)
         for d in devices
     }
 
@@ -52,7 +52,7 @@ def _dev_to_connecting(
     devices: Iterable[OpenDeviceArgs],
 ) -> dict[DeviceInstanceRef, ActiveDeviceProperties]:
     return {
-        d.instance: ActiveDeviceProperties(d, ActiveDeviceState.CONNECTING)
+        d.instance: ActiveDeviceProperties(d, ConnectionStatus.CONNECTING)
         for d in devices
     }
 
@@ -298,7 +298,7 @@ def test_on_device_open_start(hw_control: HardwareSetsControl, qtbot) -> None:
     assert not hw_control._active_devices
     hw_control._on_device_open_start(device.instance, device.class_name, device.params)
     assert hw_control._active_devices == {
-        device.instance: ActiveDeviceProperties(device, ActiveDeviceState.CONNECTING)
+        device.instance: ActiveDeviceProperties(device, ConnectionStatus.CONNECTING)
     }
 
 
@@ -310,14 +310,14 @@ def test_on_device_open_end(
     device = DEVICES[0]
     assert not hw_control._active_devices
     hw_control._active_devices[device.instance] = ActiveDeviceProperties(
-        device, ActiveDeviceState.CONNECTING
+        device, ConnectionStatus.CONNECTING
     )
     with patch.object(hw_control, "_update_control_state") as update_mock:
         hw_control._on_device_open_end(
             instance=device.instance, class_name=device.class_name
         )
         assert hw_control._active_devices == {
-            device.instance: ActiveDeviceProperties(device, ActiveDeviceState.CONNECTED)
+            device.instance: ActiveDeviceProperties(device, ConnectionStatus.CONNECTED)
         }
         update_mock.assert_called_once_with()
         settings_mock.setValue.assert_has_calls(
@@ -334,7 +334,7 @@ def test_on_device_closed(hw_control: HardwareSetsControl, qtbot) -> None:
     assert not hw_control._active_devices
     with patch.object(hw_control, "_update_control_state") as update_mock:
         hw_control._active_devices = {
-            device.instance: ActiveDeviceProperties(device, ActiveDeviceState.CONNECTED)
+            device.instance: ActiveDeviceProperties(device, ConnectionStatus.CONNECTED)
         }
         hw_control._on_device_closed(device.instance)
         assert not hw_control._active_devices

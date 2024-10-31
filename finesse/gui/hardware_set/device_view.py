@@ -21,7 +21,7 @@ from PySide6.QtWidgets import (
 from finesse.device_info import DeviceBaseTypeInfo, DeviceInstanceRef, DeviceTypeInfo
 from finesse.gui.error_message import show_error_message
 from finesse.gui.hardware_set.device import (
-    ActiveDeviceState,
+    ConnectionStatus,
     OpenDeviceArgs,
     close_device,
     open_device,
@@ -156,7 +156,7 @@ class DeviceTypeControl(QGroupBox):
         instance: DeviceInstanceRef,
         device_types: Sequence[DeviceTypeInfo],
         active_device_type: str | None,
-        active_device_state: ActiveDeviceState | None,
+        active_device_state: ConnectionStatus | None,
     ) -> None:
         """Create a new DeviceTypeControl.
 
@@ -215,7 +215,7 @@ class DeviceTypeControl(QGroupBox):
         self._open_close_btn.clicked.connect(self._on_open_close_clicked)
         layout.addWidget(self._open_close_btn)
         if active_device_type:
-            if active_device_state == ActiveDeviceState.CONNECTING:
+            if active_device_state == ConnectionStatus.CONNECTING:
                 self._set_device_opening(active_device_type)
             else:
                 self._set_device_opened(active_device_type)
@@ -387,6 +387,6 @@ class DeviceControl(QGroupBox):
                         types,
                         self._get_connected_device(instance),
                         # all devices in list are connected
-                        ActiveDeviceState.CONNECTED,
+                        ConnectionStatus.CONNECTED,
                     )
                 )

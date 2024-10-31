@@ -37,7 +37,7 @@ class OpenDeviceArgs:
         return cls(DeviceInstanceRef.from_str(instance), class_name, frozendict(params))
 
 
-class ActiveDeviceState(Enum):
+class ConnectionStatus(Enum):
     """The state of a device that has begun connecting or is already connected.
 
     Note that there is no DISCONNECTED state, as we do not need to represent
