@@ -232,7 +232,7 @@ class ST10Controller(
 
     @Slot()
     def _send_move_end_message(self) -> None:
-        self.send_message("move.end")
+        self.send_message("move.end", moved_to=self.angle)
 
     def _check_device_id(self) -> None:
         """Check that the ID is the correct one for an ST10.
