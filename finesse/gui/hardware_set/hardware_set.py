@@ -21,7 +21,7 @@ from schema import And, Const, Optional, Schema
 from finesse.config import HARDWARE_SET_USER_PATH
 from finesse.device_info import DeviceInstanceRef
 from finesse.gui.error_message import show_error_message
-from finesse.gui.hardware_set.device_connection import close_device, open_device
+from finesse.gui.hardware_set.device import close_device, open_device
 
 CURRENT_HW_SET_VERSION = 1
 """The current version of the hardware set schema."""
