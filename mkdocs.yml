@@ -36,6 +36,7 @@ plugins:
 
 nav:
   - FINESSE documentation: index.md
+  - User guide: user_guide.md
   - Hardware: hardware.md
   - Hardware sets: hardware_sets.md
   - Measure scripts: measure_scripts.md
