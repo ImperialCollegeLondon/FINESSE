@@ -6,11 +6,11 @@ from unittest.mock import MagicMock, Mock, PropertyMock, call, patch
 import pytest
 
 from finesse.device_info import DeviceInstanceRef, DeviceParameter, DeviceTypeInfo
+from finesse.gui.hardware_set.device import ActiveDeviceState
 from finesse.gui.hardware_set.device_view import (
     DeviceParametersWidget,
     DeviceTypeControl,
 )
-from finesse.gui.hardware_set.hardware_set import ActiveDeviceState
 
 DEVICE_TYPES = [
     DeviceTypeInfo("my_class1", "Device 1"),

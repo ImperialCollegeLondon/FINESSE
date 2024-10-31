@@ -20,11 +20,10 @@ from PySide6.QtWidgets import (
 
 from finesse.device_info import DeviceInstanceRef
 from finesse.gui.error_message import show_error_message
+from finesse.gui.hardware_set.device import ActiveDeviceState, OpenDeviceArgs
 from finesse.gui.hardware_set.device_view import DeviceControl
 from finesse.gui.hardware_set.hardware_set import (
-    ActiveDeviceState,
     HardwareSet,
-    OpenDeviceArgs,
     get_hardware_sets,
 )
 from finesse.gui.hardware_set.hardware_sets_combo_box import HardwareSetsComboBox

@@ -4,62 +4,24 @@ from __future__ import annotations
 
 import bisect
 import logging
-from collections.abc import Iterable, Mapping, Sequence
-from dataclasses import dataclass, field
-from enum import Enum
+from collections.abc import Iterable, Sequence
+from dataclasses import dataclass
 from importlib import resources
 from pathlib import Path
 from typing import Any
 
 import yaml
-from frozendict import frozendict
 from pubsub import pub
 from PySide6.QtCore import QFile
 from PySide6.QtWidgets import QMessageBox
 from schema import And, Const, Optional, Schema
 
 from finesse.config import HARDWARE_SET_USER_PATH
-from finesse.device_info import DeviceInstanceRef
 from finesse.gui.error_message import show_error_message
-from finesse.gui.hardware_set.device import close_device, open_device
+from finesse.gui.hardware_set.device import OpenDeviceArgs
 
 CURRENT_HW_SET_VERSION = 1
 """The current version of the hardware set schema."""
-
-
-@dataclass(frozen=True)
-class OpenDeviceArgs:
-    """Arguments needed to open a device."""
-
-    instance: DeviceInstanceRef
-    class_name: str
-    params: frozendict[str, Any] = field(default_factory=frozendict)
-
-    def open(self) -> None:
-        """Open the device."""
-        open_device(self.class_name, self.instance, self.params)
-
-    def close(self) -> None:
-        """Close the device."""
-        close_device(self.instance)
-
-    @classmethod
-    def create(
-        cls, instance: str, class_name: str, params: Mapping[str, Any] = frozendict()
-    ) -> OpenDeviceArgs:
-        """Create an OpenDeviceArgs using basic types."""
-        return cls(DeviceInstanceRef.from_str(instance), class_name, frozendict(params))
-
-
-class ActiveDeviceState(Enum):
-    """The state of a device that has begun connecting or is already connected.
-
-    Note that there is no DISCONNECTED state, as we do not need to represent
-    disconnected devices.
-    """
-
-    CONNECTING = 0
-    CONNECTED = 1
 
 
 def _device_to_plain_data(device: OpenDeviceArgs) -> tuple[str, dict[str, Any]]:

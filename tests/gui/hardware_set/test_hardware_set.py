@@ -17,11 +17,11 @@ from PySide6.QtWidgets import QMessageBox
 from finesse.config import HARDWARE_SET_USER_PATH
 from finesse.device_info import DeviceInstanceRef
 from finesse.gui.hardware_set import hardware_set
+from finesse.gui.hardware_set.device import OpenDeviceArgs
 from finesse.gui.hardware_set.hardware_set import (
     CURRENT_HW_SET_VERSION,
     HardwareSet,
     HardwareSetLoadError,
-    OpenDeviceArgs,
     _add_hardware_set,
     _device_to_plain_data,
     _get_new_hardware_set_path,
