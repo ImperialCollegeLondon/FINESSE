@@ -46,6 +46,11 @@ class StepperMotorControl(DevicePanel):
 
         self.setLayout(layout)
 
+        pub.subscribe(
+            self._update_mirror_position_display,
+            f"device.{STEPPER_MOTOR_TOPIC}.move.end",
+        )
+
     def _add_checkable_button(self, name: str) -> QPushButton:
         """Add a selectable button to button_group."""
         btn = QPushButton(name)
@@ -58,7 +63,25 @@ class StepperMotorControl(DevicePanel):
     def _preset_clicked(self, btn: QPushButton) -> None:
         """Move the stepper motor to preset position."""
         # If the motor is already moving, stop it now
+        pub.sendMessage(f"device.{STEPPER_MOTOR_TOPIC}.notify_on_stopped")
         pub.sendMessage(f"device.{STEPPER_MOTOR_TOPIC}.stop")
 
         target = float(self.angle.value()) if btn is self.goto else btn.text().lower()
         pub.sendMessage(f"device.{STEPPER_MOTOR_TOPIC}.move.begin", target=target)
+
+    def _update_mirror_position_display(self, moved_to: float | None) -> None:
+        """Display the angle the mirror has moved to.
+
+        moved_to will be None if mirror is moving, in which case display "Moving...",
+        otherwise, display angle or its associated name.
+        """
+        if moved_to is None:
+            self.mirror_position_display.setText("Moving...")
+        else:
+            if moved_to in ANGLE_PRESETS.values():
+                preset = list(ANGLE_PRESETS.keys())[
+                    list(ANGLE_PRESETS.values()).index(moved_to)
+                ]
+                self.mirror_position_display.setText(preset.upper())
+            else:
+                self.mirror_position_display.setText(f"{moved_to}°")
