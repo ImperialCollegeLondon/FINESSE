@@ -1,7 +1,8 @@
 """Code for controlling the stepper motor which moves the mirror."""
 
 from pubsub import pub
-from PySide6.QtWidgets import QButtonGroup, QGridLayout, QPushButton, QSpinBox
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QButtonGroup, QGridLayout, QLabel, QPushButton, QSpinBox
 
 from finesse.config import ANGLE_PRESETS, STEPPER_MOTOR_TOPIC
 from finesse.gui.device_panel import DevicePanel
@@ -36,6 +37,12 @@ class StepperMotorControl(DevicePanel):
 
         layout.addWidget(self.angle, 1, 2)
         layout.addWidget(self.goto, 1, 3)
+
+        # Create widgets to show the current mirror position
+        layout.addWidget(QLabel("Current position"), 0, 4)
+        self.mirror_position_display = QLabel("")
+        self.mirror_position_display.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(self.mirror_position_display, 1, 4)
 
         self.setLayout(layout)
 
