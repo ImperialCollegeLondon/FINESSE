@@ -40,7 +40,7 @@ class StepperMotorControl(DevicePanel):
 
         # Create widgets to show the current mirror position
         layout.addWidget(QLabel("Current position"), 0, 4)
-        self.mirror_position_display = QLabel("")
+        self.mirror_position_display = QLabel()
         self.mirror_position_display.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.mirror_position_display, 1, 4)
 
