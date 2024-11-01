@@ -38,14 +38,11 @@ class OpenDeviceArgs:
 
 
 class ConnectionStatus(Enum):
-    """The state of a device that has begun connecting or is already connected.
+    """The connection state of a device."""
 
-    Note that there is no DISCONNECTED state, as we do not need to represent
-    disconnected devices.
-    """
-
-    CONNECTING = 0
-    CONNECTED = 1
+    DISCONNECTED = 0
+    CONNECTING = 1
+    CONNECTED = 2
 
 
 def open_device(

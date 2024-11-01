@@ -22,12 +22,12 @@ DEVICE_TYPES = [
 def widget(subscribe_mock: MagicMock, qtbot) -> DeviceTypeControl:
     """Create a DeviceTypeControl fixture."""
     return DeviceTypeControl(
-        "Device type", DeviceInstanceRef("base_type"), DEVICE_TYPES, None, None
+        "Device type", DeviceInstanceRef("base_type"), DEVICE_TYPES
     )
 
 
 @pytest.mark.parametrize(
-    "active_device,active_device_state,previous_device,expected_device",
+    "active_device,device_status,previous_device,expected_device",
     (
         (active, state, previous, active or default)
         for previous, default in (
@@ -35,7 +35,7 @@ def widget(subscribe_mock: MagicMock, qtbot) -> DeviceTypeControl:
             (DEVICE_TYPES[1], DEVICE_TYPES[1]),
         )
         for active, state in (
-            (None, None),
+            (None, ConnectionStatus.DISCONNECTED),
             (DEVICE_TYPES[0], ConnectionStatus.CONNECTING),
             (DEVICE_TYPES[0], ConnectionStatus.CONNECTED),
         )
@@ -55,7 +55,7 @@ def test_init(
     update_btn_mock: Mock,
     load_saved_mock: Mock,
     active_device: DeviceTypeInfo | None,
-    active_device_state: ConnectionStatus,
+    device_status: ConnectionStatus,
     previous_device: DeviceTypeInfo | None,
     expected_device: DeviceTypeInfo,
     subscribe_mock: MagicMock,
@@ -72,7 +72,7 @@ def test_init(
         instance,
         DEVICE_TYPES,
         active_device_type=active_device.class_name if active_device else None,
-        active_device_state=active_device_state,
+        device_status=device_status,
     )
     assert widget._device_instance is instance
     items = [
@@ -84,7 +84,7 @@ def test_init(
     assert widget._device_combo.currentText() == expected_device.description
 
     if (
-        active_device_state == ConnectionStatus.CONNECTED
+        device_status == ConnectionStatus.CONNECTED
         and active_device.class_name == expected_device.class_name  # type: ignore[union-attr]
     ):
         assert widget._open_close_btn.text() == "Close"
@@ -107,8 +107,8 @@ def test_init(
 
 def test_init_no_device_types(qtbot) -> None:
     """Test that the constructor raises an exception when no device types specified."""
-    with pytest.raises(RuntimeError):
-        DeviceTypeControl("Device type", DeviceInstanceRef("base_type"), [], None, None)
+    with pytest.raises(ValueError):
+        DeviceTypeControl("Device type", DeviceInstanceRef("base_type"), [])
 
 
 @pytest.mark.parametrize(

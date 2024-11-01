@@ -155,8 +155,8 @@ class DeviceTypeControl(QGroupBox):
         description: str,
         instance: DeviceInstanceRef,
         device_types: Sequence[DeviceTypeInfo],
-        active_device_type: str | None,
-        active_device_state: ConnectionStatus | None,
+        active_device_type: str | None = None,
+        device_status: ConnectionStatus = ConnectionStatus.DISCONNECTED,
     ) -> None:
         """Create a new DeviceTypeControl.
 
@@ -165,10 +165,17 @@ class DeviceTypeControl(QGroupBox):
             instance: The device instance this panel is for
             device_types: The available devices for this base device type
             active_device_type: The class name for this device type, if opened
-            active_device_state: If the device is connecting or connected, if opened
+            device_status: The connection status for this device type
         """
         if not device_types:
-            raise RuntimeError("At least one device type must be specified")
+            raise ValueError("At least one device type must be specified")
+        if device_status == ConnectionStatus.DISCONNECTED:
+            if active_device_type is not None:
+                raise ValueError(
+                    "active_device_type supplied even though status is disconnected"
+                )
+        elif not active_device_type:
+            raise ValueError("Missing active_device_type")
 
         self._device_instance = instance
 
@@ -214,14 +221,13 @@ class DeviceTypeControl(QGroupBox):
         )
         self._open_close_btn.clicked.connect(self._on_open_close_clicked)
         layout.addWidget(self._open_close_btn)
-        if active_device_type:
-            if active_device_state == ConnectionStatus.CONNECTING:
-                self._set_device_opening(active_device_type)
-            else:
-                self._set_device_opened(active_device_type)
-
-        else:
-            self._set_device_closed()
+        match device_status:
+            case ConnectionStatus.CONNECTING:
+                self._set_device_opening(active_device_type)  # type: ignore[arg-type]
+            case ConnectionStatus.CONNECTED:
+                self._set_device_opened(active_device_type)  # type: ignore[arg-type]
+            case ConnectionStatus.DISCONNECTED:
+                self._set_device_closed()
 
         # Determine whether the button should be enabled or not
         self._update_open_btn_enabled_state()
@@ -362,14 +368,14 @@ class DeviceControl(QGroupBox):
 
     def _get_connected_device(self, instance: DeviceInstanceRef) -> str | None:
         """Get the class name of the connected device matching instance, if any."""
-        try:
-            return next(
+        return next(
+            (
                 device.class_name
                 for device in self._connected_devices
                 if device.instance == instance
-            )
-        except StopIteration:
-            return None
+            ),
+            None,
+        )
 
     def _on_device_list(
         self, device_types: Mapping[DeviceBaseTypeInfo, Sequence[DeviceTypeInfo]]
@@ -380,13 +386,16 @@ class DeviceControl(QGroupBox):
         # Group together devices based on their base types (e.g. "stepper motor")
         for base_type, types in device_types.items():
             for instance, description in base_type.get_instances_and_descriptions():
+                active_device_type = self._get_connected_device(instance)
                 layout.addWidget(
                     DeviceTypeControl(
                         description,
                         instance,
                         types,
-                        self._get_connected_device(instance),
-                        # all devices in list are connected
-                        ConnectionStatus.CONNECTED,
+                        active_device_type,
+                        # TODO: Handle connecting devices
+                        ConnectionStatus.CONNECTED
+                        if active_device_type
+                        else ConnectionStatus.DISCONNECTED,
                     )
                 )

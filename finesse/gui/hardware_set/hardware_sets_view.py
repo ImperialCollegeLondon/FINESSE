@@ -39,6 +39,13 @@ class ActiveDeviceProperties:
     state: ConnectionStatus
     """Whether the device is connecting or connected."""
 
+    def __post_init__(self) -> None:
+        """Check whether user attempted to create for a disconnected device."""
+        if self.state == ConnectionStatus.DISCONNECTED:
+            raise ValueError(
+                "Cannot create ActiveDeviceProperties for disconnected device"
+            )
+
 
 def _get_last_selected_hardware_set() -> HardwareSet | None:
     last_selected_path = cast(str | None, settings.value("hardware_set/selected"))
