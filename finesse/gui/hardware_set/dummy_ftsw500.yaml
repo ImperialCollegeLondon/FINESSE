@@ -3,6 +3,8 @@ name: "Dummy devices + FTSW500 spectrometer"
 devices:
   stepper_motor:
     class_name: stepper_motor.dummy.DummyStepperMotor
+    params:
+      move_duration: 1.5
   temperature_controller.hot_bb:
     class_name: temperature.dummy_temperature_controller.DummyTemperatureController
   temperature_controller.cold_bb:
