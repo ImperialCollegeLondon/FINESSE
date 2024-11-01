@@ -116,20 +116,24 @@ def test_set_device_status_active(
     status: ConnectionStatus, widget: DeviceTypeControl
 ) -> None:
     """Test the _set_device_status() method for connecting and connected devices."""
-    with patch.object(widget, "_set_combos_enabled") as combos_mock:
-        with patch.object(widget._open_close_btn, "setText") as set_btn_text_mock:
-            widget._set_device_status(status)
-            combos_mock.assert_called_once_with(False)
-            set_btn_text_mock("Close")
+    with patch.object(widget._status_control, "set_status") as set_status_mock:
+        with patch.object(widget, "_set_combos_enabled") as combos_mock:
+            with patch.object(widget._open_close_btn, "setText") as set_btn_text_mock:
+                widget._set_device_status(status)
+                set_status_mock.assert_called_once_with(status)
+                combos_mock.assert_called_once_with(False)
+                set_btn_text_mock("Close")
 
 
 def test_set_device_status_disconnected(widget: DeviceTypeControl) -> None:
     """Test the _set_device_status() method for disconnected devices."""
-    with patch.object(widget, "_set_combos_enabled") as combos_mock:
-        with patch.object(widget._open_close_btn, "setText") as set_btn_text_mock:
-            widget._set_device_status(ConnectionStatus.DISCONNECTED)
-            combos_mock.assert_called_once_with(True)
-            set_btn_text_mock("Open")
+    with patch.object(widget._status_control, "set_status") as set_status_mock:
+        with patch.object(widget, "_set_combos_enabled") as combos_mock:
+            with patch.object(widget._open_close_btn, "setText") as set_btn_text_mock:
+                widget._set_device_status(ConnectionStatus.DISCONNECTED)
+                set_status_mock.assert_called_once_with(ConnectionStatus.DISCONNECTED)
+                combos_mock.assert_called_once_with(True)
+                set_btn_text_mock("Open")
 
 
 @pytest.mark.parametrize(

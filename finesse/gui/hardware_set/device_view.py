@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
     QComboBox,
     QGroupBox,
     QHBoxLayout,
+    QLabel,
     QLineEdit,
     QPushButton,
     QSizePolicy,
@@ -26,6 +27,7 @@ from finesse.gui.hardware_set.device import (
     close_device,
     open_device,
 )
+from finesse.gui.led_icon import LEDIcon
 from finesse.settings import settings
 
 
@@ -215,6 +217,9 @@ class DeviceTypeControl(QGroupBox):
         current_widget.show()
         layout.addWidget(current_widget)
 
+        self._status_control = ConnectionStatusControl()
+        layout.addWidget(self._status_control)
+
         self._open_close_btn = QPushButton()
         self._open_close_btn.setSizePolicy(
             QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed
@@ -238,6 +243,8 @@ class DeviceTypeControl(QGroupBox):
 
     def _set_device_status(self, status: ConnectionStatus) -> None:
         """Update the controls according to device connection status."""
+        self._status_control.set_status(status)
+
         if status == ConnectionStatus.DISCONNECTED:
             self._set_combos_enabled(True)
             self._open_close_btn.setText("Open")
@@ -387,3 +394,37 @@ class DeviceControl(QGroupBox):
                         else ConnectionStatus.DISCONNECTED,
                     )
                 )
+
+
+class ConnectionStatusControl(QWidget):
+    """A widget to show whether a device's connection status."""
+
+    def __init__(
+        self, initial_status: ConnectionStatus = ConnectionStatus.DISCONNECTED
+    ):
+        """Create a new ConnectionStatusControl."""
+        super().__init__()
+        self._status: ConnectionStatus
+
+        self._led = LEDIcon.create_green_icon()
+        self._label = QLabel()
+
+        layout = QHBoxLayout()
+        layout.addWidget(self._led)
+        layout.addWidget(self._label)
+        self.setLayout(layout)
+
+        self.set_status(initial_status)
+
+    def set_status(self, status: ConnectionStatus) -> None:
+        """Set the device status to display."""
+        match status:
+            case ConnectionStatus.DISCONNECTED:
+                self._led.turn_off()
+                self._label.setText("Disconnected")
+            case ConnectionStatus.CONNECTING:
+                self._led.turn_off()
+                self._label.setText("Connecting...")
+            case ConnectionStatus.CONNECTED:
+                self._led.turn_on()
+                self._label.setText("Connected")
