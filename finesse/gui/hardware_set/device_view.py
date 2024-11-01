@@ -221,13 +221,10 @@ class DeviceTypeControl(QGroupBox):
         )
         self._open_close_btn.clicked.connect(self._on_open_close_clicked)
         layout.addWidget(self._open_close_btn)
-        match device_status:
-            case ConnectionStatus.CONNECTING:
-                self._set_device_opening(active_device_type)  # type: ignore[arg-type]
-            case ConnectionStatus.CONNECTED:
-                self._set_device_opened(active_device_type)  # type: ignore[arg-type]
-            case ConnectionStatus.DISCONNECTED:
-                self._set_device_closed()
+
+        if active_device_type:
+            self._select_device(active_device_type)
+        self._set_device_status(device_status)
 
         # Determine whether the button should be enabled or not
         self._update_open_btn_enabled_state()
@@ -238,6 +235,15 @@ class DeviceTypeControl(QGroupBox):
         pub.subscribe(self._on_device_open_start, f"device.before_opening.{instance!s}")
         pub.subscribe(self._on_device_open_end, f"device.after_opening.{instance!s}")
         pub.subscribe(self._on_device_closed, f"device.closed.{instance!s}")
+
+    def _set_device_status(self, status: ConnectionStatus) -> None:
+        """Update the controls according to device connection status."""
+        if status == ConnectionStatus.DISCONNECTED:
+            self._set_combos_enabled(True)
+            self._open_close_btn.setText("Open")
+        else:
+            self._set_combos_enabled(False)
+            self._open_close_btn.setText("Close")
 
     def _update_open_btn_enabled_state(self) -> None:
         """Enable button depending on whether there are options for all params.
@@ -274,20 +280,6 @@ class DeviceTypeControl(QGroupBox):
         self._device_combo.setEnabled(enabled)
         self.current_device_type_widget.setEnabled(enabled)
 
-    def _set_device_opening(self, class_name: str) -> None:
-        """Update the GUI for when the device is opened."""
-        self._select_device(class_name)
-        self._set_combos_enabled(False)
-        self._open_close_btn.setText("Opening...")
-        self._open_close_btn.setEnabled(False)
-
-    def _set_device_opened(self, class_name: str) -> None:
-        """Update the GUI for when the device is opened."""
-        self._select_device(class_name)
-        self._set_combos_enabled(False)
-        self._open_close_btn.setText("Close")
-        self._open_close_btn.setEnabled(True)
-
     def _select_device(self, class_name: str) -> None:
         """Select the device from the combo box which matches class_name."""
         try:
@@ -303,12 +295,6 @@ class DeviceTypeControl(QGroupBox):
 
             # Reload saved parameter values
             self._device_widgets[idx].load_saved_parameter_values()
-
-    def _set_device_closed(self) -> None:
-        """Update the GUI for when the device is opened."""
-        self._set_combos_enabled(True)
-        self._open_close_btn.setText("Open")
-        self._open_close_btn.setEnabled(True)
 
     def _open_device(self) -> None:
         """Open the currently selected device."""
@@ -329,15 +315,17 @@ class DeviceTypeControl(QGroupBox):
         self, instance: DeviceInstanceRef, class_name: str, params: Mapping[str, Any]
     ) -> None:
         """Update the GUI when device opening starts."""
-        self._set_device_opening(class_name)
+        self._select_device(class_name)
+        self._set_device_status(ConnectionStatus.CONNECTING)
 
     def _on_device_open_end(self, instance: DeviceInstanceRef, class_name: str) -> None:
         """Update the GUI on device open."""
-        self._set_device_opened(class_name)
+        self._select_device(class_name)
+        self._set_device_status(ConnectionStatus.CONNECTED)
 
     def _on_device_closed(self, instance: DeviceInstanceRef) -> None:
         """Update the GUI on device close."""
-        self._set_device_closed()
+        self._set_device_status(ConnectionStatus.DISCONNECTED)
 
     def _close_device(self) -> None:
         """Close the device."""

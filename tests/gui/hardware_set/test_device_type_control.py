@@ -84,12 +84,10 @@ def test_init(
     assert widget._device_combo.currentText() == expected_device.description
 
     if (
-        device_status == ConnectionStatus.CONNECTED
+        device_status != ConnectionStatus.DISCONNECTED
         and active_device.class_name == expected_device.class_name  # type: ignore[union-attr]
     ):
         assert widget._open_close_btn.text() == "Close"
-    elif active_device:  # in connecting state
-        assert widget._open_close_btn.text() == "Opening..."
     else:
         assert widget._open_close_btn.text() == "Open"
 
@@ -109,6 +107,29 @@ def test_init_no_device_types(qtbot) -> None:
     """Test that the constructor raises an exception when no device types specified."""
     with pytest.raises(ValueError):
         DeviceTypeControl("Device type", DeviceInstanceRef("base_type"), [])
+
+
+@pytest.mark.parametrize(
+    "status", (ConnectionStatus.CONNECTING, ConnectionStatus.CONNECTED)
+)
+def test_set_device_status_active(
+    status: ConnectionStatus, widget: DeviceTypeControl
+) -> None:
+    """Test the _set_device_status() method for connecting and connected devices."""
+    with patch.object(widget, "_set_combos_enabled") as combos_mock:
+        with patch.object(widget._open_close_btn, "setText") as set_btn_text_mock:
+            widget._set_device_status(status)
+            combos_mock.assert_called_once_with(False)
+            set_btn_text_mock("Close")
+
+
+def test_set_device_status_disconnected(widget: DeviceTypeControl) -> None:
+    """Test the _set_device_status() method for disconnected devices."""
+    with patch.object(widget, "_set_combos_enabled") as combos_mock:
+        with patch.object(widget._open_close_btn, "setText") as set_btn_text_mock:
+            widget._set_device_status(ConnectionStatus.DISCONNECTED)
+            combos_mock.assert_called_once_with(True)
+            set_btn_text_mock("Open")
 
 
 @pytest.mark.parametrize(
@@ -244,23 +265,29 @@ def test_close_device(
 
 def test_on_device_open_start(widget: DeviceTypeControl, qtbot) -> None:
     """Test the _on_device_open_start() method."""
-    with patch.object(widget, "_set_device_opening") as open_mock:
-        widget._on_device_open_start(DeviceInstanceRef("base_type"), "some_class", {})
-        open_mock.assert_called_once_with("some_class")
+    with patch.object(widget, "_select_device") as select_mock:
+        with patch.object(widget, "_set_device_status") as set_status_mock:
+            widget._on_device_open_start(
+                DeviceInstanceRef("base_type"), "some_class", {}
+            )
+            select_mock.assert_called_once_with("some_class")
+            set_status_mock(ConnectionStatus.CONNECTING)
 
 
 def test_on_device_open_end(widget: DeviceTypeControl, qtbot) -> None:
     """Test the _on_device_open_end() method."""
-    with patch.object(widget, "_set_device_opened") as open_mock:
-        widget._on_device_open_end(DeviceInstanceRef("base_type"), "some_class")
-        open_mock.assert_called_once_with("some_class")
+    with patch.object(widget, "_select_device") as select_mock:
+        with patch.object(widget, "_set_device_status") as set_status_mock:
+            widget._on_device_open_end(DeviceInstanceRef("base_type"), "some_class")
+            select_mock.assert_called_once_with("some_class")
+            set_status_mock(ConnectionStatus.CONNECTED)
 
 
 def test_on_device_closed(widget: DeviceTypeControl, qtbot) -> None:
     """Test the _on_device_closed() method."""
-    with patch.object(widget, "_set_device_closed") as close_mock:
+    with patch.object(widget, "_set_device_status") as set_status_mock:
         widget._on_device_closed(DeviceInstanceRef("base_type"))
-        close_mock.assert_called_once_with()
+        set_status_mock(ConnectionStatus.DISCONNECTED)
 
 
 def test_open_close_btn(widget: DeviceTypeControl, qtbot) -> None:
@@ -277,37 +304,3 @@ def test_open_close_btn(widget: DeviceTypeControl, qtbot) -> None:
             widget._open_close_btn.click()
             open_mock.assert_not_called()
             close_mock.assert_called_once_with()
-
-
-def test_set_device_opening(widget: DeviceTypeControl, qtbot) -> None:
-    """Test the _set_device_opening() method."""
-    with patch.object(widget, "_select_device") as select_mock:
-        with patch.object(widget, "_set_combos_enabled") as set_combos_mock:
-            with patch.object(widget, "_open_close_btn") as btn_mock:
-                widget._set_device_opening("class_name")
-                select_mock.assert_called_once_with("class_name")
-                set_combos_mock.assert_called_once_with(False)
-                btn_mock.setText.assert_called_once_with("Opening...")
-                btn_mock.setEnabled.assert_called_once_with(False)
-
-
-def test_set_device_opened(widget: DeviceTypeControl, qtbot) -> None:
-    """Test the _set_device_opened() method."""
-    with patch.object(widget, "_select_device") as select_mock:
-        with patch.object(widget, "_set_combos_enabled") as set_combos_mock:
-            with patch.object(widget, "_open_close_btn") as btn_mock:
-                widget._set_device_opened("class_name")
-                select_mock.assert_called_once_with("class_name")
-                set_combos_mock.assert_called_once_with(False)
-                btn_mock.setText.assert_called_once_with("Close")
-                btn_mock.setEnabled.assert_called_once_with(True)
-
-
-def test_set_device_closed(widget: DeviceTypeControl, qtbot) -> None:
-    """Test the _set_device_closed() method."""
-    with patch.object(widget, "_set_combos_enabled") as set_combos_mock:
-        with patch.object(widget, "_open_close_btn") as btn_mock:
-            widget._set_device_closed()
-            set_combos_mock.assert_called_once_with(True)
-            btn_mock.setText.assert_called_once_with("Open")
-            btn_mock.setEnabled.assert_called_once_with(True)
