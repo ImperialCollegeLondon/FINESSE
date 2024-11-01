@@ -7,7 +7,14 @@ from PySide6.QtCore import QTimer
 from finesse.hardware.plugins.stepper_motor.stepper_motor_base import StepperMotorBase
 
 
-class DummyStepperMotor(StepperMotorBase, description="Dummy stepper motor"):
+class DummyStepperMotor(
+    StepperMotorBase,
+    description="Dummy stepper motor",
+    parameters={
+        "steps_per_rotation": "Number of steps in a full rotation",
+        "move_duration": "How long each move takes (seconds)",
+    },
+):
     """A fake stepper motor device used for testing the GUI without the hardware.
 
     This class uses a simple timer to notify when the move is complete after a fixed
@@ -26,6 +33,8 @@ class DummyStepperMotor(StepperMotorBase, description="Dummy stepper motor"):
         """
         if steps_per_rotation < 1:
             raise ValueError("steps_per_rotation must be at least one")
+        if move_duration < 0.0:
+            raise ValueError("move_duration cannot be negative")
 
         self._move_end_timer = QTimer()
         self._move_end_timer.setSingleShot(True)
