@@ -78,10 +78,8 @@ class StepperMotorControl(DevicePanel):
         if moved_to is None:
             self.mirror_position_display.setText("Moving...")
         else:
-            if moved_to in ANGLE_PRESETS.values():
-                preset = list(ANGLE_PRESETS.keys())[
-                    list(ANGLE_PRESETS.values()).index(moved_to)
-                ]
+            preset = next((k for k, v in ANGLE_PRESETS.items() if v == moved_to), None)
+            if preset:
                 self.mirror_position_display.setText(preset.upper())
             else:
                 self.mirror_position_display.setText(f"{moved_to}°")
