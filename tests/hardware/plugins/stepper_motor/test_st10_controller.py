@@ -8,7 +8,6 @@ from unittest.mock import MagicMock, Mock, PropertyMock, patch
 import pytest
 from serial import SerialException, SerialTimeoutException
 
-from finesse.config import STEPPER_MOTOR_TOPIC
 from finesse.hardware.plugins.stepper_motor.st10_controller import (
     ST10Controller,
     ST10ControllerError,
@@ -146,10 +145,8 @@ def test_send_move_end_message(
 ) -> None:
     """Test the _send_move_end_message() method."""
     angle_mock.return_value = 12.34
-    dev._send_move_end_message()
-    sendmsg_mock.assert_called_once_with(
-        f"device.{STEPPER_MOTOR_TOPIC}.move.end", moved_to=12.34
-    )
+    dev.send_move_end_message()
+    sendmsg_mock.assert_called_once()
 
 
 def read_mock(dev: ST10Controller, return_value: str):

@@ -98,4 +98,4 @@ class DummyStepperMotor(
         logging.info("Move finished")
         if self._notify_requested:
             self._notify_requested = False
-            self.send_message("move.end", moved_to=self.angle)
+            self.send_move_end_message()
