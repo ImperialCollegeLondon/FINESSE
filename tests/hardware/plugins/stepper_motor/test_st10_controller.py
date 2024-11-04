@@ -267,7 +267,7 @@ _ALL_BITS = 0b101
 
 @pytest.mark.parametrize(
     "all_bits,index,expected",
-    ((_ALL_BITS, i, ((1 << i) & _ALL_BITS != 0)) for i in range(3)),
+    ((_ALL_BITS, i, ((1 << (2 - i)) & _ALL_BITS != 0)) for i in range(3)),
 )
 def test_get_input_status(
     dev: ST10Controller,

@@ -249,15 +249,18 @@ class ST10Controller(
     def _get_input_status(self, index: int) -> bool:
         """Read the status of the device's inputs.
 
-        The inputs to the controller are boolean values represented as a series of zeros
-        (==closed) and ones (==open). They include digital inputs, as well as other
-        properties like alarm status. The exact meaning seems to vary between boards.
+        The inputs to the controller are boolean values, which include digital inputs,
+        as well as other properties like alarm status. For a list of input values, see
+        the manual.
 
         Args:
             index: Which boolean value in the input status array to check
         """
         input_status = self._request_value("IS")
-        return input_status[index] == "1"
+
+        # The inputs are represented as ASCII zeroes and ones. The lowest input's value
+        # is on the right.
+        return input_status[-1 - index] == "1"
 
     @property
     def steps_per_rotation(self) -> int:
@@ -275,10 +278,8 @@ class ST10Controller(
         # In case the motor is still moving, stop it now
         self.stop_moving()
 
-        # If the third (boolean) value of the input status array is set, then move the
-        # motor first. I don't know what the input status actually means, but this is
-        # how it was done in the old program, so I'm copying it here.
-        if self._get_input_status(3):
+        # If the homing switch is already active, move the motor a bit
+        if self._get_input_status(6):
             self._relative_move(-5000)
 
         # Home the motor, leaving mirror facing upwards. The command means "seek home
