@@ -6,7 +6,6 @@ A graphical user interface for controlling and monitoring an interferometer devi
 
 ![GitHub tag (with filter)](https://img.shields.io/github/v/tag/ImperialCollegeLondon/FINESSE)
 [![Checked with mypy](http://www.mypy-lang.org/static/mypy_badge.svg)](http://mypy-lang.org/)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![GitHub](https://img.shields.io/github/license/ImperialCollegeLondon/FINESSE)](https://raw.githubusercontent.com/ImperialCollegeLondon/FINESSE/main/LICENCE.txt)
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/ImperialCollegeLondon/FINESSE/main.svg)](https://results.pre-commit.ci/latest/github/ImperialCollegeLondon/FINESSE/main)
 [![Test and build](https://github.com/ImperialCollegeLondon/FINESSE/actions/workflows/ci.yml/badge.svg)](https://github.com/ImperialCollegeLondon/FINESSE/actions/workflows/ci.yml)
