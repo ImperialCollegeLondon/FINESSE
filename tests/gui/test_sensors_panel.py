@@ -17,7 +17,6 @@ def test_init(subscribe_mock, qtbot) -> None:
 
     # Check the panel's widgets are created correctly
     assert not panel._poll_light._is_on
-    # assert panel.layout().itemAt(0).widget() is None
 
     # Check correct pubsub channels are subscribed to
     subscribe_mock.call_count == 2
