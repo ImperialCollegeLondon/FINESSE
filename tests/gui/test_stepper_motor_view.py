@@ -66,3 +66,17 @@ def test_goto_clicked(sendmsg_mock: MagicMock, qtbot: QtBot) -> None:
         sendmsg_mock.assert_any_call(
             f"device.{STEPPER_MOTOR_TOPIC}.move.begin", target=123.0
         )
+
+
+def test_update_mirror_position_display(qtbot: QtBot) -> None:
+    """Test the mirror position display updates correctly."""
+    control = StepperMotorControl()
+
+    control._update_mirror_position_display(moved_to=None)
+    assert control.mirror_position_display.text() == "Moving..."
+
+    control._update_mirror_position_display(moved_to=ANGLE_PRESETS["zenith"])
+    assert control.mirror_position_display.text() == "ZENITH"
+
+    control._update_mirror_position_display(moved_to=12.34)
+    assert control.mirror_position_display.text() == "12.34" + "\u00b0"
