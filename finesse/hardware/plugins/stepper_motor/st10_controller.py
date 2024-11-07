@@ -292,13 +292,13 @@ class ST10Controller(
         # Tell the controller that this is step 0 ("set variable SP to 0")
         self._write_check("SP0")
 
-        # Receive a notification when motor has finished moving
-        self.notify_on_stopped()
-
         # Use a timer to show an error if the motor doesn't finish moving within the
         # given timeframe. (Note that the move commands are not run synchronously, so
         # this time is the time taken for all of these commands to finish.)
         self._init_error_timer.start()
+
+        # Receive a notification when motor has finished moving
+        self.notify_on_stopped()
 
     def _relative_move(self, steps: int) -> None:
         """Move the stepper motor to the specified relative position.
