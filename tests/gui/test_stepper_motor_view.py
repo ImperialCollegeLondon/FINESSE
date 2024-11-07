@@ -29,6 +29,10 @@ def test_init(button_group_mock: Mock, qtbot: QtBot) -> None:
         # Check that there's also a goto button
         assert "goto" in btn_labels
 
+    # Check that mirror position widgets have been created
+    assert control.layout().itemAt(8).widget().text() == "Current position"
+    assert control.mirror_position_display.text() == ""
+
 
 @pytest.mark.parametrize("preset", ANGLE_PRESETS.keys())
 def test_preset_clicked(preset: str, sendmsg_mock: MagicMock, qtbot: QtBot) -> None:
