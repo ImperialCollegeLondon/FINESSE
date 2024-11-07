@@ -4,7 +4,7 @@ from typing import cast
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
-from PySide6.QtWidgets import QButtonGroup, QPushButton
+from PySide6.QtWidgets import QButtonGroup, QLabel, QPushButton
 from pytestqt.qtbot import QtBot
 
 from finesse.config import ANGLE_PRESETS, STEPPER_MOTOR_TOPIC
@@ -30,7 +30,9 @@ def test_init(button_group_mock: Mock, qtbot: QtBot) -> None:
         assert "goto" in btn_labels
 
     # Check that mirror position widgets have been created
-    assert control.layout().itemAt(8).widget().text() == "Current position"
+    current_position_label = control.layout().itemAt(8).widget()
+    assert isinstance(current_position_label, QLabel)
+    assert current_position_label.text() == "Current position"
     assert control.mirror_position_display.text() == ""
 
 
