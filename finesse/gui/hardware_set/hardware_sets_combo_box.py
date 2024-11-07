@@ -3,9 +3,9 @@
 from pubsub import pub
 from PySide6.QtWidgets import QComboBox
 
+from finesse.gui.hardware_set.device import OpenDeviceArgs
 from finesse.gui.hardware_set.hardware_set import (
     HardwareSet,
-    OpenDeviceArgs,
     get_hardware_sets,
 )
 

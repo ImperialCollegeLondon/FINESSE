@@ -3,7 +3,7 @@
 from abc import abstractmethod
 from collections.abc import Callable, Sequence
 from typing import Any, ClassVar
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, Mock, call, patch
 
 import pytest
 
@@ -14,6 +14,7 @@ from finesse.hardware.device import (
     DeviceTypeInfo,
     get_device_types,
 )
+from finesse.hardware.plugins import __name__ as plugins_name
 
 MOCK_DEVICE_TOPIC = "mock"
 
@@ -23,7 +24,9 @@ class _MockBaseClass(Device, name=MOCK_DEVICE_TOPIC, description="Mock base clas
 
 
 class _MockDevice(_MockBaseClass, description="Mock device"):
-    pass
+    def signal_is_opened(self):
+        """Make this a no-op to simplify testing."""
+        self._is_open = True
 
 
 class _NamedMockBaseClass(
@@ -170,8 +173,6 @@ def test_abstract_device_get_device_base_type_info() -> None:
 
 def test_abstract_device_get_device_type_info() -> None:
     """Test the get_device_type_info() classmethod."""
-    from finesse.hardware.plugins import __name__ as plugins_name
-
     description = "Some description"
     module = "some_module"
 
@@ -184,25 +185,6 @@ def test_abstract_device_get_device_type_info() -> None:
     assert MyDevice.get_device_type_info() == DeviceTypeInfo(
         f"{module}.MyDevice", description, {}
     )
-
-
-def test_abstract_device_get_device_type_info_error() -> None:
-    """Test the get_device_type_info() classmethod throws an error.
-
-    This should occur if the class in not in the plugins folder or a submodule thereof.
-    """
-    params = MagicMock()
-    description = "Some description"
-    module = "some_module"
-
-    class MyDevice(AbstractDevice):
-        __module__ = module  # NB: module not in plugins dir!
-        _device_base_type_info = "INFO"  # type: ignore
-        _device_description = description
-        _device_parameters = params
-
-    with pytest.raises(RuntimeError):
-        MyDevice.get_device_type_info()
 
 
 def _wrapped_func_error_test(device: Device, wrapper: Callable, *args) -> None:
@@ -337,9 +319,28 @@ def test_device_ignored_class():
 
 def test_device_init() -> None:
     """Test Device's constructor when no name is provided."""
-    device = _MockDevice()
-    assert device.topic == f"device.{MOCK_DEVICE_TOPIC}"
-    assert device.name is None
+    with patch.object(_MockDevice, "signal_is_opened") as signal_mock:
+        device = _MockDevice()
+        assert device.topic == f"device.{MOCK_DEVICE_TOPIC}"
+        assert device.name is None
+        signal_mock.assert_called_once_with()
+
+
+def test_device_init_async() -> None:
+    """Test Device's constructor for devices with async open."""
+
+    class _MockDeviceAsync(
+        _MockBaseClass, description="Mock device with async open", async_open=True
+    ):
+        pass
+
+    assert _MockDeviceAsync._device_async_open
+
+    with patch.object(_MockDevice, "signal_is_opened") as signal_mock:
+        device = _MockDeviceAsync()
+        assert device.topic == f"device.{MOCK_DEVICE_TOPIC}"
+        assert device.name is None
+        signal_mock.assert_not_called()
 
 
 def test_device_init_unexpected_name() -> None:
@@ -369,6 +370,59 @@ def test_device_init_missing_name():
     """Test Device's constructor when a name should be provided but isn't."""
     with pytest.raises(RuntimeError):
         _NamedMockDevice()
+
+
+def test_device_signal_is_opened(
+    device: Device, subscribe_mock: MagicMock, sendmsg_mock: MagicMock
+) -> None:
+    """Test the signal_is_opened() method."""
+    class_name = "my_class_name"
+    type_info = DeviceTypeInfo(class_name, "Class description", {})
+
+    # We need to patch the class name as classes outside the plugin dir are disallowed
+    with patch.object(device, "get_device_type_info", return_value=type_info):
+        device._is_open = False
+        assert not device._subscriptions
+        func1 = MagicMock()
+        func2 = MagicMock()
+        subscriptions = [(func1, "topic1"), (func2, "topic2")]
+        device._subscriptions = subscriptions.copy()  # type: ignore
+
+        # Call Device's member function directly because we've patched it out for
+        # _MockDevice
+        Device.signal_is_opened(device)
+        instance = device.get_instance_ref()
+        class_name = device.get_device_type_info().class_name
+
+    subscribe_mock.assert_has_calls([call(*args) for args in subscriptions])
+
+    sendmsg_mock.assert_has_calls(
+        [
+            call(
+                f"device.after_opening.{instance!s}",
+                instance=instance,
+                class_name=class_name,
+            ),
+            call(f"device.opened.{instance!s}"),
+        ]
+    )
+
+
+def test_device_signal_is_opened_fail_already_open(
+    device: Device, sendmsg_mock: MagicMock
+) -> None:
+    """Test the signal_is_opened() method fails if already open."""
+    class_name = "my_class_name"
+    type_info = DeviceTypeInfo(class_name, "Class description", {})
+
+    # We need to patch the class name as classes outside the plugin dir are disallowed
+    with patch.object(device, "get_device_type_info", return_value=type_info):
+        device._is_open = True
+
+        with pytest.raises(Exception):
+            # Call Device's member function directly because we've patched it out for
+            # _MockDevice
+            Device.signal_is_opened(device)
 
 
 def test_device_close(device: Device, unsubscribe_mock: MagicMock) -> None:

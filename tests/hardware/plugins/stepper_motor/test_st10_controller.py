@@ -49,7 +49,8 @@ def dev(subscribe_mock: MagicMock, serial_mock: MagicMock) -> ST10Controller:
     # elsewhere
     with patch.object(ST10Controller, "_check_device_id"):
         with patch.object(ST10Controller, "_home_and_reset"):
-            return ST10Controller(*_SERIAL_ARGS)
+            with patch.object(ST10Controller, "signal_is_opened"):
+                return ST10Controller(*_SERIAL_ARGS)
 
 
 @patch(
