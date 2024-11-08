@@ -2,7 +2,7 @@
 
 from unittest.mock import Mock, call, patch
 
-from PySide6.QtWidgets import QLineEdit
+from PySide6.QtWidgets import QLabel, QLineEdit
 
 from finesse.config import SENSORS_TOPIC
 from finesse.gui.sensors_panel import SensorsPanel
@@ -53,7 +53,9 @@ def test_get_reading_lineedit() -> None:
     )
     assert isinstance(reading, QLineEdit)
     assert panel._reading_layout.rowCount() == 1
-    assert panel._reading_layout.itemAt(0).widget().text() == "Quantity1"
+    reading_name_label = panel._reading_layout.itemAt(0).widget()
+    assert isinstance(reading_name_label, QLabel)
+    assert reading_name_label.text() == "Quantity1"
 
 
 def test_on_readings_received() -> None:
