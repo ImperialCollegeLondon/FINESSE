@@ -35,11 +35,11 @@ class LEDIcon(QLabel):
         self._on_img = on_img
         self._off_img = off_img
         if is_on:
-            self._turn_on()
+            self.turn_on()
         else:
-            self._turn_off()
+            self.turn_off()
         self.timer = QTimer()
-        self.timer.timeout.connect(self._turn_off)
+        self.timer.timeout.connect(self.turn_off)
 
     @classmethod
     def create_green_icon(cls) -> LEDIcon:
@@ -51,12 +51,12 @@ class LEDIcon(QLabel):
         """Creates a red LED icon."""
         return cls(on_img=_red_on_img, off_img=_red_off_img)
 
-    def _turn_on(self) -> None:
+    def turn_on(self) -> None:
         """Turns the LED on."""
         self._is_on = True
         self.setPixmap(QPixmap(self._on_img))
 
-    def _turn_off(self) -> None:
+    def turn_off(self) -> None:
         """Turns the LED off."""
         self._is_on = False
         self.setPixmap(QPixmap(self._off_img))
@@ -67,5 +67,5 @@ class LEDIcon(QLabel):
         Args:
             duration (int): Number of milliseconds to keep LED lit for
         """
-        self._turn_on()
-        self.timer.singleShot(duration, self._turn_off)
+        self.turn_on()
+        self.timer.singleShot(duration, self.turn_off)

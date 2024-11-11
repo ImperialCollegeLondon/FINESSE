@@ -5,8 +5,8 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 
 from finesse.device_info import DeviceBaseTypeInfo, DeviceInstanceRef, DeviceTypeInfo
+from finesse.gui.hardware_set.device import ConnectionStatus, OpenDeviceArgs
 from finesse.gui.hardware_set.device_view import DeviceControl
-from finesse.gui.hardware_set.hardware_set import OpenDeviceArgs
 
 CONNECTED_DEVICES = (
     OpenDeviceArgs.create("stepper_motor", "MyStepperMotor"),
@@ -72,4 +72,5 @@ def test_on_device_list(widget_mock: Mock, widget: DeviceControl, qtbot) -> None
                 DeviceInstanceRef("base_type"),
                 device_types,
                 "connected_device",
+                ConnectionStatus.CONNECTED,
             )

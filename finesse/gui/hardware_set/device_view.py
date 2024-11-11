@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
     QComboBox,
     QGroupBox,
     QHBoxLayout,
+    QLabel,
     QLineEdit,
     QPushButton,
     QSizePolicy,
@@ -20,8 +21,13 @@ from PySide6.QtWidgets import (
 
 from finesse.device_info import DeviceBaseTypeInfo, DeviceInstanceRef, DeviceTypeInfo
 from finesse.gui.error_message import show_error_message
-from finesse.gui.hardware_set.device_connection import close_device, open_device
-from finesse.gui.hardware_set.hardware_set import OpenDeviceArgs
+from finesse.gui.hardware_set.device import (
+    ConnectionStatus,
+    OpenDeviceArgs,
+    close_device,
+    open_device,
+)
+from finesse.gui.led_icon import LEDIcon
 from finesse.settings import settings
 
 
@@ -151,7 +157,8 @@ class DeviceTypeControl(QGroupBox):
         description: str,
         instance: DeviceInstanceRef,
         device_types: Sequence[DeviceTypeInfo],
-        connected_device_type: str | None,
+        active_device_type: str | None = None,
+        device_status: ConnectionStatus = ConnectionStatus.DISCONNECTED,
     ) -> None:
         """Create a new DeviceTypeControl.
 
@@ -159,10 +166,18 @@ class DeviceTypeControl(QGroupBox):
             description: A description of the device type
             instance: The device instance this panel is for
             device_types: The available devices for this base device type
-            connected_device_type: The class name for this device type, if opened
+            active_device_type: The class name for this device type, if opened
+            device_status: The connection status for this device type
         """
         if not device_types:
-            raise RuntimeError("At least one device type must be specified")
+            raise ValueError("At least one device type must be specified")
+        if device_status == ConnectionStatus.DISCONNECTED:
+            if active_device_type is not None:
+                raise ValueError(
+                    "active_device_type supplied even though status is disconnected"
+                )
+        elif not active_device_type:
+            raise ValueError("Missing active_device_type")
 
         self._device_instance = instance
 
@@ -202,16 +217,19 @@ class DeviceTypeControl(QGroupBox):
         current_widget.show()
         layout.addWidget(current_widget)
 
+        self._status_control = ConnectionStatusControl()
+        layout.addWidget(self._status_control)
+
         self._open_close_btn = QPushButton()
         self._open_close_btn.setSizePolicy(
             QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed
         )
         self._open_close_btn.clicked.connect(self._on_open_close_clicked)
         layout.addWidget(self._open_close_btn)
-        if connected_device_type:
-            self._set_device_opened(connected_device_type)
-        else:
-            self._set_device_closed()
+
+        if active_device_type:
+            self._select_device(active_device_type)
+        self._set_device_status(device_status)
 
         # Determine whether the button should be enabled or not
         self._update_open_btn_enabled_state()
@@ -219,8 +237,20 @@ class DeviceTypeControl(QGroupBox):
         self._device_combo.currentIndexChanged.connect(self._on_device_selected)
 
         # pubsub subscriptions
-        pub.subscribe(self._on_device_opened, f"device.opening.{instance!s}")
+        pub.subscribe(self._on_device_open_start, f"device.before_opening.{instance!s}")
+        pub.subscribe(self._on_device_open_end, f"device.after_opening.{instance!s}")
         pub.subscribe(self._on_device_closed, f"device.closed.{instance!s}")
+
+    def _set_device_status(self, status: ConnectionStatus) -> None:
+        """Update the controls according to device connection status."""
+        self._status_control.set_status(status)
+
+        if status == ConnectionStatus.DISCONNECTED:
+            self._set_combos_enabled(True)
+            self._open_close_btn.setText("Open")
+        else:
+            self._set_combos_enabled(False)
+            self._open_close_btn.setText("Close")
 
     def _update_open_btn_enabled_state(self) -> None:
         """Enable button depending on whether there are options for all params.
@@ -257,12 +287,6 @@ class DeviceTypeControl(QGroupBox):
         self._device_combo.setEnabled(enabled)
         self.current_device_type_widget.setEnabled(enabled)
 
-    def _set_device_opened(self, class_name: str) -> None:
-        """Update the GUI for when the device is opened."""
-        self._select_device(class_name)
-        self._set_combos_enabled(False)
-        self._open_close_btn.setText("Close")
-
     def _select_device(self, class_name: str) -> None:
         """Select the device from the combo box which matches class_name."""
         try:
@@ -279,11 +303,6 @@ class DeviceTypeControl(QGroupBox):
             # Reload saved parameter values
             self._device_widgets[idx].load_saved_parameter_values()
 
-    def _set_device_closed(self) -> None:
-        """Update the GUI for when the device is opened."""
-        self._set_combos_enabled(True)
-        self._open_close_btn.setText("Open")
-
     def _open_device(self) -> None:
         """Open the currently selected device."""
         widget = self.current_device_type_widget
@@ -299,15 +318,21 @@ class DeviceTypeControl(QGroupBox):
         else:
             open_device(widget.device_type.class_name, self._device_instance, params)
 
-    def _on_device_opened(
+    def _on_device_open_start(
         self, instance: DeviceInstanceRef, class_name: str, params: Mapping[str, Any]
     ) -> None:
+        """Update the GUI when device opening starts."""
+        self._select_device(class_name)
+        self._set_device_status(ConnectionStatus.CONNECTING)
+
+    def _on_device_open_end(self, instance: DeviceInstanceRef, class_name: str) -> None:
         """Update the GUI on device open."""
-        self._set_device_opened(class_name)
+        self._select_device(class_name)
+        self._set_device_status(ConnectionStatus.CONNECTED)
 
     def _on_device_closed(self, instance: DeviceInstanceRef) -> None:
         """Update the GUI on device close."""
-        self._set_device_closed()
+        self._set_device_status(ConnectionStatus.DISCONNECTED)
 
     def _close_device(self) -> None:
         """Close the device."""
@@ -338,14 +363,14 @@ class DeviceControl(QGroupBox):
 
     def _get_connected_device(self, instance: DeviceInstanceRef) -> str | None:
         """Get the class name of the connected device matching instance, if any."""
-        try:
-            return next(
+        return next(
+            (
                 device.class_name
                 for device in self._connected_devices
                 if device.instance == instance
-            )
-        except StopIteration:
-            return None
+            ),
+            None,
+        )
 
     def _on_device_list(
         self, device_types: Mapping[DeviceBaseTypeInfo, Sequence[DeviceTypeInfo]]
@@ -356,11 +381,50 @@ class DeviceControl(QGroupBox):
         # Group together devices based on their base types (e.g. "stepper motor")
         for base_type, types in device_types.items():
             for instance, description in base_type.get_instances_and_descriptions():
+                active_device_type = self._get_connected_device(instance)
                 layout.addWidget(
                     DeviceTypeControl(
                         description,
                         instance,
                         types,
-                        self._get_connected_device(instance),
+                        active_device_type,
+                        # TODO: Handle connecting devices
+                        ConnectionStatus.CONNECTED
+                        if active_device_type
+                        else ConnectionStatus.DISCONNECTED,
                     )
                 )
+
+
+class ConnectionStatusControl(QWidget):
+    """A widget to show whether a device's connection status."""
+
+    def __init__(
+        self, initial_status: ConnectionStatus = ConnectionStatus.DISCONNECTED
+    ):
+        """Create a new ConnectionStatusControl."""
+        super().__init__()
+        self._status: ConnectionStatus
+
+        self._led = LEDIcon.create_green_icon()
+        self._label = QLabel()
+
+        layout = QHBoxLayout()
+        layout.addWidget(self._led)
+        layout.addWidget(self._label)
+        self.setLayout(layout)
+
+        self.set_status(initial_status)
+
+    def set_status(self, status: ConnectionStatus) -> None:
+        """Set the device status to display."""
+        match status:
+            case ConnectionStatus.DISCONNECTED:
+                self._led.turn_off()
+                self._label.setText("Disconnected")
+            case ConnectionStatus.CONNECTING:
+                self._led.turn_off()
+                self._label.setText("Connecting...")
+            case ConnectionStatus.CONNECTED:
+                self._led.turn_on()
+                self._label.setText("Connected")

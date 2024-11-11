@@ -16,7 +16,7 @@ from enum import Enum
 from inspect import isabstract, signature
 from typing import Any, ClassVar, get_type_hints
 
-from decorator import decorate
+from decorator import decorate, decorator
 from pubsub import pub
 
 from finesse.device_info import (
@@ -76,19 +76,26 @@ class AbstractDevice(ABC):
 
     The key represents the parameter name and the value is a list of possible values.
     """
+    _device_async_open: ClassVar[bool | None] = None
+    """Whether the device opens asynchronously (i.e. completes after __init__)."""
 
     def __init_subclass__(
-        cls, parameters: Mapping[str, str | tuple[str, Sequence]] = {}
+        cls,
+        parameters: Mapping[str, str | tuple[str, Sequence]] = {},
+        async_open: bool | None = None,
     ) -> None:
         """Initialise a device class.
 
         Args:
             parameters: Extra device parameters that this class requires
+            async_open: Whether the device should be opened in the background
         """
         super().__init_subclass__()
 
         cls._add_parameters(parameters)
         cls._update_parameter_defaults()
+        if async_open is not None:
+            cls._device_async_open = async_open
 
     @classmethod
     def _add_parameters(
@@ -156,8 +163,11 @@ class AbstractDevice(ABC):
         """Get information about this device type."""
         class_name_full = f"{cls.__module__}.{cls.__name__}"
         class_name = class_name_full.removeprefix(f"{_plugins_name}.")
+
         if len(class_name) == len(class_name_full):
-            raise RuntimeError(f"Plugins must be in {_plugins_name}")
+            logging.warning(
+                f"Plugin found outside of {_plugins_name}. This probably won't work."
+            )
 
         return DeviceTypeInfo(
             class_name,
@@ -218,6 +228,8 @@ class Device(AbstractDevice):
                 cls._init_base_type(**kwargs)
             case DeviceClassType.DEVICE_TYPE:
                 cls._init_device_type(**kwargs)
+            case DeviceClassType.IGNORE:
+                super().__init_subclass__(**kwargs)
 
     @classmethod
     def _init_base_type(
@@ -238,6 +250,13 @@ class Device(AbstractDevice):
         # Add the class to the registry of base types
         _base_types.add(cls)
 
+    @staticmethod
+    @decorator
+    def _init_and_signal(previous_init, self: Device, *args, **kwargs):
+        """Run previous_init method then signal_is_opened()."""
+        previous_init(self, *args, **kwargs)
+        self.signal_is_opened()
+
     @classmethod
     def _init_device_type(
         cls,
@@ -251,6 +270,11 @@ class Device(AbstractDevice):
 
         # Add the class to the registry of device types
         _device_types.add(cls)
+
+        # Patch __init__ for non-async-opening devices so that signal_is_opened() is
+        # called immediately afterwards
+        if not cls._device_async_open:
+            cls.__init__ = cls._init_and_signal(cls.__init__)  # type: ignore[method-assign]
 
     def __init__(self, name: str | None = None) -> None:
         """Create a new Device.
@@ -267,6 +291,9 @@ class Device(AbstractDevice):
         self._subscriptions: list[tuple[Callable, str]] = []
         """Store of wrapped functions which are subscribed to pubsub messages."""
 
+        self._is_open = False
+        """Whether the device has finished opening."""
+
         if not self._device_base_type_info.names_short:
             if name:
                 raise RuntimeError(
@@ -278,6 +305,32 @@ class Device(AbstractDevice):
             raise RuntimeError("Invalid name given for device")
 
         self.topic += f".{name}"
+
+    def signal_is_opened(self) -> None:
+        """Signal that the device is now open."""
+        if self._is_open:
+            raise RuntimeError("Device is already open")
+
+        self._is_open = True
+
+        # Subscribe to topics now that device is ready
+        for args in self._subscriptions:
+            pub.subscribe(*args)
+
+        instance = self.get_instance_ref()
+        class_name = self.get_device_type_info().class_name
+        _, _, class_name_short = class_name.rpartition(".")
+        logging.info(f"Opened device {instance!s}: {class_name_short}")
+
+        # Signal that device is now open. The reason for the two different topics is
+        # because we want to ensure that some listeners always run before others, in
+        # case an error occurs and we have to undo the work.
+        pub.sendMessage(
+            f"device.after_opening.{instance!s}",
+            instance=instance,
+            class_name=class_name,
+        )
+        pub.sendMessage(f"device.opened.{instance!s}")
 
     def close(self) -> None:
         """Close the device and clear any pubsub subscriptions."""
@@ -381,7 +434,10 @@ class Device(AbstractDevice):
 
         topic_name = f"{self.topic}.{topic_name_suffix}"
         self._subscriptions.append((wrapped_func, topic_name))
-        pub.subscribe(wrapped_func, topic_name)
+
+        # If the device isn't ready, defer subscription so callers don't try to use it
+        if self._is_open:
+            pub.subscribe(wrapped_func, topic_name)
 
     def send_message(self, topic_suffix: str, **kwargs: Any) -> None:
         """Send a pubsub message for this device.

@@ -3,7 +3,7 @@
 from unittest.mock import MagicMock
 
 from finesse.device_info import DeviceInstanceRef
-from finesse.gui.hardware_set.device_connection import close_device, open_device
+from finesse.gui.hardware_set.device import close_device, open_device
 
 
 def test_open_device(sendmsg_mock: MagicMock) -> None:
