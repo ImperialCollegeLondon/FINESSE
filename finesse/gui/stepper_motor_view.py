@@ -47,6 +47,10 @@ class StepperMotorControl(DevicePanel):
         self.setLayout(layout)
 
         pub.subscribe(
+            self._indicate_moving,
+            f"device.{STEPPER_MOTOR_TOPIC}.move.begin",
+        )
+        pub.subscribe(
             self._update_mirror_position_display,
             f"device.{STEPPER_MOTOR_TOPIC}.move.end",
         )
@@ -69,17 +73,18 @@ class StepperMotorControl(DevicePanel):
         target = float(self.angle.value()) if btn is self.goto else btn.text().lower()
         pub.sendMessage(f"device.{STEPPER_MOTOR_TOPIC}.move.begin", target=target)
 
-    def _update_mirror_position_display(self, moved_to: float | None) -> None:
+    def _indicate_moving(self, target) -> None:
+        """Update the display the indicate that the mirror is moving."""
+        self.mirror_position_display.setText("Moving...")
+
+    def _update_mirror_position_display(self, moved_to: float) -> None:
         """Display the angle the mirror has moved to.
 
-        moved_to will be None if mirror is moving, in which case display "Moving...",
-        otherwise, display angle or its associated name.
+        If angle corresponds to a preset, show the associated name, otherwise just show
+        the value.
         """
-        if moved_to is None:
-            self.mirror_position_display.setText("Moving...")
+        preset = next((k for k, v in ANGLE_PRESETS.items() if v == moved_to), None)
+        if preset:
+            self.mirror_position_display.setText(preset.upper())
         else:
-            preset = next((k for k, v in ANGLE_PRESETS.items() if v == moved_to), None)
-            if preset:
-                self.mirror_position_display.setText(preset.upper())
-            else:
-                self.mirror_position_display.setText(f"{moved_to}°")
+            self.mirror_position_display.setText(f"{moved_to}°")
