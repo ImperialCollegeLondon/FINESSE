@@ -13,6 +13,7 @@ from queue import Queue
 from PySide6.QtCore import QThread, QTimer, Signal, Slot
 from serial import Serial, SerialException, SerialTimeoutException
 
+from finesse.config import STEPPER_MOTOR_HOMING_TIMEOUT
 from finesse.hardware.plugins.stepper_motor.stepper_motor_base import StepperMotorBase
 from finesse.hardware.serial_device import SerialDevice
 
@@ -178,7 +179,7 @@ class ST10Controller(
 
         self._init_error_timer = QTimer()
         """A timer to raise an error if the motor takes too long to move."""
-        self._init_error_timer.setInterval(10000)  # 10 seconds
+        self._init_error_timer.setInterval(round(STEPPER_MOTOR_HOMING_TIMEOUT * 1000))
         self._init_error_timer.setSingleShot(True)
         self._init_error_timer.timeout.connect(
             lambda: self.send_error_message(
