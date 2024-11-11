@@ -18,7 +18,7 @@ from PySide6.QtWidgets import (
 from finesse.config import DEFAULT_SCRIPT_PATH
 from finesse.gui.error_message import show_error_message
 from finesse.gui.measure_script.count_widget import CountWidget
-from finesse.gui.measure_script.script import Script
+from finesse.gui.measure_script.script import CURRENT_SCRIPT_VERSION, Script
 from finesse.gui.measure_script.sequence_widget import SequenceWidget
 from finesse.gui.path_widget import SaveFileWidget
 
@@ -97,6 +97,7 @@ class ScriptEditDialog(QDialog):
         logging.info(f"Saving file to {file_path}")
 
         script = {
+            "version": CURRENT_SCRIPT_VERSION,
             "repeats": self.count.value(),
             "sequence": [asdict(seq) for seq in self.sequence_widget.sequence],
         }
