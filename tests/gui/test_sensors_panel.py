@@ -1,6 +1,6 @@
 """Tests for the SensorsPanel."""
 
-from unittest.mock import Mock, call, patch
+from unittest.mock import call, patch
 
 from PySide6.QtWidgets import QLabel, QLineEdit
 
@@ -69,8 +69,6 @@ def test_on_readings_received() -> None:
 
     # Check LED flashes
     with patch.object(panel, "_poll_light") as poll_light_mock:
-        poll_light_mock.flash = Mock()
-
         panel._on_readings_received(readings)
         poll_light_mock.flash.assert_called_once()
 
