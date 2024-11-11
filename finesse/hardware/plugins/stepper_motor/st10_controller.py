@@ -246,7 +246,7 @@ class ST10Controller(
         if self._read_sync() != self.ST10_MODEL_ID:
             raise ST10ControllerError("Device ID indicates this is not an ST10")
 
-    def _get_input_status(self, index: int) -> bool:
+    def _get_input_status(self, input: int) -> bool:
         """Read the status of the device's inputs.
 
         The inputs to the controller are boolean values, which include digital inputs,
@@ -254,13 +254,19 @@ class ST10Controller(
         the manual.
 
         Args:
-            index: Which boolean value in the input status array to check
+            input: Which input to retrieve value for
         """
+        if input <= 0:
+            raise ValueError("index must be greater than 0")
+
         input_status = self._request_value("IS")
 
         # The inputs are represented as ASCII zeroes and ones. The lowest input's value
         # is on the right.
-        return input_status[-index] == "1"
+        try:
+            return input_status[-input] == "1"
+        except IndexError:
+            raise ValueError(f"index exceeded number of inputs ({len(input_status)})")
 
     @property
     def steps_per_rotation(self) -> int:

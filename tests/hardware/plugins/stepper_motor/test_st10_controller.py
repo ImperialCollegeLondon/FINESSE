@@ -266,20 +266,29 @@ _ALL_BITS = 0b101
 
 
 @pytest.mark.parametrize(
-    "all_bits,index,expected",
+    "all_bits,input,expected",
     ((_ALL_BITS, i, ((1 << (3 - i)) & _ALL_BITS != 0)) for i in range(1, 4)),
 )
 def test_get_input_status(
     dev: ST10Controller,
     all_bits: int,
-    index: int,
+    input: int,
     expected: bool,
 ) -> None:
     """Test the _get_input_status() method."""
     with patch.object(dev, "_request_value") as request_mock:
         request_mock.return_value = f"{all_bits:3b}"
-        assert dev._get_input_status(index) == expected
+        assert dev._get_input_status(input) == expected
         request_mock.assert_called_once_with("IS")
+
+
+@pytest.mark.parametrize("input", (-1, 0, 4, 10))
+def test_get_input_status_bad(dev: ST10Controller, input: int):
+    """Test the _get_input_status() method fails for an out-of-range input."""
+    with patch.object(dev, "_request_value") as request_mock:
+        request_mock.return_value = f"{_ALL_BITS:3b}"
+        with pytest.raises(ValueError):
+            dev._get_input_status(input)
 
 
 def test_steps_per_rotation(dev: ST10Controller) -> None:
