@@ -73,6 +73,9 @@ DEFAULT_HTTP_TIMEOUT = 10.0
 STEPPER_MOTOR_TOPIC = "stepper_motor"
 """The topic name to use for stepper motor-related messages."""
 
+STEPPER_MOTOR_HOMING_TIMEOUT = 10.0
+"""The number of seconds to wait for the motor to home."""
+
 TEMPERATURE_MONITOR_TOPIC = "temperature_monitor"
 """The topic name to use for temperature monitor-related messages."""
 

@@ -32,9 +32,6 @@ class _MockStepperMotor(StepperMotorBase, description="Mock stepper motor"):
     def stop_moving(self) -> None:
         pass
 
-    def wait_until_stopped(self, timeout: float | None = None) -> None:
-        pass
-
     def notify_on_stopped(self) -> None:
         pass
 

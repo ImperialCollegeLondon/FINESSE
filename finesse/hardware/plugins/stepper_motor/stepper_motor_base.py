@@ -63,14 +63,6 @@ class StepperMotorBase(Device, name=STEPPER_MOTOR_TOPIC, description="Stepper mo
         """Immediately stop moving the motor."""
 
     @abstractmethod
-    def wait_until_stopped(self, timeout: float | None = None) -> None:
-        """Wait until the motor has stopped moving.
-
-        Args:
-            timeout: Time to wait for motor to finish moving (None == forever)
-        """
-
-    @abstractmethod
     def notify_on_stopped(self) -> None:
         """Wait until the motor has stopped moving and send a message when done.
 

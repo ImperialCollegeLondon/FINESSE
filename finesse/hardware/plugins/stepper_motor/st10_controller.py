@@ -10,9 +10,10 @@ The specification is available online:
 import logging
 from queue import Queue
 
-from PySide6.QtCore import QThread, Signal, Slot
+from PySide6.QtCore import QThread, QTimer, Signal, Slot
 from serial import Serial, SerialException, SerialTimeoutException
 
+from finesse.config import STEPPER_MOTOR_HOMING_TIMEOUT
 from finesse.hardware.plugins.stepper_motor.stepper_motor_base import StepperMotorBase
 from finesse.hardware.serial_device import SerialDevice
 
@@ -37,8 +38,8 @@ class _SerialReader(QThread):
     The one exception is the send string command ("SS"), which, in addition to eliciting
     an immediate ack (or nack) response, also leads to another response being sent when
     the motor has finished moving. Note that while the motor is moving, other commands
-    can be sent and even processed, e.g. you can request the motor's current position
-    while it is moving.
+    can be sent and even processed, e.g. you can request that another move happens after
+    the first is complete.
 
     All of the reading we do from the device goes via this class, as conceivably the
     magic send string response could be sent at any point after the send string command
@@ -67,11 +68,6 @@ class _SerialReader(QThread):
         self.sync_timeout = sync_timeout
         self.out_queue: Queue[str | BaseException] = Queue()
         self.stopping = False
-
-    def __del__(self) -> None:
-        """Wait for the thread to stop on exit."""
-        self.quit()
-        self.wait()
 
     def quit(self) -> None:
         """Flag that the thread is stopping so we can ignore exceptions."""
@@ -133,17 +129,10 @@ class _SerialReader(QThread):
         while self._process_read():
             pass
 
-    def read_sync(self, timeout: float | None = None) -> str:
-        """Read synchronously from the serial device.
-
-        Args:
-            timeout: Amount of time to wait for a response (None==default)
-        """
-        if timeout is None:
-            timeout = self.sync_timeout
-
+    def read_sync(self) -> str:
+        """Read synchronously from the serial device."""
         try:
-            response = self.out_queue.get(timeout=timeout)
+            response = self.out_queue.get(timeout=self.sync_timeout)
         except Exception:
             raise SerialTimeoutException()
 
@@ -153,7 +142,9 @@ class _SerialReader(QThread):
         return response
 
 
-class ST10Controller(SerialDevice, StepperMotorBase, description="ST10 controller"):
+class ST10Controller(
+    SerialDevice, StepperMotorBase, description="ST10 controller", async_open=True
+):
     """An interface for the ST10-Q-NN stepper motor controller.
 
     This class allows for moving the mirror to arbitrary positions and retrieving its
@@ -182,9 +173,19 @@ class ST10Controller(SerialDevice, StepperMotorBase, description="ST10 controlle
         SerialDevice.__init__(self, port, baudrate)
 
         self._reader = _SerialReader(self.serial, timeout)
-        self._reader.async_read_completed.connect(self._send_move_end_message)
+        self._reader.async_read_completed.connect(self._on_initial_move_end)
         self._reader.read_error.connect(self.send_error_message)
         self._reader.start()
+
+        self._init_error_timer = QTimer()
+        """A timer to raise an error if the motor takes too long to move."""
+        self._init_error_timer.setInterval(round(STEPPER_MOTOR_HOMING_TIMEOUT * 1000))
+        self._init_error_timer.setSingleShot(True)
+        self._init_error_timer.timeout.connect(
+            lambda: self.send_error_message(
+                RuntimeError("Timed out waiting for motor to move")
+            )
+        )
 
         # Check that we are connecting to an ST10
         self._check_device_id()
@@ -201,9 +202,6 @@ class ST10Controller(SerialDevice, StepperMotorBase, description="ST10 controlle
         """
         StepperMotorBase.close(self)
 
-        # Set flag that indicates the thread should quit
-        self._reader.quit()
-
         if not self.serial.is_open:
             return
 
@@ -213,9 +211,24 @@ class ST10Controller(SerialDevice, StepperMotorBase, description="ST10 controlle
         except Exception as e:
             logging.error(f"Failed to reset mirror to downward position: {e}")
 
+        # Set flag that indicates the thread should quit
+        self._reader.quit()
+
         # If _reader is blocking on a read (which is likely), we could end up waiting
         # forever, so close the socket so that the read operation will terminate
         SerialDevice.close(self)
+
+    def _on_initial_move_end(self) -> None:
+        """Perform setup after motor's initial move has completed successfully."""
+        # Move completed within time allotted
+        self._init_error_timer.stop()
+
+        # For future move end messages, use a different handler
+        self._reader.async_read_completed.disconnect(self._on_initial_move_end)
+        self._reader.async_read_completed.connect(self._send_move_end_message)
+
+        # Signal that this device is ready to be used
+        self.signal_is_opened()
 
     @Slot()
     def _send_move_end_message(self) -> None:
@@ -234,18 +247,27 @@ class ST10Controller(SerialDevice, StepperMotorBase, description="ST10 controlle
         if self._read_sync() != self.ST10_MODEL_ID:
             raise ST10ControllerError("Device ID indicates this is not an ST10")
 
-    def _get_input_status(self, index: int) -> bool:
+    def _get_input_status(self, input: int) -> bool:
         """Read the status of the device's inputs.
 
-        The inputs to the controller are boolean values represented as a series of zeros
-        (==closed) and ones (==open). They include digital inputs, as well as other
-        properties like alarm status. The exact meaning seems to vary between boards.
+        The inputs to the controller are boolean values, which include digital inputs,
+        as well as other properties like alarm status. For a list of input values, see
+        the manual.
 
         Args:
-            index: Which boolean value in the input status array to check
+            input: Which input to retrieve value for
         """
+        if input <= 0:
+            raise ValueError("index must be greater than 0")
+
         input_status = self._request_value("IS")
-        return input_status[index] == "1"
+
+        # The inputs are represented as ASCII zeroes and ones. The lowest input's value
+        # is on the right.
+        try:
+            return input_status[-input] == "1"
+        except IndexError:
+            raise ValueError(f"index exceeded number of inputs ({len(input_status)})")
 
     @property
     def steps_per_rotation(self) -> int:
@@ -263,10 +285,8 @@ class ST10Controller(SerialDevice, StepperMotorBase, description="ST10 controlle
         # In case the motor is still moving, stop it now
         self.stop_moving()
 
-        # If the third (boolean) value of the input status array is set, then move the
-        # motor first. I don't know what the input status actually means, but this is
-        # how it was done in the old program, so I'm copying it here.
-        if self._get_input_status(3):
+        # If the homing switch is already active, move the motor a bit
+        if self._get_input_status(6):
             self._relative_move(-5000)
 
         # Home the motor, leaving mirror facing upwards. The command means "seek home
@@ -279,10 +299,13 @@ class ST10Controller(SerialDevice, StepperMotorBase, description="ST10 controlle
         # Tell the controller that this is step 0 ("set variable SP to 0")
         self._write_check("SP0")
 
-        # Make sure the motor has stopped. Note that the move commands are not run
-        # synchronously, so this time is the time taken for all of these commands to
-        # finish.
-        self.wait_until_stopped(10.0)
+        # Use a timer to show an error if the motor doesn't finish moving within the
+        # given timeframe. (Note that the move commands are not run synchronously, so
+        # this time is the time taken for all of these commands to finish.)
+        self._init_error_timer.start()
+
+        # Receive a notification when motor has finished moving
+        self.notify_on_stopped()
 
     def _relative_move(self, steps: int) -> None:
         """Move the stepper motor to the specified relative position.
@@ -363,18 +386,14 @@ class ST10Controller(SerialDevice, StepperMotorBase, description="ST10 controlle
         # "Send string"
         self._write_check(f"SS{string}")
 
-    def _read_sync(self, timeout: float | None = None) -> str:
+    def _read_sync(self) -> str:
         """Read the next message from the device synchronously.
-
-        Args:
-            timeout: Amount of time to wait for a response (None==default)
 
         Raises:
             SerialException: Error communicating with device
-            SerialTimeoutException: Timed out waiting for response from device
             ST10ControllerError: Malformed message received from device
         """
-        return self._reader.read_sync(timeout)
+        return self._reader.read_sync()
 
     def _write(self, message: str) -> None:
         """Send the specified message to the device.
@@ -463,24 +482,6 @@ class ST10Controller(SerialDevice, StepperMotorBase, description="ST10 controlle
     def stop_moving(self) -> None:
         """Immediately stop moving the motor."""
         self._write_check("ST")
-
-    def wait_until_stopped(self, timeout: float | None = None) -> None:
-        """Wait until the motor has stopped moving.
-
-        Args:
-            timeout: Time to wait for motor to finish moving (None == forever)
-
-        Raises:
-            SerialException: Error communicating with device
-            SerialTimeoutException: Timed out waiting for motor to finish moving
-            ST10ControllerError: Malformed message received from device
-        """
-        # Tell device to send "X" when current operations are complete
-        self._send_string("X")
-
-        # Wait for expected response
-        if self._read_sync(timeout) != "X":
-            raise ST10ControllerError("Invalid response received when waiting for X")
 
     def notify_on_stopped(self) -> None:
         """Wait until the motor has stopped moving and send a message when done."""
