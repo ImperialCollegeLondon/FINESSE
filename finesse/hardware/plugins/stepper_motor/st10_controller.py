@@ -260,7 +260,7 @@ class ST10Controller(
 
         # The inputs are represented as ASCII zeroes and ones. The lowest input's value
         # is on the right.
-        return input_status[-1 - index] == "1"
+        return input_status[-index] == "1"
 
     @property
     def steps_per_rotation(self) -> int:
