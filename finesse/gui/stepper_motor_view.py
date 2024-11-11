@@ -80,11 +80,9 @@ class StepperMotorControl(DevicePanel):
     def _update_mirror_position_display(self, moved_to: float) -> None:
         """Display the angle the mirror has moved to.
 
-        If angle corresponds to a preset, show the associated name, otherwise just show
-        the value.
+        If angle corresponds to a preset, show the associated name as well as the value.
         """
-        preset = next((k for k, v in ANGLE_PRESETS.items() if v == moved_to), None)
-        if preset:
-            self.mirror_position_display.setText(preset.upper())
-        else:
-            self.mirror_position_display.setText(f"{moved_to}°")
+        text = f"{moved_to}°"
+        if preset := next((k for k, v in ANGLE_PRESETS.items() if v == moved_to), None):
+            text += f" ({preset})"
+        self.mirror_position_display.setText(text)
