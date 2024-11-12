@@ -70,8 +70,8 @@ def parse_data(data: bytes) -> tuple[list[Decimal], str]:
     except UnicodeDecodeError as e:
         raise DP9800Error(e)
 
-    vals_begin = 3  # Following STX T SP
-    vals_end = 74  # Following STX T (SP %4.2f)*9, assuming 9 vals
+    vals_begin = 2  # Following STX T
+    vals_end = 74  # Following STX T (%8.2f)*9, assuming 9 vals
     etx_index = data.find(b"\x03")
 
     vals = [Decimal(val) for val in data_ascii[vals_begin:vals_end].split()]
@@ -137,14 +137,13 @@ class DP9800(SerialDevice, TemperatureMonitorBase, description="DP9800"):
         The DP9800 returns a sequence of bytes containing the
         temperatures measured on each channel, in the format
 
-          STX T SP t1 SP t2 SP t3 SP t4 SP t5 SP t6 SP t7 SP t8 SP t9 ff ETX BCC NUL
+          STX T t1 t2 t3 t4 t5 t6 t7 t8 t9 ff ETX BCC NUL
 
         where
-            t1, t2, ..., t9: temperature values in the format %4.2f
+            t1, t2, ..., t9: temperature values in the format %8.2f
             STX: Start of Text (ASCII 2)
             ETX: End of Text (ASCII 3)
             NUL: Null character (ASCII 0)
-            SP: Space (ASCII 32)
             BCC: Block Check Character
             ff: System flag in hexadecimal
 
