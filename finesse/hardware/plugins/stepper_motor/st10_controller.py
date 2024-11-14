@@ -10,7 +10,7 @@ The specification is available online:
 import logging
 from queue import Queue
 
-from PySide6.QtCore import QThread, QTimer, Signal, Slot
+from PySide6.QtCore import QThread, QTimer, Signal
 from serial import Serial, SerialException, SerialTimeoutException
 
 from finesse.config import STEPPER_MOTOR_HOMING_TIMEOUT
@@ -225,14 +225,10 @@ class ST10Controller(
 
         # For future move end messages, use a different handler
         self._reader.async_read_completed.disconnect(self._on_initial_move_end)
-        self._reader.async_read_completed.connect(self._send_move_end_message)
+        self._reader.async_read_completed.connect(self.send_move_end_message)
 
         # Signal that this device is ready to be used
         self.signal_is_opened()
-
-    @Slot()
-    def _send_move_end_message(self) -> None:
-        self.send_message("move.end")
 
     def _check_device_id(self) -> None:
         """Check that the ID is the correct one for an ST10.

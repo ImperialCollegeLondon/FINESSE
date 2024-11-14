@@ -103,3 +103,7 @@ class StepperMotorBase(Device, name=STEPPER_MOTOR_TOPIC, description="Stepper mo
             raise ValueError("Angle must be between 0° and 270°")
 
         self.step = round(self.steps_per_rotation * target / 360.0)
+
+    def send_move_end_message(self) -> None:
+        """Send a message containing the angle moved to, once move ends."""
+        self.send_message("move.end", moved_to=self.angle)
