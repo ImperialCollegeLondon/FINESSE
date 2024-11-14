@@ -33,7 +33,7 @@ This software is currently being adapted as part of a second project to deploy a
 modified version of the equipment on the UK’s [Facility for Airborne Atmospheric
 Measurements] aircraft.
 
-[Space and Atmospheric Physics group]: https://www.imperial.ac.uk/physics/research/themes/space-plasma-and-climate/
+[Space and Atmospheric Physics group]: https://www.imperial.ac.uk/physics/research/communities/space-plasma-climate/
 [FORUM]: https://www.esa.int/Applications/Observing_the_Earth/FutureEO/FORUM
 [PREFIRE]: https://science.nasa.gov/mission/prefire/
 [RSE team]: https://www.imperial.ac.uk/admin-services/ict/self-service/research-support/rcs/service-offering/research-software-engineering/
