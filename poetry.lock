@@ -367,13 +367,13 @@ toml = ["tomli"]
 
 [[package]]
 name = "crc"
-version = "7.0.0"
-description = "Library and CLI to calculate and verify all kinds of CRC checksums"
+version = "7.1.0"
+description = "Pure Python CRC library"
 optional = false
 python-versions = "<4.0,>=3.8"
 files = [
-    {file = "crc-7.0.0-py3-none-any.whl", hash = "sha256:8b22f5534e9360bf61e169ce581d61143d3d0248a1fdc2c4b4f2175af3b2c2aa"},
-    {file = "crc-7.0.0.tar.gz", hash = "sha256:b9fc521042167f2b59d9183ce27acc0897e4a17748421e8b304ccdf7ebf4280a"},
+    {file = "crc-7.1.0-py3-none-any.whl", hash = "sha256:b9845c81d0b900d8fda1aae7af977035bee0359c279713814e9fd23a2d59db6a"},
+    {file = "crc-7.1.0.tar.gz", hash = "sha256:99dd540909a37ae4f62c65441df8ecb4e7f9af014fecaf4f331052a41d66c07d"},
 ]
 
 [[package]]
@@ -2283,4 +2283,4 @@ watchmedo = ["PyYAML (>=3.10)"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.12,<3.13"
-content-hash = "8e91b9b2970b04acc94f2992b0a3b89b01d1e99eb6821fd6ce6743d621ed0c32"
+content-hash = "7205c0d359359aad17e1f00e78e2dc039fd7c4cd58737bfd83c623ef1b1e7f72"
