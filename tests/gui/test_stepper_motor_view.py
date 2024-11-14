@@ -86,4 +86,4 @@ def test_update_mirror_position_display(qtbot: QtBot) -> None:
     assert control.mirror_position_display.text() == "180.0\u00b0 (zenith)"
 
     control._update_mirror_position_display(moved_to=12.34)
-    assert control.mirror_position_display.text() == "12.34" + "\u00b0"
+    assert control.mirror_position_display.text() == "12.34\u00b0"
