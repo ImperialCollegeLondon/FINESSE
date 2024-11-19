@@ -16,7 +16,6 @@ which the planet radiatively cools to space and is a critical variable in climat
 models. However, to date, most measurements of surface emissivity have been made in the
 mid-infrared. The FINESSE project is novel in employing a ground-based system capable of
 extending these datasets into the far-infrared. The system is tuned in particular for
-
 targeting ice and snow, as the response of the climate to global warming is observed to
 be most rapid in Arctic regions. Far-infrared emissivity data provided by FINESSE will
 inform climate modelling studies seeking to better understand this rapid change. They
