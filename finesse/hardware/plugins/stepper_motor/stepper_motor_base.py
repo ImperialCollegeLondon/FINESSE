@@ -18,7 +18,6 @@ class StepperMotorBase(Device, name=STEPPER_MOTOR_TOPIC, description="Stepper mo
 
         self.subscribe(self.move_to, "move.begin")
         self.subscribe(self.stop_moving, "stop")
-        self.subscribe(self.notify_on_stopped, "notify_on_stopped")
 
     @staticmethod
     def preset_angle(name: str) -> float:
@@ -61,13 +60,6 @@ class StepperMotorBase(Device, name=STEPPER_MOTOR_TOPIC, description="Stepper mo
     @abstractmethod
     def stop_moving(self) -> None:
         """Immediately stop moving the motor."""
-
-    @abstractmethod
-    def notify_on_stopped(self) -> None:
-        """Wait until the motor has stopped moving and send a message when done.
-
-        The message is stepper.move.end.
-        """
 
     @property
     @abstractmethod
