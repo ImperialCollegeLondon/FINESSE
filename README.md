@@ -24,14 +24,15 @@ will also help to validate emissivity retrievals from upcoming satellite instrum
 focusing on the far-infrared which will be deployed by ESA ([FORUM]) and NASA
 ([PREFIRE]).
 
-This software is currently being adapted as part of a second project to deploy a
-modified version of the equipment on the UK’s [Facility for Airborne Atmospheric
-Measurements] aircraft.
+This software is currently being adapted as part of a second project &ndash; [UNIRAS]
+&ndash; to deploy a modified version of the equipment on the UK’s [Facility for Airborne
+Atmospheric Measurements] aircraft.
 
 [Space and Atmospheric Physics group]: https://www.imperial.ac.uk/physics/research/communities/space-plasma-climate/
 [PySide6 Qt bindings]: https://pypi.org/project/PySide6/
 [FORUM]: https://www.esa.int/Applications/Observing_the_Earth/FutureEO/FORUM
 [PREFIRE]: https://science.nasa.gov/mission/prefire/
+[UNIRAS]: https://www.imperial.ac.uk/space-and-atmospheric-physics/research/missions-and-projects/atmospheric-missions/uniras/
 [Facility for Airborne Atmospheric Measurements]: https://www.faam.ac.uk/
 
 ## For developers
