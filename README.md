@@ -8,8 +8,9 @@
 
 # FINESSE
 
-FINESSE is open-source graphical software to control a spectrometer system developed at
-Imperial College London's [Space and Atmospheric Physics group].
+FINESSE is software for controlling a spectrometer system developed by Imperial College
+London's [Space and Atmospheric Physics group], written in Python and with a graphical
+interface using the [PySide6 Qt bindings].
 
 Emissivity of the Earth's different surface types helps determine the efficiency with
 which the planet radiatively cools to space and is a critical variable in climate
@@ -23,22 +24,14 @@ will also help to validate emissivity retrievals from upcoming satellite instrum
 focusing on the far-infrared which will be deployed by ESA ([FORUM]) and NASA
 ([PREFIRE]).
 
-The software was developed by Imperial's [RSE team]. It is written in Python and uses
-the [PySide6 Qt bindings] for the GUI components. It provides a convenient interface for
-controlling the various hardware components and viewing data produced, including a
-[Bruker EM27 spectrometer], a stepper motor for controlling the mirror, two temperature
-controllers and a separate temperature monitoring array.
-
 This software is currently being adapted as part of a second project to deploy a
 modified version of the equipment on the UK’s [Facility for Airborne Atmospheric
 Measurements] aircraft.
 
 [Space and Atmospheric Physics group]: https://www.imperial.ac.uk/physics/research/communities/space-plasma-climate/
+[PySide6 Qt bindings]: https://pypi.org/project/PySide6/
 [FORUM]: https://www.esa.int/Applications/Observing_the_Earth/FutureEO/FORUM
 [PREFIRE]: https://science.nasa.gov/mission/prefire/
-[RSE team]: https://www.imperial.ac.uk/admin-services/ict/self-service/research-support/rcs/service-offering/research-software-engineering/
-[PySide6 Qt bindings]: https://pypi.org/project/PySide6/
-[Bruker EM27 spectrometer]: https://www.bruker.com/en/products-and-solutions/infrared-and-raman/remote-sensing/em27-open-path-spectrometer.html
 [Facility for Airborne Atmospheric Measurements]: https://www.faam.ac.uk/
 
 ## For developers
