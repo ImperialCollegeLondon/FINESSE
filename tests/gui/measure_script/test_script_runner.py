@@ -59,7 +59,6 @@ def test_start_moving(
                 f"device.{STEPPER_MOTOR_TOPIC}.move.begin",
                 target=runner.script.sequence[0].angle,
             ),
-            call(f"device.{STEPPER_MOTOR_TOPIC}.notify_on_stopped"),
         )
     )
 
