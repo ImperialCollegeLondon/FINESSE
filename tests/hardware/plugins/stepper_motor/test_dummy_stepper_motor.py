@@ -22,7 +22,6 @@ def test_init(qtbot) -> None:
     stepper = DummyStepperMotor(360, 1.0)
     assert stepper._move_end_timer.interval() == 1000
     assert stepper._move_end_timer.isSingleShot()
-    assert not stepper._notify_requested
     assert stepper._step == 0
 
 
@@ -115,37 +114,14 @@ def test_stop_moving(stepper: DummyStepperMotor, qtbot) -> None:
             move_end_mock.assert_called_once()
 
 
-def test_notify_on_stopped(stepper: DummyStepperMotor, qtbot) -> None:
-    """Test the notify_on_stopped() method."""
-    assert not stepper._notify_requested
-    stepper.notify_on_stopped()
-    assert stepper._notify_requested
-
-
-def test_on_move_end_notify(
+def test_on_move_end(
     stepper: DummyStepperMotor, sendmsg_mock: MagicMock, qtbot
 ) -> None:
     """Test the _on_move_end() method when notification is requested."""
-    stepper.notify_on_stopped()
-    assert stepper._notify_requested
-
     # Trigger move end timer
     stepper._move_end_timer.timeout.emit()
 
-    assert not stepper._notify_requested
+    # Check message is sent with final angle moved to
     sendmsg_mock.assert_called_once_with(
         f"device.{STEPPER_MOTOR_TOPIC}.move.end", moved_to=stepper.angle
     )
-
-
-def test_on_move_end_no_notify(
-    stepper: DummyStepperMotor, sendmsg_mock: MagicMock, qtbot
-) -> None:
-    """Test the _on_move_end() method when notification is not requested."""
-    assert not stepper._notify_requested
-
-    # Trigger move end timer
-    stepper._move_end_timer.timeout.emit()
-
-    assert not stepper._notify_requested
-    sendmsg_mock.assert_not_called()

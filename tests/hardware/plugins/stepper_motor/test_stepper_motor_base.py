@@ -32,9 +32,6 @@ class _MockStepperMotor(StepperMotorBase, description="Mock stepper motor"):
     def stop_moving(self) -> None:
         pass
 
-    def notify_on_stopped(self) -> None:
-        pass
-
 
 @pytest.fixture
 def stepper(subscribe_mock: MagicMock) -> StepperMotorBase:
@@ -46,13 +43,12 @@ def test_init() -> None:
     """Test that StepperMotorBase's constructor subscribes to the right messages."""
     with patch.object(_MockStepperMotor, "subscribe") as subscribe_mock:
         stepper = _MockStepperMotor()
-        assert subscribe_mock.call_count == 3
+        assert subscribe_mock.call_count == 2
         subscribe_mock.assert_any_call(
             stepper.move_to,
             "move.begin",
         )
         subscribe_mock.assert_any_call(stepper.stop_moving, "stop")
-        subscribe_mock.assert_any_call(stepper.notify_on_stopped, "notify_on_stopped")
 
 
 def test_angle(stepper: _MockStepperMotor) -> None:
