@@ -413,21 +413,3 @@ def test_stop_moving(dev: ST10Controller) -> None:
     with patch.object(dev, "_write_check") as write_mock:
         dev.stop_moving()
         write_mock.assert_called_once_with("ST")
-
-
-def test_notify_on_stopped(dev: ST10Controller) -> None:
-    """Test the notify_on_stopped() method."""
-    pass
-
-
-#    dev.serial.read_until.return_value = b"Z\r"
-
-#        dev.notify_on_stopped()
-
-# As the _SerialReader is not actually running on a separate thread, we have to
-# explicitly trigger a read here
-#    assert dev._reader._process_read()
-
-# Check that the signal was triggered
-#    signal = cast(MagicMock, dev._reader.async_read_completed)
-#    signal.emit.assert_called_once()
