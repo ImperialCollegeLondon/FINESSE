@@ -317,9 +317,6 @@ class ScriptRunner(StateMachine):
             target=self.current_measurement.angle,
         )
 
-        # Flag that we want a message when the movement has stopped
-        pub.sendMessage(f"device.{STEPPER_MOTOR_TOPIC}.notify_on_stopped")
-
     def on_exit_measuring(self) -> None:
         """Unsubscribe from pubsub topics."""
         pub.unsubscribe(

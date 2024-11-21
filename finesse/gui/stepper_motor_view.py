@@ -69,7 +69,6 @@ class StepperMotorControl(DevicePanel):
         # If the motor is already moving, stop it now
         pub.sendMessage(f"device.{STEPPER_MOTOR_TOPIC}.stop")
 
-        pub.sendMessage(f"device.{STEPPER_MOTOR_TOPIC}.notify_on_stopped")
         target = float(self.angle.value()) if btn is self.goto else btn.text().lower()
         pub.sendMessage(f"device.{STEPPER_MOTOR_TOPIC}.move.begin", target=target)
 

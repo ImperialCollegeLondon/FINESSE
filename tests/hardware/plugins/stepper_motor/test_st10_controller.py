@@ -305,17 +305,19 @@ def test_steps_per_rotation(dev: ST10Controller) -> None:
 @pytest.mark.parametrize("in_position", (True, False))
 def test_home_and_reset(dev: ST10Controller, in_position: bool) -> None:
     """Test the _home_and_reset() method."""
-    with patch.object(dev, "stop_moving") as stop_mock:
-        with patch.object(dev, "_relative_move"):
-            with patch.object(dev, "_write_check"):
-                with patch.object(dev, "_init_error_timer") as timer_mock:
-                    with patch.object(dev, "_get_input_status") as status_mock:
-                        # Let's not bother checking everything as we can't ensure the
-                        # sequence is correct in any case
-                        status_mock.return_value = in_position
-                        dev._home_and_reset()
-                        stop_mock.assert_called_once_with()
-                        timer_mock.start.assert_called_once_with()
+    with patch.object(dev, "_send_string") as ss_mock:
+        with patch.object(dev, "stop_moving") as stop_mock:
+            with patch.object(dev, "_relative_move"):
+                with patch.object(dev, "_write_check"):
+                    with patch.object(dev, "_init_error_timer") as timer_mock:
+                        with patch.object(dev, "_get_input_status") as status_mock:
+                            # Let's not bother checking everything as we can't ensure
+                            # the sequence is correct in any case
+                            status_mock.return_value = in_position
+                            dev._home_and_reset()
+                            stop_mock.assert_called_once_with()
+                            timer_mock.start.assert_called_once_with()
+                            ss_mock.assert_called_once_with("Z")
 
 
 @pytest.mark.parametrize("steps", range(0, 40, 7))
@@ -411,20 +413,3 @@ def test_stop_moving(dev: ST10Controller) -> None:
     with patch.object(dev, "_write_check") as write_mock:
         dev.stop_moving()
         write_mock.assert_called_once_with("ST")
-
-
-def test_notify_on_stopped(dev: ST10Controller) -> None:
-    """Test the notify_on_stopped() method."""
-    dev.serial.read_until.return_value = b"Z\r"
-
-    with patch.object(dev, "_send_string") as ss_mock:
-        dev.notify_on_stopped()
-        ss_mock.assert_called_once_with("Z")
-
-    # As the _SerialReader is not actually running on a separate thread, we have to
-    # explicitly trigger a read here
-    assert dev._reader._process_read()
-
-    # Check that the signal was triggered
-    signal = cast(MagicMock, dev._reader.async_read_completed)
-    signal.emit.assert_called_once()
