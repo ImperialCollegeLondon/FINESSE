@@ -71,6 +71,7 @@ class OPUSInterface(
             "This is rate limited to around one request every two seconds by OPUS."
         ),
     },
+    async_open=True,
 ):
     """Interface for communicating with the OPUS program.
 
@@ -122,6 +123,10 @@ class OPUSInterface(
 
         # If the status has changed, notify listeners
         if new_status != self._status:
+            # On first update, we need to signal that the device is now open
+            if self._status == SpectrometerStatus.UNDEFINED:
+                self.signal_is_opened()
+
             self._status = new_status
             self.send_status_message(new_status)
 
