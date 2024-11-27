@@ -98,7 +98,7 @@ def test_try_save(
 
 
 def test_save_load_roundtrip(dlg: ScriptEditDialog, tmp_path: Path) -> None:
-    """Test the _try_save() method."""
+    """Test the _try_save() and try_load() methods in tandem."""
     path = tmp_path / "test_script.yaml"
     with patch.object(dlg.script_path, "try_get_path") as path_mock:
         path_mock.return_value = path
