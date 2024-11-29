@@ -9,7 +9,7 @@ from serial import SerialException
 from finesse.hardware.serial_device import (
     SerialDevice,
     _create_serial,
-    _get_port_number,
+    _get_port_parts,
     _get_usb_serial_ports,
     _port_info_to_str,
 )
@@ -57,23 +57,14 @@ def test_get_usb_serial_ports(
         }
 
 
-@pytest.mark.parametrize(
-    "port,number",
-    (
-        (f"{prefix}{number}", number)
-        for number in (1, 2, 10)
-        for prefix in ("COM", "/dev/ttyUSB")
-    ),
-)
-def test_get_port_number(port: str, number: int) -> None:
-    """Test _get_port_number()."""
-    assert _get_port_number(port) == number
-
-
-def test_get_port_number_bad() -> None:
-    """Test _get_port_number() when a bad value is provided."""
-    with pytest.raises(ValueError):
-        _get_port_number("NO_NUMBER")
+def test_get_port_parts() -> None:
+    """Test _get_port_parts()."""
+    for prefix in ("COM", "/dev/ttyUSB"):
+        assert _get_port_parts(f"{prefix}1") < _get_port_parts(f"{prefix}2")
+        assert _get_port_parts(f"{prefix}1") < _get_port_parts(f"{prefix}10")
+    assert _get_port_parts("A1") < _get_port_parts("B1")
+    assert _get_port_parts("A") < _get_port_parts("A0")
+    assert _get_port_parts("A") < _get_port_parts("B")
 
 
 @pytest.mark.parametrize("refresh", (False, True))
