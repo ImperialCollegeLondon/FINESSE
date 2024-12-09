@@ -175,7 +175,7 @@ class DataFileWriter:
             (
                 time.strftime("%Y%m%d"),
                 time.strftime("%H:%M:%S"),
-                *temperatures,
+                *(round(t, config.TEMPERATURE_PRECISION) for t in temperatures),
                 secs_since_midnight,
                 angle,
                 int(is_moving),
