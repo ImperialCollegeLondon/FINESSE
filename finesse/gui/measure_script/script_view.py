@@ -103,7 +103,7 @@ class ScriptControl(QGroupBox):
         self._data_file_recording = False
 
     def _create_btn_clicked(self) -> None:
-        self.edit_dialog = ScriptEditDialog(self.window())
+        self.edit_dialog = ScriptEditDialog()
         self.edit_dialog.show()
 
     def _edit_btn_clicked(self) -> None:
@@ -124,7 +124,7 @@ class ScriptControl(QGroupBox):
             return
 
         # Create new dialog showing contents of script
-        self.edit_dialog = ScriptEditDialog(self.window(), script)
+        self.edit_dialog = ScriptEditDialog(script)
         self.edit_dialog.show()
 
     def _check_data_file_recording(self) -> bool:
