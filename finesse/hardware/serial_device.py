@@ -28,13 +28,20 @@ def _port_info_to_str(vendor_id: int, product_id: int, count: int = 0) -> str:
     return out
 
 
-def _get_port_number(port: str) -> int:
-    """Get the port number from the end of a port's name."""
-    match = re.match("[^0-9]*([0-9]+)$", port)
-    if not match:
-        raise ValueError(f"Port {port} does not end with a number")
+def _get_port_parts(port: str) -> tuple[str, int]:
+    """Split the port name into the string prefix and the number suffix.
 
-    return int(match.group(1))
+    If there is no number at the end of the string, (port, -1) will be returned.
+    """
+    match = re.match("^([^0-9])*([0-9]*)$", port)
+
+    # NB: This should never fail as the regex should encompass all strings
+    assert match, "Invalid port name"
+
+    num_str = match.group(2)
+    num = int(num_str) if num_str else -1
+
+    return match.group(1), num
 
 
 def _get_usb_serial_ports(refresh: bool = False) -> dict[str, str]:
@@ -55,7 +62,7 @@ def _get_usb_serial_ports(refresh: bool = False) -> dict[str, str]:
     # additional number to distinguish them
     counter: dict[tuple[int, int], int] = {}
     _serial_ports = {}
-    for port in sorted(comports(), key=lambda port: _get_port_number(port.device)):
+    for port in sorted(comports(), key=lambda port: _get_port_parts(port.device)):
         # Vendor ID is a USB-specific field, so we can use this to check whether the
         # device is USB or not
         if port.vid is None:
