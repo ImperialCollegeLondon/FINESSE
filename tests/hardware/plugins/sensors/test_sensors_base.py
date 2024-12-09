@@ -16,37 +16,29 @@ def device(timer_mock: Mock) -> SensorsBase:
 
 
 class _MockSensorsDevice(SensorsBase, description="Mock sensors device"):
-    def __init__(self, poll_interval: float = float("nan"), start_polling=True):
+    def __init__(self, poll_interval: float = float("nan")):
         self.request_readings_mock = MagicMock()
-        super().__init__(poll_interval, start_polling)
+        super().__init__(poll_interval)
 
     def request_readings(self) -> None:
         self.request_readings_mock()
 
 
-@pytest.mark.parametrize("start_polling", (False, True))
 @patch("finesse.hardware.plugins.sensors.sensors_base.QTimer")
-def test_init(timer_mock: Mock, start_polling: bool) -> None:
+def test_init(timer_mock: Mock) -> None:
     """Test for the constructor."""
-    with patch.object(_MockSensorsDevice, "start_polling") as start_mock:
-        device = _MockSensorsDevice(1.0, start_polling)
-        assert device._poll_interval == 1.0
-        timer = cast(Mock, device._poll_timer)
-        timer.timeout.connect.assert_called_once_with(device.request_readings)
-
-        if start_polling:
-            start_mock.assert_called_once_with()
-        else:
-            start_mock.assert_not_called()
+    device = _MockSensorsDevice(1.0)
+    assert device._poll_interval == 1.0
+    timer = cast(Mock, device._poll_timer)
+    timer.timeout.connect.assert_called_once_with(device.request_readings)
 
 
 @patch("finesse.hardware.plugins.sensors.sensors_base.QTimer")
 def test_start_polling_oneshot(timer_mock: Mock) -> None:
     """Test the start_polling() method when polling is only done once."""
-    device = _MockSensorsDevice(start_polling=False)
+    device = _MockSensorsDevice()
 
     device.start_polling()
-    device.request_readings_mock.assert_called_once_with()
     timer = cast(Mock, device._poll_timer)
     timer.start.assert_not_called()
 
@@ -54,10 +46,9 @@ def test_start_polling_oneshot(timer_mock: Mock) -> None:
 @patch("finesse.hardware.plugins.sensors.sensors_base.QTimer")
 def test_start_polling_repeated(timer_mock: Mock) -> None:
     """Test the start_polling() method when polling is only done repeatedly."""
-    device = _MockSensorsDevice(1.0, start_polling=False)
+    device = _MockSensorsDevice(1.0)
 
     device.start_polling()
-    device.request_readings_mock.assert_called_once_with()
     timer = cast(Mock, device._poll_timer)
     timer.start.assert_called_once_with(1000)
 
@@ -68,7 +59,6 @@ def test_init_no_timer(timer_mock: Mock) -> None:
     device = _MockSensorsDevice()
     timer = cast(Mock, device._poll_timer)
     timer.start.assert_not_called()
-    device.request_readings_mock.assert_called_once_with()
 
 
 def test_send_readings_message(device: SensorsBase) -> None:
