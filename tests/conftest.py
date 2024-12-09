@@ -6,12 +6,12 @@ from unittest.mock import MagicMock
 import pytest
 from pubsub import pub
 
-from finesse.hardware.serial_device import SerialDevice
-
 
 @pytest.fixture
 def serial_mock(monkeypatch) -> MagicMock:
     """Fixture for Serial's constructor."""
+    from finesse.hardware.serial_device import SerialDevice
+
     mock = MagicMock()
 
     def new_init(self, *args, **kwargs):

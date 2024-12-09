@@ -97,6 +97,18 @@ def test_try_save(
                     errmsg_mock.assert_called_once()
 
 
+def test_save_load_roundtrip(dlg: ScriptEditDialog, tmp_path: Path) -> None:
+    """Test the _try_save() and try_load() methods in tandem."""
+    path = tmp_path / "test_script.yaml"
+    with patch.object(dlg.script_path, "try_get_path") as path_mock:
+        path_mock.return_value = path
+
+        dlg.sequence_widget.sequence = _MEASUREMENTS
+        assert dlg._try_save()
+
+    Script.try_load(QWidget(), path)
+
+
 @pytest.mark.parametrize("saved", (True, False))
 def test_accept(saved: bool, qtbot: QtBot, dlg: ScriptEditDialog) -> None:
     """Check the Save button."""
