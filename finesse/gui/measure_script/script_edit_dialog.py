@@ -26,14 +26,13 @@ from finesse.gui.path_widget import SaveFileWidget
 class ScriptEditDialog(QDialog):
     """A dialog to create and edit measure scripts."""
 
-    def __init__(self, parent: QWidget, script: Script | None = None) -> None:
+    def __init__(self, script: Script | None = None) -> None:
         """Create a new ScriptEditDialog.
 
         Args:
-            parent: Parent widget
             script: A loaded measure script or None
         """
-        super().__init__(parent)
+        super().__init__()
         self.setWindowTitle("Edit measurement script")
         self.setModal(True)
 

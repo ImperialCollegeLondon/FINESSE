@@ -15,7 +15,6 @@ from PySide6.QtWidgets import (
     QPushButton,
     QSizePolicy,
     QVBoxLayout,
-    QWidget,
 )
 
 from finesse.device_info import DeviceInstanceRef
@@ -66,14 +65,13 @@ def _get_last_selected_hardware_set() -> HardwareSet | None:
 class ManageDevicesDialog(QDialog):
     """A dialog for manually opening, closing and configuring devices."""
 
-    def __init__(self, parent: QWidget, connected_devices: Set[OpenDeviceArgs]) -> None:
+    def __init__(self, connected_devices: Set[OpenDeviceArgs]) -> None:
         """Create a new ManageDevicesDialog.
 
         Args:
-            parent: Parent window
             connected_devices: Which devices are already connected
         """
-        super().__init__(parent)
+        super().__init__()
         self.setWindowTitle("Manage devices")
         self.setModal(True)
 
@@ -180,7 +178,7 @@ class HardwareSetsControl(QGroupBox):
         """
         if not hasattr(self, "_manage_devices_dialog"):
             self._manage_devices_dialog = ManageDevicesDialog(
-                self.window(), self._get_connected_devices()
+                self._get_connected_devices()
             )
 
         self._manage_devices_dialog.show()
