@@ -1529,13 +1529,13 @@ PyYAML = ">=6.0,<7.0"
 
 [[package]]
 name = "pydot"
-version = "3.0.2"
+version = "3.0.3"
 description = "Python interface to Graphviz's Dot"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "pydot-3.0.2-py3-none-any.whl", hash = "sha256:99cedaa55d04abb0b2bc56d9981a6da781053dd5ac75c428e8dd53db53f90b14"},
-    {file = "pydot-3.0.2.tar.gz", hash = "sha256:9180da540b51b3aa09fbf81140b3edfbe2315d778e8589a7d0a4a69c41332bae"},
+    {file = "pydot-3.0.3-py3-none-any.whl", hash = "sha256:9b0b3081e0bd362d0c61148da10eb1281ec80089b02a28cf06f9093843986f3d"},
+    {file = "pydot-3.0.3.tar.gz", hash = "sha256:5e009d97b2fff92b7a88f09ec1fd5b163f07f3b10469c927d362471d6faa0d50"},
 ]
 
 [package.dependencies]
@@ -2283,4 +2283,4 @@ watchmedo = ["PyYAML (>=3.10)"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.12,<3.13"
-content-hash = "44383984dab7b118e046ab7b9fae381fd27f3287727e138604a2af2d5269754d"
+content-hash = "94cd8934d4724167336eef0afdd8b76f153d63902a7aacaa081b4d3be15d4131"
