@@ -179,7 +179,7 @@ def test_get_status_bad(input: str, ftsw: FTSW500Interface) -> None:
             ftsw._get_status()
 
 
-VALID_STATUSES = map(SpectrometerStatus, range(4))
+VALID_STATUSES = list(map(SpectrometerStatus, range(4)))
 """All possible statuses for the FTSW500."""
 
 
