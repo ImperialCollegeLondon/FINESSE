@@ -13,7 +13,7 @@ from dataclasses import dataclass
 from functools import partial
 from typing import Any
 
-from PySide6.QtCore import QUrlQuery, Slot
+from PySide6.QtCore import QUrlQuery
 from PySide6.QtNetwork import QNetworkReply
 
 from finesse.config import (
@@ -168,7 +168,6 @@ class Decades(
                     f"DECADES: Server did not return data for parameter {param.name}"
                 )
 
-    @Slot()
     def _on_reply_received(self, reply: QNetworkReply) -> None:
         """Handle received HTTP reply.
 

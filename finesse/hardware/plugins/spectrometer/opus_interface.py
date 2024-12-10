@@ -9,7 +9,7 @@ Note that this is a separate machine from the EM27!
 import logging
 
 from bs4 import BeautifulSoup
-from PySide6.QtCore import QTimer, Slot
+from PySide6.QtCore import QTimer
 from PySide6.QtNetwork import QNetworkReply
 
 from finesse.config import (
@@ -109,7 +109,6 @@ class OPUSInterface(
         self._status_timer.stop()
         super().close()
 
-    @Slot()
     def _on_reply_received(self, reply: QNetworkReply) -> None:
         """Handle received HTTP reply."""
         if reply.error() != QNetworkReply.NetworkError.NoError:
