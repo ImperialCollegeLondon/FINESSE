@@ -5,7 +5,6 @@ This is used to scrape the PSF27Sensor data table off the server.
 
 from decimal import Decimal
 
-from PySide6.QtCore import Slot
 from PySide6.QtNetwork import QNetworkReply
 
 from finesse.config import EM27_HOST, EM27_SENSORS_POLL_INTERVAL, EM27_SENSORS_URL
@@ -76,7 +75,6 @@ class EM27SensorsBase(SensorsBase, class_type=DeviceClassType.IGNORE):
             self.pubsub_errors(self._on_reply_received),
         )
 
-    @Slot()
     def _on_reply_received(self, reply: QNetworkReply) -> None:
         """Handle received HTTP reply.
 
