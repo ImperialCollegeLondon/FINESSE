@@ -30,7 +30,7 @@ def test_init(button_group_mock: Mock, qtbot: QtBot) -> None:
         assert "goto" in btn_labels
 
     # Check that mirror position widgets have been created
-    current_position_label = control.layout().itemAt(8).widget()
+    current_position_label = control.layout().itemAt(8).widget()  # type: ignore[union-attr]
     assert isinstance(current_position_label, QLabel)
     assert current_position_label.text() == "Current position"
     assert control.mirror_position_display.text() == ""

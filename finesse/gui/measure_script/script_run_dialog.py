@@ -10,7 +10,6 @@ from PySide6.QtWidgets import (
     QProgressBar,
     QPushButton,
     QVBoxLayout,
-    QWidget,
 )
 
 from finesse.gui.measure_script.script import Script, ScriptRunner
@@ -28,14 +27,13 @@ def get_total_steps(script: Script) -> int:
 class ScriptRunDialog(QDialog):
     """A dialog to display the progress of a running measure script."""
 
-    def __init__(self, parent: QWidget, script_runner: ScriptRunner) -> None:
+    def __init__(self, script_runner: ScriptRunner) -> None:
         """Create a new ScriptRunDialog.
 
         Args:
-            parent: The parent widget (window)
             script_runner: The ScriptRunner managing the current script
         """
-        super().__init__(parent)
+        super().__init__()
         self.setWindowTitle("Running measure script")
         self.setModal(True)
         self.setMinimumSize(400, 100)

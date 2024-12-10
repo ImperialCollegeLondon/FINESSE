@@ -97,16 +97,13 @@ def test_create_button(
     """Test that the create button works."""
     dialog = MagicMock()
     edit_dialog_mock.return_value = dialog
-    with patch.object(script_control, "window") as window_mock:
-        window = MagicMock()
-        window_mock.return_value = window
 
-        click_button(script_control, "Create new script")
+    click_button(script_control, "Create new script")
 
-        # Check that dialog was created and shown
-        edit_dialog_mock.assert_called_once_with(window)
-        assert script_control.edit_dialog is dialog
-        dialog.show.assert_called_once_with()
+    # Check that dialog was created and shown
+    edit_dialog_mock.assert_called_once_with()
+    assert script_control.edit_dialog is dialog
+    dialog.show.assert_called_once_with()
 
 
 @patch("finesse.gui.measure_script.script_view.Script")
@@ -160,28 +157,23 @@ def test_edit_button_success(
     script = MagicMock()
     script_mock.try_load.return_value = script
 
-    with patch.object(script_control, "window") as window_mock:
-        window = MagicMock()
-        window_mock.return_value = window
-        click_button(script_control, "Edit script")
+    click_button(script_control, "Edit script")
 
-        # Check that a file dialog is opened with the correct parameters
-        file_dialog_mock.getOpenFileName.assert_called_once_with(
-            script_control,
-            caption="Choose script file to edit",
-            dir=str(DEFAULT_SCRIPT_PATH),
-            filter="*.yaml",
-        )
+    # Check that a file dialog is opened with the correct parameters
+    file_dialog_mock.getOpenFileName.assert_called_once_with(
+        script_control,
+        caption="Choose script file to edit",
+        dir=str(DEFAULT_SCRIPT_PATH),
+        filter="*.yaml",
+    )
 
-        # Check that a script is loaded from the correct path
-        script_mock.try_load.assert_called_once_with(
-            script_control, Path("/my/path.yaml")
-        )
+    # Check that a script is loaded from the correct path
+    script_mock.try_load.assert_called_once_with(script_control, Path("/my/path.yaml"))
 
-        # Check that dialog is created and shown
-        edit_dialog_mock.assert_called_once_with(window, script)
-        assert script_control.edit_dialog is dialog
-        dialog.show.assert_called_once_with()
+    # Check that dialog is created and shown
+    edit_dialog_mock.assert_called_once_with(script)
+    assert script_control.edit_dialog is dialog
+    dialog.show.assert_called_once_with()
 
 
 def test_check_data_file_already_recording(script_control: ScriptControl) -> None:
@@ -314,17 +306,13 @@ def test_show_run_dialog(
     dialog = MagicMock()
     run_dialog_mock.return_value = dialog
 
-    with patch.object(script_control, "window") as window_mock:
-        window = MagicMock()
-        window_mock.return_value = window
+    runner = MagicMock()
+    script_control._show_run_dialog(runner)
 
-        runner = MagicMock()
-        script_control._show_run_dialog(runner)
-
-        # Check that the dialog was created and shown
-        run_dialog_mock.assert_called_once_with(window, runner)
-        assert script_control.run_dialog is dialog
-        dialog.show.assert_called_once_with()
+    # Check that the dialog was created and shown
+    run_dialog_mock.assert_called_once_with(runner)
+    assert script_control.run_dialog is dialog
+    dialog.show.assert_called_once_with()
 
 
 def test_hide_run_dialog(

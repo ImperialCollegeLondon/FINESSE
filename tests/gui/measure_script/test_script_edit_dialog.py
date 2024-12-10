@@ -17,8 +17,7 @@ from finesse.gui.measure_script.script_edit_dialog import ScriptEditDialog
 @pytest.fixture()
 def dlg(qtbot: QtBot):
     """A test fixture providing a ScriptEditDialog."""
-    parent = QWidget()
-    yield ScriptEditDialog(parent)
+    yield ScriptEditDialog()
 
 
 _TEST_SCRIPT = Script(Path("/my/path"), 2, ({"angle": "nadir", "measurements": 3},))
@@ -44,8 +43,7 @@ def test_init(
     script_path: str,
 ) -> None:
     """Test ScriptEditDialog's constructor."""
-    parent = QWidget()
-    dlg = ScriptEditDialog(parent, script)
+    dlg = ScriptEditDialog(script)
     assert dlg.count.value() == count
     assert dlg.sequence_widget.sequence == sequence
     assert dlg.script_path.line_edit.text() == script_path
