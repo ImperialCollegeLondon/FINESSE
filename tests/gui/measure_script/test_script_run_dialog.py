@@ -5,7 +5,7 @@ from typing import cast
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
-from PySide6.QtWidgets import QDialogButtonBox, QProgressBar, QWidget
+from PySide6.QtWidgets import QDialogButtonBox, QProgressBar
 from pytestqt.qtbot import QtBot
 
 from finesse.gui.measure_script.script import Measurement, Script, ScriptRunner
@@ -62,8 +62,7 @@ def test_init(
     progress_bar = QProgressBar()
     progress_bar_mock.return_value = progress_bar
     with patch.object(progress_bar, "setMaximum") as set_max_mock:
-        parent = QWidget()
-        dialog = ScriptRunDialog(parent, runner)
+        dialog = ScriptRunDialog(runner)
 
         # Check that the progress bar's maximum is set to max number of steps
         get_total_steps_mock.assert_called_once_with(runner.script)

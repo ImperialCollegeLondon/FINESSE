@@ -5,7 +5,6 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
-from PySide6.QtWidgets import QWidget
 from pytestqt.qtbot import QtBot
 
 from finesse.gui.measure_script.script import Script, ScriptRunner
@@ -44,5 +43,4 @@ def run_dialog(
     runner: ScriptRunner, subscribe_mock: MagicMock, qtbot: QtBot
 ) -> Generator[ScriptRunDialog, None, None]:
     """Provides a ScriptRunDialog."""
-    widget = QWidget()
-    yield ScriptRunDialog(widget, runner)
+    yield ScriptRunDialog(runner)

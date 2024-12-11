@@ -185,9 +185,9 @@ def test_update_open_btn_enabled_state(
 def test_change_device_type(widget: DeviceTypeControl, qtbot) -> None:
     """Test that changing the selected device type causes the GUI to update."""
     with patch.object(widget, "_update_open_btn_enabled_state") as update_btn_mock:
-        assert widget.layout().itemAt(1).widget() is widget._device_widgets[0]
+        assert widget.layout().itemAt(1).widget() is widget._device_widgets[0]  # type: ignore[union-attr]
         widget._device_combo.setCurrentIndex(1)
-        assert widget.layout().itemAt(1).widget() is widget._device_widgets[1]
+        assert widget.layout().itemAt(1).widget() is widget._device_widgets[1]  # type: ignore[union-attr]
         assert widget._device_widgets[0].isHidden()
         assert not widget._device_widgets[1].isHidden()
         update_btn_mock.assert_called_once_with()
