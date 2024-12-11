@@ -1,6 +1,7 @@
 """Code for a fake stepper motor device."""
 
 import logging
+from typing import cast
 
 from PySide6.QtCore import QTimer
 
@@ -87,5 +88,10 @@ class DummyStepperMotor(
 
     def _on_move_end(self) -> None:
         """Run when the timer signals that the move has finished."""
-        logging.info("Move finished")
-        self.send_move_end_message()
+        angle = cast(float, self.angle)
+        if angle <= 270:
+            logging.warning("Hit limit switch")
+            self.send_move_end_message()
+        else:
+            self.send_message("limit_switch")
+            logging.info("Move finished")
