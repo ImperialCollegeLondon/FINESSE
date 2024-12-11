@@ -96,7 +96,7 @@ class OPUSInterface(
         self._url = f"http://{host}:{port}/opusrs"
         """URL to make requests."""
 
-        self._status = SpectrometerStatus.UNDEFINED
+        self._status: SpectrometerStatus | None = None
         """The last known status of the spectrometer."""
         self._status_timer = QTimer()
         self._status_timer.timeout.connect(self._request_status)
@@ -124,7 +124,7 @@ class OPUSInterface(
         # If the status has changed, notify listeners
         if new_status != self._status:
             # On first update, we need to signal that the device is now open
-            if self._status == SpectrometerStatus.UNDEFINED:
+            if self._status is None:
                 self.signal_is_opened()
 
             self._status = new_status
