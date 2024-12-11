@@ -240,7 +240,7 @@ def test_write_check(dev: ST10Controller) -> None:
             if response.startswith(f"{name}=")
             else pytest.raises(ST10ControllerError),
         )
-        for name in ["hello", "IS", "SP"]
+        for name in ["hello", "IS", "IP"]
         for value in ["", "value", "123"]
         for response in [f"{name}={value}", value, "%", "*", "?4"]
     ],
@@ -357,8 +357,8 @@ def test_is_moving(
 @pytest.mark.parametrize(
     "step,response,raises",
     chain(
-        [(step, f"SP={step}", does_not_raise()) for step in range(0, 250, 50)],
-        [(4, "SP=hello", pytest.raises(ST10ControllerError))],
+        [(step, f"IP={step}", does_not_raise()) for step in range(0, 250, 50)],
+        [(4, "IP=hello", pytest.raises(ST10ControllerError))],
     ),
 )
 @patch(
