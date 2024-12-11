@@ -126,6 +126,9 @@ TEMPERATURE_MONITOR_HOT_BB_IDX = 6
 TEMPERATURE_MONITOR_COLD_BB_IDX = 7
 """Position of the cold blackbody on the temperature monitoring device."""
 
+TEMPERATURE_PRECISION = 2
+"""Number of decimal places used when writing temperatures to data files (Kelvin)."""
+
 SENECA_MIN_TEMP = -80
 """The default minimum temperature limit of the Seneca K107 device."""
 
