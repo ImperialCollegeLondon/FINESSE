@@ -127,7 +127,14 @@ def parse_script(script: str | TextIOBase) -> dict[str, Any]:
     )
 
     try:
-        output = schema.validate(yaml.safe_load(script))
+        output = yaml.safe_load(script)
+
+        # v2.0.0 and older didn't have a version field, but the file formats are
+        # otherwise identical
+        if "version" not in output:
+            output["version"] = 1
+
+        output = schema.validate(output)
         output.pop("version")
         return output
     except (yaml.YAMLError, SchemaError) as e:
