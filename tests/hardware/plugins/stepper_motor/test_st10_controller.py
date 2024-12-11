@@ -365,31 +365,25 @@ def test_is_moving(
     "finesse.hardware.plugins.stepper_motor.st10_controller.ST10Controller.is_moving",
     new_callable=PropertyMock,
 )
-def test_get_step_not_moving(
+def test_get_step(
     is_moving_mock: PropertyMock,
     step: int,
     response: str,
     raises: Any,
     dev: ST10Controller,
 ) -> None:
-    """Test getting the step property when the motor is stationary."""
+    """Test getting the step property."""
+    # When the motor is stationary:
     is_moving_mock.return_value = False
     with read_mock(dev, response):
         with raises:
             assert dev.step == step
 
-
-@patch(
-    "finesse.hardware.plugins.stepper_motor.st10_controller.ST10Controller.is_moving",
-    new_callable=PropertyMock,
-)
-def test_get_step_moving(
-    is_moving_mock: PropertyMock,
-    dev: ST10Controller,
-) -> None:
-    """Test getting the step property when the motor is moving."""
+    # When the motor is moving:
     is_moving_mock.return_value = True
-    assert dev.step is None
+    with read_mock(dev, response):
+        with raises:
+            assert dev.step == step
 
 
 @pytest.mark.parametrize("step", range(0, 40, 7))
