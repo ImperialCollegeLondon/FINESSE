@@ -22,7 +22,7 @@ class _MockStepperMotor(StepperMotorBase, description="Mock stepper motor"):
         return False
 
     @property
-    def step(self) -> int | None:
+    def step(self) -> int:
         return self._step
 
     @step.setter
