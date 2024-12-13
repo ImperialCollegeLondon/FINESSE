@@ -335,21 +335,19 @@ class ST10Controller(
         return self.status_code & 0x0010 == 0x0010
 
     @property
-    def step(self) -> int | None:
+    def step(self) -> int:
         """The current state of the device's step counter.
 
-        As this can only be requested when the motor is stationary, if the motor is
-        moving then None will be returned.
+        This makes use of the "IP" command, which estimates the immediate position of
+        the motor. If the motor is moving, this is an estimated (calculated trajectory)
+        position. If the motor is stationary, this is the actual position.
 
         Raises:
             SerialException: Error communicating with device
             SerialTimeoutException: Timed out waiting for response from device
             ST10ControllerError: Malformed message received from device
         """
-        if self.is_moving:
-            return None
-
-        step = self._request_value("SP")
+        step = self._request_value("IP")
         try:
             return int(step)
         except ValueError:

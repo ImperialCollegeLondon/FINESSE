@@ -240,7 +240,7 @@ def test_write_check(dev: ST10Controller) -> None:
             if response.startswith(f"{name}=")
             else pytest.raises(ST10ControllerError),
         )
-        for name in ["hello", "IS", "SP"]
+        for name in ["hello", "IS", "IP"]
         for value in ["", "value", "123"]
         for response in [f"{name}={value}", value, "%", "*", "?4"]
     ],
@@ -357,39 +357,20 @@ def test_is_moving(
 @pytest.mark.parametrize(
     "step,response,raises",
     chain(
-        [(step, f"SP={step}", does_not_raise()) for step in range(0, 250, 50)],
-        [(4, "SP=hello", pytest.raises(ST10ControllerError))],
+        [(step, f"IP={step}", does_not_raise()) for step in range(0, 250, 50)],
+        [(4, "IP=hello", pytest.raises(ST10ControllerError))],
     ),
 )
-@patch(
-    "finesse.hardware.plugins.stepper_motor.st10_controller.ST10Controller.is_moving",
-    new_callable=PropertyMock,
-)
-def test_get_step_not_moving(
-    is_moving_mock: PropertyMock,
+def test_get_step(
     step: int,
     response: str,
     raises: Any,
     dev: ST10Controller,
 ) -> None:
-    """Test getting the step property when the motor is stationary."""
-    is_moving_mock.return_value = False
+    """Test getting the step property."""
     with read_mock(dev, response):
         with raises:
             assert dev.step == step
-
-
-@patch(
-    "finesse.hardware.plugins.stepper_motor.st10_controller.ST10Controller.is_moving",
-    new_callable=PropertyMock,
-)
-def test_get_step_moving(
-    is_moving_mock: PropertyMock,
-    dev: ST10Controller,
-) -> None:
-    """Test getting the step property when the motor is moving."""
-    is_moving_mock.return_value = True
-    assert dev.step is None
 
 
 @pytest.mark.parametrize("step", range(0, 40, 7))
