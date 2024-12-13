@@ -44,9 +44,9 @@ def get_data(repeats: int, angle: Any, num_attributes: int) -> dict[str, Any]:
             {"angle": 4.0, "measurements": 1},
         ]
     data = {
-        "version": CURRENT_SCRIPT_VERSION,
         "repeats": repeats,
         "sequence": angles,
+        "version": CURRENT_SCRIPT_VERSION,
         "extra_attribute": "hello",
     }
 
@@ -59,7 +59,7 @@ def get_data(repeats: int, angle: Any, num_attributes: int) -> dict[str, Any]:
         (
             get_data(repeats, angle, num_attributes),
             does_not_raise()
-            if repeats > 0 and is_valid_angle(angle) and num_attributes == 3
+            if repeats > 0 and is_valid_angle(angle) and 2 <= num_attributes <= 3
             else pytest.raises(ParseError),
         )
         for repeats in range(-5, 5)
