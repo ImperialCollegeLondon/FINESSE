@@ -56,6 +56,7 @@ def _create_writer(path: Path) -> Writer:
             *(f"Temp{i+1}" for i in range(config.NUM_TEMPERATURE_MONITOR_CHANNELS)),
             "TimeAsSeconds",
             "Angle",
+            "IsMoving",
             "TemperatureControllerPower",
         )
     )
@@ -63,24 +64,28 @@ def _create_writer(path: Path) -> Writer:
     return writer
 
 
-def _get_stepper_motor_angle() -> float:
+def _get_stepper_motor_angle() -> tuple[float, bool]:
     """Get the current angle of the stepper motor.
 
-    This function returns a float indicating the angle in degrees. If an error occurs,
-    the angle returned will be nan.
+    This function returns a float indicating the angle in degrees and a boolean
+    indicating whether the motor is currently moving. If an error occurs or the motor is
+    moving, the angle returned will be nan.
     """
     stepper = get_stepper_motor_instance()
 
     # Stepper motor not connected
     if not stepper:
-        return float("nan")
+        return (float("nan"), False)
 
     try:
         angle = stepper.angle
-        return angle
+        if angle is None:
+            return (float("nan"), True)
+        else:
+            return (angle, False)
     except Exception as error:
         stepper.send_error_message(error)
-        return float("nan")
+        return (float("nan"), False)
 
 
 def _get_hot_bb_power() -> float:
@@ -165,7 +170,7 @@ class DataFileWriter:
         midnight = datetime(time.year, time.month, time.day)
         secs_since_midnight = floor((time - midnight).total_seconds())
 
-        angle = _get_stepper_motor_angle()
+        angle, is_moving = _get_stepper_motor_angle()
         self._writer.writerow(
             (
                 time.strftime("%Y%m%d"),
@@ -173,6 +178,7 @@ class DataFileWriter:
                 *(round(t, config.TEMPERATURE_PRECISION) for t in temperatures),
                 secs_since_midnight,
                 angle,
+                int(is_moving),
                 _get_hot_bb_power(),
             )
         )
