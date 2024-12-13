@@ -129,6 +129,7 @@ def test_write(
     """Test the write() method."""
     get_stepper_mock.return_value = stepper = MagicMock()
     stepper.angle = 90.0
+    stepper.is_moving = False
     get_tc_mock.return_value = hot_bb = MagicMock()
     hot_bb.power = 10
 
@@ -146,6 +147,33 @@ def test_write(
 
 @patch("finesse.hardware.data_file_writer.get_temperature_controller_instance")
 @patch("finesse.hardware.data_file_writer.get_stepper_motor_instance")
+def test_write_moving(
+    get_stepper_mock: Mock,
+    get_tc_mock: Mock,
+    writer: DataFileWriter,
+    sendmsg_mock: Mock,
+) -> None:
+    """Test the write() method."""
+    get_stepper_mock.return_value = stepper = MagicMock()
+    stepper.angle = 95.0
+    stepper.is_moving = True
+    get_tc_mock.return_value = hot_bb = MagicMock()
+    hot_bb.power = 10
+
+    time = datetime(2023, 4, 14, 0, 1, 0)  # one minute past midnight
+    data = [Decimal(i) for i in range(3)]
+
+    writer._writer = MagicMock()
+    writer.write(time, data)
+    writer._writer.writerow.assert_called_once_with(
+        ("20230414", "00:01:00", *data, 60, 95.0, True, 10)
+    )
+
+    sendmsg_mock.assert_called_once_with("data_file.writing")
+
+
+@patch("finesse.hardware.data_file_writer.get_temperature_controller_instance")
+@patch("finesse.hardware.data_file_writer.get_stepper_motor_instance")
 def test_write_error(
     get_stepper_mock: Mock,
     get_tc_mock: Mock,
@@ -155,6 +183,7 @@ def test_write_error(
     """Test the write() method when an error occurs."""
     get_stepper_mock.return_value = stepper = MagicMock()
     stepper.angle = 90.0
+    stepper.angle = False
     get_tc_mock.return_value = hot_bb = MagicMock()
     hot_bb.power = 10
 

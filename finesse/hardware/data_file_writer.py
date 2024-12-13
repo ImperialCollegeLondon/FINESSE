@@ -68,8 +68,8 @@ def _get_stepper_motor_angle() -> tuple[float, bool]:
     """Get the current angle of the stepper motor.
 
     This function returns a float indicating the angle in degrees and a boolean
-    indicating whether the motor is currently moving. If an error occurs or the motor is
-    moving, the angle returned will be nan.
+    indicating whether the motor is currently moving. If an error occurs, the angle
+    returned will be nan.
     """
     stepper = get_stepper_motor_instance()
 
@@ -79,10 +79,8 @@ def _get_stepper_motor_angle() -> tuple[float, bool]:
 
     try:
         angle = stepper.angle
-        if angle is None:
-            return (float("nan"), True)
-        else:
-            return (angle, False)
+        is_moving = stepper.is_moving
+        return (angle, is_moving)
     except Exception as error:
         stepper.send_error_message(error)
         return (float("nan"), False)
