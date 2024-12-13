@@ -361,26 +361,13 @@ def test_is_moving(
         [(4, "IP=hello", pytest.raises(ST10ControllerError))],
     ),
 )
-@patch(
-    "finesse.hardware.plugins.stepper_motor.st10_controller.ST10Controller.is_moving",
-    new_callable=PropertyMock,
-)
 def test_get_step(
-    is_moving_mock: PropertyMock,
     step: int,
     response: str,
     raises: Any,
     dev: ST10Controller,
 ) -> None:
     """Test getting the step property."""
-    # When the motor is stationary:
-    is_moving_mock.return_value = False
-    with read_mock(dev, response):
-        with raises:
-            assert dev.step == step
-
-    # When the motor is moving:
-    is_moving_mock.return_value = True
     with read_mock(dev, response):
         with raises:
             assert dev.step == step
