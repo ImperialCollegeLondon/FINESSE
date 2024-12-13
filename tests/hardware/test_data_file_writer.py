@@ -153,7 +153,7 @@ def test_write_moving(
     writer: DataFileWriter,
     sendmsg_mock: Mock,
 ) -> None:
-    """Test the write() method."""
+    """Test the write() method when the stepper motor is moving."""
     get_stepper_mock.return_value = stepper = MagicMock()
     stepper.angle = 95.0
     stepper.is_moving = True
