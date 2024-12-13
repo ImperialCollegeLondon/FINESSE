@@ -57,7 +57,6 @@ def test_open(
             "Temp2",
             "TimeAsSeconds",
             "Angle",
-            "IsMoving",
             "TemperatureControllerPower",
         )
     )
@@ -138,7 +137,7 @@ def test_write(
     writer._writer = MagicMock()
     writer.write(time, data)
     writer._writer.writerow.assert_called_once_with(
-        ("20230414", "00:01:00", *data, 60, 90.0, False, 10)
+        ("20230414", "00:01:00", *data, 60, 90.0, 10)
     )
 
     sendmsg_mock.assert_called_once_with("data_file.writing")
