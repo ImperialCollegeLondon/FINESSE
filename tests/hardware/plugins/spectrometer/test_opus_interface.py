@@ -36,7 +36,7 @@ def test_init(timer_mock: Mock, subscribe_mock: Mock) -> None:
         assert opus._url == f"http://{DEFAULT_OPUS_HOST}:{DEFAULT_OPUS_PORT}/opusrs"
         status_mock.assert_called_once_with()
 
-        assert opus._status == SpectrometerStatus.UNDEFINED
+        assert opus._status is None
         timer.setSingleShot.assert_called_once_with(True)
         timer.setInterval.assert_called_once_with(1000)
         timer.timeout.connect.assert_called_once_with(opus._request_status)

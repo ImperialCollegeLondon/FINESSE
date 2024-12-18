@@ -97,6 +97,7 @@ class Decades(
             "documentation."
         ),
     },
+    async_open=True,
 ):
     """A class for monitoring a DECADES sensor server."""
 
@@ -119,13 +120,12 @@ class Decades(
         self._params: list[DecadesParameter]
         """Parameters returned by the server."""
 
+        super().__init__(poll_interval)
+
         # Obtain full parameter list in order to parse received data
         self.obtain_parameter_list(
             frozenset(params.split(",")) if params else frozenset()
         )
-
-        # We only want to start polling after we have loaded the parameter list
-        super().__init__(poll_interval, start_polling=False)
 
     def obtain_parameter_list(self, params: Set[str]) -> None:
         """Request the parameter list from the DECADES server and wait for response."""
@@ -204,5 +204,9 @@ class Decades(
         else:
             self._params = list(_get_selected_params(all_params_info, params))
 
+        # Tell the frontend that the device is ready
+        self.signal_is_opened()
+
         # Now we have enough information to start parsing sensor readings
         self.start_polling()
+        self.request_readings()
