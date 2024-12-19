@@ -42,7 +42,7 @@ class DummyStepperMotor(
         self._move_end_timer.timeout.connect(self._on_move_end)
 
         self._steps_per_rotation = steps_per_rotation
-        self._step = 0
+        self._step = self._new_step = 0
 
         super().__init__()
 
@@ -57,15 +57,8 @@ class DummyStepperMotor(
         return self._move_end_timer.isActive()
 
     @property
-    def step(self) -> int | None:
-        """The number of steps that correspond to a full rotation.
-
-        As this can only be requested when the motor is stationary, if the motor is
-        moving then None will be returned.
-        """
-        if self.is_moving:
-            return None
-
+    def step(self) -> int:
+        """The current state of the device's step counter."""
         return self._step
 
     @step.setter
@@ -76,7 +69,7 @@ class DummyStepperMotor(
             step: Which step position to move to
         """
         logging.info(f"Moving stepper motor to step {step}")
-        self._step = step
+        self._new_step = step
         self._move_end_timer.start()
 
     def stop_moving(self) -> None:
@@ -87,5 +80,6 @@ class DummyStepperMotor(
 
     def _on_move_end(self) -> None:
         """Run when the timer signals that the move has finished."""
+        self._step = self._new_step
         logging.info("Move finished")
         self.send_move_end_message()

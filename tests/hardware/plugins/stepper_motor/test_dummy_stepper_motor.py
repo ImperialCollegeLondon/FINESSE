@@ -62,12 +62,12 @@ def test_move_to_number(
     qtbot,
 ) -> None:
     """Check move_to, when an angle is given."""
-    assert stepper.step == 0
+    assert stepper._new_step == 0
 
     with patch.object(stepper._move_end_timer, "start") as start_mock:
         with raises:
             stepper.move_to(10.0 * float(target))
-            assert stepper.step == target
+            assert stepper._new_step == target
             start_mock.assert_called_once_with()
 
 
@@ -114,12 +114,16 @@ def test_stop_moving(stepper: DummyStepperMotor, qtbot) -> None:
             move_end_mock.assert_called_once()
 
 
-def test_on_move_end(
-    stepper: DummyStepperMotor, sendmsg_mock: MagicMock, qtbot
-) -> None:
-    """Test the _on_move_end() method when notification is requested."""
+def test_move(stepper: DummyStepperMotor, sendmsg_mock: MagicMock, qtbot) -> None:
+    """Test that moving the motor works."""
+    assert stepper.step == 0
+    with patch.object(stepper, "_move_end_timer"):
+        stepper.step = 100
+    assert stepper.step == 0  # the old value should still be returned
+
     # Trigger move end timer
     stepper._move_end_timer.timeout.emit()
+    assert stepper.step == 100
 
     # Check message is sent with final angle moved to
     sendmsg_mock.assert_called_once_with(
