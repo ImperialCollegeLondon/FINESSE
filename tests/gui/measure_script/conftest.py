@@ -41,6 +41,6 @@ def runner_measuring(
 @pytest.fixture
 def run_dialog(
     runner: ScriptRunner, subscribe_mock: MagicMock, qtbot: QtBot
-) -> Generator[ScriptRunDialog, None, None]:
+) -> Generator[ScriptRunDialog]:
     """Provides a ScriptRunDialog."""
     yield ScriptRunDialog(runner)
