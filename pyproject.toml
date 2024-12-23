@@ -42,7 +42,7 @@ types-decorator = "^5.1.8.20240310"
 pydot = "^3.0.3"
 ruff = "^0.8.3"
 freezegun = "^1.5.1"
-mypy = "^1.13.0"
+mypy = "^1.14.0"
 pytest-xdist = { extras = ["psutil"], version = "^3.6.1" }
 
 [tool.poetry.group.docs.dependencies]
