@@ -46,7 +46,7 @@ def _get_metadata(filename: str) -> dict[str, Any]:
 
 
 def _create_writer(path: Path) -> Writer:
-    writer = Writer(path, _get_metadata(path.name))
+    writer = Writer(path, _get_metadata(path.name), line_buffering=True)
 
     # Write column headers
     writer.writerow(
@@ -155,7 +155,6 @@ class DataFileWriter:
             logging.info("Closing data file")
 
             # Ensure data is written to disk
-            self._writer._file.flush()
             os.fsync(self._writer._file.fileno())
 
             self._writer.close()
@@ -180,7 +179,6 @@ class DataFileWriter:
                 _get_hot_bb_power(),
             )
         )
-        self._writer._file.flush()
 
         pub.sendMessage("data_file.writing")
 

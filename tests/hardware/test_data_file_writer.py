@@ -47,7 +47,7 @@ def test_open(
     csv_writer_mock.return_value = csv_writer
     path = Path("/my/path.csv")
     writer.open(path)
-    csv_writer_mock.assert_called_once_with(path, header)
+    csv_writer_mock.assert_called_once_with(path, header, line_buffering=True)
     assert writer._writer is csv_writer
     csv_writer.writerow.assert_called_once_with(
         (
@@ -96,7 +96,6 @@ def test_close(
     writer.close()
     assert not hasattr(writer, "_writer")  # Should have been deleted
 
-    csv_writer._file.flush.assert_called_once_with()
     fsync_mock.assert_called_once_with(42)
     csv_writer.close.assert_called_once_with()
     unsubscribe_mock.assert_has_calls(
