@@ -70,7 +70,7 @@ def test_get_device_types(load_plugins_mock: Mock) -> None:
     for i, base_type_info in enumerate([*base_types_info, base_types_info[0]]):
         # As above, we want to check that the device types are sorted by name
         info_mock = MagicMock()
-        info_mock.description = f"Device{len(base_types)-i}"
+        info_mock.description = f"Device{len(base_types) - i}"
         device_types_info.append(info_mock)
 
         device_mock = MagicMock()

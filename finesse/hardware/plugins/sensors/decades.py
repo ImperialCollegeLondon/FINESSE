@@ -59,7 +59,7 @@ def _get_selected_params(
     if remaining:
         # Any params left are ones we didn't find
         logging.warn(
-            "DECADES: The following parameters were not found:\n\t- " "\n\t- ".join(
+            "DECADES: The following parameters were not found:\n\t- \n\t- ".join(
                 remaining
             )
         )

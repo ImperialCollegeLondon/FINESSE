@@ -53,7 +53,7 @@ def _create_writer(path: Path) -> Writer:
         (
             "Date",
             "Time",
-            *(f"Temp{i+1}" for i in range(config.NUM_TEMPERATURE_MONITOR_CHANNELS)),
+            *(f"Temp{i + 1}" for i in range(config.NUM_TEMPERATURE_MONITOR_CHANNELS)),
             "TimeAsSeconds",
             "Angle",
             "IsMoving",
