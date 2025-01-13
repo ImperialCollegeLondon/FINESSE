@@ -24,7 +24,7 @@ def _port_info_to_str(vendor_id: int, product_id: int, count: int = 0) -> str:
     """
     out = f"{vendor_id:04x}:{product_id:04x}"
     if count > 0:
-        out += f" ({count+1})"
+        out += f" ({count + 1})"
     return out
 
 
