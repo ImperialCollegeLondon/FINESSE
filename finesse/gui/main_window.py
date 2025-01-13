@@ -9,6 +9,7 @@ from PySide6.QtWidgets import (
     QMainWindow,
     QMenu,
     QSizePolicy,
+    QVBoxLayout,
     QWidget,
 )
 
@@ -54,7 +55,7 @@ class MainWindow(QMainWindow):
         helpmenu.addAction(docs_viewer)
         self.menuBar().addMenu(helpmenu)
 
-        layout_left = QGridLayout()
+        layout_left = QVBoxLayout()
 
         # For choosing hardware set
         hardware_sets = HardwareSetsControl()
@@ -77,12 +78,15 @@ class MainWindow(QMainWindow):
         # Setup for data file widgets
         data_file = DataFileControl()
 
-        layout_left.addWidget(hardware_sets, 0, 0, 1, 2)
-        layout_left.addWidget(measure_script, 1, 0, 1, 2)
-        layout_left.addWidget(stepper_motor, 2, 0, 1, 1)
-        layout_left.addWidget(spectrometer, 2, 1, 1, 1)
-        layout_left.addWidget(sensors, 3, 0, 1, 2)
-        layout_left.addWidget(data_file, 4, 0, 1, 2)
+        mid_left_layout = QHBoxLayout()
+        mid_left_layout.addWidget(stepper_motor)
+        mid_left_layout.addWidget(spectrometer)
+
+        layout_left.addWidget(hardware_sets)
+        layout_left.addWidget(measure_script)
+        layout_left.addLayout(mid_left_layout)
+        layout_left.addWidget(sensors)
+        layout_left.addWidget(data_file)
 
         layout_right = QGridLayout()
 
