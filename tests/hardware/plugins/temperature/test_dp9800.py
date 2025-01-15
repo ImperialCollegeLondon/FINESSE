@@ -146,5 +146,5 @@ def test_dp9800_get_temperatures(
     read_mock.assert_called_once()
 
     temperatures = dev.get_temperatures()
-    expected = [Decimal(val) for val in [3.4, 5.6, 7.8, 9.0, 2.3, 4.5, 6.7, 8.9]]
+    expected = map(Decimal, [3.4, 5.6, 7.8, 9.0, 2.3, 4.5, 6.7, 8.9])
     assert temperatures == pytest.approx(expected)
