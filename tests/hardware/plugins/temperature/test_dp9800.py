@@ -76,7 +76,9 @@ def test_parse_data(data: bytes) -> None:
         parse_data(bytes(data_string, "utf-8"))
 
     temperatures_2_to_9, ff = parse_data(data)
-    expected_temperatures = map(Decimal, [3.4, 5.6, 7.8, 9.0, 2.3, 4.5, 6.7, 8.9])
+    expected_temperatures = [
+        Decimal(val) for val in [3.4, 5.6, 7.8, 9.0, 2.3, 4.5, 6.7, 8.9]
+    ]
     expected_sysflag = "10110"  # from 0xx1x110
     assert temperatures_2_to_9 == pytest.approx(expected_temperatures)
     assert ff == expected_sysflag
