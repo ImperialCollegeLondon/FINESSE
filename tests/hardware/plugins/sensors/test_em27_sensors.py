@@ -19,7 +19,7 @@ from finesse.hardware.plugins.sensors.em27_sensors import (
 @pytest.fixture
 def sensor_reading():
     """Fixture for SensorReading."""
-    return SensorReading("Voltage", Decimal(1.23), "V")
+    return SensorReading("Voltage", Decimal("1.23"), "V")
 
 
 def test_str(sensor_reading: SensorReading):
