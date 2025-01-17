@@ -16,8 +16,8 @@ bindings].
 Emissivity of the Earth's different surface types helps determine the efficiency with
 which the planet radiatively cools to space and is a critical variable in climate
 models. However, to date, most measurements of surface emissivity have been made in the
-mid-infrared. The FROG project is novel in employing a ground-based system capable of
-extending these datasets into the far-infrared. The system is tuned in particular for
+mid-infrared. The [FINESSE] project is novel in employing a ground-based system capable
+of extending these datasets into the far-infrared. The system is tuned in particular for
 targeting ice and snow, as the response of the climate to global warming is observed to
 be most rapid in Arctic regions. Far-infrared emissivity data provided by FROG will
 inform climate modelling studies seeking to better understand this rapid change. They
@@ -31,6 +31,7 @@ Atmospheric Measurements] aircraft.
 
 [Space and Atmospheric Physics group]: https://www.imperial.ac.uk/physics/research/communities/space-plasma-climate/
 [PySide6 Qt bindings]: https://pypi.org/project/PySide6/
+[FINESSE]: https://www.imperial.ac.uk/a-z-research/space-and-atmospheric-physics/research/missions-and-projects/atmospheric-missions/finesse/
 [FORUM]: https://www.esa.int/Applications/Observing_the_Earth/FutureEO/FORUM
 [PREFIRE]: https://science.nasa.gov/mission/prefire/
 [UNIRAS]: https://www.imperial.ac.uk/space-and-atmospheric-physics/research/missions-and-projects/atmospheric-missions/uniras/
