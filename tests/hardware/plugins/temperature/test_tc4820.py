@@ -10,7 +10,7 @@ import pytest
 from pytest_mock import MockerFixture
 from serial import SerialException
 
-from finesse.hardware.plugins.temperature.tc4820 import TC4820, MalformedMessageError
+from frog.hardware.plugins.temperature.tc4820 import TC4820, MalformedMessageError
 
 _SERIAL_ARGS = ("COM1", 9600)
 
@@ -179,15 +179,13 @@ def test_property_getters(
     name: str, command: str, type: str, dev: TC4820, mocker: MockerFixture
 ) -> None:
     """Check that the getters for properties work."""
-    m = mocker.patch(
-        f"finesse.hardware.plugins.temperature.tc4820.TC4820.request_{type}"
-    )
+    m = mocker.patch(f"frog.hardware.plugins.temperature.tc4820.TC4820.request_{type}")
     getattr(dev, name)
     m.assert_called_once_with(command)
 
 
-@patch("finesse.hardware.plugins.temperature.tc4820.SerialDevice")
-@patch("finesse.hardware.plugins.temperature.tc4820.TemperatureControllerBase")
+@patch("frog.hardware.plugins.temperature.tc4820.SerialDevice")
+@patch("frog.hardware.plugins.temperature.tc4820.TemperatureControllerBase")
 def test_close(tc_base_cls: Mock, serial_dev_cls: Mock, dev: TC4820) -> None:
     """Test the close() method."""
     dev.close()

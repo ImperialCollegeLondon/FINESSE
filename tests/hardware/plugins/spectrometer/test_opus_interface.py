@@ -7,13 +7,13 @@ from unittest.mock import ANY, MagicMock, Mock, patch
 import pytest
 from PySide6.QtNetwork import QNetworkReply
 
-from finesse.config import DEFAULT_OPUS_HOST, DEFAULT_OPUS_PORT
-from finesse.hardware.plugins.spectrometer.opus_interface import (
+from frog.config import DEFAULT_OPUS_HOST, DEFAULT_OPUS_PORT
+from frog.hardware.plugins.spectrometer.opus_interface import (
     OPUSError,
     OPUSInterface,
     parse_response,
 )
-from finesse.spectrometer_status import SpectrometerStatus
+from frog.spectrometer_status import SpectrometerStatus
 
 
 @pytest.fixture
@@ -22,10 +22,8 @@ def opus(qtbot) -> OPUSInterface:
     return OPUSInterface()
 
 
-@patch(
-    "finesse.hardware.plugins.spectrometer.opus_interface.OPUSInterfaceBase.subscribe"
-)
-@patch("finesse.hardware.plugins.spectrometer.opus_interface.QTimer")
+@patch("frog.hardware.plugins.spectrometer.opus_interface.OPUSInterfaceBase.subscribe")
+@patch("frog.hardware.plugins.spectrometer.opus_interface.QTimer")
 def test_init(timer_mock: Mock, subscribe_mock: Mock) -> None:
     """Test the constructor."""
     timer = MagicMock()
@@ -131,7 +129,7 @@ def test_parse_response_no_id(opus: OPUSInterface) -> None:
         parse_response(response)
 
 
-@patch("finesse.hardware.plugins.spectrometer.opus_interface.logging.warning")
+@patch("frog.hardware.plugins.spectrometer.opus_interface.logging.warning")
 def test_parse_response_bad_id(warning_mock: Mock) -> None:
     """Test that parse_response() can handle <td> tags with unexpected id values."""
     response = _get_opus_html(
@@ -145,7 +143,7 @@ def test_parse_response_bad_id(warning_mock: Mock) -> None:
     warning_mock.assert_called()
 
 
-@patch("finesse.hardware.plugins.spectrometer.opus_interface.parse_response")
+@patch("frog.hardware.plugins.spectrometer.opus_interface.parse_response")
 def test_on_reply_received_status_changed(
     parse_response_mock: Mock, opus: OPUSInterface, qtbot
 ) -> None:
@@ -163,7 +161,7 @@ def test_on_reply_received_status_changed(
         status_mock.assert_called_once_with(SpectrometerStatus.CONNECTED)
 
 
-@patch("finesse.hardware.plugins.spectrometer.opus_interface.parse_response")
+@patch("frog.hardware.plugins.spectrometer.opus_interface.parse_response")
 def test_on_reply_received_status_unchanged(
     parse_response_mock: Mock, opus: OPUSInterface, qtbot
 ) -> None:
@@ -180,7 +178,7 @@ def test_on_reply_received_status_unchanged(
         status_mock.assert_not_called()
 
 
-@patch("finesse.hardware.plugins.spectrometer.opus_interface.parse_response")
+@patch("frog.hardware.plugins.spectrometer.opus_interface.parse_response")
 def test_on_reply_received_network_error(
     parse_response_mock: Mock, opus: OPUSInterface, qtbot
 ) -> None:
@@ -193,7 +191,7 @@ def test_on_reply_received_network_error(
         opus._on_reply_received(reply)
 
 
-@patch("finesse.hardware.plugins.spectrometer.opus_interface.parse_response")
+@patch("frog.hardware.plugins.spectrometer.opus_interface.parse_response")
 def test_on_reply_received_exception(
     parse_response_mock: Mock, opus: OPUSInterface, qtbot
 ) -> None:

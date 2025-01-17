@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import pytest
 
-from finesse.hardware.plugins.spectrometer.ftsw500_interface_base import (
+from frog.hardware.plugins.spectrometer.ftsw500_interface_base import (
     FTSW500InterfaceBase,
 )
 

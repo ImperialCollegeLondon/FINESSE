@@ -42,4 +42,4 @@ repos:
     hooks:
       - id: codespell
         args: [-I, .codespell_ignore.txt]
-        exclude: finesse/hardware/plugins/sensors/diag_autom.htm
+        exclude: frog/hardware/plugins/sensors/diag_autom.htm

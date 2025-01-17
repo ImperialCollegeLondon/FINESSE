@@ -1,4 +1,4 @@
-# FINESSE/UNIRAS User Guide
+# FROG User Guide
 
 A graphical user interface for controlling and monitoring an interferometer device.
 

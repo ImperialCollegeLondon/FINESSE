@@ -4,12 +4,12 @@ from unittest.mock import call, patch
 
 from PySide6.QtWidgets import QLabel, QLineEdit
 
-from finesse.config import SENSORS_TOPIC
-from finesse.gui.sensors_panel import SensorsPanel
-from finesse.sensor_reading import SensorReading
+from frog.config import SENSORS_TOPIC
+from frog.gui.sensors_panel import SensorsPanel
+from frog.sensor_reading import SensorReading
 
 
-@patch("finesse.gui.sensors_panel.pub.subscribe")
+@patch("frog.gui.sensors_panel.pub.subscribe")
 def test_init(subscribe_mock, qtbot) -> None:
     """Test SensorsPanel's constructor."""
     panel = SensorsPanel()

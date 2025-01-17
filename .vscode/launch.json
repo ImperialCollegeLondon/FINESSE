@@ -5,10 +5,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "FINESSE",
+            "name": "FROG",
             "type": "python",
             "request": "launch",
-            "module": "finesse",
+            "module": "frog",
             "justMyCode": true
         }
     ]

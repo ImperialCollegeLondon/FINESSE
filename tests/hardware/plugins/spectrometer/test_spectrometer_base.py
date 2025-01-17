@@ -4,8 +4,8 @@ from unittest.mock import call, patch
 
 import pytest
 
-from finesse.hardware.plugins.spectrometer.spectrometer_base import SpectrometerBase
-from finesse.spectrometer_status import SpectrometerStatus
+from frog.hardware.plugins.spectrometer.spectrometer_base import SpectrometerBase
+from frog.spectrometer_status import SpectrometerStatus
 
 
 class _MockSpectrometer(SpectrometerBase, description="Mock spectrometer"):

@@ -5,9 +5,9 @@ from unittest.mock import MagicMock, Mock, PropertyMock, call, patch
 
 import pytest
 
-from finesse.device_info import DeviceInstanceRef, DeviceParameter, DeviceTypeInfo
-from finesse.gui.hardware_set.device import ConnectionStatus
-from finesse.gui.hardware_set.device_view import (
+from frog.device_info import DeviceInstanceRef, DeviceParameter, DeviceTypeInfo
+from frog.gui.hardware_set.device import ConnectionStatus
+from frog.gui.hardware_set.device_view import (
     DeviceParametersWidget,
     DeviceTypeControl,
 )
@@ -42,14 +42,13 @@ def widget(subscribe_mock: MagicMock, qtbot) -> DeviceTypeControl:
     ),
 )
 @patch(
-    "finesse.gui.hardware_set.device_view."
+    "frog.gui.hardware_set.device_view."
     "DeviceParametersWidget.load_saved_parameter_values"
 )
 @patch(
-    "finesse.gui.hardware_set.device_view."
-    "DeviceTypeControl._update_open_btn_enabled_state"
+    "frog.gui.hardware_set.device_view.DeviceTypeControl._update_open_btn_enabled_state"
 )
-@patch("finesse.gui.hardware_set.device_view.settings")
+@patch("frog.gui.hardware_set.device_view.settings")
 def test_init(
     settings_mock: Mock,
     update_btn_mock: Mock,
@@ -161,7 +160,7 @@ def test_set_device_status_disconnected(widget: DeviceTypeControl) -> None:
     ),
 )
 @patch(
-    "finesse.gui.hardware_set.device_view.DeviceTypeControl.current_device_type_widget",
+    "frog.gui.hardware_set.device_view.DeviceTypeControl.current_device_type_widget",
     new_callable=PropertyMock,
 )
 def test_update_open_btn_enabled_state(
@@ -195,7 +194,7 @@ def test_change_device_type(widget: DeviceTypeControl, qtbot) -> None:
 
 @pytest.mark.parametrize("enable", (True, False))
 @patch(
-    "finesse.gui.hardware_set.device_view.DeviceTypeControl.current_device_type_widget",
+    "frog.gui.hardware_set.device_view.DeviceTypeControl.current_device_type_widget",
     new_callable=PropertyMock,
 )
 def test_set_combos_enabled(
@@ -221,7 +220,7 @@ def test_select_device(widget: DeviceTypeControl, qtbot) -> None:
         load_params_mock.assert_called_once_with()
 
 
-@patch("finesse.gui.hardware_set.device_view.logging.warn")
+@patch("frog.gui.hardware_set.device_view.logging.warn")
 def test_select_device_unknown_device(
     warn_mock: Mock, widget: DeviceTypeControl, qtbot
 ) -> None:
@@ -232,7 +231,7 @@ def test_select_device_unknown_device(
     warn_mock.assert_called_once()
 
 
-@patch("finesse.gui.hardware_set.device_view.open_device")
+@patch("frog.gui.hardware_set.device_view.open_device")
 def test_open_device(open_device_mock: Mock, widget: DeviceTypeControl, qtbot) -> None:
     """Test the _open_device() method."""
     widget._open_device()
@@ -243,10 +242,9 @@ def test_open_device(open_device_mock: Mock, widget: DeviceTypeControl, qtbot) -
     )
 
 
-@patch("finesse.gui.hardware_set.device_view.show_error_message")
+@patch("frog.gui.hardware_set.device_view.show_error_message")
 @patch(
-    "finesse.gui.hardware_set.device_view"
-    ".DeviceParametersWidget.current_parameter_values",
+    "frog.gui.hardware_set.device_view.DeviceParametersWidget.current_parameter_values",
     new_callable=PropertyMock,
 )
 def test_open_device_bad_params(
@@ -258,7 +256,7 @@ def test_open_device_bad_params(
     error_message_mock.assert_called_once()
 
 
-@patch("finesse.gui.hardware_set.device_view.close_device")
+@patch("frog.gui.hardware_set.device_view.close_device")
 def test_close_device(
     close_device_mock: Mock, widget: DeviceTypeControl, qtbot
 ) -> None:

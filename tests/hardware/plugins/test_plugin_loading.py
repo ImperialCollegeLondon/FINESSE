@@ -3,11 +3,11 @@
 import sys
 from unittest.mock import MagicMock, Mock, call, patch
 
-from finesse.hardware.plugins import _import_recursively, load_all_plugins
+from frog.hardware.plugins import _import_recursively, load_all_plugins
 
 
-@patch("finesse.hardware.plugins.import_module")
-@patch("finesse.hardware.plugins.iter_modules")
+@patch("frog.hardware.plugins.import_module")
+@patch("frog.hardware.plugins.iter_modules")
 def test_import_recursively(iter_modules_mock: Mock, import_mock: Mock) -> None:
     """Test the _import_recursively() function."""
     root_module = MagicMock()
@@ -24,9 +24,7 @@ def test_import_recursively(iter_modules_mock: Mock, import_mock: Mock) -> None:
     import_mock.side_effect = range(len(modinfos))
 
     iter_modules_mock.return_value = modinfos
-    with patch(
-        "finesse.hardware.plugins._import_recursively"
-    ) as import_recursively_mock:
+    with patch("frog.hardware.plugins._import_recursively") as import_recursively_mock:
         expected = [f"root.{info.name}" for info in modinfos]
         import_recursively_mock.return_value = []
         assert list(_import_recursively(root_module)) == expected
@@ -38,7 +36,7 @@ def test_import_recursively(iter_modules_mock: Mock, import_mock: Mock) -> None:
         import_recursively_mock.assert_has_calls(list(map(call, range(len(modinfos)))))
 
 
-@patch("finesse.hardware.plugins._import_recursively")
+@patch("frog.hardware.plugins._import_recursively")
 def test_load_all_plugins(import_mock: Mock) -> None:
     """Test the load_all_plugins() function."""
     ret = load_all_plugins()
@@ -46,4 +44,4 @@ def test_load_all_plugins(import_mock: Mock) -> None:
     # No plugins will be found because we're mocking _import_recursively
     assert len(ret) == 0
 
-    import_mock.assert_called_once_with(sys.modules["finesse.hardware.plugins"])
+    import_mock.assert_called_once_with(sys.modules["frog.hardware.plugins"])

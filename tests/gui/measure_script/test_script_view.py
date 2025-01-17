@@ -8,14 +8,14 @@ import pytest
 from PySide6.QtWidgets import QMessageBox, QPushButton, QWidget
 from pytestqt.qtbot import QtBot
 
-from finesse.config import DEFAULT_SCRIPT_PATH, SPECTROMETER_TOPIC
-from finesse.gui.measure_script.script_run_dialog import ScriptRunDialog
-from finesse.gui.measure_script.script_view import ScriptControl
-from finesse.spectrometer_status import SpectrometerStatus
+from frog.config import DEFAULT_SCRIPT_PATH, SPECTROMETER_TOPIC
+from frog.gui.measure_script.script_run_dialog import ScriptRunDialog
+from frog.gui.measure_script.script_view import ScriptControl
+from frog.spectrometer_status import SpectrometerStatus
 
 
 @pytest.fixture
-@patch("finesse.gui.measure_script.script_view.settings")
+@patch("frog.gui.measure_script.script_view.settings")
 def script_control(settings_mock: Mock, qtbot: QtBot) -> ScriptControl:
     """Provides a ScriptControl."""
     # NB: This will need to be changed if we load more than one setting
@@ -34,7 +34,7 @@ def click_button(widget: QWidget, text: str) -> None:
     get_button(widget, text).click()
 
 
-@patch("finesse.gui.measure_script.script_view.settings")
+@patch("frog.gui.measure_script.script_view.settings")
 def test_init(settings_mock: Mock, subscribe_mock: Mock, qtbot: QtBot) -> None:
     """Test ScriptControl's constructor."""
     settings_mock.value.return_value = "/my/path.yaml"
@@ -62,7 +62,7 @@ def test_init(settings_mock: Mock, subscribe_mock: Mock, qtbot: QtBot) -> None:
     )
 
 
-@patch("finesse.gui.measure_script.script_view.settings")
+@patch("frog.gui.measure_script.script_view.settings")
 @pytest.mark.parametrize("prev_path", (Path("/my/path.yaml"), ""))
 def test_init_path_setting(settings_mock: Mock, prev_path: Path, qtbot: QtBot) -> None:
     """Check that the constructor correctly loads previous path from settings."""
@@ -90,7 +90,7 @@ def test_on_recording_stop(script_control: ScriptControl) -> None:
     assert not script_control._data_file_recording
 
 
-@patch("finesse.gui.measure_script.script_view.ScriptEditDialog")
+@patch("frog.gui.measure_script.script_view.ScriptEditDialog")
 def test_create_button(
     edit_dialog_mock: Mock, script_control: ScriptControl, qtbot: QtBot
 ) -> None:
@@ -106,9 +106,9 @@ def test_create_button(
     dialog.show.assert_called_once_with()
 
 
-@patch("finesse.gui.measure_script.script_view.Script")
-@patch("finesse.gui.measure_script.script_view.QFileDialog")
-@patch("finesse.gui.measure_script.script_view.ScriptEditDialog")
+@patch("frog.gui.measure_script.script_view.Script")
+@patch("frog.gui.measure_script.script_view.QFileDialog")
+@patch("frog.gui.measure_script.script_view.ScriptEditDialog")
 def test_edit_button_file_dialog_closed(
     edit_dialog_mock: Mock,
     file_dialog_mock: Mock,
@@ -122,9 +122,9 @@ def test_edit_button_file_dialog_closed(
     edit_dialog_mock.assert_not_called()
 
 
-@patch("finesse.gui.measure_script.script_view.Script")
-@patch("finesse.gui.measure_script.script_view.QFileDialog")
-@patch("finesse.gui.measure_script.script_view.ScriptEditDialog")
+@patch("frog.gui.measure_script.script_view.Script")
+@patch("frog.gui.measure_script.script_view.QFileDialog")
+@patch("frog.gui.measure_script.script_view.ScriptEditDialog")
 def test_edit_button_bad_script(
     edit_dialog_mock: Mock,
     file_dialog_mock: Mock,
@@ -140,9 +140,9 @@ def test_edit_button_bad_script(
     edit_dialog_mock.assert_not_called()
 
 
-@patch("finesse.gui.measure_script.script_view.Script")
-@patch("finesse.gui.measure_script.script_view.QFileDialog")
-@patch("finesse.gui.measure_script.script_view.ScriptEditDialog")
+@patch("frog.gui.measure_script.script_view.Script")
+@patch("frog.gui.measure_script.script_view.QFileDialog")
+@patch("frog.gui.measure_script.script_view.ScriptEditDialog")
 def test_edit_button_success(
     edit_dialog_mock: Mock,
     file_dialog_mock: Mock,
@@ -210,8 +210,8 @@ def _run_script(script_control: ScriptControl) -> None:
     btn.click()
 
 
-@patch("finesse.gui.measure_script.script_view.settings")
-@patch("finesse.gui.measure_script.script_view.Script")
+@patch("frog.gui.measure_script.script_view.settings")
+@patch("frog.gui.measure_script.script_view.Script")
 def test_run_button_recording_check_failed(
     script_mock: Mock, settings_mock: Mock, script_control: ScriptControl, qtbot: QtBot
 ) -> None:
@@ -229,8 +229,8 @@ def test_run_button_recording_check_failed(
         settings_mock.setValue.assert_not_called()
 
 
-@patch("finesse.gui.measure_script.script_view.settings")
-@patch("finesse.gui.measure_script.script_view.Script")
+@patch("frog.gui.measure_script.script_view.settings")
+@patch("frog.gui.measure_script.script_view.Script")
 def test_run_button_no_file_path(
     script_mock: Mock, settings_mock: Mock, script_control: ScriptControl, qtbot: QtBot
 ) -> None:
@@ -252,8 +252,8 @@ def test_run_button_no_file_path(
             settings_mock.setValue.assert_not_called()
 
 
-@patch("finesse.gui.measure_script.script_view.settings")
-@patch("finesse.gui.measure_script.script_view.Script")
+@patch("frog.gui.measure_script.script_view.settings")
+@patch("frog.gui.measure_script.script_view.Script")
 def test_run_button_bad_script(
     script_mock: Mock, settings_mock: Mock, script_control: ScriptControl, qtbot: QtBot
 ) -> None:
@@ -269,8 +269,8 @@ def test_run_button_bad_script(
         settings_mock.setValue.assert_not_called()
 
 
-@patch("finesse.gui.measure_script.script_view.settings")
-@patch("finesse.gui.measure_script.script_view.Script")
+@patch("frog.gui.measure_script.script_view.settings")
+@patch("frog.gui.measure_script.script_view.Script")
 def test_run_button_success(
     script_mock: Mock, settings_mock: Mock, script_control: ScriptControl, qtbot: QtBot
 ) -> None:
@@ -296,7 +296,7 @@ def test_run_button_success(
             script.run.assert_called_once_with(script_control)
 
 
-@patch("finesse.gui.measure_script.script_view.ScriptRunDialog")
+@patch("frog.gui.measure_script.script_view.ScriptRunDialog")
 def test_show_run_dialog(
     run_dialog_mock: Mock,
     script_control: ScriptControl,

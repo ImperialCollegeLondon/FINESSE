@@ -1,13 +1,13 @@
 # Hardware sets
 
 Hardware sets are collections of hardware device types along with their associated
-parameters. They are used in FINESSE to represent a particular hardware rig (e.g.
-FINESSE or UNIRAS), so that users can easily swap between them. FINESSE comes with some
-built in configurations, but users can also define their own, either for convenience
-during testing or to build on FINESSE's functionality.
+parameters. They are used in FROG to represent a particular hardware rig (e.g. FINESSE or
+UNIRAS), so that users can easily swap between them. FROG comes with some built in
+configurations, but users can also define their own, either for convenience during
+testing or to build on FROG's functionality.
 
 Hardware sets are represented in a [YAML](https://yaml.org) format. Custom hardware sets
-can be created and imported into FINESSE. Here is an example:
+can be created and imported into FROG. Here is an example:
 
 ```yaml
 version: 1
@@ -49,15 +49,15 @@ hardware set. The `devices` array consists of key-value pairs, with the keys
 corresponding to device base types (see [Hardware]). The values are YAML objects with a
 `class_name` property and (optionally) a `params` property. `class_name` is a string
 corresponding to the Python class name, along with the last part of the module name (all
-plugins are in the `finesse.hardware.plugins` module, so this part is omitted). `params`
+plugins are in the `frog.hardware.plugins` module, so this part is omitted). `params`
 is also a YAML object, containing key-value pairs for each of the device parameters (see
 [Hardware] again). If any of the parameters are omitted, their default values will be
 used.
 
-Note that the port names are in a FINESSE-specific format. The string is composed of the
+Note that the port names are in a FROG-specific format. The string is composed of the
 USB vendor and product IDs and (optionally) a number to distinguish ports which share
 all these properties (as happens with USB-to-serial devices with multiple ports, for
-example). The easiest way to figure out these strings is to run FINESSE and click on
+example). The easiest way to figure out these strings is to run FROG and click on
 "Manage devices". The available USB ports will be listed in the dialog.
 
 [Hardware]: ./hardware.md

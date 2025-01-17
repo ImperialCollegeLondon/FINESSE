@@ -10,7 +10,7 @@ from pubsub import pub
 @pytest.fixture
 def serial_mock(monkeypatch) -> MagicMock:
     """Fixture for Serial's constructor."""
-    from finesse.hardware.serial_device import SerialDevice
+    from frog.hardware.serial_device import SerialDevice
 
     mock = MagicMock()
 

@@ -10,7 +10,7 @@ from types import ModuleType
 from statemachine import StateMachine
 from statemachine.contrib.diagram import DotGraphMachine
 
-import finesse
+import frog
 
 DIAGRAM_DIR = Path(__file__).parent
 
@@ -33,8 +33,8 @@ def write_diagram(sm: type[StateMachine]):
 
 
 def get_all_state_machines() -> Iterable[type[StateMachine]]:
-    """Get all the state machine classes in FINESSE."""
-    for module in get_all_modules(finesse):
+    """Get all the state machine classes in FROG."""
+    for module in get_all_modules(frog):
         for _, obj in inspect.getmembers(module):
             if (
                 inspect.isclass(obj)

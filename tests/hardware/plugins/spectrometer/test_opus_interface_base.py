@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from finesse.hardware.plugins.spectrometer.opus_interface_base import OPUSInterfaceBase
+from frog.hardware.plugins.spectrometer.opus_interface_base import OPUSInterfaceBase
 
 
 class _MockOPUS(OPUSInterfaceBase, description="Mock OPUS device"):

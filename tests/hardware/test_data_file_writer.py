@@ -8,8 +8,8 @@ from unittest.mock import MagicMock, Mock, call, patch
 import pytest
 import yaml
 
-from finesse.config import TEMPERATURE_MONITOR_TOPIC
-from finesse.hardware.data_file_writer import (
+from frog.config import TEMPERATURE_MONITOR_TOPIC
+from frog.hardware.data_file_writer import (
     DataFileWriter,
     _get_metadata,
     _on_error_occurred,
@@ -30,9 +30,9 @@ def test_init(subscribe_mock: MagicMock) -> None:
     )
 
 
-@patch("finesse.hardware.data_file_writer.config.NUM_TEMPERATURE_MONITOR_CHANNELS", 2)
-@patch("finesse.hardware.data_file_writer._get_metadata")
-@patch("finesse.hardware.data_file_writer.Writer")
+@patch("frog.hardware.data_file_writer.config.NUM_TEMPERATURE_MONITOR_CHANNELS", 2)
+@patch("frog.hardware.data_file_writer._get_metadata")
+@patch("frog.hardware.data_file_writer.Writer")
 def test_open(
     csv_writer_mock: Mock,
     get_metadata_mock: Mock,
@@ -70,7 +70,7 @@ def test_open(
     sendmsg_mock.assert_called_once_with("data_file.opened")
 
 
-@patch("finesse.hardware.data_file_writer.Writer")
+@patch("frog.hardware.data_file_writer.Writer")
 def test_open_error(
     csv_writer_mock: Mock,
     writer: DataFileWriter,
@@ -86,7 +86,7 @@ def test_open_error(
     sendmsg_mock.assert_called_once_with("data_file.error", error=error)
 
 
-@patch("finesse.hardware.data_file_writer.os.fsync")
+@patch("frog.hardware.data_file_writer.os.fsync")
 def test_close(
     fsync_mock: Mock, writer: DataFileWriter, unsubscribe_mock: MagicMock
 ) -> None:
@@ -117,8 +117,8 @@ def test_get_metadata() -> None:
     assert serialised.count("\n") == 12
 
 
-@patch("finesse.hardware.data_file_writer.get_temperature_controller_instance")
-@patch("finesse.hardware.data_file_writer.get_stepper_motor_instance")
+@patch("frog.hardware.data_file_writer.get_temperature_controller_instance")
+@patch("frog.hardware.data_file_writer.get_stepper_motor_instance")
 def test_write(
     get_stepper_mock: Mock,
     get_tc_mock: Mock,
@@ -144,8 +144,8 @@ def test_write(
     sendmsg_mock.assert_called_once_with("data_file.writing")
 
 
-@patch("finesse.hardware.data_file_writer.get_temperature_controller_instance")
-@patch("finesse.hardware.data_file_writer.get_stepper_motor_instance")
+@patch("frog.hardware.data_file_writer.get_temperature_controller_instance")
+@patch("frog.hardware.data_file_writer.get_stepper_motor_instance")
 def test_write_moving(
     get_stepper_mock: Mock,
     get_tc_mock: Mock,
@@ -171,8 +171,8 @@ def test_write_moving(
     sendmsg_mock.assert_called_once_with("data_file.writing")
 
 
-@patch("finesse.hardware.data_file_writer.get_temperature_controller_instance")
-@patch("finesse.hardware.data_file_writer.get_stepper_motor_instance")
+@patch("frog.hardware.data_file_writer.get_temperature_controller_instance")
+@patch("frog.hardware.data_file_writer.get_stepper_motor_instance")
 def test_write_error(
     get_stepper_mock: Mock,
     get_tc_mock: Mock,

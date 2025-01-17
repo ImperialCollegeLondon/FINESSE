@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, Mock, PropertyMock, patch
 import pytest
 from serial import SerialException, SerialTimeoutException
 
-from finesse.hardware.plugins.stepper_motor.st10_controller import (
+from frog.hardware.plugins.stepper_motor.st10_controller import (
     ST10Controller,
     ST10ControllerError,
     _SerialReader,
@@ -37,7 +37,7 @@ class MockSerialReader(_SerialReader):
 
 @pytest.fixture
 @patch(
-    "finesse.hardware.plugins.stepper_motor.st10_controller._SerialReader",
+    "frog.hardware.plugins.stepper_motor.st10_controller._SerialReader",
     MockSerialReader,
 )
 def dev(subscribe_mock: MagicMock, serial_mock: MagicMock) -> ST10Controller:
@@ -53,7 +53,7 @@ def dev(subscribe_mock: MagicMock, serial_mock: MagicMock) -> ST10Controller:
 
 
 @patch(
-    "finesse.hardware.plugins.stepper_motor.st10_controller._SerialReader",
+    "frog.hardware.plugins.stepper_motor.st10_controller._SerialReader",
     MockSerialReader,
 )
 def test_init(subscribe_mock: MagicMock, serial_mock: MagicMock) -> None:
@@ -72,8 +72,8 @@ def test_init(subscribe_mock: MagicMock, serial_mock: MagicMock) -> None:
             home_mock.assert_called_once()
 
 
-@patch("finesse.hardware.plugins.stepper_motor.st10_controller.SerialDevice")
-@patch("finesse.hardware.plugins.stepper_motor.st10_controller.StepperMotorBase")
+@patch("frog.hardware.plugins.stepper_motor.st10_controller.SerialDevice")
+@patch("frog.hardware.plugins.stepper_motor.st10_controller.StepperMotorBase")
 def test_close(stepper_cls: Mock, serial_dev_cls: Mock, dev: ST10Controller) -> None:
     """Test the close() method."""
     with patch.object(dev, "stop_moving") as stop_moving_mock:
@@ -87,8 +87,8 @@ def test_close(stepper_cls: Mock, serial_dev_cls: Mock, dev: ST10Controller) -> 
     serial_dev_cls.close.assert_called_once_with(dev)
 
 
-@patch("finesse.hardware.plugins.stepper_motor.st10_controller.SerialDevice")
-@patch("finesse.hardware.plugins.stepper_motor.st10_controller.StepperMotorBase")
+@patch("frog.hardware.plugins.stepper_motor.st10_controller.SerialDevice")
+@patch("frog.hardware.plugins.stepper_motor.st10_controller.StepperMotorBase")
 def test_close_move_fails(
     stepper_cls: Mock, serial_dev_cls: Mock, dev: ST10Controller
 ) -> None:
@@ -106,8 +106,8 @@ def test_close_move_fails(
     serial_dev_cls.close.assert_called_once_with(dev)
 
 
-@patch("finesse.hardware.plugins.stepper_motor.st10_controller.SerialDevice")
-@patch("finesse.hardware.plugins.stepper_motor.st10_controller.StepperMotorBase")
+@patch("frog.hardware.plugins.stepper_motor.st10_controller.SerialDevice")
+@patch("frog.hardware.plugins.stepper_motor.st10_controller.StepperMotorBase")
 def test_close_already_closed(
     stepper_cls: Mock, serial_dev_cls: Mock, dev: ST10Controller
 ) -> None:
@@ -137,7 +137,7 @@ def test_on_initial_move_end(dev: ST10Controller) -> None:
 
 
 @patch(
-    "finesse.hardware.plugins.stepper_motor.st10_controller.ST10Controller.angle",
+    "frog.hardware.plugins.stepper_motor.st10_controller.ST10Controller.angle",
     new_callable=PropertyMock,
 )
 def test_send_move_end_message(
@@ -342,7 +342,7 @@ def test_status_code(dev: ST10Controller, status: int) -> None:
 
 @pytest.mark.parametrize("status", _STATUS_CODES)
 @patch(
-    "finesse.hardware.plugins.stepper_motor.st10_controller.ST10Controller.status_code",
+    "frog.hardware.plugins.stepper_motor.st10_controller.ST10Controller.status_code",
     new_callable=PropertyMock,
 )
 def test_is_moving(

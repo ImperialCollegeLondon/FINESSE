@@ -8,16 +8,16 @@ import pytest
 from frozendict import frozendict
 from pubsub import pub
 
-from finesse.device_info import DeviceInstanceRef
-from finesse.hardware.device import Device
-from finesse.hardware.manage_devices import (
+from frog.device_info import DeviceInstanceRef
+from frog.hardware.device import Device
+from frog.hardware.manage_devices import (
     _close_all_devices,
     _close_device,
     _on_device_error,
     _open_device,
     _try_close_device,
 )
-from finesse.hardware.plugins import __name__ as _plugins_name
+from frog.hardware.plugins import __name__ as _plugins_name
 
 
 def test_subscriptions():
@@ -31,8 +31,8 @@ def test_subscriptions():
 @pytest.mark.parametrize(
     "name,raise_error", product((None, "device_name"), (False, True))
 )
-@patch("finesse.hardware.manage_devices.logging")
-@patch("finesse.hardware.manage_devices.import_module")
+@patch("frog.hardware.manage_devices.logging")
+@patch("frog.hardware.manage_devices.import_module")
 def test_open_device(
     import_mock: Mock,
     logging_mock: Mock,
@@ -55,7 +55,7 @@ def test_open_device(
     params = frozendict(param1="value1", param2="value2")
     devices_dict: dict[DeviceInstanceRef, Device] = {}
 
-    with patch("finesse.hardware.manage_devices._devices", devices_dict):
+    with patch("frog.hardware.manage_devices._devices", devices_dict):
         class_name = "some.module.MyDevice"
         _open_device(instance=instance, class_name=class_name, params=params)
         import_mock.assert_called_once_with(f"{_plugins_name}.some.module")
@@ -93,9 +93,9 @@ def test_open_device(
             logging_mock.error.assert_called()
 
 
-@patch("finesse.hardware.manage_devices._try_close_device")
-@patch("finesse.hardware.manage_devices.logging")
-@patch("finesse.hardware.manage_devices.import_module")
+@patch("frog.hardware.manage_devices._try_close_device")
+@patch("frog.hardware.manage_devices.logging")
+@patch("frog.hardware.manage_devices.import_module")
 def test_open_device_replace_existing(
     import_mock: Mock, logging_mock: Mock, close_mock: Mock, sendmsg_mock: MagicMock
 ) -> None:
@@ -109,7 +109,7 @@ def test_open_device_replace_existing(
     instance = DeviceInstanceRef("test_type")
     old_device = MagicMock()
     devices_dict: dict[DeviceInstanceRef, Device] = {instance: old_device}
-    with patch("finesse.hardware.manage_devices._devices", devices_dict):
+    with patch("frog.hardware.manage_devices._devices", devices_dict):
         _open_device(
             instance=instance, class_name="some.module.MyDevice", params=frozendict()
         )
@@ -148,9 +148,9 @@ def test_close_device() -> None:
     """Check the _close_device() function."""
     device_mock = MagicMock()
     instance_ref = DeviceInstanceRef("test")
-    with patch("finesse.hardware.manage_devices._try_close_device") as close_mock:
+    with patch("frog.hardware.manage_devices._try_close_device") as close_mock:
         with patch(
-            "finesse.hardware.manage_devices._devices",
+            "frog.hardware.manage_devices._devices",
             {instance_ref: device_mock},
         ) as device_dict:
             _close_device(instance_ref)
@@ -161,7 +161,7 @@ def test_close_device() -> None:
 def test_close_device_no_exist() -> None:
     """Check the _close_device() works when the device doesn't exist."""
     instance_ref = DeviceInstanceRef("test")
-    with patch("finesse.hardware.manage_devices._try_close_device") as close_mock:
+    with patch("frog.hardware.manage_devices._try_close_device") as close_mock:
         _close_device(instance_ref)
         close_mock.assert_not_called()
 
@@ -178,8 +178,8 @@ def test_close_all_devices(raise_error: Iterable[bool]) -> None:
             device.close.side_effect = RuntimeError("Device close failed")
         device_dict[DeviceInstanceRef(f"test{i}")] = device
 
-    with patch("finesse.hardware.manage_devices._devices", device_dict):
-        with patch("finesse.hardware.manage_devices._try_close_device") as close_mock:
+    with patch("frog.hardware.manage_devices._devices", device_dict):
+        with patch("frog.hardware.manage_devices._try_close_device") as close_mock:
             _close_all_devices()
 
             # Check that the close method was called for every device regardless of
@@ -192,7 +192,7 @@ def test_close_all_devices(raise_error: Iterable[bool]) -> None:
             assert not device_dict
 
 
-@patch("finesse.hardware.manage_devices._close_device")
+@patch("frog.hardware.manage_devices._close_device")
 def test_on_device_error(close_mock: Mock) -> None:
     """Test the _on_device_error() function closes the device instance."""
     instance = DeviceInstanceRef("test")

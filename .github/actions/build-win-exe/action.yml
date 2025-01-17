@@ -10,4 +10,4 @@ runs:
 
     - name: Build package
       shell: bash
-      run: poetry run pyinstaller FINESSE.spec
+      run: poetry run pyinstaller FROG.spec

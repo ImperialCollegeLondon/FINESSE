@@ -7,8 +7,8 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 from PySide6.QtNetwork import QNetworkReply
 
-from finesse.config import EM27_SENSORS_URL
-from finesse.hardware.plugins.sensors.em27_sensors import (
+from frog.config import EM27_SENSORS_URL
+from frog.hardware.plugins.sensors.em27_sensors import (
     EM27Error,
     EM27Sensors,
     SensorReading,
@@ -44,7 +44,7 @@ def test_init() -> None:
     assert sensors._url == EM27_SENSORS_URL.format(host="1.2.3.4")
 
 
-@patch("finesse.hardware.plugins.sensors.em27_sensors.get_em27_sensor_data")
+@patch("frog.hardware.plugins.sensors.em27_sensors.get_em27_sensor_data")
 def test_on_reply_received_no_error(
     get_em27_sensor_data_mock: Mock, em27_sensors: EM27Sensors, qtbot
 ) -> None:
@@ -70,7 +70,7 @@ def test_on_reply_received_network_error(em27_sensors: EM27Sensors, qtbot) -> No
         em27_sensors._on_reply_received(reply)
 
 
-@patch("finesse.hardware.plugins.sensors.em27_sensors.get_em27_sensor_data")
+@patch("frog.hardware.plugins.sensors.em27_sensors.get_em27_sensor_data")
 def test_on_reply_received_exception(
     get_em27_sensor_data_mock: Mock, em27_sensors: EM27Sensors, qtbot
 ) -> None:
@@ -92,7 +92,7 @@ def test_get_em27_sensor_data() -> None:
     Read in the snapshot of the EM27 webpage and ensure that
     the sensor data is correctly extracted from it.
     """
-    dummy_em27_fp = resources.files("finesse.hardware.plugins.sensors").joinpath(
+    dummy_em27_fp = resources.files("frog.hardware.plugins.sensors").joinpath(
         "diag_autom.htm"
     )
     with dummy_em27_fp.open() as f:

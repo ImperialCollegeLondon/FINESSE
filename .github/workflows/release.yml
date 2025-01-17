@@ -15,4 +15,4 @@ jobs:
       - name: Upload release artifacts
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/FINESSE.exe
+          files: dist/FROG.exe

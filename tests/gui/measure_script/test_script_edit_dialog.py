@@ -10,8 +10,8 @@ import pytest
 from PySide6.QtWidgets import QDialog, QDialogButtonBox, QMessageBox, QWidget
 from pytestqt.qtbot import QtBot
 
-from finesse.gui.measure_script.script import Measurement, Script
-from finesse.gui.measure_script.script_edit_dialog import ScriptEditDialog
+from frog.gui.measure_script.script import Measurement, Script
+from frog.gui.measure_script.script_edit_dialog import ScriptEditDialog
 
 
 @pytest.fixture()
@@ -77,7 +77,7 @@ def test_try_save(
 ) -> None:
     """Test the _try_save() method."""
     with patch(
-        "finesse.gui.measure_script.script_edit_dialog.show_error_message", MagicMock()
+        "frog.gui.measure_script.script_edit_dialog.show_error_message", MagicMock()
     ) as errmsg_mock:
         with patch("builtins.open", mock_open()) as open_mock:
             if not read_succeeds:
@@ -157,9 +157,7 @@ def test_close(
     if nonempty_seq:
         dlg.sequence_widget.sequence.append(Measurement(0.0, 1))
 
-    with patch(
-        "finesse.gui.measure_script.script_edit_dialog.QMessageBox"
-    ) as msgbox_mock:
+    with patch("frog.gui.measure_script.script_edit_dialog.QMessageBox") as msgbox_mock:
         # **HACK**: We just want to mock the exec method, but this is the only solution
         # I could find
         mock2 = MagicMock()

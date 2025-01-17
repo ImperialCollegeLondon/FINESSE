@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from finesse.gui.path_widget import PathWidget
+from frog.gui.path_widget import PathWidget
 
 
 class DummyWidget(PathWidget):
@@ -36,9 +36,9 @@ def test_browse_button_connected(qtbot) -> None:
     """Check that the right signals are connected."""
     my_mock = MagicMock()
     with patch.object(DummyWidget, "setLayout"):
-        with patch("finesse.gui.path_widget.QPushButton") as button_mock:
+        with patch("frog.gui.path_widget.QPushButton") as button_mock:
             button_mock.return_value = my_mock
-            with patch("finesse.gui.path_widget.QHBoxLayout"):
+            with patch("frog.gui.path_widget.QHBoxLayout"):
                 widget = DummyWidget()
                 my_mock.clicked.connect.assert_called_once_with(widget._browse_clicked)
 

@@ -6,7 +6,7 @@ import pytest
 from PySide6.QtWidgets import QVBoxLayout, QWidget
 from pytestqt.qtbot import QtBot
 
-from finesse.gui.device_panel import DevicePanel
+from frog.gui.device_panel import DevicePanel
 
 
 class _ChildDevicePanel(DevicePanel):

@@ -5,7 +5,7 @@ from unittest.mock import Mock, call
 import pytest
 from pytestqt.qtbot import QtBot
 
-from finesse.gui.data_file_view import RecordingWidget
+from frog.gui.data_file_view import RecordingWidget
 
 
 @pytest.fixture

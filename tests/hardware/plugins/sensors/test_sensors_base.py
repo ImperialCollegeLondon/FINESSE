@@ -5,11 +5,11 @@ from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
-from finesse.hardware.plugins.sensors.sensors_base import SensorsBase
+from frog.hardware.plugins.sensors.sensors_base import SensorsBase
 
 
 @pytest.fixture
-@patch("finesse.hardware.plugins.sensors.sensors_base.QTimer")
+@patch("frog.hardware.plugins.sensors.sensors_base.QTimer")
 def device(timer_mock: Mock) -> SensorsBase:
     """Provides a mock sensors device."""
     return _MockSensorsDevice()
@@ -24,7 +24,7 @@ class _MockSensorsDevice(SensorsBase, description="Mock sensors device"):
         self.request_readings_mock()
 
 
-@patch("finesse.hardware.plugins.sensors.sensors_base.QTimer")
+@patch("frog.hardware.plugins.sensors.sensors_base.QTimer")
 def test_init(timer_mock: Mock) -> None:
     """Test for the constructor."""
     device = _MockSensorsDevice(1.0)
@@ -33,7 +33,7 @@ def test_init(timer_mock: Mock) -> None:
     timer.timeout.connect.assert_called_once_with(device.request_readings)
 
 
-@patch("finesse.hardware.plugins.sensors.sensors_base.QTimer")
+@patch("frog.hardware.plugins.sensors.sensors_base.QTimer")
 def test_start_polling_oneshot(timer_mock: Mock) -> None:
     """Test the start_polling() method when polling is only done once."""
     device = _MockSensorsDevice()
@@ -43,7 +43,7 @@ def test_start_polling_oneshot(timer_mock: Mock) -> None:
     timer.start.assert_not_called()
 
 
-@patch("finesse.hardware.plugins.sensors.sensors_base.QTimer")
+@patch("frog.hardware.plugins.sensors.sensors_base.QTimer")
 def test_start_polling_repeated(timer_mock: Mock) -> None:
     """Test the start_polling() method when polling is only done repeatedly."""
     device = _MockSensorsDevice(1.0)
@@ -53,7 +53,7 @@ def test_start_polling_repeated(timer_mock: Mock) -> None:
     timer.start.assert_called_once_with(1000)
 
 
-@patch("finesse.hardware.plugins.sensors.sensors_base.QTimer")
+@patch("frog.hardware.plugins.sensors.sensors_base.QTimer")
 def test_init_no_timer(timer_mock: Mock) -> None:
     """Test for the constructor when the user has disabled polling."""
     device = _MockSensorsDevice()

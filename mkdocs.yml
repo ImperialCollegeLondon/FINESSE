@@ -1,6 +1,6 @@
-site_name: FINESSE
-repo_url: https://github.com/ImperialCollegeLondon/FINESSE
-watch: [finesse]
+site_name: FROG
+repo_url: https://github.com/ImperialCollegeLondon/FROG
+watch: [frog]
 
 theme:
   name: "material"
@@ -32,10 +32,10 @@ plugins:
             show_root_heading: true
             show_category_heading: true
             merge_init_into_class: true
-          paths: [finesse]
+          paths: [frog]
 
 nav:
-  - FINESSE documentation: index.md
+  - FROG documentation: index.md
   - User guide: user_guide.md
   - Hardware: hardware.md
   - Hardware sets: hardware_sets.md

@@ -8,8 +8,8 @@ import pytest
 from PySide6.QtWidgets import QDialogButtonBox, QProgressBar
 from pytestqt.qtbot import QtBot
 
-from finesse.gui.measure_script.script import Measurement, Script, ScriptRunner
-from finesse.gui.measure_script.script_run_dialog import (
+from frog.gui.measure_script.script import Measurement, Script, ScriptRunner
+from frog.gui.measure_script.script_run_dialog import (
     ScriptRunDialog,
     get_total_steps,
 )
@@ -47,8 +47,8 @@ def test_get_total_steps_with_repeats(repeats: int) -> None:
     )
 
 
-@patch("finesse.gui.measure_script.script_run_dialog.get_total_steps")
-@patch("finesse.gui.measure_script.script_run_dialog.QProgressBar")
+@patch("frog.gui.measure_script.script_run_dialog.get_total_steps")
+@patch("frog.gui.measure_script.script_run_dialog.QProgressBar")
 def test_init(
     progress_bar_mock: Mock,
     get_total_steps_mock: Mock,

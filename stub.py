@@ -1,6 +1,6 @@
 """Stub script for pyinstaller."""
 
-from finesse import run
+from frog import run
 
 if __name__ == "__main__":
     run()

@@ -4,7 +4,7 @@ from decimal import Decimal
 
 import pytest
 
-from finesse.hardware.plugins.temperature.dummy_temperature_controller import (
+from frog.hardware.plugins.temperature.dummy_temperature_controller import (
     DummyTemperatureController,
     NoiseParameters,
 )

@@ -7,14 +7,14 @@ from unittest.mock import MagicMock, Mock, call, patch
 
 import pytest
 
-from finesse.device_info import DeviceParameter
-from finesse.hardware.device import (
+from frog.device_info import DeviceParameter
+from frog.hardware.device import (
     AbstractDevice,
     Device,
     DeviceTypeInfo,
     get_device_types,
 )
-from finesse.hardware.plugins import __name__ as plugins_name
+from frog.hardware.plugins import __name__ as plugins_name
 
 MOCK_DEVICE_TOPIC = "mock"
 
@@ -49,7 +49,7 @@ def device():
     return _MockDevice()
 
 
-@patch("finesse.hardware.device.load_all_plugins")
+@patch("frog.hardware.device.load_all_plugins")
 def test_get_device_types(load_plugins_mock: Mock) -> None:
     """Test the get_device_types() function."""
     # NB: Deliberately not in alphabetical order as the result should be sorted
@@ -78,8 +78,8 @@ def test_get_device_types(load_plugins_mock: Mock) -> None:
         device_mock.get_device_type_info.return_value = info_mock
         device_types.append(device_mock)
 
-    with patch("finesse.hardware.device._base_types", base_types):
-        with patch("finesse.hardware.device._device_types", device_types):
+    with patch("frog.hardware.device._base_types", base_types):
+        with patch("frog.hardware.device._device_types", device_types):
             device_types_out = get_device_types()
             load_plugins_mock.assert_called_once_with()
 

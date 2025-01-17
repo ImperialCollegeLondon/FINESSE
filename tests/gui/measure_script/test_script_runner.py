@@ -7,10 +7,10 @@ from unittest.mock import MagicMock, Mock, call, patch
 import pytest
 from statemachine import State
 
-from finesse.config import SPECTROMETER_TOPIC, STEPPER_MOTOR_TOPIC
-from finesse.device_info import DeviceInstanceRef
-from finesse.gui.measure_script.script import Script, ScriptRunner
-from finesse.spectrometer_status import SpectrometerStatus
+from frog.config import SPECTROMETER_TOPIC, STEPPER_MOTOR_TOPIC
+from frog.device_info import DeviceInstanceRef
+from frog.gui.measure_script.script import Script, ScriptRunner
+from frog.spectrometer_status import SpectrometerStatus
 
 
 def test_init(subscribe_mock: MagicMock, sendmsg_mock: MagicMock) -> None:
@@ -266,7 +266,7 @@ def test_on_stepper_motor_error(runner: ScriptRunner) -> None:
         abort_mock.assert_called_once_with()
 
 
-@patch("finesse.gui.measure_script.script.show_error_message")
+@patch("frog.gui.measure_script.script.show_error_message")
 def test_on_spectrometer_error(
     show_error_message_mock: Mock, runner: ScriptRunner
 ) -> None:

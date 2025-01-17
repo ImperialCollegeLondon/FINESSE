@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from finesse.gui.event_counter import EventCounter
+from frog.gui.event_counter import EventCounter
 
 
 def test_init() -> None:

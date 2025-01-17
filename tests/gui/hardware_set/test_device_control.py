@@ -4,9 +4,9 @@ from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
-from finesse.device_info import DeviceBaseTypeInfo, DeviceInstanceRef, DeviceTypeInfo
-from finesse.gui.hardware_set.device import ConnectionStatus, OpenDeviceArgs
-from finesse.gui.hardware_set.device_view import DeviceControl
+from frog.device_info import DeviceBaseTypeInfo, DeviceInstanceRef, DeviceTypeInfo
+from frog.gui.hardware_set.device import ConnectionStatus, OpenDeviceArgs
+from frog.gui.hardware_set.device_view import DeviceControl
 
 CONNECTED_DEVICES = (
     OpenDeviceArgs.create("stepper_motor", "MyStepperMotor"),
@@ -51,7 +51,7 @@ def test_get_connected_device(
     assert widget._get_connected_device(instance) == expected
 
 
-@patch("finesse.gui.hardware_set.device_view.DeviceTypeControl")
+@patch("frog.gui.hardware_set.device_view.DeviceTypeControl")
 def test_on_device_list(widget_mock: Mock, widget: DeviceControl, qtbot) -> None:
     """Test the _on_device_list() method."""
     base_type = DeviceBaseTypeInfo("base_type", "Base type", (), ())

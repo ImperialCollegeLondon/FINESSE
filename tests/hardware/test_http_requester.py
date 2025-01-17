@@ -2,10 +2,10 @@
 
 from unittest.mock import MagicMock, Mock, patch
 
-from finesse.hardware.http_requester import HTTPRequester
+from frog.hardware.http_requester import HTTPRequester
 
 
-@patch("finesse.hardware.http_requester.QNetworkRequest")
+@patch("frog.hardware.http_requester.QNetworkRequest")
 def test_make_request(request_mock: Mock, qtbot) -> None:
     """Test the make_request() method."""
     URL = "https://example.com"
