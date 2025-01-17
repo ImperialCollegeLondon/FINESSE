@@ -1,6 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
 import docs.gen_user_guide as gen_guide
-from finesse.hardware.plugins import load_all_plugins
+from frog.hardware.plugins import load_all_plugins
 
 block_cipher = None
 
@@ -11,16 +11,16 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=[
-        ("finesse/gui/hardware_set/*.yaml", "finesse/gui/hardware_set"),
-        ("finesse/gui/images/*.png", "finesse/gui/images"),
+        ("frog/gui/hardware_set/*.yaml", "frog/gui/hardware_set"),
+        ("frog/gui/images/*.png", "frog/gui/images"),
         (
-            "finesse/hardware/plugins/sensors/diag_autom.htm",
-            "finesse/hardware/plugins/sensors",
+            "frog/hardware/plugins/sensors/diag_autom.htm",
+            "frog/hardware/plugins/sensors",
         ),
         ("docs/user_guide.html", "docs"),
         ("docs/fallback.html", "docs"),
     ],
-    hiddenimports=["finesse.gui.images", *load_all_plugins()],
+    hiddenimports=["frog.gui.images", *load_all_plugins()],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

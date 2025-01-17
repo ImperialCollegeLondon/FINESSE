@@ -8,25 +8,25 @@ from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
-from finesse.config import (
+from frog.config import (
     DEFAULT_FTSW500_HOST,
     DEFAULT_FTSW500_POLLING_INTERVAL,
     DEFAULT_FTSW500_PORT,
     FTSW500_TIMEOUT,
 )
-from finesse.hardware.plugins.spectrometer.ftsw500_interface import (
+from frog.hardware.plugins.spectrometer.ftsw500_interface import (
     FTSW500Error,
     FTSW500Interface,
     _parse_response,
 )
-from finesse.spectrometer_status import SpectrometerStatus
+from frog.spectrometer_status import SpectrometerStatus
 
 
 @pytest.fixture
 @patch.object(FTSW500Interface, "_update_status")
 @patch.object(FTSW500Interface, "pubsub_errors")
-@patch("finesse.hardware.plugins.spectrometer.ftsw500_interface.QTimer")
-@patch("finesse.hardware.plugins.spectrometer.ftsw500_interface.socket")
+@patch("frog.hardware.plugins.spectrometer.ftsw500_interface.QTimer")
+@patch("frog.hardware.plugins.spectrometer.ftsw500_interface.socket")
 def ftsw(socket_mock: Mock, timer_mock: Mock, decorator_mock: Mock, status_mock: Mock):
     """Fixture providing FTSW500 interface."""
     return FTSW500Interface()
@@ -66,7 +66,7 @@ def test_init(status_mock: Mock, decorator_mock: Mock, qtbot) -> None:
 
     sock = MagicMock()  # socket
     with patch(
-        "finesse.hardware.plugins.spectrometer.ftsw500_interface.socket",
+        "frog.hardware.plugins.spectrometer.ftsw500_interface.socket",
         MagicMock(return_value=sock),
     ) as socket_ctor:
         dev = FTSW500Interface()
@@ -116,7 +116,7 @@ def test_close(fileno: int, socket_open: bool, ftsw: FTSW500Interface) -> None:
         ftsw._socket.close.assert_not_called()
 
 
-@patch("finesse.hardware.plugins.spectrometer.ftsw500_interface._parse_response")
+@patch("frog.hardware.plugins.spectrometer.ftsw500_interface._parse_response")
 def test_make_request_good(parse_mock: Mock, ftsw: FTSW500Interface) -> None:
     """Test the _make_request() method handles good responses correctly."""
     parse_mock.return_value = "PARSED ARGUMENT"

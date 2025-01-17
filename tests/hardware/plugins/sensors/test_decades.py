@@ -9,18 +9,18 @@ import pytest
 from freezegun import freeze_time
 from PySide6.QtNetwork import QNetworkReply
 
-from finesse.config import DECADES_URL
-from finesse.hardware.plugins.sensors.decades import (
+from frog.config import DECADES_URL
+from frog.hardware.plugins.sensors.decades import (
     Decades,
     DecadesError,
     DecadesParameter,
     _get_selected_params,
 )
-from finesse.sensor_reading import SensorReading
+from frog.sensor_reading import SensorReading
 
 
 @pytest.fixture
-@patch("finesse.hardware.plugins.sensors.decades.HTTPRequester")
+@patch("frog.hardware.plugins.sensors.decades.HTTPRequester")
 def decades(requester_mock, qtbot, subscribe_mock) -> Decades:
     """Fixture for Decades."""
     return Decades()
@@ -40,7 +40,7 @@ PARAMS = [DecadesParameter("a", "A", "m"), DecadesParameter("b", "B", "J")]
 
 
 @patch("json.loads")
-@patch("finesse.hardware.plugins.sensors.decades.Decades._get_decades_data")
+@patch("frog.hardware.plugins.sensors.decades.Decades._get_decades_data")
 def test_on_reply_received_no_error(
     get_decades_data_mock: Mock, json_loads_mock: Mock, decades: Decades
 ) -> None:
@@ -67,7 +67,7 @@ def test_on_reply_received_network_error(decades: Decades) -> None:
 
 
 @patch("json.loads")
-@patch("finesse.hardware.plugins.sensors.decades.Decades._get_decades_data")
+@patch("frog.hardware.plugins.sensors.decades.Decades._get_decades_data")
 def test_on_reply_received_exception(
     get_decades_data_mock: Mock, json_loads_mock: Mock, decades: Decades
 ) -> None:
@@ -157,7 +157,7 @@ def test_request_readings(decades: Decades) -> None:
             requester_mock.make_request.assert_called_once_with(query, "WRAPPED_FUNC")
 
 
-@patch("finesse.hardware.plugins.sensors.decades.logging.warn")
+@patch("frog.hardware.plugins.sensors.decades.logging.warn")
 def test_get_decades_data(warn_mock: Mock, decades: Decades) -> None:
     """Tests the get_decades_data() function on normal data."""
     decades._params = PARAMS
@@ -166,7 +166,7 @@ def test_get_decades_data(warn_mock: Mock, decades: Decades) -> None:
     warn_mock.assert_not_called()
 
 
-@patch("finesse.hardware.plugins.sensors.decades.logging.warn")
+@patch("frog.hardware.plugins.sensors.decades.logging.warn")
 def test_get_decades_data_missing(warn_mock: Mock, decades: Decades) -> None:
     """Tests the get_decades_data() function for when there are missing data."""
     params = [
@@ -223,7 +223,7 @@ def test_get_selected_params(params: set[str], available: set[str]) -> None:
     )
 
 
-@patch("finesse.hardware.plugins.sensors.decades.logging")
+@patch("frog.hardware.plugins.sensors.decades.logging")
 def test_get_selected_params_missing(logging_mock: Mock) -> None:
     """Test the _get_selected_params() function when one parameter is missing."""
     all_params_info = (

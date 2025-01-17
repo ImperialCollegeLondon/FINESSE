@@ -77,7 +77,7 @@ ignore_missing_imports = true
 disable_error_code = "type-abstract"
 
 [tool.pytest.ini_options]
-addopts = "-v -p no:warnings -n auto --cov=finesse --cov-report=html:htmlcov/coverage --doctest-modules --ignore=site/ --ignore=docs/"
+addopts = "-v -p no:warnings -n auto --cov=frog --cov-report=html:htmlcov/coverage --doctest-modules --ignore=site/ --ignore=docs/"
 
 [tool.coverage.report]
 exclude_lines = ["if __name__ == .__main__.:"]

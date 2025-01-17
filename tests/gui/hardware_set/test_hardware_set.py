@@ -14,11 +14,11 @@ from frozendict import frozendict
 from pubsub import pub
 from PySide6.QtWidgets import QMessageBox
 
-from finesse.config import HARDWARE_SET_USER_PATH
-from finesse.device_info import DeviceInstanceRef
-from finesse.gui.hardware_set import hardware_set
-from finesse.gui.hardware_set.device import OpenDeviceArgs
-from finesse.gui.hardware_set.hardware_set import (
+from frog.config import HARDWARE_SET_USER_PATH
+from frog.device_info import DeviceInstanceRef
+from frog.gui.hardware_set import hardware_set
+from frog.gui.hardware_set.device import OpenDeviceArgs
+from frog.gui.hardware_set.hardware_set import (
     CURRENT_HW_SET_VERSION,
     HardwareSet,
     HardwareSetLoadError,
@@ -64,8 +64,8 @@ def test_device_to_plain_data(device: OpenDeviceArgs, expected: dict[str, Any]) 
     assert _device_to_plain_data(device) == expected
 
 
-@patch("finesse.gui.hardware_set.hardware_set._device_to_plain_data")
-@patch("finesse.gui.hardware_set.hardware_set.yaml.dump")
+@patch("frog.gui.hardware_set.hardware_set._device_to_plain_data")
+@patch("frog.gui.hardware_set.hardware_set.yaml.dump")
 def test_hardware_set_save(dump_mock: Mock, to_plain_mock: Mock) -> None:
     """Test HardwareSet's save() method."""
     file_path = MagicMock()
@@ -347,8 +347,8 @@ def test_get_new_hardware_set_path_creates_dir(tmp_path: Path) -> None:
     assert output_dir.exists()
 
 
-@patch("finesse.gui.hardware_set.hardware_set._get_new_hardware_set_path")
-@patch("finesse.gui.hardware_set.hardware_set.show_error_message")
+@patch("frog.gui.hardware_set.hardware_set._get_new_hardware_set_path")
+@patch("frog.gui.hardware_set.hardware_set.show_error_message")
 def test_add_hardware_set_success(
     error_message_mock: Mock,
     get_path_mock: Mock,
@@ -365,7 +365,7 @@ def test_add_hardware_set_success(
     hw_set.built_in = False
     get_path_mock.return_value = out_path
     hw_set_list: list = []
-    with patch("finesse.gui.hardware_set.hardware_set._hw_sets", hw_set_list):
+    with patch("frog.gui.hardware_set.hardware_set._hw_sets", hw_set_list):
         hw_set_new = HardwareSet(NAME, hw_sets[0].devices, out_path, built_in=False)
         _add_hardware_set(hw_set)
         get_path_mock.assert_called_once_with(in_path.stem)
@@ -377,8 +377,8 @@ def test_add_hardware_set_success(
         sendmsg_mock.assert_called_once_with("hardware_set.added", hw_set=hw_set_new)
 
 
-@patch("finesse.gui.hardware_set.hardware_set._get_new_hardware_set_path")
-@patch("finesse.gui.hardware_set.hardware_set.show_error_message")
+@patch("frog.gui.hardware_set.hardware_set._get_new_hardware_set_path")
+@patch("frog.gui.hardware_set.hardware_set.show_error_message")
 def test_add_hardware_set_fail(
     error_message_mock: Mock, get_path_mock: Mock, sendmsg_mock: MagicMock
 ) -> None:
@@ -390,7 +390,7 @@ def test_add_hardware_set_fail(
     hw_set.save.side_effect = RuntimeError
     get_path_mock.return_value = out_path
     hw_set_list: list = []
-    with patch("finesse.gui.hardware_set.hardware_set._hw_sets", hw_set_list):
+    with patch("frog.gui.hardware_set.hardware_set._hw_sets", hw_set_list):
         _add_hardware_set(hw_set)
         get_path_mock.assert_called_once_with(in_path.stem)
         hw_set.save.assert_called_once_with(out_path)
@@ -398,8 +398,8 @@ def test_add_hardware_set_fail(
         sendmsg_mock.assert_not_called()
 
 
-@patch("finesse.gui.hardware_set.hardware_set.QFile.moveToTrash")
-@patch("finesse.gui.hardware_set.hardware_set.QMessageBox")
+@patch("frog.gui.hardware_set.hardware_set.QFile.moveToTrash")
+@patch("frog.gui.hardware_set.hardware_set.QMessageBox")
 def test_remove_hardware_set_success(
     msgbox_mock: Mock,
     trash_mock: Mock,
@@ -414,15 +414,15 @@ def test_remove_hardware_set_success(
     trash_mock.return_value = True
 
     hw_set_list = list(hw_sets)
-    with patch("finesse.gui.hardware_set.hardware_set._hw_sets", hw_set_list):
+    with patch("frog.gui.hardware_set.hardware_set._hw_sets", hw_set_list):
         _remove_hardware_set(hw_sets[0])
         assert hw_set_list == [hw_sets[1]]
         trash_mock.assert_called_once_with(str(hw_sets[0].file_path))
         sendmsg_mock.assert_called_once_with("hardware_set.removed")
 
 
-@patch("finesse.gui.hardware_set.hardware_set.QFile.moveToTrash")
-@patch("finesse.gui.hardware_set.hardware_set.QMessageBox")
+@patch("frog.gui.hardware_set.hardware_set.QFile.moveToTrash")
+@patch("frog.gui.hardware_set.hardware_set.QMessageBox")
 def test_remove_hardware_set_cancelled(
     msgbox_mock: Mock,
     trash_mock: Mock,
@@ -437,16 +437,16 @@ def test_remove_hardware_set_cancelled(
     trash_mock.return_value = True
 
     hw_sets = list(hw_sets)
-    with patch("finesse.gui.hardware_set.hardware_set._hw_sets", hw_sets):
+    with patch("frog.gui.hardware_set.hardware_set._hw_sets", hw_sets):
         _remove_hardware_set(hw_sets[0])
         trash_mock.assert_not_called()
         sendmsg_mock.assert_not_called()
         assert hw_sets == list(hw_sets)
 
 
-@patch("finesse.gui.hardware_set.hardware_set.show_error_message")
-@patch("finesse.gui.hardware_set.hardware_set.QFile.moveToTrash")
-@patch("finesse.gui.hardware_set.hardware_set.QMessageBox")
+@patch("frog.gui.hardware_set.hardware_set.show_error_message")
+@patch("frog.gui.hardware_set.hardware_set.QFile.moveToTrash")
+@patch("frog.gui.hardware_set.hardware_set.QMessageBox")
 def test_remove_hardware_set_fail(
     msgbox_mock: Mock,
     trash_mock: Mock,
@@ -462,7 +462,7 @@ def test_remove_hardware_set_fail(
     trash_mock.return_value = False
 
     hw_sets = list(hw_sets)
-    with patch("finesse.gui.hardware_set.hardware_set._hw_sets", hw_sets):
+    with patch("frog.gui.hardware_set.hardware_set._hw_sets", hw_sets):
         _remove_hardware_set(hw_sets[0])
         trash_mock.assert_called_once_with(str(hw_sets[0].file_path))
         sendmsg_mock.assert_not_called()
@@ -520,7 +520,7 @@ def test_load_hardware_sets(
 @patch.object(HardwareSet, "load")
 def test_load_builtin_hardware_sets(load_mock: Mock) -> None:
     """Test the _load_builtin_hardware_sets() function."""
-    pkg_path = str(resources.files("finesse.gui.hardware_set").joinpath())
+    pkg_path = str(resources.files("frog.gui.hardware_set").joinpath())
     yaml_files = Path(pkg_path).glob("*.yaml")
     list(_load_builtin_hardware_sets())  # assume return value is correct
     load_mock.assert_has_calls([call(file, built_in=True) for file in yaml_files])
@@ -531,26 +531,26 @@ def test_builtin_hardware_sets_valid() -> None:
     list(_load_builtin_hardware_sets())
 
 
-@patch("finesse.gui.hardware_set.hardware_set._load_hardware_sets")
+@patch("frog.gui.hardware_set.hardware_set._load_hardware_sets")
 def test_load_all_hardware_sets(load_mock: Mock) -> None:
     """Test _load_all_hardware_sets()."""
     hw_set_list: list[int] = []
-    with patch("finesse.gui.hardware_set.hardware_set._hw_sets", hw_set_list):
+    with patch("frog.gui.hardware_set.hardware_set._hw_sets", hw_set_list):
         load_mock.side_effect = ((1, 0), (3, 2))  # deliberately unsorted
         _load_all_hardware_sets()
         assert hw_set_list == [0, 1, 2, 3]
 
 
-@patch("finesse.gui.hardware_set.hardware_set._load_hardware_sets")
+@patch("frog.gui.hardware_set.hardware_set._load_hardware_sets")
 def test_load_user_hardware_sets_success(load_mock: Mock) -> None:
     """Test _load_user_hardware_sets() when it succeeds."""
     list(_load_user_hardware_sets())  # assume return value is correct
     load_mock.assert_called_once_with(HARDWARE_SET_USER_PATH, built_in=False)
 
 
-@patch("finesse.gui.hardware_set.hardware_set.QFile.moveToTrash")
-@patch("finesse.gui.hardware_set.hardware_set.QMessageBox")
-@patch("finesse.gui.hardware_set.hardware_set._load_hardware_sets")
+@patch("frog.gui.hardware_set.hardware_set.QFile.moveToTrash")
+@patch("frog.gui.hardware_set.hardware_set.QMessageBox")
+@patch("frog.gui.hardware_set.hardware_set._load_hardware_sets")
 def test_load_user_hardware_sets_no_trash(
     load_mock: Mock, msgbox_mock: Mock, trash_mock: Mock
 ) -> None:
@@ -567,10 +567,10 @@ def test_load_user_hardware_sets_no_trash(
 
 
 @pytest.mark.parametrize("trash_succeeded", (True, False))
-@patch("finesse.gui.hardware_set.hardware_set.logging.error")
-@patch("finesse.gui.hardware_set.hardware_set.QFile.moveToTrash")
-@patch("finesse.gui.hardware_set.hardware_set.QMessageBox")
-@patch("finesse.gui.hardware_set.hardware_set._load_hardware_sets")
+@patch("frog.gui.hardware_set.hardware_set.logging.error")
+@patch("frog.gui.hardware_set.hardware_set.QFile.moveToTrash")
+@patch("frog.gui.hardware_set.hardware_set.QMessageBox")
+@patch("frog.gui.hardware_set.hardware_set._load_hardware_sets")
 def test_load_user_hardware_sets_trash(
     load_mock: Mock,
     msgbox_mock: Mock,
@@ -597,21 +597,21 @@ def test_load_user_hardware_sets_trash(
         assert error_mock.call_count == len(paths)
 
 
-@patch("finesse.gui.hardware_set.hardware_set._load_all_hardware_sets")
+@patch("frog.gui.hardware_set.hardware_set._load_all_hardware_sets")
 def test_get_hardware_sets(load_mock: Mock, hw_sets: Sequence[HardwareSet]) -> None:
     """Test the get_hardware_sets() method."""
     # Check that _load_hardware_sets() will not be called if hardware sets are already
     # loaded
     # hw_sets = list(range(2))
     hw_set_list = list(hw_sets)
-    with patch("finesse.gui.hardware_set.hardware_set._hw_sets", hw_set_list):
+    with patch("frog.gui.hardware_set.hardware_set._hw_sets", hw_set_list):
         ret = list(get_hardware_sets())
         load_mock.assert_not_called()
         assert ret == hw_set_list
 
     # Check that hardware sets will be loaded if not loaded already
     hw_set_list.clear()
-    with patch("finesse.gui.hardware_set.hardware_set._hw_sets", hw_set_list):
+    with patch("frog.gui.hardware_set.hardware_set._hw_sets", hw_set_list):
         ret = list(get_hardware_sets())
         load_mock.assert_called_once_with()
         assert ret == hw_set_list

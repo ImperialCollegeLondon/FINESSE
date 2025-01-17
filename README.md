@@ -71,7 +71,7 @@ To get started:
 1. Run the main app:
 
    ```bash
-   python -m finesse
+   python -m frog
    ```
 
 1. Run the tests:

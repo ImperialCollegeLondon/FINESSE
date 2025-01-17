@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, Mock, call, patch
 import pytest
 from freezegun import freeze_time
 
-from finesse.gui.data_file_view import DataFileControl
+from frog.gui.data_file_view import DataFileControl
 
 FILE_PATH = Path("/path/to/file.csv")
 TEST_DATETIME = datetime(2024, 1, 1)
@@ -42,7 +42,7 @@ def test_init(
     sendmsg_mock.assert_called_once_with("data_file.close")
 
 
-@patch("finesse.gui.data_file_view.settings")
+@patch("frog.gui.data_file_view.settings")
 def test_save_file_path_settings(
     settings_mock: Mock, data_file: DataFileControl, qtbot
 ) -> None:
@@ -100,7 +100,7 @@ def test_try_get_data_file_path_no_data_dir(data_file: DataFileControl, qtbot) -
         assert data_file._try_get_data_file_path() is None
 
 
-@patch("finesse.gui.data_file_view.QMessageBox")
+@patch("frog.gui.data_file_view.QMessageBox")
 def test_try_get_data_file_path_no_filename_prefix(
     msgbox_mock: Mock, data_file: DataFileControl, tmp_path: Path, qtbot
 ) -> None:
@@ -114,7 +114,7 @@ def test_try_get_data_file_path_no_filename_prefix(
 
 
 @freeze_time(TEST_DATETIME)
-@patch("finesse.gui.data_file_view.QMessageBox")
+@patch("frog.gui.data_file_view.QMessageBox")
 def test_try_get_data_file_path_file_exists(
     msgbox_mock: Mock, data_file: DataFileControl, tmp_path: Path, qtbot
 ) -> None:
@@ -150,7 +150,7 @@ def test_try_start_recording_fail(
         sendmsg_mock.assert_not_called()
 
 
-@patch("finesse.gui.data_file_view.QMessageBox")
+@patch("frog.gui.data_file_view.QMessageBox")
 def test_show_error_message(
     msgbox_mock: Mock, data_file: DataFileControl, qtbot
 ) -> None:

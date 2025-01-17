@@ -11,21 +11,20 @@ include:
   mirror
 
 All the code for interfacing with the hardware lives in the
-[`finesse.hardware`](../reference/finesse/hardware) module.
+[`frog.hardware`](../reference/frog/hardware) module.
 
 ## Plugin architecture
 
-Code in the `finesse.hardware` module is not imported into the frontend code
-([`finesse.gui`](../reference/finesse/gui)) directly. Instead, messages are passed back
-and forth using the [PyPubSub](https://pypi.org/project/PyPubSub/) package.
+Code in the `frog.hardware` module is not imported into the frontend code
+([`frog.gui`](../reference/frog/gui)) directly. Instead, messages are passed back and
+forth using the [PyPubSub](https://pypi.org/project/PyPubSub/) package.
 
 As we want the user to be able to select which devices to use at runtime, the FROG
 hardware framework is designed to be modular. This is achieved via a plugin system. Each
 device type and device base type (explained below) is represented by a plugin class
-residing somewhere in the
-[`finesse.hardware.plugins`](../reference/finesse/hardware/plugins) module. To add a new
-plugin, it is sufficient just to define this class in a `.py` file and put it somewhere
-in the plugins directory hierarchy.
+residing somewhere in the [`frog.hardware.plugins`](../reference/frog/hardware/plugins)
+module. To add a new plugin, it is sufficient just to define this class in a `.py` file
+and put it somewhere in the plugins directory hierarchy.
 
 ### Creating a new device type
 

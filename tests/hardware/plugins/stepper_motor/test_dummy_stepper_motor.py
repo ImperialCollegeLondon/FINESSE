@@ -7,8 +7,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from finesse.config import ANGLE_PRESETS, STEPPER_MOTOR_TOPIC
-from finesse.hardware.plugins.stepper_motor.dummy import DummyStepperMotor
+from frog.config import ANGLE_PRESETS, STEPPER_MOTOR_TOPIC
+from frog.hardware.plugins.stepper_motor.dummy import DummyStepperMotor
 
 
 @pytest.fixture

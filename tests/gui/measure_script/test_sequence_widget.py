@@ -7,9 +7,9 @@ from unittest.mock import patch
 import pytest
 from PySide6.QtWidgets import QPushButton
 
-from finesse.config import ANGLE_PRESETS
-from finesse.gui.measure_script.script import Measurement
-from finesse.gui.measure_script.sequence_widget import (
+from frog.config import ANGLE_PRESETS
+from frog.gui.measure_script.script import Measurement
+from frog.gui.measure_script.sequence_widget import (
     AddButtons,
     ChangeButtons,
     SequenceWidget,

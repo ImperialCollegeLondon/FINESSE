@@ -8,12 +8,12 @@ from unittest.mock import MagicMock, Mock, PropertyMock, call, patch
 
 import pytest
 
-from finesse.device_info import DeviceInstanceRef
-from finesse.gui.hardware_set.device import ConnectionStatus, OpenDeviceArgs
-from finesse.gui.hardware_set.hardware_set import (
+from frog.device_info import DeviceInstanceRef
+from frog.gui.hardware_set.device import ConnectionStatus, OpenDeviceArgs
+from frog.gui.hardware_set.hardware_set import (
     HardwareSet,
 )
-from finesse.gui.hardware_set.hardware_sets_view import (
+from frog.gui.hardware_set.hardware_sets_view import (
     ActiveDeviceProperties,
     HardwareSetsControl,
     _get_last_selected_hardware_set,
@@ -22,8 +22,8 @@ from finesse.gui.hardware_set.hardware_sets_view import (
 
 @pytest.fixture
 @patch.object(HardwareSetsControl, "_update_control_state")
-@patch("finesse.gui.hardware_set.hardware_sets_view._get_last_selected_hardware_set")
-@patch("finesse.gui.hardware_set.hardware_sets_view.get_hardware_sets")
+@patch("frog.gui.hardware_set.hardware_sets_view._get_last_selected_hardware_set")
+@patch("frog.gui.hardware_set.hardware_sets_view.get_hardware_sets")
 def hw_control(
     get_hw_sets_mock: Mock,
     last_selected_mock: Mock,
@@ -59,12 +59,12 @@ def _dev_to_connecting(
 
 @pytest.mark.parametrize("last_selected", (None, "some/path.yaml"))
 @patch(
-    "finesse.gui.hardware_set.hardware_sets_view"
+    "frog.gui.hardware_set.hardware_sets_view"
     ".HardwareSetsComboBox.current_hardware_set",
     new_callable=PropertyMock,
 )
 @patch.object(HardwareSetsControl, "_update_control_state")
-@patch("finesse.gui.hardware_set.hardware_sets_view._get_last_selected_hardware_set")
+@patch("frog.gui.hardware_set.hardware_sets_view._get_last_selected_hardware_set")
 def test_init(
     load_last_mock: Mock,
     update_mock: Mock,
@@ -88,8 +88,8 @@ def test_init(
     subscribe_mock.assert_any_call(hw_sets._on_device_closed, "device.closed")
 
 
-@patch("finesse.gui.hardware_set.hardware_sets_view.get_hardware_sets")
-@patch("finesse.gui.hardware_set.hardware_sets_view.settings")
+@patch("frog.gui.hardware_set.hardware_sets_view.get_hardware_sets")
+@patch("frog.gui.hardware_set.hardware_sets_view.settings")
 def test_get_last_selected_hardware_set_cached_success(
     settings_mock: Mock, get_hw_sets_mock: Mock, hw_sets: Sequence[HardwareSet], qtbot
 ) -> None:
@@ -100,8 +100,8 @@ def test_get_last_selected_hardware_set_cached_success(
     settings_mock.value.assert_called_once_with("hardware_set/selected")
 
 
-@patch("finesse.gui.hardware_set.hardware_sets_view.get_hardware_sets")
-@patch("finesse.gui.hardware_set.hardware_sets_view.settings")
+@patch("frog.gui.hardware_set.hardware_sets_view.get_hardware_sets")
+@patch("frog.gui.hardware_set.hardware_sets_view.settings")
 def test_get_last_selected_hardware_set_cached_fail(
     settings_mock: Mock, get_hw_sets_mock: Mock, hw_sets: Sequence[HardwareSet], qtbot
 ) -> None:
@@ -112,7 +112,7 @@ def test_get_last_selected_hardware_set_cached_fail(
     settings_mock.value.assert_called_once_with("hardware_set/selected")
 
 
-@patch("finesse.gui.hardware_set.hardware_sets_view.settings")
+@patch("frog.gui.hardware_set.hardware_sets_view.settings")
 def test_get_last_selected_hardware_set_no_cached(settings_mock: Mock, qtbot) -> None:
     """Test _get_last_selected_hardware_set() when no value is cached."""
     settings_mock.value.return_value = None
@@ -121,8 +121,8 @@ def test_get_last_selected_hardware_set_no_cached(settings_mock: Mock, qtbot) ->
 
 
 @patch.object(HardwareSet, "load")
-@patch("finesse.gui.hardware_set.hardware_sets_view.show_error_message")
-@patch("finesse.gui.hardware_set.hardware_sets_view.QFileDialog.getOpenFileName")
+@patch("frog.gui.hardware_set.hardware_sets_view.show_error_message")
+@patch("frog.gui.hardware_set.hardware_sets_view.QFileDialog.getOpenFileName")
 def test_import_hardware_set_success(
     open_file_mock: Mock,
     error_message_mock: Mock,
@@ -143,8 +143,8 @@ def test_import_hardware_set_success(
 
 
 @patch.object(HardwareSet, "load")
-@patch("finesse.gui.hardware_set.hardware_sets_view.show_error_message")
-@patch("finesse.gui.hardware_set.hardware_sets_view.QFileDialog.getOpenFileName")
+@patch("frog.gui.hardware_set.hardware_sets_view.show_error_message")
+@patch("frog.gui.hardware_set.hardware_sets_view.QFileDialog.getOpenFileName")
 def test_import_hardware_set_cancelled(
     open_file_mock: Mock,
     error_message_mock: Mock,
@@ -162,8 +162,8 @@ def test_import_hardware_set_cancelled(
 
 
 @patch.object(HardwareSet, "load")
-@patch("finesse.gui.hardware_set.hardware_sets_view.show_error_message")
-@patch("finesse.gui.hardware_set.hardware_sets_view.QFileDialog.getOpenFileName")
+@patch("frog.gui.hardware_set.hardware_sets_view.show_error_message")
+@patch("frog.gui.hardware_set.hardware_sets_view.QFileDialog.getOpenFileName")
 def test_import_hardware_set_error(
     open_file_mock: Mock,
     error_message_mock: Mock,
@@ -224,7 +224,7 @@ def test_update_control_state(
     ) | _dev_to_connected(_get_devices(connected_devices))
 
     with patch(
-        "finesse.gui.hardware_set.hardware_sets_view"
+        "frog.gui.hardware_set.hardware_sets_view"
         ".HardwareSetsComboBox.current_hardware_set_devices",
         new_callable=PropertyMock,
     ) as hw_set_mock:
@@ -242,8 +242,8 @@ def test_update_control_state(
     "connected_devices,hardware_set,open_called",
     (((), range(2), range(2)), (range(2), range(2), ()), ((0,), range(2), (1,))),
 )
-@patch("finesse.gui.hardware_set.hardware_sets_view.settings")
-@patch("finesse.gui.hardware_set.device.open_device")
+@patch("frog.gui.hardware_set.hardware_sets_view.settings")
+@patch("frog.gui.hardware_set.device.open_device")
 def test_connect_btn(
     open_mock: Mock,
     settings_mock: Mock,
@@ -302,7 +302,7 @@ def test_on_device_open_start(hw_control: HardwareSetsControl, qtbot) -> None:
     }
 
 
-@patch("finesse.gui.hardware_set.hardware_sets_view.settings")
+@patch("frog.gui.hardware_set.hardware_sets_view.settings")
 def test_on_device_open_end(
     settings_mock: Mock, hw_control: HardwareSetsControl, qtbot
 ) -> None:
@@ -349,7 +349,7 @@ def test_on_device_closed_not_found(hw_control: HardwareSetsControl, qtbot) -> N
         hw_control._on_device_closed(device.instance)
 
 
-@patch("finesse.gui.hardware_set.hardware_sets_view.show_error_message")
+@patch("frog.gui.hardware_set.hardware_sets_view.show_error_message")
 def test_on_device_error(
     error_message_mock: Mock, hw_control: HardwareSetsControl, qtbot
 ) -> None:

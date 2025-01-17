@@ -3,7 +3,7 @@
 from collections.abc import Callable
 from unittest.mock import MagicMock
 
-from finesse.hardware.pubsub_decorators import pubsub_errors
+from frog.hardware.pubsub_decorators import pubsub_errors
 
 ERROR_TOPIC = "my_topic.error"
 SUCCESS_TOPIC = "my_topic.success"

@@ -6,13 +6,13 @@ from unittest.mock import MagicMock, Mock, PropertyMock, call, patch
 
 import pytest
 
-from finesse.gui.hardware_set.device import OpenDeviceArgs
-from finesse.gui.hardware_set.hardware_set import HardwareSet
-from finesse.gui.hardware_set.hardware_sets_combo_box import HardwareSetsComboBox
+from frog.gui.hardware_set.device import OpenDeviceArgs
+from frog.gui.hardware_set.hardware_set import HardwareSet
+from frog.gui.hardware_set.hardware_sets_combo_box import HardwareSetsComboBox
 
 
 @pytest.fixture
-@patch("finesse.gui.hardware_set.hardware_sets_combo_box.get_hardware_sets")
+@patch("frog.gui.hardware_set.hardware_sets_combo_box.get_hardware_sets")
 def combo(
     get_hw_sets_mock: Mock, hw_sets: Sequence[HardwareSet], qtbot
 ) -> HardwareSetsComboBox:
@@ -36,7 +36,7 @@ def test_on_hardware_set_added(
         cur_hw_set_mock.assert_called_once_with(hw_sets[1])
 
 
-@patch("finesse.gui.hardware_set.hardware_sets_combo_box.get_hardware_sets")
+@patch("frog.gui.hardware_set.hardware_sets_combo_box.get_hardware_sets")
 def test_load_hardware_set_list(
     get_hw_sets_mock: Mock, combo: HardwareSetsComboBox, qtbot
 ) -> None:

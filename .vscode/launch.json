@@ -8,7 +8,7 @@
             "name": "FROG",
             "type": "python",
             "request": "launch",
-            "module": "finesse",
+            "module": "frog",
             "justMyCode": true
         }
     ]

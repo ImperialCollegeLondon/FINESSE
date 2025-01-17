@@ -7,8 +7,8 @@ from unittest.mock import MagicMock
 import pytest
 from pytestqt.qtbot import QtBot
 
-from finesse.gui.measure_script.script import Script, ScriptRunner
-from finesse.gui.measure_script.script_run_dialog import ScriptRunDialog
+from frog.gui.measure_script.script import Script, ScriptRunner
+from frog.gui.measure_script.script_run_dialog import ScriptRunDialog
 
 
 @pytest.fixture

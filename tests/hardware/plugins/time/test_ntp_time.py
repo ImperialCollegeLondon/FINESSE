@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import pytest
 
-from finesse.hardware.plugins.time.ntp_time import NTPTime, NTPTimeError
+from frog.hardware.plugins.time.ntp_time import NTPTime, NTPTimeError
 
 
 @patch("ntplib.NTPClient.request")

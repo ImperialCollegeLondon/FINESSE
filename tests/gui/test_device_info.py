@@ -2,7 +2,7 @@
 
 import pytest
 
-from finesse.device_info import DeviceBaseTypeInfo, DeviceInstanceRef
+from frog.device_info import DeviceBaseTypeInfo, DeviceInstanceRef
 
 
 @pytest.mark.parametrize(

@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from serial import SerialException
 
-from finesse.hardware.plugins.temperature.dp9800 import (
+from frog.hardware.plugins.temperature.dp9800 import (
     DP9800,
     DP9800Error,
     calculate_bcc,
@@ -136,8 +136,8 @@ def test_dp9800_request_read(dev: DP9800) -> None:
         dev.request_read()
 
 
-@patch("finesse.hardware.plugins.temperature.dp9800.DP9800.request_read")
-@patch("finesse.hardware.plugins.temperature.dp9800.DP9800.read_temperature_data")
+@patch("frog.hardware.plugins.temperature.dp9800.DP9800.request_read")
+@patch("frog.hardware.plugins.temperature.dp9800.DP9800.read_temperature_data")
 def test_dp9800_get_temperatures(
     temperature_reader_mock: MagicMock, read_mock: MagicMock, dev: DP9800, data: bytes
 ) -> None:

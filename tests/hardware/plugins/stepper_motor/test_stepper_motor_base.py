@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from finesse.hardware.plugins.stepper_motor.stepper_motor_base import StepperMotorBase
+from frog.hardware.plugins.stepper_motor.stepper_motor_base import StepperMotorBase
 
 
 class _MockStepperMotor(StepperMotorBase, description="Mock stepper motor"):

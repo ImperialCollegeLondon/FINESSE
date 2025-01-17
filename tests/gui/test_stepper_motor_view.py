@@ -7,11 +7,11 @@ import pytest
 from PySide6.QtWidgets import QButtonGroup, QLabel, QPushButton
 from pytestqt.qtbot import QtBot
 
-from finesse.config import ANGLE_PRESETS, STEPPER_MOTOR_TOPIC
-from finesse.gui.stepper_motor_view import StepperMotorControl
+from frog.config import ANGLE_PRESETS, STEPPER_MOTOR_TOPIC
+from frog.gui.stepper_motor_view import StepperMotorControl
 
 
-@patch("finesse.gui.stepper_motor_view.QButtonGroup")
+@patch("frog.gui.stepper_motor_view.QButtonGroup")
 def test_init(button_group_mock: Mock, qtbot: QtBot) -> None:
     """Test StepperMotorControl's constructor."""
     button_group = QButtonGroup()

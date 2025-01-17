@@ -3,7 +3,7 @@
 from decimal import Decimal
 from unittest.mock import patch
 
-from finesse.hardware.plugins.temperature.temperature_controller_base import (
+from frog.hardware.plugins.temperature.temperature_controller_base import (
     TemperatureControllerBase,
 )
 

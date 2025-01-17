@@ -10,8 +10,8 @@ import pytest
 import yaml
 from PySide6.QtWidgets import QWidget
 
-from finesse.config import ANGLE_PRESETS
-from finesse.gui.measure_script.script import (
+from frog.config import ANGLE_PRESETS
+from frog.gui.measure_script.script import (
     CURRENT_SCRIPT_VERSION,
     Measurement,
     ParseError,
@@ -102,12 +102,12 @@ def test_try_load_success(qtbot) -> None:
         (Exception(), pytest.raises(Exception)),
     ),
 )
-@patch("finesse.gui.measure_script.script.show_error_message")
+@patch("frog.gui.measure_script.script.show_error_message")
 def test_try_load_fail(
     show_error_mock: Any, exception: BaseException, raises: Any, qtbot
 ) -> None:
     """Test the try_load() function."""
-    with patch("finesse.gui.measure_script.script.parse_script", side_effect=exception):
+    with patch("frog.gui.measure_script.script.parse_script", side_effect=exception):
         with raises:
             script = Script.try_load(QWidget(), _SCRIPT_PATH)
             assert script is None, "Script should not have been loaded"
@@ -149,7 +149,7 @@ def test_script_iterator(num_measurements: int, repeats: int) -> None:
         assert it.current_repeat == repeats
 
 
-@patch("finesse.gui.measure_script.script.ScriptRunner")
+@patch("frog.gui.measure_script.script.ScriptRunner")
 def test_script_run(script_runner_mock: Mock) -> None:
     """Test Script's run() method."""
     mock2 = MagicMock()

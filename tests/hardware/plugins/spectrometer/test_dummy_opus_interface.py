@@ -6,7 +6,7 @@ import pytest
 from statemachine import State
 from statemachine.exceptions import TransitionNotAllowed
 
-from finesse.hardware.plugins.spectrometer.dummy_opus_interface import (
+from frog.hardware.plugins.spectrometer.dummy_opus_interface import (
     DummyOPUSInterface,
     OPUSError,
     OPUSErrorInfo,
@@ -15,7 +15,7 @@ from finesse.hardware.plugins.spectrometer.dummy_opus_interface import (
 
 
 @pytest.fixture
-@patch("finesse.hardware.plugins.spectrometer.dummy_opus_interface.OPUSStateMachine")
+@patch("frog.hardware.plugins.spectrometer.dummy_opus_interface.OPUSStateMachine")
 def opus(sm_mock: Mock) -> DummyOPUSInterface:
     """A fixture for DummyOPUSInterface."""
     sm_mock.return_value = MagicMock()
@@ -27,7 +27,7 @@ def opus(sm_mock: Mock) -> DummyOPUSInterface:
 
 
 @pytest.fixture
-@patch("finesse.hardware.plugins.spectrometer.dummy_opus_interface.QTimer")
+@patch("frog.hardware.plugins.spectrometer.dummy_opus_interface.QTimer")
 def sm(timer_mock: Mock) -> OPUSStateMachine:
     """A fixture for OPUSStateMachine."""
     timer_mock.return_value = MagicMock()
@@ -48,7 +48,7 @@ class _MockObserver:
 
 
 @pytest.mark.parametrize("duration_secs,duration_ms", ((0.5, 500), (1.0, 1000)))
-@patch("finesse.hardware.plugins.spectrometer.dummy_opus_interface.QTimer")
+@patch("frog.hardware.plugins.spectrometer.dummy_opus_interface.QTimer")
 def test_sm_init(
     timer_mock: Mock, duration_secs: float, duration_ms: int, qtbot
 ) -> None:
@@ -95,7 +95,7 @@ def test_sm_stop(sm: OPUSStateMachine) -> None:
         timer_mock.stop.assert_called_once_with()
 
 
-@patch("finesse.hardware.plugins.spectrometer.dummy_opus_interface.OPUSStateMachine")
+@patch("frog.hardware.plugins.spectrometer.dummy_opus_interface.OPUSStateMachine")
 def test_init(sm_mock: Mock) -> None:
     """Test the constructor."""
     sm = MagicMock()

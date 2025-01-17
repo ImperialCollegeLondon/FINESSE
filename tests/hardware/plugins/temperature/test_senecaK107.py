@@ -6,7 +6,7 @@ import numpy
 import pytest
 from serial import SerialException
 
-from finesse.hardware.plugins.temperature.senecak107 import SenecaK107, SenecaK107Error
+from frog.hardware.plugins.temperature.senecak107 import SenecaK107, SenecaK107Error
 
 _SERIAL_ARGS = ("0403:6001 AB0LMVI5A", 57600)
 

@@ -5,8 +5,8 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from finesse.device_info import DeviceParameter, DeviceTypeInfo
-from finesse.gui.hardware_set.device_view import (
+from frog.device_info import DeviceParameter, DeviceTypeInfo
+from frog.gui.hardware_set.device_view import (
     ComboParameterWidget,
     DeviceParametersWidget,
     TextParameterWidget,
@@ -89,7 +89,7 @@ def test_init(params: Mapping[str, DeviceParameter], qtbot) -> None:
 
 
 @pytest.mark.parametrize("param_name", ("param1", "param2"))
-@patch("finesse.gui.hardware_set.device_view.settings")
+@patch("frog.gui.hardware_set.device_view.settings")
 def test_load_saved_parameter_values(
     settings_mock: Mock, param_name: str, widget: DeviceParametersWidget, qtbot
 ) -> None:
@@ -101,7 +101,7 @@ def test_load_saved_parameter_values(
 
 
 @pytest.mark.parametrize("param_name", ("param1", "param2"))
-@patch("finesse.gui.hardware_set.device_view.settings")
+@patch("frog.gui.hardware_set.device_view.settings")
 def test_load_saved_parameter_values_none_saved(
     settings_mock: Mock, param_name: str, widget: DeviceParametersWidget, qtbot
 ) -> None:
@@ -112,8 +112,8 @@ def test_load_saved_parameter_values_none_saved(
     assert widget._param_widgets[param_name].value == 0
 
 
-@patch("finesse.gui.hardware_set.device_view.settings")
-@patch("finesse.gui.hardware_set.device_view.logging.warn")
+@patch("frog.gui.hardware_set.device_view.settings")
+@patch("frog.gui.hardware_set.device_view.logging.warn")
 def test_load_saved_parameter_values_error(
     warn_mock: Mock,
     settings_mock: Mock,
