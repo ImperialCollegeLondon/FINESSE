@@ -1,7 +1,7 @@
 # Hardware sets
 
 Hardware sets are collections of hardware device types along with their associated
-parameters. They are used in FROG to represent a particular hardware rig (e.g. FROG or
+parameters. They are used in FROG to represent a particular hardware rig (e.g. FINESSE or
 UNIRAS), so that users can easily swap between them. FROG comes with some built in
 configurations, but users can also define their own, either for convenience during
 testing or to build on FROG's functionality.
