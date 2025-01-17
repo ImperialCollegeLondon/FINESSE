@@ -1,6 +1,6 @@
 # Measure scripts
 
-FINESSE allows users to trigger a sequence of recordings with the mirror at different
+FROG allows users to trigger a sequence of recordings with the mirror at different
 angles. The exact sequence, defined in terms of what the sequence of angles is and how
 many repeats to do, can be saved to a files, which we are calling "measure scripts".
 

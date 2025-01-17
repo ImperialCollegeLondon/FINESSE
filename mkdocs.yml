@@ -1,5 +1,5 @@
-site_name: FINESSE
-repo_url: https://github.com/ImperialCollegeLondon/FINESSE
+site_name: FROG
+repo_url: https://github.com/ImperialCollegeLondon/FROG
 watch: [finesse]
 
 theme:
@@ -35,7 +35,7 @@ plugins:
           paths: [finesse]
 
 nav:
-  - FINESSE documentation: index.md
+  - FROG documentation: index.md
   - User guide: user_guide.md
   - Hardware: hardware.md
   - Hardware sets: hardware_sets.md

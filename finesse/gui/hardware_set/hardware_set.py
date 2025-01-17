@@ -96,7 +96,7 @@ class HardwareSet:
         The GUI appends numbers to distinguish hardware sets with the same names. The
         reason for also using the file path for sorting is because it is not guaranteed
         that hardware set config files will always be loaded in the same order and we
-        don't want the name + number pairs to change between runs of FINESSE.
+        don't want the name + number pairs to change between runs of FROG.
         """
         return (not self.built_in, self.name, self.file_path) < (
             not other.built_in,
@@ -216,7 +216,7 @@ def _load_hardware_sets(dir: Path, built_in: bool) -> Iterable[HardwareSet]:
 
 
 def _load_builtin_hardware_sets() -> Iterable[HardwareSet]:
-    """Load all the default hardware sets included with FINESSE."""
+    """Load all the default hardware sets included with FROG."""
     pkg_path = str(resources.files("finesse.gui.hardware_set").joinpath())
 
     # In theory, this may raise an error, but let's assume that all the built-in configs

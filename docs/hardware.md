@@ -1,6 +1,6 @@
 # Hardware
 
-To work, FINESSE requires connections to a number of devices. At a minimum, this must
+To work, FROG requires connections to a number of devices. At a minimum, this must
 include:
 
 - An interferometer
@@ -19,7 +19,7 @@ Code in the `finesse.hardware` module is not imported into the frontend code
 ([`finesse.gui`](../reference/finesse/gui)) directly. Instead, messages are passed back
 and forth using the [PyPubSub](https://pypi.org/project/PyPubSub/) package.
 
-As we want the user to be able to select which devices to use at runtime, the FINESSE
+As we want the user to be able to select which devices to use at runtime, the FROG
 hardware framework is designed to be modular. This is achieved via a plugin system. Each
 device type and device base type (explained below) is represented by a plugin class
 residing somewhere in the

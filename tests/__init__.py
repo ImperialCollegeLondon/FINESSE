@@ -1,1 +1,1 @@
-"""Unit tests for FINESSE."""
+"""Unit tests for FROG."""

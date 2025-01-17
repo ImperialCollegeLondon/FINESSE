@@ -1,1 +1,1 @@
-"""Contains code for FINESSE's graphical user interface."""
+"""Contains code for FROG's graphical user interface."""

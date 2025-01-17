@@ -1,24 +1,25 @@
-![GitHub tag (with filter)](https://img.shields.io/github/v/tag/ImperialCollegeLondon/FINESSE)
-[![GitHub](https://img.shields.io/github/license/ImperialCollegeLondon/FINESSE)](https://raw.githubusercontent.com/ImperialCollegeLondon/FINESSE/main/LICENCE.txt)
+![GitHub tag (with filter)](https://img.shields.io/github/v/tag/ImperialCollegeLondon/FROG)
+[![GitHub](https://img.shields.io/github/license/ImperialCollegeLondon/FROG)](https://raw.githubusercontent.com/ImperialCollegeLondon/FROG/main/LICENCE.txt)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Checked with mypy](http://www.mypy-lang.org/static/mypy_badge.svg)](http://mypy-lang.org/)
-[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/ImperialCollegeLondon/FINESSE/main.svg)](https://results.pre-commit.ci/latest/github/ImperialCollegeLondon/FINESSE/main)
-[![Test and build](https://github.com/ImperialCollegeLondon/FINESSE/actions/workflows/ci.yml/badge.svg)](https://github.com/ImperialCollegeLondon/FINESSE/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/ImperialCollegeLondon/FINESSE/graph/badge.svg?token=4UILYHPMJT)](https://codecov.io/gh/ImperialCollegeLondon/FINESSE)
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/ImperialCollegeLondon/FROG/main.svg)](https://results.pre-commit.ci/latest/github/ImperialCollegeLondon/FROG/main)
+[![Test and build](https://github.com/ImperialCollegeLondon/FROG/actions/workflows/ci.yml/badge.svg)](https://github.com/ImperialCollegeLondon/FROG/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/ImperialCollegeLondon/FROG/graph/badge.svg?token=4UILYHPMJT)](https://codecov.io/gh/ImperialCollegeLondon/FROG)
 
-# FINESSE
+# FROG
 
-FINESSE is software for controlling a spectrometer system developed by Imperial College
-London's [Space and Atmospheric Physics group], written in Python and with a graphical
-interface using the [PySide6 Qt bindings].
+FROG (**F**ar infra**R**ed **O**bservation **G**UI) is software for controlling a
+spectrometer system developed by Imperial College London's [Space and Atmospheric
+Physics group], written in Python and with a graphical interface using the [PySide6 Qt
+bindings].
 
 Emissivity of the Earth's different surface types helps determine the efficiency with
 which the planet radiatively cools to space and is a critical variable in climate
 models. However, to date, most measurements of surface emissivity have been made in the
-mid-infrared. The FINESSE project is novel in employing a ground-based system capable of
+mid-infrared. The FROG project is novel in employing a ground-based system capable of
 extending these datasets into the far-infrared. The system is tuned in particular for
 targeting ice and snow, as the response of the climate to global warming is observed to
-be most rapid in Arctic regions. Far-infrared emissivity data provided by FINESSE will
+be most rapid in Arctic regions. Far-infrared emissivity data provided by FROG will
 inform climate modelling studies seeking to better understand this rapid change. They
 will also help to validate emissivity retrievals from upcoming satellite instruments
 focusing on the far-infrared which will be deployed by ESA ([FORUM]) and NASA
@@ -37,7 +38,7 @@ Atmospheric Measurements] aircraft.
 
 ## For developers
 
-Technical documentation is available on [FINESSE's GitHub Pages site](https://imperialcollegelondon.github.io/FINESSE/).
+Technical documentation is available on [FROG's GitHub Pages site](https://imperialcollegelondon.github.io/FROG/).
 
 This is a Python application that uses [poetry](https://python-poetry.org) for packaging
 and dependency management. It also provides [pre-commit](https://pre-commit.com/) hooks

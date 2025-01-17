@@ -33,7 +33,7 @@ def write_diagram(sm: type[StateMachine]):
 
 
 def get_all_state_machines() -> Iterable[type[StateMachine]]:
-    """Get all the state machine classes in FINESSE."""
+    """Get all the state machine classes in FROG."""
     for module in get_all_modules(finesse):
         for _, obj in inspect.getmembers(module):
             if (

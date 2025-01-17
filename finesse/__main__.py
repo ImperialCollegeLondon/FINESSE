@@ -1,4 +1,4 @@
-"""The main entry point to FINESSE."""
+"""The main entry point to FROG."""
 
 from finesse import run
 

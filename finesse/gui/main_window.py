@@ -1,4 +1,4 @@
-"""Code for FINESSE's main GUI window."""
+"""Code for FROG's main GUI window."""
 
 from pubsub import pub
 from PySide6.QtGui import QCloseEvent, QShowEvent
@@ -33,7 +33,7 @@ from finesse.gui.uncaught_exceptions import set_uncaught_exception_handler
 
 
 class MainWindow(QMainWindow):
-    """The main window for FINESSE."""
+    """The main window for FROG."""
 
     def __init__(self) -> None:
         """Create a new MainWindow."""

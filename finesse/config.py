@@ -5,7 +5,7 @@ from pathlib import Path
 
 from platformdirs import user_config_path
 
-APP_NAME = "FINESSE"
+APP_NAME = "FROG"
 """A human-readable name for the app."""
 
 APP_AUTHOR = "Imperial College London"

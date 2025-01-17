@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "FINESSE"
+name = "FROG"
 version = "2.1.0rc1"
 description = "A graphical user interface for controlling and monitoring an interferometer device."
 authors = [

@@ -30,7 +30,6 @@ class SensorReading:
         """Print a property's value and unit in required format.
 
         Returns:
-            str: The value and unit of a property in the format consistent with
-                 the previous FINESSE GUI.
+            str: The value and unit of a property
         """
         return f"{self.value:.6f} {self.unit}"

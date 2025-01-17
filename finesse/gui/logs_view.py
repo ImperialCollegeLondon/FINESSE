@@ -1,4 +1,4 @@
-"""Code for FINESSE's logs menu."""
+"""Code for FROG's logs menu."""
 
 import os
 

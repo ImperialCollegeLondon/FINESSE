@@ -25,7 +25,7 @@ def initialise_logging() -> None:
     log_file = get_log_path() / f"{get_current_time().strftime('%Y%m%d_%H-%M-%S')}.log"
 
     # Allow user to set log level with environment variable
-    log_level = (os.environ.get("FINESSE_LOG_LEVEL") or "INFO").upper()
+    log_level = (os.environ.get("FROG_LOG_LEVEL") or "INFO").upper()
     if not hasattr(logging, log_level):
         raise ValueError(f"Invalid log level: {log_level}")
 

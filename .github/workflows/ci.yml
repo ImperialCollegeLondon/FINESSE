@@ -47,5 +47,5 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: runner.os == 'Windows' && success()
         with:
-          name: FINESSE
-          path: dist/FINESSE.exe
+          name: FROG
+          path: dist/FROG.exe

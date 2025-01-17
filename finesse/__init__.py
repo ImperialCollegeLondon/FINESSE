@@ -1,4 +1,4 @@
-"""The main module for the FINESSE program."""
+"""The main module for the FROG program."""
 
 from finesse.config import APP_VERSION
 
@@ -6,7 +6,7 @@ __version__ = APP_VERSION
 
 
 def run() -> None:
-    """Run FINESSE."""
+    """Run FROG."""
     import sys
 
     from PySide6.QtWidgets import QApplication
